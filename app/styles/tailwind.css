@@ -2,3 +2,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[data-rk] {
+  @apply h-full;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url("/fonts/Satoshi-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Satoshi";
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url("/fonts/Satoshi-Medium.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Satoshi";
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url("/fonts/Satoshi-Bold.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Satoshi";
+  font-weight: 500;
+  font-display: swap;
+  font-style: italic;
+  font-named-instance: "Italic";
+  src: url("/fonts/Satoshi-RegularItalic.otf") format("opentype");
+}

@@ -8,7 +8,7 @@ This is an opiniated web3 frontend starter template from TreasureDAO.
 - Tailwind CSS
 - GraphQL Codegen
 - wagmi
-- react-hot-toast
+- sonner
 - Deployment on fly.io
 
 ## Development
