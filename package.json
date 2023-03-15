@@ -43,7 +43,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.2",
     "@remix-run/dev": "^1.14.0",
     "@remix-run/eslint-config": "^1.14.0",
-    "@remix-run/server-runtime": "^1.14.0",
+    "@remix-run/server-runtime": "^1.14.2",
     "@treasure-project/tailwind-config": "^1.0.0",
     "@types/nprogress": "^0.2.0",
     "@types/react": "^18.0.28",
