@@ -1,13 +1,13 @@
 import type { ExecutionResult } from "graphql";
 import type { Pool } from "~/types";
-import { getPairCollectionAddresses } from "~/utils/pair.server";
-import { createPoolName } from "~/utils/pool.server";
-import { createPoolToken } from "~/utils/token.server";
+import { getPairCollectionAddresses } from "~/utils/pairs.server";
+import { createPoolName } from "~/utils/pools.server";
+import { createPoolToken } from "~/utils/tokens.server";
 import type { getPairsQuery } from "../../.graphclient";
 import { execute, getPairsDocument } from "../../.graphclient";
-import { getCollections } from "./collections.server";
+import { fetchTroveCollections } from "./collections.server";
 
-export const getPools = async (): Promise<Pool[]> => {
+export const fetchPools = async (): Promise<Pool[]> => {
   const result = (await execute(
     getPairsDocument,
     {}
@@ -16,7 +16,7 @@ export const getPools = async (): Promise<Pool[]> => {
   const collectionAddresses = [
     ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
   ];
-  const collections = await getCollections(collectionAddresses);
+  const collections = await fetchTroveCollections(collectionAddresses);
   return pairs.map((pair) => {
     const token0 = createPoolToken(pair.token0, collections);
     const token1 = createPoolToken(pair.token1, collections);

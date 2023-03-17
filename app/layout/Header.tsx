@@ -6,7 +6,7 @@ import { cn } from "~/utils/lib";
 
 export const Header = () => {
   return (
-    <nav className="bg-steel-1000 shadow-sm">
+    <nav className="bg-night-900 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-6">
@@ -23,8 +23,8 @@ export const Header = () => {
                   to={item.href}
                   className={({ isActive }) =>
                     cn(
-                      "inline-flex items-center rounded-md px-2.5 py-2 text-sm font-medium text-steel-100 transition-colors hover:bg-steel-800 hover:text-steel-50",
-                      isActive && "bg-steel-800 text-white hover:text-white"
+                      "inline-flex items-center rounded-md px-2.5 py-2 text-sm font-medium text-night-400 transition-colors hover:bg-night-800 hover:text-honey-25",
+                      isActive && "text-night-100 hover:text-night-100"
                     )
                   }
                 >

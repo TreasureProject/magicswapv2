@@ -1,5 +1,5 @@
 import type { Pair } from "~/types";
-import { getTokenCollectionAddresses } from "./token.server";
+import { getTokenCollectionAddresses } from "./tokens.server";
 
 export const getPairCollectionAddresses = (pair: Pair) => [
   ...new Set([

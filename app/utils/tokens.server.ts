@@ -1,5 +1,5 @@
 import type { PoolToken, Token, TroveCollectionMapping } from "~/types";
-import { createPoolTokenCollection } from "./collection.server";
+import { createPoolTokenCollection } from "./collections.server";
 
 // TODO: Move to a token list JSON per chain
 const ERC20_TOKEN_MAPPING: Record<string, string> = {

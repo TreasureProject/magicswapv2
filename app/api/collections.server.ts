@@ -1,6 +1,6 @@
 import type { TroveCollection, TroveCollectionMapping } from "~/types";
 
-export const getCollection = async (
+export const fetchTroveCollection = async (
   address: string
 ): Promise<TroveCollection> => {
   const response = await fetch(
@@ -9,9 +9,9 @@ export const getCollection = async (
   return response.json();
 };
 
-export const getCollections = async (addresses: string[]) => {
+export const fetchTroveCollections = async (addresses: string[]) => {
   const collections = await Promise.all(
-    addresses.map((address) => getCollection(address))
+    addresses.map((address) => fetchTroveCollection(address))
   );
   return collections.reduce(
     (acc, collection) => ({
