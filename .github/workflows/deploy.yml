@@ -1,7 +1,5 @@
 name: Deploy
 on: workflow_dispatch
-env:
-  APP_NAME: magicswapv2
 jobs:
   typecheck:
     name: Check Types
