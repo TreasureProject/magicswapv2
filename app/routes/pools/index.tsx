@@ -4,6 +4,11 @@ import { Button } from "~/components/Button";
 import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
 import type { Pool } from "~/types";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Tabs } from "~/components/Tabs";
+import { PoolIcon } from "~/components/Icons";
+import { Badge } from "~/components/Badge";
 
 export async function loader() {
   return json({
@@ -13,6 +18,7 @@ export async function loader() {
 
 export default function PoolsListPage() {
   const { pools } = useLoaderData<typeof loader>();
+  const [tab, setTab] = useState("all");
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
       <div className="flex items-center justify-between">
@@ -28,6 +34,31 @@ export default function PoolsListPage() {
           <Button>New Position</Button>
         </div>
       </div>
+      <Tabs
+        className="mt-8"
+        tabs={[
+          {
+            id: "all",
+            title: (
+              <span className="flex items-center gap-2">
+                <PoolIcon className="h-4 w-4" />
+                All Pools
+              </span>
+            ),
+          },
+          {
+            id: "user",
+            title: (
+              <span className="flex items-center gap-2">
+                Your Positions
+                <Badge>0</Badge>
+              </span>
+            ),
+          },
+        ]}
+        activeTab={tab}
+        onChange={setTab}
+      />
       <table className="mt-6 w-full rounded-md bg-night-900 text-white">
         <thead>
           <tr>
