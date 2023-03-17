@@ -5,10 +5,10 @@ import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
 import type { Pool } from "~/types";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Tabs } from "~/components/Tabs";
 import { PoolIcon } from "~/components/Icons";
 import { Badge } from "~/components/Badge";
+import { Container } from "~/components/Container";
 
 export async function loader() {
   return json({
@@ -20,8 +20,8 @@ export default function PoolsListPage() {
   const { pools } = useLoaderData<typeof loader>();
   const [tab, setTab] = useState("all");
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      <div className="flex items-center justify-between">
+    <Container className="py-6 sm:py-10">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold">Pools</h1>
           <p className="text-night-200">
@@ -35,24 +35,24 @@ export default function PoolsListPage() {
         </div>
       </div>
       <Tabs
-        className="mt-8"
+        className="mt-6 grid grid-cols-2 sm:mt-8"
         tabs={[
           {
             id: "all",
             title: (
-              <span className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <PoolIcon className="h-4 w-4" />
                 All Pools
-              </span>
+              </div>
             ),
           },
           {
             id: "user",
             title: (
-              <span className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 Your Positions
                 <Badge>0</Badge>
-              </span>
+              </div>
             ),
           },
         ]}
@@ -62,19 +62,19 @@ export default function PoolsListPage() {
       <table className="mt-6 w-full rounded-md bg-night-900 text-white">
         <thead>
           <tr>
-            <th className="py-2.5 px-5 text-left text-sm font-normal text-night-200">
+            <th className="py-2.5 px-4 text-left text-sm font-normal text-night-200 sm:px-5">
               Name
             </th>
-            <th className="py-2.5 px-5 text-right text-sm font-normal text-night-200">
+            <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:block sm:px-5">
               Volume (24h)
             </th>
-            <th className="py-2.5 px-5 text-right text-sm font-normal text-night-200">
+            <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:block sm:px-5">
               <abbr title="Annual Percentage Rate">APR</abbr>
             </th>
-            <th className="py-2.5 px-5 text-right text-sm font-normal text-night-200">
+            <th className="py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:px-5">
               <abbr title="Total Value Locked">TVL</abbr>
             </th>
-            <th className="py-2.5 px-5 text-right text-sm font-normal text-night-200">
+            <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:block sm:px-5">
               Fees
             </th>
           </tr>
@@ -82,18 +82,24 @@ export default function PoolsListPage() {
         <tbody>
           {pools.map((pool) => (
             <tr key={pool.id}>
-              <td className="flex items-center py-4 px-5 text-left font-medium uppercase">
+              <td className="flex items-center py-4 px-4 text-left font-medium uppercase sm:px-5">
                 <PoolImage pool={pool as Pool} />
-                {pool.name}
+                <span className="-ml-2 sm:ml-0">{pool.name}</span>
               </td>
-              <td className="py-4 px-5 text-right">?</td>
-              <td className="py-4 px-5 text-right">?</td>
-              <td className="py-4 px-5 text-right">?</td>
-              <td className="py-4 px-5 text-right">?</td>
+              <td className="hidden py-4 px-4 text-right sm:block sm:px-5">
+                ?
+              </td>
+              <td className="hidden py-4 px-4 text-right sm:block sm:px-5">
+                ?
+              </td>
+              <td className="py-4 px-4 text-right sm:px-5">?</td>
+              <td className="hidden py-4 px-4 text-right sm:block sm:px-5">
+                ?
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </main>
+    </Container>
   );
 }

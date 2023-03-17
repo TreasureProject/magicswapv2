@@ -23,11 +23,11 @@ export const Tabs = ({
   return (
     <ul className={cn("flex items-center", className)} {...ulProps}>
       {tabs.map(({ id, title }) => (
-        <li key={id} className="relative">
+        <li key={id} className="relative text-center">
           <button
             onClick={() => onChange(id)}
             className={cn(
-              "px-8 py-3 text-sm font-semibold text-night-200 transition-colors",
+              "w-full py-3 text-sm font-semibold text-night-200 transition-colors sm:w-auto sm:px-8",
               activeTab === id && "text-white"
             )}
           >
