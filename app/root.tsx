@@ -13,12 +13,13 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import { Toaster } from "sonner";
-import { mainnet, createClient, configureChains, WagmiConfig } from "wagmi";
-import { optimism, arbitrum, polygon, arbitrumGoerli } from "wagmi/chains";
+import { createClient, configureChains, WagmiConfig } from "wagmi";
+import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import {
   connectorsForWallets,
+  darkTheme,
   getDefaultWallets,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
@@ -31,6 +32,7 @@ import styles from "./styles/tailwind.css";
 import nProgressStyles from "./styles/nprogress.css";
 
 import type { Env } from "./types";
+import { Header } from "./layout/Header";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -40,7 +42,7 @@ export const links: LinksFunction = () => [
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "Web3 Frontend Starter Template",
+  title: "MagicSwap",
   viewport: "width=device-width,initial-scale=1",
 });
 
@@ -75,12 +77,12 @@ export default function App() {
 
     const { chains, provider } = configureChains(
       // Configure this to chains you want
-      [mainnet, optimism, polygon, arbitrum, ...testChains],
+      [arbitrum, ...testChains],
       [alchemyProvider({ apiKey: ENV.PUBLIC_ALCHEMY_KEY }), publicProvider()]
     );
 
     const { wallets } = getDefaultWallets({
-      appName: "Template App",
+      appName: "MagicSwap",
       chains,
     });
 
@@ -128,9 +130,10 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-[#0D1420] antialiased">
+      <body className="h-full bg-steel-900 antialiased">
         <WagmiConfig client={client}>
-          <RainbowKitProvider chains={chains}>
+          <RainbowKitProvider chains={chains} theme={darkTheme()}>
+            <Header />
             <Outlet />
           </RainbowKitProvider>
         </WagmiConfig>

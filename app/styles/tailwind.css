@@ -8,37 +8,10 @@
 }
 
 @font-face {
-  font-family: "Satoshi";
-  font-weight: 500;
-  font-display: swap;
+  font-family: 'Whyte';
   font-style: normal;
-  font-named-instance: "Regular";
-  src: url("/fonts/Satoshi-Regular.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Satoshi";
-  font-weight: 600;
+  font-weight: 100 1000;
   font-display: swap;
-  font-style: normal;
-  font-named-instance: "Regular";
-  src: url("/fonts/Satoshi-Medium.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Satoshi";
-  font-weight: 700;
-  font-display: swap;
-  font-style: normal;
-  font-named-instance: "Regular";
-  src: url("/fonts/Satoshi-Bold.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Satoshi";
-  font-weight: 500;
-  font-display: swap;
-  font-style: italic;
-  font-named-instance: "Italic";
-  src: url("/fonts/Satoshi-RegularItalic.otf") format("opentype");
+  src: url("/fonts/ABCWhyteVariable.woff2") format('woff2'),
+       url("/fonts/ABCWhyteVariable.woff") format('woff');
 }
