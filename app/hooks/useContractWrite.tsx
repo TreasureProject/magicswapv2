@@ -3,7 +3,6 @@ import {
   useContractWrite as useContractWriteWagmi,
   useWaitForTransaction,
 } from "wagmi";
-import toast from "react-hot-toast";
 import type { Optional } from "~/types";
 
 type UseContractWriteArgs = Parameters<typeof useContractWriteWagmi>;
@@ -41,28 +40,28 @@ export const useContractWrite = (
   useEffect(() => {
     if (isLoading) {
       if (toastId.current) {
-        toast.loading(
-          renderStatusWithHeader("Transaction in progress...", statusHeader),
-          {
-            id: toastId.current,
-          }
-        );
+        // toast.loading(
+        //   renderStatusWithHeader("Transaction in progress...", statusHeader),
+        //   {
+        //     id: toastId.current,
+        //   }
+        // );
       } else {
-        toastId.current = toast.loading(
-          renderStatusWithHeader("Transaction in progress...", statusHeader)
-        );
+        // toastId.current = toast.loading(
+        //   renderStatusWithHeader("Transaction in progress...", statusHeader)
+        // );
       }
     } else if (transaction.status === "success") {
-      toast.success(
-        renderStatusWithHeader("Transaction successful", statusHeader),
-        {
-          id: toastId.current,
-        }
-      );
+      // toast.success(
+      //   renderStatusWithHeader("Transaction successful", statusHeader),
+      //   {
+      //     id: toastId.current,
+      //   }
+      // );
     } else if (isError) {
-      toast.error(renderStatusWithHeader("Transaction failed", statusHeader), {
-        id: toastId.current,
-      });
+      // toast.error(renderStatusWithHeader("Transaction failed", statusHeader), {
+      //   id: toastId.current,
+      // });
     }
   }, [isError, isLoading, statusHeader, transaction.status]);
 
