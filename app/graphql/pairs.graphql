@@ -1,0 +1,24 @@
+fragment TokenFragment on Token {
+  id
+  nftVault {
+    nftVaultCollections {
+      collection {
+        id
+        type
+      }
+      tokenIds
+    }
+  }
+}
+
+query getPairs {
+  pairs {
+    id
+    token0 {
+      ...TokenFragment
+    }
+    token1 {
+      ...TokenFragment
+    }
+  }
+}

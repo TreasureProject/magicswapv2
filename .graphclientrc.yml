@@ -1,0 +1,7 @@
+sources:
+  - name: magicswapv2
+    handler:
+      graphql:
+        endpoint: ${MAGICSWAPV2_API_URL}
+documents:
+  - "./app/**/*.graphql"

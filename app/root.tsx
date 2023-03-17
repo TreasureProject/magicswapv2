@@ -130,7 +130,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-steel-900 antialiased">
+      <body className="h-full bg-steel-900 text-steel-100 antialiased">
         <WagmiConfig client={client}>
           <RainbowKitProvider chains={chains} theme={darkTheme()}>
             <Header />

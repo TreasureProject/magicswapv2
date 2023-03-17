@@ -10,7 +10,7 @@
     "dev": "remix dev",
     "start": "remix-serve build",
     "typecheck": "tsc",
-    "codegen": "node -r dotenv/config node_modules/.bin/gql-gen",
+    "codegen": "graphclient build",
     "lint": "prettier --write 'app/**/{*.ts,*.tsx}' && eslint --fix --no-error-on-unmatched-pattern 'app/**/{*.ts,*.tsx}'",
     "prepare": "husky install"
   },
@@ -23,9 +23,6 @@
     "@remix-run/serve": "^1.14.0",
     "buffer-polyfill": "npm:buffer@^6.0.3",
     "clsx": "^1.2.1",
-    "graphql": "^16.6.0",
-    "graphql-request": "^5.2.0",
-    "graphql-tag": "^2.12.6",
     "isbot": "^3.6.6",
     "nprogress": "^0.2.0",
     "react": "^18.2.0",
@@ -36,10 +33,7 @@
     "wagmi": "^0.12.1"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^3.2.2",
-    "@graphql-codegen/typescript": "^3.0.2",
-    "@graphql-codegen/typescript-graphql-request": "^4.5.8",
-    "@graphql-codegen/typescript-operations": "^3.0.2",
+    "@graphprotocol/client-cli": "^2.2.20",
     "@remix-run/dev": "^1.14.0",
     "@remix-run/eslint-config": "^1.14.0",
     "@remix-run/server-runtime": "^1.14.0",
