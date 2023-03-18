@@ -84,9 +84,11 @@ export default function PoolsListPage() {
           <tbody>
             {pools.map((pool) => (
               <tr key={pool.id}>
-                <td className="flex items-center py-4 px-4 text-left font-medium uppercase sm:px-5">
-                  <PoolImage pool={pool as Pool} />
-                  <span className="-ml-2 sm:ml-0">{pool.name}</span>
+                <td className="py-4 px-4 text-left font-medium uppercase sm:px-5">
+                  <Link to={`/pools/${pool.id}`} className="flex items-center">
+                    <PoolImage pool={pool as Pool} />
+                    <span className="-ml-2 sm:ml-0">{pool.name}</span>
+                  </Link>
                 </td>
                 <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
                   ?

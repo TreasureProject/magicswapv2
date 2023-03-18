@@ -11,16 +11,26 @@ fragment TokenFragment on Token {
   }
 }
 
+fragment PairFragment on Pair {
+  id
+  token0 {
+    ...TokenFragment
+  }
+  token1 {
+    ...TokenFragment
+  }
+  reserve0
+  reserve1
+}
+
 query getPairs {
   pairs {
-    id
-    token0 {
-      ...TokenFragment
-    }
-    token1 {
-      ...TokenFragment
-    }
-    reserve0
-    reserve1
+    ...PairFragment
+  }
+}
+
+query getPair($id: ID!) {
+  pair(id: $id) {
+    ...PairFragment
   }
 }
