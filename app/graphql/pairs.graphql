@@ -20,5 +20,7 @@ query getPairs {
     token1 {
       ...TokenFragment
     }
+    reserve0
+    reserve1
   }
 }

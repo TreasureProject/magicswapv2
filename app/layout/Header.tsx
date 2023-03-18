@@ -24,7 +24,7 @@ export const Header = () => {
               />
             </NavLink>
             <div className="h-5 w-[1px] bg-night-800" />
-            <button className="rounded-md bg-night-800 px-2 py-1.5 text-night-200">
+            <button className="rounded-md bg-night-800 px-2 py-1.5 text-night-200 sm:hidden">
               <MenuIcon className="h-5 w-5" />
             </button>
             <div className="hidden sm:flex sm:gap-4">

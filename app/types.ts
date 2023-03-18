@@ -35,6 +35,13 @@ export type TroveCollection = {
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
 
+// DeFiLlama
+export type LlamaTokensResponse = {
+  coins: Record<string, { price: number }>;
+};
+
+export type TokenPriceMapping = Record<string, number>;
+
 /** Application types */
 export type PoolTokenCollection = {
   id: string;
@@ -50,6 +57,7 @@ export type PoolToken = {
   image: Optional<string>;
   collections: PoolTokenCollection[];
   isNft: boolean;
+  priceUSD: number;
 };
 
 export type Pool = {
@@ -57,4 +65,5 @@ export type Pool = {
   name: string;
   token0: PoolToken;
   token1: PoolToken;
+  tvlUSD: number;
 };

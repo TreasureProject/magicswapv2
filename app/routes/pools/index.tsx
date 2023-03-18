@@ -9,6 +9,7 @@ import { Tabs } from "~/components/Tabs";
 import { PoolIcon } from "~/components/Icons";
 import { Badge } from "~/components/Badge";
 import { Container } from "~/components/Container";
+import { formatUSD } from "~/utils/currency";
 
 export async function loader() {
   return json({
@@ -93,7 +94,9 @@ export default function PoolsListPage() {
                 <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
                   ?
                 </td>
-                <td className="py-4 px-4 text-right sm:px-5">?</td>
+                <td className="py-4 px-4 text-right sm:px-5">
+                  {formatUSD(pool.tvlUSD)}
+                </td>
                 <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
                   ?
                 </td>
