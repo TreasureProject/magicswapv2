@@ -4,6 +4,7 @@ import type {
   PoolToken,
   TokenPriceMapping,
   TroveCollectionMapping,
+  TroveTokenMapping,
 } from "~/types";
 import { createPoolToken } from "./tokens.server";
 
@@ -18,10 +19,11 @@ export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
 export const createPoolFromPair = (
   pair: Pair,
   collections: TroveCollectionMapping,
+  tokens: TroveTokenMapping,
   prices: TokenPriceMapping
 ): Pool => {
-  const token0 = createPoolToken(pair.token0, collections, prices);
-  const token1 = createPoolToken(pair.token1, collections, prices);
+  const token0 = createPoolToken(pair.token0, collections, tokens, prices);
+  const token1 = createPoolToken(pair.token1, collections, tokens, prices);
   const reserve0 = Number(pair.reserve0);
   const reserve1 = Number(pair.reserve1);
   const token0PriceUSD =
@@ -36,10 +38,12 @@ export const createPoolFromPair = (
     token0: {
       ...token0,
       priceUSD: token0PriceUSD,
+      reserve: reserve0,
     },
     token1: {
       ...token1,
       priceUSD: token1PriceUSD,
+      reserve: reserve1,
     },
     tvlUSD: token0PriceUSD * reserve0 * 2,
   };

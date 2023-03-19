@@ -18,8 +18,8 @@ export type Optional<T> = T | undefined;
 export type Pair = getPairsQuery["pairs"][number];
 export type Token = Pair["token0"];
 export type Collection = NonNullable<
-  Token["nftVault"]
->["nftVaultCollections"][number]["collection"];
+  Token["vaultCollections"]
+>[number]["collection"];
 
 // Trove
 export type TroveCollection = {
@@ -35,6 +35,24 @@ export type TroveCollection = {
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
 
+export type TroveToken = {
+  collectionAddr: string;
+  tokenId: string;
+  image: {
+    uri: string;
+  };
+  metadata: {
+    name: string;
+    attributes: {
+      value: string | number;
+      trait_type: string;
+      display_type?: string;
+    }[];
+  };
+};
+
+export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;
+
 // DeFiLlama
 export type LlamaTokensResponse = {
   coins: Record<string, { price: number }>;
@@ -43,6 +61,19 @@ export type LlamaTokensResponse = {
 export type TokenPriceMapping = Record<string, number>;
 
 /** Application types */
+export type TokenReserveItem = {
+  collectionId: string;
+  tokenId: string;
+  name: string;
+  image: string;
+  amount: number;
+  attributes: {
+    value: string | number;
+    traitType: string;
+    displayType?: string;
+  }[];
+};
+
 export type PoolTokenCollection = {
   id: string;
   name: string;
@@ -54,10 +85,13 @@ export type PoolTokenCollection = {
 export type PoolToken = {
   id: string;
   name: string;
+  symbol: string;
   image: Optional<string>;
   collections: PoolTokenCollection[];
   isNft: boolean;
   priceUSD: number;
+  reserve: number;
+  reserveItems: TokenReserveItem[];
 };
 
 export type Pool = {

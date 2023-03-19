@@ -1,5 +1,34 @@
-import type { LlamaTokensResponse, TokenPriceMapping } from "~/types";
+import type {
+  LlamaTokensResponse,
+  TokenPriceMapping,
+  TroveToken,
+  TroveTokenMapping,
+} from "~/types";
 import { NORMALIZED_TOKEN_MAPPING } from "~/utils/tokens.server";
+
+export const fetchTroveTokens = async (
+  ids: string[]
+): Promise<TroveTokenMapping> => {
+  const response = await fetch(`${process.env.TROVE_API_URL}/batch-tokens`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ids: ids.map((id) => `${process.env.TROVE_API_NETWORK}/${id}`),
+    }),
+  });
+  const result = (await response.json()) as TroveToken[];
+  return result.reduce((acc, token) => {
+    const next = { ...acc };
+    if (!next[token.collectionAddr]) {
+      next[token.collectionAddr] = {};
+    }
+
+    next[token.collectionAddr][token.tokenId] = token;
+    return next;
+  }, {} as TroveTokenMapping);
+};
 
 export const fetchTokenPrices = async (
   addresses: string[]

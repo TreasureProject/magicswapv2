@@ -1,13 +1,21 @@
 fragment TokenFragment on Token {
   id
-  nftVault {
-    nftVaultCollections {
-      collection {
-        id
-        type
-      }
-      tokenIds
+  name
+  symbol
+  vaultCollections {
+    collection {
+      id
+      type
     }
+    tokenIds
+  }
+  vaultReserveItems {
+    id
+    collection {
+      id
+    }
+    tokenId
+    amount
   }
 }
 

@@ -3,6 +3,7 @@ import type {
   Token,
   TokenPriceMapping,
   TroveCollectionMapping,
+  TroveTokenMapping,
 } from "~/types";
 import { createPoolTokenCollection } from "./collections.server";
 
@@ -12,15 +13,15 @@ export const NORMALIZED_TOKEN_MAPPING: Record<string, string> = {
     "0x539bde0d7dbd336b79148aa742883198bbf60342",
 };
 
-const ERC20_TOKEN_MAPPING: Record<string, string> = {
-  "0x539bde0d7dbd336b79148aa742883198bbf60342": "MAGIC",
-};
-
-export const isTokenNft = (token: Token) => !!token.nftVault;
+export const isTokenNft = (token: Token) => token.vaultCollections.length > 0;
 
 export const getTokenCollectionAddresses = (token: Token) =>
-  token.nftVault?.nftVaultCollections.map(({ collection }) => collection.id) ??
-  [];
+  token.vaultCollections.map(({ collection }) => collection.id) ?? [];
+
+export const getTokenReserveItemIds = (token: Token) =>
+  token.vaultReserveItems.map(
+    ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+  );
 
 export const createTokenName = (
   token: Token,
@@ -36,26 +37,47 @@ export const createTokenName = (
       .join(" / ");
   }
 
-  const tokenAddress = NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id;
-  return ERC20_TOKEN_MAPPING[tokenAddress] ?? tokenAddress;
+  return token.name;
 };
 
 export const createPoolToken = (
   token: Token,
   collections: TroveCollectionMapping,
+  tokens: TroveTokenMapping,
   prices: TokenPriceMapping
 ): PoolToken => {
   const tokenCollections =
-    token.nftVault?.nftVaultCollections.map(({ collection }) =>
+    token.vaultCollections.map(({ collection }) =>
       createPoolTokenCollection(collection, collections)
     ) ?? [];
   const tokenAddress = NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id;
   return {
     id: token.id,
     name: createTokenName(token, collections),
+    symbol: token.symbol,
     image: tokenCollections[0]?.image,
     collections: tokenCollections,
     isNft: isTokenNft(token),
     priceUSD: prices[tokenAddress] ?? 0,
+    reserve: 0,
+    reserveItems: token.vaultReserveItems.map(
+      ({ collection, tokenId, amount }) => {
+        const tokenDetails = tokens[collection.id]?.[tokenId];
+        return {
+          collectionId: collection.id,
+          tokenId,
+          amount,
+          name: tokenDetails?.metadata.name ?? "",
+          image: tokenDetails?.image.uri,
+          attributes: tokenDetails?.metadata.attributes.map(
+            ({ value, trait_type: traitType, display_type: displayType }) => ({
+              value,
+              traitType,
+              displayType,
+            })
+          ),
+        };
+      }
+    ),
   };
 };
