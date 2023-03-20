@@ -10,10 +10,10 @@ import { createPoolToken } from "./tokens.server";
 
 export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
   if (token1.isNft && !token0.isNft) {
-    return `${token1.name} / ${token0.name}`;
+    return `${token1.symbol} / ${token0.symbol}`;
   }
 
-  return `${token0.name} / ${token1.name}`;
+  return `${token0.symbol} / ${token1.symbol}`;
 };
 
 export const createPoolFromPair = (
@@ -32,19 +32,23 @@ export const createPoolFromPair = (
   const token1PriceUSD =
     token1.priceUSD ||
     (reserve1 > 0 ? (reserve0 * token0.priceUSD) / reserve1 : 0);
+  const poolToken0 = {
+    ...token0,
+    priceUSD: token0PriceUSD,
+    reserve: reserve0,
+  };
+  const poolToken1 = {
+    ...token1,
+    priceUSD: token1PriceUSD,
+    reserve: reserve1,
+  };
   return {
     id: pair.id,
     name: createPoolName(token0, token1),
-    token0: {
-      ...token0,
-      priceUSD: token0PriceUSD,
-      reserve: reserve0,
-    },
-    token1: {
-      ...token1,
-      priceUSD: token1PriceUSD,
-      reserve: reserve1,
-    },
+    token0: poolToken0,
+    token1: poolToken1,
+    baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
+    quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
     tvlUSD: token0PriceUSD * reserve0 * 2,
   };
 };

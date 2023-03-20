@@ -99,5 +99,7 @@ export type Pool = {
   name: string;
   token0: PoolToken;
   token1: PoolToken;
+  baseToken: PoolToken;
+  quoteToken: PoolToken;
   tvlUSD: number;
 };

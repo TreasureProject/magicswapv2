@@ -1,4 +1,7 @@
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowsRightLeftIcon,
+  ChevronLeftIcon,
+} from "@heroicons/react/24/outline";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -7,8 +10,10 @@ import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { Container } from "~/components/Container";
 import { InventoryIcon } from "~/components/Icons";
-import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import type { PoolToken } from "~/types";
+import { formatUSD } from "~/utils/currency";
+import { cn } from "~/utils/lib";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -37,6 +42,61 @@ export default function PoolDetailsPage() {
         {pool.name} Pool
       </h1>
       <div className="mt-6 space-y-6">
+        <div className="grid grid-cols-10 gap-10">
+          <div className="col-span-6 space-y-6">
+            <div className="flex items-center justify-between gap-6">
+              <PoolTokenInfo token={pool.baseToken as PoolToken} />
+              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
+            </div>
+            <div className="h-[1px] bg-night-900" />
+            <div className="space-y-4 rounded-md bg-night-900 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-medium">Pool Reserves</h3>
+                <span className="text-night-100">
+                  <abbr title="Total Value Locked">TVL</abbr>:{" "}
+                  {formatUSD(pool.tvlUSD)}
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-4 text-night-400">
+                <span>
+                  <span className="text-white">1</span> {pool.baseToken.symbol}
+                </span>
+                <ArrowsRightLeftIcon className="h-4 w-4" />
+                <span>
+                  {pool.quoteToken.reserve / pool.baseToken.reserve}{" "}
+                  {pool.quoteToken.symbol}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {[pool.baseToken, pool.quoteToken].map((token) => (
+                  <div
+                    key={token.id}
+                    className="flex items-center justify-between gap-4 bg-night-1000 p-3"
+                  >
+                    <div className="flex items-center gap-2 font-semibold">
+                      <div
+                        className={cn(
+                          "h-6 w-6 overflow-hidden bg-night-900",
+                          token.isNft ? "rounded" : "rounded-full"
+                        )}
+                      >
+                        {!!token.image && <img src={token.image} alt="" />}
+                      </div>
+                      {token.symbol}
+                    </div>
+                    <span>
+                      {token.reserve}{" "}
+                      <span className="text-night-400">
+                        | {formatUSD(token.reserve * token.priceUSD)}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="col-span-4"></div>
+        </div>
         <h3 className="flex items-center gap-3 font-medium">
           <InventoryIcon className="h-4 w-4" />
           Pool Inventory
@@ -53,12 +113,6 @@ export default function PoolDetailsPage() {
         {pool.token1.isNft && (
           <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
         )}
-        {!pool.token0.isNft && (
-          <PoolTokenERC20Inventory token={pool.token0 as PoolToken} />
-        )}
-        {!pool.token1.isNft && (
-          <PoolTokenERC20Inventory token={pool.token1 as PoolToken} />
-        )}
       </div>
     </Container>
   );
@@ -70,7 +124,7 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
       <div key={id} className="rounded-lg bg-night-900">
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
-            <span className="font-semibold uppercase">{symbol}</span>
+            <span className="font-semibold">{symbol}</span>
             <span className="h-3 w-[1px] bg-night-400" />
             <span className="text-night-400">{name}</span>
           </div>
@@ -99,26 +153,4 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
       </div>
     ))}
   </>
-);
-
-const PoolTokenERC20Inventory = ({ token }: { token: PoolToken }) => (
-  <div key={token.id} className="space-y-6 rounded-lg bg-night-900">
-    <div className="space-y-5 p-6">
-      <div className="flex items-center gap-3">
-        <span className="font-semibold uppercase">{token.symbol}</span>
-        {token.symbol !== token.name && (
-          <>
-            <span className="h-3 w-[1px] bg-night-400" />
-            <span className="text-night-400">{token.name}</span>
-          </>
-        )}
-      </div>
-      <div className="flex items-center justify-center">
-        <div className="flex items-center gap-2 text-2xl font-medium">
-          <PoolTokenImage token={token} className="h-6 w-6" />
-          {token.reserve}
-        </div>
-      </div>
-    </div>
-  </div>
 );

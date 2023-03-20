@@ -30,14 +30,30 @@ export const createTokenName = (
   if (isTokenNft(token)) {
     const addresses = getTokenCollectionAddresses(token);
     return addresses
+      .map((address) => collections[address]?.displayName ?? address)
+      .sort()
+      .join(" & ");
+  }
+
+  return token.name;
+};
+
+export const createTokenSymbol = (
+  token: Token,
+  collections: TroveCollectionMapping
+) => {
+  if (isTokenNft(token)) {
+    const addresses = getTokenCollectionAddresses(token);
+    return addresses
       .map(
         (address) => collections[address]?.tokenDisplayName.singular ?? address
       )
       .sort()
-      .join(" / ");
+      .join(" / ")
+      .toUpperCase();
   }
 
-  return token.name;
+  return token.symbol.toUpperCase();
 };
 
 export const createPoolToken = (
@@ -54,7 +70,7 @@ export const createPoolToken = (
   return {
     id: token.id,
     name: createTokenName(token, collections),
-    symbol: token.symbol,
+    symbol: createTokenSymbol(token, collections),
     image: tokenCollections[0]?.image,
     collections: tokenCollections,
     isNft: isTokenNft(token),
