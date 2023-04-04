@@ -1,14 +1,14 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
-import { Button } from "~/components/Button";
+import { Button } from "~/primitives/Button";
 import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
 import type { Pool } from "~/types";
 import { useState } from "react";
 import { Tabs } from "~/components/Tabs";
-import { PoolIcon } from "~/components/Icons";
+import { PoolIcon } from "~/primitives/Icons";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/components/Container";
+import { Container } from "~/primitives/Container";
 import { formatUSD } from "~/utils/currency";
 
 export async function loader() {
@@ -64,19 +64,19 @@ export default function PoolsListPage() {
         <table className="mt-4 w-full rounded-md bg-night-900 text-white sm:mt-6">
           <thead>
             <tr>
-              <th className="py-2.5 px-4 text-left text-sm font-normal text-night-200 sm:px-5">
+              <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
                 Name
               </th>
-              <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 Volume (24h)
               </th>
-              <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 <abbr title="Annual Percentage Rate">APR</abbr>
               </th>
-              <th className="py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:px-5">
+              <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
                 <abbr title="Total Value Locked">TVL</abbr>
               </th>
-              <th className="hidden py-2.5 px-4 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 Fees
               </th>
             </tr>
@@ -84,22 +84,22 @@ export default function PoolsListPage() {
           <tbody>
             {pools.map((pool) => (
               <tr key={pool.id}>
-                <td className="py-4 px-4 text-left font-medium uppercase sm:px-5">
+                <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
                   <Link to={`/pools/${pool.id}`} className="flex items-center">
                     <PoolImage pool={pool as Pool} />
                     <span className="-ml-2 sm:ml-0">{pool.name}</span>
                   </Link>
                 </td>
-                <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
+                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                   ?
                 </td>
-                <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
+                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                   ?
                 </td>
-                <td className="py-4 px-4 text-right sm:px-5">
+                <td className="px-4 py-4 text-right sm:px-5">
                   {formatUSD(pool.tvlUSD)}
                 </td>
-                <td className="hidden py-4 px-4 text-right sm:table-cell sm:px-5">
+                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                   ?
                 </td>
               </tr>

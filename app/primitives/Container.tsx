@@ -5,7 +5,7 @@ type Props = HTMLAttributes<HTMLDivElement>;
 
 export const Container = ({ className, ...divProps }: Props) => (
   <main
-    className={cn("mx-auto w-full max-w-6xl px-4 sm:px-6", className)}
+    className={cn("mx-auto w-full max-w-7xl px-4 md:px-12 xl:px-2", className)}
     {...divProps}
   />
 );
