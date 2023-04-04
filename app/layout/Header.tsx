@@ -29,7 +29,7 @@ export const Header = () => {
             </button>
             <div className="hidden sm:flex sm:gap-4">
               {[
-                { name: "Swap", href: "/" },
+                { name: "Swap", href: "/swap" },
                 { name: "Pools", href: "/pools" },
               ].map((item) => (
                 <NavLink
