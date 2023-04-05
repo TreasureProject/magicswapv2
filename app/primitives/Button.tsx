@@ -28,10 +28,10 @@ interface CloseButtonProps {
 }
 
 export const CloseButton = ({ onClick }: CloseButtonProps) => (
-  <div
-    className="cursor-pointer rounded-full bg-base-1000 p-2"
+  <button
+    className="h-[38px] cursor-pointer rounded-full bg-base-1000 p-2"
     onClick={onClick}
   >
     <CloseIcon className="w-3 text-base-600" />
-  </div>
+  </button>
 );

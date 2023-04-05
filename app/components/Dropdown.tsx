@@ -24,7 +24,7 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative" onMouseLeave={() => setOpen(false)}>
-      <div
+      <button
         className={twMerge(
           "text-md flex cursor-pointer items-center gap-3 rounded-md bg-base-900 p-2 font-medium leading-[160%] transition-colors hover:bg-base-800",
           className
@@ -38,7 +38,7 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
             open && "-rotate-180"
           )}
         />
-      </div>
+      </button>
       <AnimatePresence>
         {open && (
           <div className="absolute right-0 z-40 w-full pt-3">
@@ -51,12 +51,12 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
               {tabs.map((tab) => (
                 <div key={tab.name}>
                   {!!tab.onClick && (
-                    <div
+                    <button
                       className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
                       onClick={tab.onClick}
                     >
                       {tab.content}
-                    </div>
+                    </button>
                   )}
                   {!!tab.href && (
                     <Link
@@ -85,7 +85,7 @@ export const HamburgerDropdown = ({ children, className }: HamburgerProps) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div
+    <button
       className={twMerge(
         "text-md relative flex cursor-pointer items-center gap-3 font-medium leading-[160%]",
         className
@@ -101,13 +101,13 @@ export const HamburgerDropdown = ({ children, className }: HamburgerProps) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="min-w-[180px] rounded-lg border border-base-800 bg-base-1100 text-base-400"
+              className="rounded-lg border border-base-800 bg-base-1100 text-base-400"
             >
               {children}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </button>
   );
 };

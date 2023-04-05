@@ -51,12 +51,12 @@ const Navigation = () => {
       <div className="flex items-center md:gap-3">
         <MagicSwapLogoFull className="hidden h-7 md:block" />
         <MagicSwapLogo className="h-7 md:hidden" />
-        <div
+        <button
           className="hidden xl:block"
           onClick={() => setShowSearchPopup(true)}
         >
           <Search />
-        </div>
+        </button>
         <div className="mx-3 h-5 w-[1px] bg-base-700 md:mx-1.5" />
         <HamburgerIcon
           onClick={() => setShowMobileNav(!showMobileNav)}

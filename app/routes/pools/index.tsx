@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Tabs } from "~/components/Tabs";
 import { PoolIcon } from "~/primitives/Icons";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/primitives/Container";
+import { Container } from "~/layout/Container";
 import { formatUSD } from "~/utils/currency";
 
 export async function loader() {

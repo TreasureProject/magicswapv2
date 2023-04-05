@@ -27,14 +27,14 @@ import { trustWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets";
 
 import NProgress from "nprogress";
 
-// import "../styles/global.css";
 import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
 import styles from "./styles/tailwind.css";
 import nProgressStyles from "./styles/nprogress.css";
 
 import type { Env } from "./types";
-import Wrapper from "./layout/Wrapper";
+import { Container } from "./layout/Container";
 import { Footer } from "./components/Footer";
+import Navigation from "./components/Navigation";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -133,18 +133,21 @@ export default function App({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="max-w-screen m-0 box-border w-screen overflow-x-hidden p-0 text-white antialiased">
-        <Wrapper>
-          <WagmiConfig client={client}>
-            <RainbowKitProvider chains={chains} theme={darkTheme()}>
-              <Outlet />
-              {children}
-            </RainbowKitProvider>
-          </WagmiConfig>
-          <Toaster richColors />
-          <Scripts />
-          <ScrollRestoration />
-          <LiveReload />
-        </Wrapper>
+        <div className="w-full bg-base-1200 px-3">
+          <Container className="min-h-screen">
+            <WagmiConfig client={client}>
+              <RainbowKitProvider chains={chains} theme={darkTheme()}>
+                <Navigation />
+                <Outlet />
+                {children}
+              </RainbowKitProvider>
+            </WagmiConfig>
+            <Toaster richColors />
+            <Scripts />
+            <ScrollRestoration />
+            <LiveReload />
+          </Container>
+        </div>
         <Footer />
       </body>
     </html>

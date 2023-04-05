@@ -5,7 +5,7 @@ type Props = {
 };
 
 export const Badge = ({ children }: Props) => (
-  <div className="rounded-3xl bg-night-600 py-0.5 px-3.5 text-xs font-medium text-white">
+  <div className="rounded-3xl bg-night-600 px-3.5 py-0.5 text-xs font-medium text-white">
     {children}
   </div>
 );

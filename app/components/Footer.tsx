@@ -1,7 +1,7 @@
 import React from "react";
 import { MagicSwapLogoFull, MagicSwapLogo } from "~/assets/Svgs";
 import { DiscordIcon, TwitterIcon, MagicIcon } from "~/assets/Icons";
-import { Container } from "../primitives/Container";
+import { Container } from "../layout/Container";
 import { Link } from "react-router-dom";
 
 interface LinkType {
@@ -90,7 +90,7 @@ const FooterPoints: {
 
 export const Footer = () => {
   return (
-    <div className="w-ful bg-base-1200">
+    <div className="w-full bg-base-1200">
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-base-800 to-transparent" />
       <Container className="flex items-center justify-between py-6">
         <MagicSwapLogoFull className="h-6" />
@@ -111,7 +111,7 @@ export const Footer = () => {
                 <span className="text-base-100">economy</span>
               </h1>
             </div>
-            <div className="flex h-max max-w-min items-center overflow-hidden rounded-lg border border-base-700 text-base-600">
+            <div className="flex max-w-min items-center divide-x-[1px] divide-base-700 overflow-hidden rounded-lg border border-base-700 text-base-600">
               <a
                 className="px-3.5 py-2 transition-colors hover:bg-base-1000 hover:text-base-100"
                 href="https://twitter.com/MagicSwap_"
@@ -120,7 +120,7 @@ export const Footer = () => {
               >
                 <DiscordIcon className="h-8" />
               </a>
-              <div className="h-12 w-[1px] bg-base-700" />
+
               <a
                 className="px-3.5 py-2 transition-colors hover:bg-base-1100 hover:text-base-100"
                 href="https://twitter.com/MagicSwap_"

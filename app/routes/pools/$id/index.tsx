@@ -8,7 +8,7 @@ import { json } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/primitives/Container";
+import { Container } from "~/layout/Container";
 import { InventoryIcon } from "~/primitives/Icons";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import type { PoolToken } from "~/types";
