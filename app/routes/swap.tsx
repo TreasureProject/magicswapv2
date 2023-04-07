@@ -9,7 +9,7 @@ export default function SwapPage() {
       <div className="mx-auto mt-48 flex max-w-2xl flex-col">
         <div className="flex justify-between px-1">
           <p className="text-xl font-bold text-honey-25">Swap</p>
-          <Settings className="h-6 w-6 text-night-700" />
+          <Settings className="text-night-700 h-6 w-6" />
         </div>
         <div className="mt-6">
           <div className="relative overflow-hidden rounded-md bg-[#131D2E]">
@@ -30,7 +30,7 @@ export default function SwapPage() {
                       </p>
                     </div>
                     <span
-                      className="cursor-pointer text-sm text-night-400"
+                      className="text-night-400 cursor-pointer text-sm"
                       // onClick={() => onChange(balance)}
                     >
                       {/* Balance: {formatNumber(balance)} */}
@@ -47,16 +47,16 @@ export default function SwapPage() {
                   // onChange={handleChange}
                 />
                 <div className="pointer-events-none absolute bottom-1 right-0 flex flex-col items-end pl-3">
-                  <span className="text-sm text-night-400">
+                  <span className="text-night-400 text-sm">
                     ~ {formatUSD(100000)}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="space-y-4 bg-night-800 px-4 py-3">
+            <div className="bg-night-800 space-y-4 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-xs text-night-400 sm:text-sm">
+                  <span className="text-night-400 truncate text-xs sm:text-sm">
                     Balance
                   </span>
                   <span className="text-sm font-semibold text-honey-25 sm:text-sm">
@@ -67,7 +67,7 @@ export default function SwapPage() {
               </div>
             </div>
           </div>
-          <div className="border-night-1000 relative z-10 -my-2 mx-auto w-max rounded-lg border-4 bg-night-900 p-2">
+          <div className="border-night-1000 bg-night-900 relative z-10 -my-2 mx-auto w-max rounded-lg border-4 p-2">
             <ArrowDown className="h-6 w-6" />
           </div>
           <div className="relative overflow-hidden rounded-md bg-[#131D2E]">
@@ -88,7 +88,7 @@ export default function SwapPage() {
                       </p>
                     </div>
                     <span
-                      className="cursor-pointer text-sm text-night-400"
+                      className="text-night-400 cursor-pointer text-sm"
                       // onClick={() => onChange(balance)}
                     >
                       {/* Balance: {formatNumber(balance)} */}
@@ -105,16 +105,16 @@ export default function SwapPage() {
                   // onChange={handleChange}
                 />
                 <div className="pointer-events-none absolute bottom-1 right-0 flex flex-col items-end pl-3">
-                  <span className="text-sm text-night-400">
+                  <span className="text-night-400 text-sm">
                     ~ {formatUSD(100000)}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="space-y-4 bg-night-800 px-4 py-3">
+            <div className="bg-night-800 space-y-4 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-xs text-night-400 sm:text-sm">
+                  <span className="text-night-400 truncate text-xs sm:text-sm">
                     Balance
                   </span>
                   <span className="text-sm font-semibold text-honey-25 sm:text-sm">

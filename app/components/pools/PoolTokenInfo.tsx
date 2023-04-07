@@ -21,7 +21,7 @@ export const PoolTokenInfo = ({ token }: Props) => {
       </div>
       <div>
         <span className="text-lg font-bold uppercase">{token.symbol}</span>
-        <span className="flex items-center gap-1.5 text-sm font-medium text-night-400">
+        <span className="text-night-400 flex items-center gap-1.5 text-sm font-medium">
           {token.isNft ? "NFT" : "Token"} | {token.name}{" "}
           <a
             href={`${blockExplorer}/address/${
