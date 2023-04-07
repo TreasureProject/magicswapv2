@@ -27,7 +27,7 @@ export const Tabs = ({
           <button
             onClick={() => onChange(id)}
             className={cn(
-              "text-night-200 w-full py-3 text-sm font-semibold transition-colors sm:w-auto sm:px-8",
+              "w-full py-3 text-sm font-semibold text-night-200 transition-colors sm:w-auto sm:px-8",
               activeTab === id && "text-white"
             )}
           >

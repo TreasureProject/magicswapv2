@@ -61,22 +61,22 @@ export default function PoolsListPage() {
         onChange={setTab}
       />
       {tab === "all" && (
-        <table className="bg-night-900 mt-4 w-full rounded-md text-white sm:mt-6">
+        <table className="mt-4 w-full rounded-md bg-night-900 text-white sm:mt-6">
           <thead>
             <tr>
-              <th className="text-night-200 px-4 py-2.5 text-left text-sm font-normal sm:px-5">
+              <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
                 Name
               </th>
-              <th className="text-night-200 hidden px-4 py-2.5 text-right text-sm font-normal sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 Volume (24h)
               </th>
-              <th className="text-night-200 hidden px-4 py-2.5 text-right text-sm font-normal sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 <abbr title="Annual Percentage Rate">APR</abbr>
               </th>
-              <th className="text-night-200 px-4 py-2.5 text-right text-sm font-normal sm:px-5">
+              <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
                 <abbr title="Total Value Locked">TVL</abbr>
               </th>
-              <th className="text-night-200 hidden px-4 py-2.5 text-right text-sm font-normal sm:table-cell sm:px-5">
+              <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
                 Fees
               </th>
             </tr>
@@ -109,15 +109,15 @@ export default function PoolsListPage() {
       )}
       {tab === "user" && (
         <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
-          <div className="bg-night-900 flex flex-col items-center justify-center gap-1 rounded-lg p-4">
+          <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-900 p-4">
             <span className="text-xl">0</span>
-            <span className="text-night-300 text-sm">Open Positions</span>
+            <span className="text-sm text-night-300">Open Positions</span>
           </div>
-          <div className="bg-night-900 flex flex-col items-center justify-center gap-1 rounded-lg p-4">
+          <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-900 p-4">
             <span className="text-xl">$0.00</span>
-            <span className="text-night-300 text-sm">Rewards Earned</span>
+            <span className="text-sm text-night-300">Rewards Earned</span>
           </div>
-          <div className="bg-night-900 col-span-2 flex items-center justify-center rounded-lg px-4 py-8 text-center sm:py-10">
+          <div className="col-span-2 flex items-center justify-center rounded-lg bg-night-900 px-4 py-8 text-center sm:py-10">
             <span>
               You currently do not have any open positions.{" "}
               <Link
