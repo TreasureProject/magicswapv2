@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { CloseIcon } from "~/assets/Icons";
+import { CloseIcon } from "~/components/Icons";
 import { cn } from "~/lib/utils";
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
@@ -14,7 +14,7 @@ export const Button = ({
   return (
     <button
       className={cn(
-        "rounded-md bg-treasure-red-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-treasure-red-800",
+        "rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
         mode === "secondary" && "bg-night-800 hover:bg-night-900",
         className
       )}

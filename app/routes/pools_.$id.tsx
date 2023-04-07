@@ -9,7 +9,7 @@ import invariant from "tiny-invariant";
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { Container } from "~/components/Container";
-import { InventoryIcon } from "~/components/Icons";
+import { ArrowLeftRight } from "lucide-react";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import type { PoolToken } from "~/types";
 import { formatUSD } from "~/lib/currency";
@@ -35,7 +35,7 @@ export default function PoolDetailsPage() {
       <h1 className="flex items-center text-2xl font-bold uppercase">
         <Link
           to="/pools"
-          className="py-2 pl-2 pr-4 text-night-400 transition-colors hover:text-night-100"
+          className="text-night-400 hover:text-night-100 py-2 pl-2 pr-4 transition-colors"
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </Link>
@@ -48,8 +48,8 @@ export default function PoolDetailsPage() {
               <PoolTokenInfo token={pool.baseToken as PoolToken} />
               <PoolTokenInfo token={pool.quoteToken as PoolToken} />
             </div>
-            <div className="h-[1px] bg-night-900" />
-            <div className="space-y-4 rounded-md bg-night-900 p-4">
+            <div className="bg-night-900 h-[1px]" />
+            <div className="bg-night-900 space-y-4 rounded-md p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>
                 <span className="text-night-100">
@@ -57,7 +57,7 @@ export default function PoolDetailsPage() {
                   {formatUSD(pool.tvlUSD)}
                 </span>
               </div>
-              <div className="flex items-center justify-center gap-4 text-night-400">
+              <div className="text-night-400 flex items-center justify-center gap-4">
                 <span>
                   <span className="text-white">1</span> {pool.baseToken.symbol}
                 </span>
@@ -76,7 +76,7 @@ export default function PoolDetailsPage() {
                     <div className="flex items-center gap-2 font-semibold">
                       <div
                         className={cn(
-                          "h-6 w-6 overflow-hidden bg-night-900",
+                          "bg-night-900 h-6 w-6 overflow-hidden",
                           token.isNft ? "rounded" : "rounded-full"
                         )}
                       >
@@ -98,7 +98,7 @@ export default function PoolDetailsPage() {
           <div className="col-span-4"></div>
         </div>
         <h3 className="flex items-center gap-3 font-medium">
-          <InventoryIcon className="h-4 w-4" />
+          <ArrowLeftRight className="h-4 w-4" />
           Pool Inventory
           <Badge>
             {pool.token0.collections.length +
@@ -121,11 +121,11 @@ export default function PoolDetailsPage() {
 const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
   <>
     {token.collections.map(({ id, name, symbol }) => (
-      <div key={id} className="rounded-lg bg-night-900">
+      <div key={id} className="bg-night-900 rounded-lg">
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
             <span className="font-semibold">{symbol}</span>
-            <span className="h-3 w-[1px] bg-night-400" />
+            <span className="bg-night-400 h-3 w-[1px]" />
             <span className="text-night-400">{name}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -137,16 +137,16 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
                   className="relative h-24 w-24 overflow-hidden rounded"
                 >
                   <img src={image} alt={name} />
-                  <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
+                  <span className="bg-night-100 text-night-900 absolute right-1 top-1 rounded-lg px-1.5 py-0.5 text-xs font-bold">
                     {amount}x
                   </span>
                 </div>
               ))}
           </div>
         </div>
-        <div className="h-[1px] bg-night-800" />
+        <div className="bg-night-800 h-[1px]" />
         <div className="px-6 py-3">
-          <span className="text-sm text-night-400">
+          <span className="text-night-400 text-sm">
             Showing {token.reserveItems.length} of {token.reserve}
           </span>
         </div>

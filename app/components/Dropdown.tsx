@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { ChevronDownIcon } from "~/assets/Icons";
+import { ChevronDownIcon } from "~/components/Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HamburgerIcon } from "~/components/HamburgerIcon";

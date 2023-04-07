@@ -1,7 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "@remix-run/react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { MagicSwapLogo, MagicSwapLogoFull } from "~/assets/Svgs";
+import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Search } from "./Search";
 import { Button } from "./Button";
 import { Dropdown, HamburgerDropdown } from "./Dropdown";
@@ -11,10 +11,11 @@ import {
   InfoIcon,
   PlayIcon,
   TwitterIcon,
-} from "~/assets/Icons";
+} from "~/components/Icons";
 import { HamburgerIcon } from "~/components/HamburgerIcon";
 import { media, documentation } from "~/consts";
 import SearchPopup from "./SearchPopup";
+import { cn } from "~/lib/utils";
 
 const Pages = [
   { name: "Swap", href: "/" },
@@ -63,16 +64,18 @@ const Navigation = () => {
         />
         <div className="hidden items-center lg:flex">
           {Pages.map((page) => (
-            <Link
-              className={twMerge(
-                "cursor-pointer rounded-md px-5 py-2 font-medium text-base-400 transition-colors hover:bg-base-1000",
-                activePath === page.href && "text-base-100"
-              )}
+            <NavLink
+              className={({ isActive }) =>
+                cn(
+                  "cursor-pointer rounded-md px-5 py-2 font-medium text-base-400 transition-colors hover:bg-base-1000",
+                  isActive && "text-base-100"
+                )
+              }
               to={page.href}
               key={page.name}
             >
               {page.name}
-            </Link>
+            </NavLink>
           ))}
         </div>
       </div>

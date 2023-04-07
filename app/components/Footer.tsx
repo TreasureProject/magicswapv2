@@ -1,6 +1,6 @@
 import React from "react";
-import { MagicSwapLogoFull, MagicSwapLogo } from "~/assets/Svgs";
-import { DiscordIcon, TwitterIcon, MagicIcon } from "~/assets/Icons";
+import { MagicSwapLogoFull, MagicSwapLogo } from "@treasure-project/branding";
+import { DiscordIcon, TwitterIcon, MagicIcon } from "~/components/Icons";
 import { Container } from "./Container";
 import { Link } from "react-router-dom";
 
@@ -95,7 +95,7 @@ export const Footer = () => {
       <Container className="flex items-center justify-between py-6">
         <MagicSwapLogoFull className="h-6" />
         <div className="flex items-center gap-1">
-          <MagicIcon className="h-4 text-treasure-red-900" />
+          <MagicIcon className="h-4 text-ruby-900" />
           <p className="font-medium">
             $1,724 <span className="text-base-600">USD</span>{" "}
           </p>

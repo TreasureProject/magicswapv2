@@ -1,5 +1,5 @@
 import React from "react";
-import { SearchIcon } from "~/assets/Icons";
+import { SearchIcon } from "~/components/Icons";
 import { twMerge } from "tailwind-merge";
 
 interface Props {

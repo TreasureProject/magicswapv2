@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CloseButton } from "~/components/Button";
 import Input from "~/components/Input";
 import PopupOverlay from "~/components/PopupOverlay";
-import { SearchIcon, VerifiedIcon } from "~/assets/Icons";
+import { SearchIcon, VerifiedIcon } from "~/components/Icons";
 import { Link } from "react-router-dom";
 
 // To-Do
@@ -14,10 +14,10 @@ import { Link } from "react-router-dom";
 // format numbers
 
 //Temporary image imports
-import etherCoinImage from "../../assets/images/coins/ether.png";
-import magicCoinImage from "../../assets/images/coins/magic.png";
-import smolCoinImage from "../../assets/images/coins/smol.png";
-import legionCardImage from "../../assets/images/cards/genesis_legions_card.png";
+import etherCoinImage from "~/assets/ether.png";
+import magicCoinImage from "~/assets/magic.png";
+import smolCoinImage from "~/assets/smol.png";
+import legionCardImage from "~/assets/genesis_legions_card.png";
 
 interface TrendingProps {
   name: string;
@@ -64,7 +64,7 @@ const TrendingBox = ({ data }: { data: TrendingProps }) => {
         <div className="flex flex-col">
           <h1 className="text-xl font-bold text-base-100">{data.name}</h1>
           <div className="flex items-center gap-1">
-            <VerifiedIcon className="w-3.5 text-sapphire-blue-500" />
+            <VerifiedIcon className="w-3.5 text-sapphire-500" />
             <p className="text-sm text-base-600">{data.collection}</p>
           </div>
         </div>
