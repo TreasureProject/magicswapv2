@@ -13,13 +13,13 @@ const Input = ({ icon, placeholder, onChange, className, value }: Props) => {
   return (
     <div className={twMerge("relative h-10", className)}>
       {!!icon && (
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-base-700">
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-night-700">
           {icon}
         </div>
       )}
       <input
         className={twMerge(
-          "h-full rounded-md bg-base-900 px-3 text-sm text-base-600 placeholder:text-base-600 focus:border-none focus:outline-none focus:ring-0",
+          "h-full rounded-md bg-night-900 px-3 text-sm text-night-600 placeholder:text-night-600 focus:border-none focus:outline-none focus:ring-0",
           icon && "pl-8",
           className
         )}

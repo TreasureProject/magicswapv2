@@ -57,29 +57,29 @@ const TrendingBox = ({ data }: { data: TrendingProps }) => {
   return (
     <Link
       to={data.link}
-      className="group flex w-full items-center justify-between rounded-lg bg-base-1100 p-4"
+      className="group flex w-full items-center justify-between rounded-lg bg-night-1100 p-4"
     >
       <div className="flex items-center gap-4 ">
         <img src={data.image} className="h-14 w-14" alt={data.name} />
         <div className="flex flex-col">
-          <h1 className="text-xl font-bold text-base-100">{data.name}</h1>
+          <h1 className="text-xl font-bold text-night-100">{data.name}</h1>
           <div className="flex items-center gap-1">
             <VerifiedIcon className="w-3.5 text-sapphire-500" />
-            <p className="text-sm text-base-600">{data.collection}</p>
+            <p className="text-sm text-night-600">{data.collection}</p>
           </div>
         </div>
       </div>
       <div className="flex items-center gap-6">
         <div className="flex flex-col items-end">
-          <p className="font-sm text-base-500">Price</p>
+          <p className="font-sm text-night-500">Price</p>
           <div className="flex items-center gap-1">
             <img src={data.token} className="w-3.5" alt="Token Pair" />
-            <p className="text-md font-base-100 font-medium">{data.price}</p>
+            <p className="text-md font-night-100 font-medium">{data.price}</p>
           </div>
         </div>
         <div className="flex flex-col items-end">
-          <p className="font-sm text-base-500">Items</p>
-          <p className="text-md font-base-100 font-medium">{data.items}</p>
+          <p className="font-sm text-night-500">Items</p>
+          <p className="text-md font-night-100 font-medium">{data.items}</p>
         </div>
       </div>
     </Link>
@@ -128,7 +128,7 @@ const PopularPool = ({ data }: { data: PopularPoolProps }) => {
   return (
     <Link
       to={data.link}
-      className="flex w-full items-center justify-between border-t border-base-900 bg-base-1100 px-6 py-3"
+      className="flex w-full items-center justify-between border-t border-night-900 bg-night-1100 px-6 py-3"
     >
       <div className="flex items-center gap-2">
         <div className="flex items-center">
@@ -139,34 +139,36 @@ const PopularPool = ({ data }: { data: PopularPoolProps }) => {
           />
           <img
             src={data.tokenTwo.image}
-            className="border-outside -ml-4 w-9 rounded-full border-2 border-base-1100"
+            className="border-outside -ml-4 w-9 rounded-full border-2 border-night-1100"
             alt={data.tokenTwo.name}
           />
         </div>
         <div className="flex items-center gap-2">
-          <h1 className="font-medium text-base-100">
-            {data.tokenOne.name} <span className="text-base-600">/</span>{" "}
+          <h1 className="font-medium text-night-100">
+            {data.tokenOne.name} <span className="text-night-600">/</span>{" "}
             {data.tokenTwo.name}
           </h1>
-          <p className="text-md rounded-lg bg-base-800 px-2 py-1.5 font-medium text-base-400">
+          <p className="text-md rounded-lg bg-night-800 px-2 py-1.5 font-medium text-night-400">
             {data.stats.percentage}%
           </p>
         </div>
       </div>
       <div className="flex w-full max-w-[360px]">
         <div className="flex w-1/3 justify-end">
-          <p className="text-md font-medium text-base-100">
+          <p className="text-md font-medium text-night-100">
             {data.stats.volume}
           </p>
         </div>
         <div className="flex w-1/3 justify-end">
-          <p className="text-md font-medium text-base-100">{data.stats.apr}</p>
+          <p className="text-md font-medium text-night-100">{data.stats.apr}</p>
         </div>
         <div className="flex w-1/3 justify-end">
-          <p className="text-md font-medium text-base-100">{data.stats.tvl}</p>
+          <p className="text-md font-medium text-night-100">{data.stats.tvl}</p>
         </div>
         <div className="flex w-1/3 justify-end">
-          <p className="text-md font-medium text-base-100">{data.stats.fees}</p>
+          <p className="text-md font-medium text-night-100">
+            {data.stats.fees}
+          </p>
         </div>
       </div>
     </Link>
@@ -192,7 +194,7 @@ const SearchPopup = ({ onClose }: SearchProps) => {
     <PopupOverlay onClose={onClose}>
       <div className="z-[110]  w-full max-w-3xl flex-col">
         <div className="mb-5 flex items-center justify-between">
-          <p className="font-medium text-base-100">Quick Search</p>
+          <p className="font-medium text-night-100">Quick Search</p>
           <CloseButton onClick={onClose} />
         </div>
         <Input
@@ -203,7 +205,7 @@ const SearchPopup = ({ onClose }: SearchProps) => {
           value={search}
         />
         <div className="mb-4 w-full ">
-          <p className="mb-2 text-base-500">Trending Collections</p>
+          <p className="mb-2 text-night-500">Trending Collections</p>
           <div className="flex flex-col gap-1.5">
             <TrendingBox data={exampleTrendingData} />
             <TrendingBox data={exampleTrendingData} />
@@ -212,22 +214,22 @@ const SearchPopup = ({ onClose }: SearchProps) => {
           </div>
         </div>
         <div className="w-full">
-          <p className="mb-2 text-base-500">Trending Collections</p>
+          <p className="mb-2 text-night-500">Trending Collections</p>
           <div className="flex flex-col overflow-hidden rounded-lg">
-            <div className="flex w-full items-center justify-between bg-base-1100 px-6 py-3">
-              <p className="text-md text-base-600">Name</p>
+            <div className="flex w-full items-center justify-between bg-night-1100 px-6 py-3">
+              <p className="text-md text-night-600">Name</p>
               <div className="flex w-full max-w-[360px]">
                 <div className="flex w-1/3 justify-end">
-                  <p className="text-md text-base-600">Volume(24h)</p>
+                  <p className="text-md text-night-600">Volume(24h)</p>
                 </div>
                 <div className="flex w-1/3 justify-end">
-                  <p className="text-md text-base-600">APR</p>
+                  <p className="text-md text-night-600">APR</p>
                 </div>
                 <div className="flex w-1/3 justify-end">
-                  <p className="text-md text-base-600">TVL</p>
+                  <p className="text-md text-night-600">TVL</p>
                 </div>
                 <div className="flex w-1/3 justify-end">
-                  <p className="text-md text-base-600">Fees</p>
+                  <p className="text-md text-night-600">Fees</p>
                 </div>
               </div>
             </div>

@@ -26,7 +26,7 @@ const Pages = [
 
 const MobileNav = () => {
   return (
-    <div className="pt fixed left-0 top-[70px] z-[200] h-[calc(100vh-70px)] w-screen border-t border-base-900 bg-base-1200 p-4 pt-8">
+    <div className="pt fixed left-0 top-[70px] z-[200] h-[calc(100vh-70px)] w-screen border-t border-night-900 bg-night-1200 p-4 pt-8">
       <p>Content goes here</p>
     </div>
   );
@@ -56,7 +56,7 @@ const Navigation = () => {
         >
           <Search />
         </button>
-        <div className="mx-3 h-5 w-[1px] bg-base-700 md:mx-1.5" />
+        <div className="mx-3 h-5 w-[1px] bg-night-700 md:mx-1.5" />
         <HamburgerIcon
           onClick={() => setShowMobileNav(!showMobileNav)}
           open={false}
@@ -67,8 +67,8 @@ const Navigation = () => {
             <NavLink
               className={({ isActive }) =>
                 cn(
-                  "cursor-pointer rounded-md px-5 py-2 font-medium text-base-400 transition-colors hover:bg-base-1000",
-                  isActive && "text-base-100"
+                  "cursor-pointer rounded-md px-5 py-2 font-medium text-night-400 transition-colors hover:bg-night-1000",
+                  isActive && "text-night-100"
                 )
               }
               to={page.href}
@@ -81,9 +81,9 @@ const Navigation = () => {
       </div>
       <div className="flex items-center gap-3">
         <HamburgerDropdown className="hidden lg:block">
-          <div className="my-2 flex flex-col gap-3 p-2 text-base-500 transition-colors">
+          <div className="my-2 flex flex-col gap-3 p-2 text-night-500 transition-colors">
             <a
-              className="flex items-center gap-1 px-2 hover:text-base-100"
+              className="flex items-center gap-1 px-2 hover:text-night-100"
               href={documentation.documentation}
               target="_blank"
               rel="noreferrer"
@@ -94,7 +94,7 @@ const Navigation = () => {
               </p>
             </a>
             <a
-              className="flex items-center gap-1 px-2 hover:text-base-100"
+              className="flex items-center gap-1 px-2 hover:text-night-100"
               href={documentation.documentation}
               target="_blank"
               rel="noreferrer"
@@ -103,10 +103,10 @@ const Navigation = () => {
               <p className="text-md font-medium leading-[160%]">Tutorials</p>
             </a>
           </div>
-          <div className=" h-[1px] w-full border-b border-base-800 bg-base-1200" />
+          <div className=" h-[1px] w-full border-b border-night-800 bg-night-1200" />
           <div className="flex flex-col gap-1 p-2">
             <a
-              className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+              className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
               href={media.github}
               target="_blank"
               rel="noreferrer"
@@ -114,7 +114,7 @@ const Navigation = () => {
               Github
             </a>
             <a
-              className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+              className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
               href={media.substack}
               target="_blank"
               rel="noreferrer"
@@ -122,7 +122,7 @@ const Navigation = () => {
               Articles
             </a>
             <a
-              className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+              className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
               href={documentation.documentation}
               target="_blank"
               rel="noreferrer"
@@ -130,7 +130,7 @@ const Navigation = () => {
               Documentation
             </a>
             <a
-              className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+              className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
               href="/"
               target="_blank"
               rel="noreferrer"
@@ -139,7 +139,7 @@ const Navigation = () => {
             </a>
             <div className="flex items-center">
               <a
-                className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+                className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
                 href={media.twitter}
                 target="_blank"
                 rel="noreferrer"
@@ -147,7 +147,7 @@ const Navigation = () => {
                 <TwitterIcon className="h-7" />
               </a>
               <a
-                className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+                className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
                 href={media.discord}
                 target="_blank"
                 rel="noreferrer"

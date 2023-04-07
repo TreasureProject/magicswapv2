@@ -26,7 +26,7 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
     <div className="relative" onMouseLeave={() => setOpen(false)}>
       <button
         className={twMerge(
-          "text-md flex cursor-pointer items-center gap-3 rounded-md bg-base-900 p-2 font-medium leading-[160%] transition-colors hover:bg-base-800",
+          "text-md flex cursor-pointer items-center gap-3 rounded-md bg-night-900 p-2 font-medium leading-[160%] transition-colors hover:bg-night-800",
           className
         )}
         onClick={() => setOpen(!open)}
@@ -34,7 +34,7 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
         <div className="flex items-center gap-2"> {children}</div>
         <ChevronDownIcon
           className={twMerge(
-            "w-6 text-base-400 transition-all",
+            "w-6 text-night-400 transition-all",
             open && "-rotate-180"
           )}
         />
@@ -46,13 +46,13 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full rounded-lg border border-base-800 bg-base-1100 p-2 text-base-400"
+              className="w-full rounded-lg border border-night-800 bg-night-1100 p-2 text-night-400"
             >
               {tabs.map((tab) => (
                 <div key={tab.name}>
                   {!!tab.onClick && (
                     <button
-                      className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+                      className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
                       onClick={tab.onClick}
                     >
                       {tab.content}
@@ -60,7 +60,7 @@ export const Dropdown = ({ children, className, tabs }: DropdownProps) => {
                   )}
                   {!!tab.href && (
                     <Link
-                      className="flex items-center gap-2 rounded-lg p-2 hover:bg-base-900"
+                      className="flex items-center gap-2 rounded-lg p-2 hover:bg-night-900"
                       to={tab.href}
                     >
                       {tab.content}
@@ -101,7 +101,7 @@ export const HamburgerDropdown = ({ children, className }: HamburgerProps) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="rounded-lg border border-base-800 bg-base-1100 text-base-400"
+              className="rounded-lg border border-night-800 bg-night-1100 text-night-400"
             >
               {children}
             </motion.div>
