@@ -32,7 +32,9 @@ import styles from "./styles/tailwind.css";
 import nProgressStyles from "./styles/nprogress.css";
 
 import type { Env } from "./types";
-import { Header } from "./layout/Header";
+import { Container } from "./components/Container";
+import { Footer } from "./components/Footer";
+import Navigation from "./components/Navigation";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -68,7 +70,7 @@ export const loader = async () => {
   });
 };
 
-export default function App() {
+export default function App({ children }: { children: React.ReactNode }) {
   const { ENV } = useLoaderData<typeof loader>();
 
   const [{ client, chains }] = useState(() => {
@@ -130,18 +132,23 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-night-1000 text-white antialiased">
-        <WagmiConfig client={client}>
-          <RainbowKitProvider chains={chains} theme={darkTheme()}>
-            <Header />
-            <Outlet />
-          </RainbowKitProvider>
-        </WagmiConfig>
-        <Toaster richColors />
-
-        <Scripts />
-        <ScrollRestoration />
-        <LiveReload />
+      <body className="max-w-screen m-0 box-border w-screen overflow-x-hidden p-0 text-white antialiased">
+        <div className="w-full bg-base-1200 px-3">
+          <Container className="min-h-screen">
+            <WagmiConfig client={client}>
+              <RainbowKitProvider chains={chains} theme={darkTheme()}>
+                <Navigation />
+                <Outlet />
+                {children}
+              </RainbowKitProvider>
+            </WagmiConfig>
+            <Toaster richColors />
+            <Scripts />
+            <ScrollRestoration />
+            <LiveReload />
+          </Container>
+        </div>
+        <Footer />
       </body>
     </html>
   );

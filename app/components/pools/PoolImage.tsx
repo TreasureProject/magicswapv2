@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 import type { Pool } from "~/types";
-import { cn } from "~/utils/lib";
+import { cn } from "~/lib/utils";
 import { PoolTokenImage } from "./PoolTokenImage";
 
 type Props = HTMLAttributes<HTMLDivElement> & {

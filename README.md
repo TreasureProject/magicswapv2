@@ -9,6 +9,7 @@ Automated market maker with universal token compatibility
 - [Graph Client Tools](https://github.com/graphprotocol/graph-client)
 - [wagmi](https://wagmi.sh)
 - Deployment on [fly.io](https://fly.io)
+- UI Components by https://ui.shadcn.com/docs
 
 ## Local Development
 

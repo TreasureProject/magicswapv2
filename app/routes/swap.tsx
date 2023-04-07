@@ -1,6 +1,6 @@
 import { ArrowDown, Settings } from "lucide-react";
 import { Container } from "~/components/Container";
-import { formatUSD } from "~/utils/currency";
+import { formatUSD } from "~/lib/currency";
 import { Button } from "~/components/Button";
 
 export default function SwapPage() {
@@ -41,12 +41,12 @@ export default function SwapPage() {
                 <input
                   id="token"
                   type="text"
-                  className="block w-full border-0 border-transparent bg-transparent pl-32 pb-6 text-right text-honey-25 focus:ring-0 sm:text-lg lg:text-2xl"
+                  className="block w-full border-0 border-transparent bg-transparent pb-6 pl-32 text-right text-honey-25 focus:ring-0 sm:text-lg lg:text-2xl"
                   placeholder="0.00"
                   // value={inputValue}
                   // onChange={handleChange}
                 />
-                <div className="pointer-events-none absolute right-0 bottom-1 flex flex-col items-end pl-3">
+                <div className="pointer-events-none absolute bottom-1 right-0 flex flex-col items-end pl-3">
                   <span className="text-sm text-night-400">
                     ~ {formatUSD(100000)}
                   </span>
@@ -67,7 +67,7 @@ export default function SwapPage() {
               </div>
             </div>
           </div>
-          <div className="relative z-10 mx-auto -my-2 w-max rounded-lg border-4 border-night-1000 bg-night-900 p-2">
+          <div className="border-night-1000 relative z-10 -my-2 mx-auto w-max rounded-lg border-4 bg-night-900 p-2">
             <ArrowDown className="h-6 w-6" />
           </div>
           <div className="relative overflow-hidden rounded-md bg-[#131D2E]">
@@ -99,12 +99,12 @@ export default function SwapPage() {
                 <input
                   id="token"
                   type="text"
-                  className="block w-full border-0 border-transparent bg-transparent pl-32 pb-6 text-right text-honey-25 focus:ring-0 sm:text-lg lg:text-2xl"
+                  className="block w-full border-0 border-transparent bg-transparent pb-6 pl-32 text-right text-honey-25 focus:ring-0 sm:text-lg lg:text-2xl"
                   placeholder="0.00"
                   // value={inputValue}
                   // onChange={handleChange}
                 />
-                <div className="pointer-events-none absolute right-0 bottom-1 flex flex-col items-end pl-3">
+                <div className="pointer-events-none absolute bottom-1 right-0 flex flex-col items-end pl-3">
                   <span className="text-sm text-night-400">
                     ~ {formatUSD(100000)}
                   </span>

@@ -12,8 +12,8 @@ import { Container } from "~/components/Container";
 import { InventoryIcon } from "~/components/Icons";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import type { PoolToken } from "~/types";
-import { formatUSD } from "~/utils/currency";
-import { cn } from "~/utils/lib";
+import { formatUSD } from "~/lib/currency";
+import { cn } from "~/lib/utils";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -71,7 +71,7 @@ export default function PoolDetailsPage() {
                 {[pool.baseToken, pool.quoteToken].map((token) => (
                   <div
                     key={token.id}
-                    className="flex items-center justify-between gap-4 bg-night-1000 p-3"
+                    className="bg-night-1000 flex items-center justify-between gap-4 p-3"
                   >
                     <div className="flex items-center gap-2 font-semibold">
                       <div
@@ -137,7 +137,7 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
                   className="relative h-24 w-24 overflow-hidden rounded"
                 >
                   <img src={image} alt={name} />
-                  <span className="absolute top-1 right-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
+                  <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
                     {amount}x
                   </span>
                 </div>

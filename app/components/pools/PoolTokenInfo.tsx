@@ -1,7 +1,7 @@
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import type { PoolToken } from "~/types";
-import { cn } from "~/utils/lib";
+import { cn } from "~/lib/utils";
 
 type Props = {
   token: PoolToken;
