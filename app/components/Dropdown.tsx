@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { ChevronDownIcon } from "~/assets/Icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { HamburgerIcon } from "~/primitives/HamburgerIcon";
+import { HamburgerIcon } from "~/components/HamburgerIcon";
 
 // Dropdowns tabs can be used as both navigatio link and buttons
 // Navigation links need href defined

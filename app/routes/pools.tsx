@@ -1,15 +1,15 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
-import { Button } from "~/primitives/Button";
+import { Button } from "~/components/Button";
 import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
 import type { Pool } from "~/types";
 import { useState } from "react";
 import { Tabs } from "~/components/Tabs";
-import { PoolIcon } from "~/primitives/Icons";
+import { PoolIcon } from "~/components/Icons";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/layout/Container";
-import { formatUSD } from "~/utils/currency";
+import { Container } from "~/components/Container";
+import { formatUSD } from "~/lib/currency";
 
 export async function loader() {
   return json({

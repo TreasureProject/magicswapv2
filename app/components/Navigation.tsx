@@ -3,7 +3,7 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { MagicSwapLogo, MagicSwapLogoFull } from "~/assets/Svgs";
 import { Search } from "./Search";
-import { Button } from "../primitives/Button";
+import { Button } from "./Button";
 import { Dropdown, HamburgerDropdown } from "./Dropdown";
 import {
   ArbitrumIcom,
@@ -12,11 +12,9 @@ import {
   PlayIcon,
   TwitterIcon,
 } from "~/assets/Icons";
-import { HamburgerIcon } from "~/primitives/HamburgerIcon";
+import { HamburgerIcon } from "~/components/HamburgerIcon";
 import { media, documentation } from "~/consts";
-import PopupOverlay from "~/primitives/PopupOverlay";
-import SearchPopup from "./popups/SearchPopup";
-import Input from "~/primitives/Input";
+import SearchPopup from "./SearchPopup";
 
 const Pages = [
   { name: "Swap", href: "/" },

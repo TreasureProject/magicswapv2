@@ -1,7 +1,7 @@
 import React from "react";
 import { MagicSwapLogoFull, MagicSwapLogo } from "~/assets/Svgs";
 import { DiscordIcon, TwitterIcon, MagicIcon } from "~/assets/Icons";
-import { Container } from "../layout/Container";
+import { Container } from "./Container";
 import { Link } from "react-router-dom";
 
 interface LinkType {
@@ -103,7 +103,7 @@ export const Footer = () => {
       </Container>
       <div className="w-full border-t border-t-base-800">
         <Container className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
-          <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
+          <div className="lg:justify-normal flex flex-col justify-between gap-6 sm:flex-row lg:flex-col">
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-14" />
               <h1 className="max-w-[274px] text-2xl font-bold text-base-500">

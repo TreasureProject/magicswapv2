@@ -4,7 +4,7 @@ import type {
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
-import { NORMALIZED_TOKEN_MAPPING } from "~/utils/tokens.server";
+import { NORMALIZED_TOKEN_MAPPING } from "~/lib/tokens.server";
 
 export const fetchTroveTokens = async (
   ids: string[]

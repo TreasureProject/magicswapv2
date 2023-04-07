@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 import { CloseIcon } from "~/assets/Icons";
-import { cn } from "~/utils/lib";
+import { cn } from "~/lib/utils";
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   mode?: "primary" | "secondary";

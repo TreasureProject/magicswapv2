@@ -32,7 +32,7 @@ import styles from "./styles/tailwind.css";
 import nProgressStyles from "./styles/nprogress.css";
 
 import type { Env } from "./types";
-import { Container } from "./layout/Container";
+import { Container } from "./components/Container";
 import { Footer } from "./components/Footer";
 import Navigation from "./components/Navigation";
 

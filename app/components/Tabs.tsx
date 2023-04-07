@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import type { HTMLAttributes, ReactNode } from "react";
-import { cn } from "~/utils/lib";
+import { cn } from "~/lib/utils";
 
 type Tab = {
   id: string;

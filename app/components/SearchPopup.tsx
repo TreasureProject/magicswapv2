@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { CloseButton } from "~/primitives/Button";
-import Input from "~/primitives/Input";
-import PopupOverlay from "~/primitives/PopupOverlay";
+import { CloseButton } from "~/components/Button";
+import Input from "~/components/Input";
+import PopupOverlay from "~/components/PopupOverlay";
 import { SearchIcon, VerifiedIcon } from "~/assets/Icons";
 import { Link } from "react-router-dom";
 

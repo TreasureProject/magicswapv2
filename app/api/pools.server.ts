@@ -4,8 +4,8 @@ import {
   getPairCollectionAddresses,
   getPairERC20Addresses,
   getPairReserveItemAddresses,
-} from "~/utils/pairs.server";
-import { createPoolFromPair } from "~/utils/pools.server";
+} from "~/lib/pairs.server";
+import { createPoolFromPair } from "~/lib/pools.server";
 import type { getPairQuery, getPairsQuery } from "../../.graphclient";
 import { getPairDocument } from "../../.graphclient";
 import { execute, getPairsDocument } from "../../.graphclient";

@@ -2,7 +2,7 @@ import LogoFull from "~/assets/logo-full.svg";
 import Logo from "~/assets/logo.svg";
 import { NavLink } from "@remix-run/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { cn } from "~/utils/lib";
+import { cn } from "~/lib/utils";
 import { Bars3Icon as MenuIcon } from "@heroicons/react/24/outline";
 
 export const Header = () => {
@@ -29,7 +29,7 @@ export const Header = () => {
             </button>
             <div className="hidden sm:flex sm:gap-4">
               {[
-                { name: "Swap", href: "/" },
+                { name: "Swap", href: "/swap" },
                 { name: "Pools", href: "/pools" },
               ].map((item) => (
                 <NavLink
