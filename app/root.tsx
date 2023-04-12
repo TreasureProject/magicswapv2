@@ -24,7 +24,6 @@ import {
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import { trustWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets";
-
 import NProgress from "nprogress";
 
 import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
@@ -133,7 +132,7 @@ export default function App({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="max-w-screen m-0 box-border w-screen overflow-x-hidden p-0 text-white antialiased">
-        <div className="w-full bg-night-1200 px-3">
+        <div className="w-full bg-night-1200 px-3 pb-16">
           <Container className="min-h-screen">
             <WagmiConfig client={client}>
               <RainbowKitProvider chains={chains} theme={darkTheme()}>
