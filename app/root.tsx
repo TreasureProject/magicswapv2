@@ -134,7 +134,7 @@ export default function App({ children }: { children: React.ReactNode }) {
       </head>
       <body className="max-w-screen m-0 box-border w-screen overflow-x-hidden p-0 text-white antialiased">
         <div className="w-full bg-night-1200 px-3">
-          <Container className="min-h-screen">
+          <div className="min-h-screen">
             <WagmiConfig client={client}>
               <RainbowKitProvider chains={chains} theme={darkTheme()}>
                 <Navigation />
@@ -146,7 +146,7 @@ export default function App({ children }: { children: React.ReactNode }) {
             <Scripts />
             <ScrollRestoration />
             <LiveReload />
-          </Container>
+          </div>
         </div>
         <Footer />
       </body>

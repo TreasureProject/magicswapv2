@@ -3,19 +3,25 @@ import { CloseIcon } from "~/components/Icons";
 import { cn } from "~/lib/utils";
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
-  mode?: "primary" | "secondary";
+  mode?: "primary" | "secondary" | "dark";
+  size?: "sm" | "md" | "lg";
 };
 
 export const Button = ({
   mode = "primary",
+  size = "sm",
   className,
   ...buttonProps
 }: ButtonProps) => {
   return (
     <button
       className={cn(
-        "rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
+        "flex items-center justify-center gap-1.5 rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
         mode === "secondary" && "bg-night-800 hover:bg-night-900",
+        mode === "dark" && "bg-night-1000 hover:bg-night-900",
+        size === "sm" && "p-2",
+        size === "md" && "px-4 py-3",
+        size === "lg" && "px-5 py-4",
         className
       )}
       {...buttonProps}
