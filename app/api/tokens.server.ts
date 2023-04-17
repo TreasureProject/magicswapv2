@@ -1,3 +1,4 @@
+import type { ExecutionResult } from "graphql";
 import type {
   LlamaTokensResponse,
   TokenPriceMapping,
@@ -5,6 +6,39 @@ import type {
   TroveTokenMapping,
 } from "~/types";
 import { NORMALIZED_TOKEN_MAPPING } from "~/lib/tokens.server";
+import type { getTokensQuery } from ".graphclient";
+import { execute, getTokensDocument } from ".graphclient";
+import { fetchTroveCollections } from "./collections.server";
+import { getTokenCollectionAddresses } from "~/lib/tokens.server";
+import { getTokenReserveItemIds } from "~/lib/tokens.server";
+import { isTokenNft } from "~/lib/tokens.server";
+import { createPoolToken } from "~/lib/tokens.server";
+
+export const fetchTokens = async () => {
+  const result = (await execute(
+    getTokensDocument,
+    {}
+  )) as ExecutionResult<getTokensQuery>;
+  const { tokens: rawTokens = [] } = result.data ?? {};
+  const [collections, tokens, erc20Prices] = await Promise.all([
+    fetchTroveCollections([
+      ...new Set(
+        rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
+      ),
+    ]),
+    fetchTroveTokens([
+      ...new Set(rawTokens.flatMap((token) => getTokenReserveItemIds(token))),
+    ]),
+    fetchTokenPrices([
+      ...new Set(
+        rawTokens.flatMap((token) => (isTokenNft(token) ? [] : [token.id]))
+      ),
+    ]),
+  ]);
+  return rawTokens.map((token) =>
+    createPoolToken(token, collections, tokens, erc20Prices)
+  );
+};
 
 export const fetchTroveTokens = async (
   ids: string[]

@@ -1,3 +1,121 @@
-export default function SwapPage() {
-  return <h1>teeest</h1>;
+import { ArrowDownIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, Square3Stack3DIcon } from "@heroicons/react/24/solid";
+import { Link, useLoaderData } from "@remix-run/react";
+import type { LoaderArgs } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
+import { fetchTokens } from "~/api/tokens.server";
+import { Button } from "~/components/Button";
+import { Container } from "~/components/Container";
+import { SwapIcon } from "~/components/Icons";
+import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import { cn } from "~/lib/utils";
+import type { PoolToken } from "~/types";
+
+export async function loader({ request }: LoaderArgs) {
+  const tokens = await fetchTokens();
+
+  const url = new URL(request.url);
+  const inputAddress = url.searchParams.get("in");
+  const outputAddress = url.searchParams.get("out");
+
+  const inputToken = inputAddress
+    ? tokens.find(({ id }) => id === inputAddress)
+    : tokens.find(({ name }) => name === "MAGIC");
+  const outputToken = outputAddress
+    ? tokens.find(({ id }) => id === outputAddress)
+    : undefined;
+
+  return json({
+    tokens,
+    inputToken,
+    outputToken,
+  });
 }
+
+export default function SwapPage() {
+  const { inputToken, outputToken } = useLoaderData<typeof loader>();
+
+  return (
+    <Container className="max-w-xl py-6 sm:py-10">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 text-xl font-bold">
+          <SwapIcon className="h-6 w-6 text-night-600" />
+          Swap
+        </div>
+        <button>
+          <Cog6ToothIcon className="h-6 w-6 text-night-600" />
+        </button>
+      </div>
+      <div>
+        <SwapTokenInput
+          className="mt-6"
+          token={inputToken as PoolToken | undefined}
+        />
+        <Link
+          to={`/?in=${outputToken?.id}&out=${inputToken?.id}`}
+          className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
+        >
+          <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
+        </Link>
+        <SwapTokenInput token={outputToken as PoolToken | undefined} />
+      </div>
+    </Container>
+  );
+}
+
+const SwapTokenInput = ({
+  token,
+  className,
+}: {
+  token?: PoolToken;
+  className?: string;
+}) => {
+  if (!token) {
+    return (
+      <button
+        className={cn(
+          "group flex w-full items-center gap-4 rounded-lg bg-night-1100 px-4 py-5 text-xl font-medium text-night-400 transition-colors hover:text-honey-25",
+          className
+        )}
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-night-800 text-night-600 transition-colors group-hover:text-honey-50">
+          <Square3Stack3DIcon className="h-6 w-6" />
+        </div>
+        Select Asset
+      </button>
+    );
+  }
+
+  return (
+    <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
+      <div className="flex items-center justify-between gap-3 p-4">
+        <div className="flex items-center gap-4">
+          <PoolTokenImage className="h-12 w-12" token={token} />
+          <div className="space-y-1">
+            <span className="flex items-center gap-1.5 text-lg font-medium text-honey-25">
+              {token.name} <ChevronDownIcon className="h-3 w-3" />
+            </span>
+            <span className="block text-sm text-night-600">{token.symbol}</span>
+          </div>
+        </div>
+        <div className="space-y-1 text-right">
+          <input className="bg-transparent text-right" placeholder="0.00" />
+          <span className="block text-sm text-night-400">
+            $1,975.25 <span className="text-night-600">(-0.380%)</span>
+          </span>
+        </div>
+      </div>
+      <div className="bg-night-800 px-4 py-2.5 text-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-night-400 sm:text-sm">Balance</span>
+            <span className="font-semibold text-honey-25 sm:text-sm">
+              24,233
+            </span>
+          </div>
+          <Button mode="secondary">Max</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
