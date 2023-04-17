@@ -24,7 +24,6 @@ import {
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import { trustWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets";
-
 import NProgress from "nprogress";
 
 import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
