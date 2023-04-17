@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "@remix-run/react";
 import { useState } from "react";
-import { twMerge } from "tailwind-merge";
+import { Container } from "./Container";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Search } from "./Search";
 import { Button } from "./Button";
@@ -42,7 +42,7 @@ const Navigation = () => {
   };
 
   return (
-    <div className="flex w-full items-center justify-between py-4">
+    <Container className="flex w-full items-center justify-between py-4">
       {showSearchPopup && (
         <SearchPopup onClose={() => setShowSearchPopup(false)} />
       )}
@@ -179,7 +179,7 @@ const Navigation = () => {
         </Dropdown>
         <Button className="md:ml-0">Connect Wallet</Button>
       </div>
-    </div>
+    </Container>
   );
 };
 
