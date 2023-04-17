@@ -18,7 +18,7 @@ export async function loader() {
   });
 }
 
-const PoolsTable = ({ pools }) => {
+const PoolsTable = ({ pools }: { pools: Pool[] }) => {
   const showPerPage = 12;
   const [activePage, setActivePage] = useState<number>(0);
 
@@ -32,58 +32,60 @@ const PoolsTable = ({ pools }) => {
   };
 
   return (
-    <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
-      <thead className="border-b border-b-night-900">
-        <tr>
-          <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
-            Name
-          </th>
-          <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5 ">
-            Volume (24h)
-          </th>
-          <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
-            <abbr title="Annual Percentage Rate" className="no-underline">
-              APR
-            </abbr>
-          </th>
-          <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
-            <abbr title="Total Value Locked" className="no-underline">
-              TVL
-            </abbr>
-          </th>
-          <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
-            Fees
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {pools.map((pool) => (
-          <tr
-            key={pool.id}
-            className="cursor-pointer border-b border-b-night-900 transition-colors hover:bg-night-1000"
-          >
-            <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
-              <Link to={`/pools/${pool.id}`} className="flex items-center">
-                <PoolImage pool={pool as Pool} />
-                <span className="-ml-2 sm:ml-0">{pool.name}</span>
-              </Link>
-            </td>
-            <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-              ?
-            </td>
-            <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-              ?
-            </td>
-            <td className="px-4 py-4 text-right sm:px-5">
-              {formatUSD(pool.tvlUSD)}
-            </td>
-            <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-              ?
-            </td>
+    <div>
+      <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
+        <thead className="border-b border-b-night-900">
+          <tr>
+            <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
+              Name
+            </th>
+            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5 ">
+              Volume (24h)
+            </th>
+            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+              <abbr title="Annual Percentage Rate" className="no-underline">
+                APR
+              </abbr>
+            </th>
+            <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
+              <abbr title="Total Value Locked" className="no-underline">
+                TVL
+              </abbr>
+            </th>
+            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+              Fees
+            </th>
           </tr>
-        ))}
-      </tbody>
-      <tfoot className="col-span-[0] flex w-full items-center justify-between px-3 py-2">
+        </thead>
+        <tbody>
+          {pools.map((pool: Pool) => (
+            <tr
+              key={pool.id}
+              className="cursor-pointer border-b border-b-night-900 transition-colors hover:bg-night-1000"
+            >
+              <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
+                <Link to={`/pools/${pool.id}`} className="flex items-center">
+                  <PoolImage pool={pool as Pool} />
+                  <span className="-ml-2 sm:ml-0">{pool.name}</span>
+                </Link>
+              </td>
+              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+                ?
+              </td>
+              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+                ?
+              </td>
+              <td className="px-4 py-4 text-right sm:px-5">
+                {formatUSD(pool.tvlUSD)}
+              </td>
+              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+                ?
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
         <button
           className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
           onClick={() => handlePagination("prev")}
@@ -114,8 +116,8 @@ const PoolsTable = ({ pools }) => {
           <p className="text-sm font-medium">Next</p>
           <ChevronRight className="w-6" />
         </button>
-      </tfoot>
-    </table>
+      </nav>
+    </div>
   );
 };
 

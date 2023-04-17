@@ -1,32 +1,58 @@
 import type { HTMLAttributes } from "react";
 import { CloseIcon } from "~/components/Icons";
 import { cn } from "~/lib/utils";
+import { Link } from "react-router-dom";
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   mode?: "primary" | "secondary" | "dark";
+  to?: string;
   size?: "sm" | "md" | "lg";
+  disabled?: boolean;
 };
 
 export const Button = ({
   mode = "primary",
   size = "sm",
+  disabled = false,
+  to,
   className,
   ...buttonProps
 }: ButtonProps) => {
-  return (
-    <button
-      className={cn(
-        "flex items-center justify-center gap-1.5 rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
-        mode === "secondary" && "bg-night-800 hover:bg-night-900",
-        mode === "dark" && "bg-night-1000 hover:bg-night-900",
-        size === "sm" && "p-2",
-        size === "md" && "px-4 py-3",
-        size === "lg" && "px-5 py-4",
-        className
-      )}
-      {...buttonProps}
-    />
-  );
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={cn(
+          "flex items-center justify-center gap-1.5 rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
+          mode === "secondary" && "bg-night-800 hover:bg-night-900",
+          mode === "dark" && "bg-night-1000 hover:bg-night-900",
+          size === "sm" && "p-2",
+          size === "md" && "px-4 py-3",
+          size === "lg" && "px-5 py-4",
+          disabled && "pointer-events-none cursor-not-allowed opacity-50",
+          className
+        )}
+      >
+        {buttonProps.children}
+      </Link>
+    );
+  } else {
+    return (
+      <button
+        className={cn(
+          "flex items-center justify-center gap-1.5 rounded-md bg-ruby-900 p-2 text-sm font-medium leading-[160%] text-white transition-colors hover:bg-ruby-800",
+          mode === "secondary" && "bg-night-800 hover:bg-night-900",
+          mode === "dark" && "bg-night-1000 hover:bg-night-900",
+          size === "sm" && "p-2",
+          size === "md" && "px-4 py-3",
+          size === "lg" && "px-5 py-4",
+          disabled && "pointer-events-none cursor-not-allowed opacity-50",
+          className
+        )}
+        {...buttonProps}
+      />
+    );
+  }
 };
 
 interface CloseButtonProps {
