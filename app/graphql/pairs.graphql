@@ -42,3 +42,9 @@ query getPair($id: ID!) {
     ...PairFragment
   }
 }
+
+query getTokens {
+  tokens {
+    ...TokenFragment
+  }
+}
