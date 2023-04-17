@@ -82,7 +82,7 @@ export default function PoolDetailsPage() {
                 <div className="flex items-center">
                   <PoolImage pool={pool as Pool} className="h-10 w-10" />
                   <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                    0,00
+                    0.00
                   </p>
                 </div>
                 <p className="text-sm text-night-400">
@@ -115,7 +115,7 @@ export default function PoolDetailsPage() {
                         {pool.token1.reserve}
                       </p>
                     </div>
-                    <p className="text-night-500">$0,00</p>
+                    <p className="text-night-500">$0.00</p>
                   </div>
                 </div>
                 <div className="flex w-1/2 flex-col gap-3">
@@ -143,7 +143,7 @@ export default function PoolDetailsPage() {
                         {pool.token0.reserve}
                       </p>
                     </div>
-                    <p className="text-night-500">$0,00</p>
+                    <p className="text-night-500">$0.00</p>
                   </div>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function PoolDetailsPage() {
             />
             <SelectionFrame
               title="Paired Asset"
-              token={pool.token0}
+              token={pool.token0 as PoolToken}
               mode="transparent"
             />
             <Table
@@ -271,16 +271,16 @@ export default function PoolDetailsPage() {
                 {
                   label: "LP Tokens Owned",
                   icon: {
-                    token1: pool.token0.image,
-                    token2: pool.token1.image,
+                    token0: pool.token0.image,
+                    token1: pool.token1.image,
                   },
                   value: 1539,
                 },
                 {
                   label: "LP Tokens Spent",
                   icon: {
-                    token1: pool.token0.image,
-                    token2: pool.token1.image,
+                    token0: pool.token0.image,
+                    token1: pool.token1.image,
                   },
                   value: 0.0,
                 },
@@ -313,7 +313,10 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable token1={pool.token1} token2={pool.token0} />
+        <PoolActivityTable
+          token0={pool.token0 as PoolToken}
+          token1={pool.token1 as PoolToken}
+        />
         <h3 className="flex items-center gap-3 font-medium">
           <ArrowLeftRightIcon className="h-4 w-4" />
           Pool Inventory
@@ -336,11 +339,11 @@ export default function PoolDetailsPage() {
 }
 
 const PoolActivityTable = ({
+  token0,
   token1,
-  token2,
 }: {
+  token0: PoolToken;
   token1: PoolToken;
-  token2: PoolToken;
 }) => {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const showPerPage = 12;
@@ -391,6 +394,36 @@ const PoolActivityTable = ({
                       <div
                         className={cn(
                           "h-9 w-9 overflow-hidden",
+                          token0.isNft
+                            ? "rounded-[4px]"
+                            : "rounded-full bg-night-1000"
+                        )}
+                      >
+                        {token0.image && (
+                          <img
+                            src={token0.image}
+                            className={cn(
+                              "h-6 w-6 rounded-full",
+                              token0.isNft && "h-9 w-9 rounded-none"
+                            )}
+                            alt={token0.name}
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="font-medium uppercase leading-[160%] text-night-100">
+                          {token0.name}
+                        </p>
+                        <p className="text-sm capitalize leading-[160%] text-night-400">
+                          0 {token0.name}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowLeftRightIcon className="w-6 text-night-400" />
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          "h-9 w-9 overflow-hidden",
                           token1.isNft
                             ? "rounded-[4px]"
                             : "rounded-full bg-night-1000"
@@ -413,36 +446,6 @@ const PoolActivityTable = ({
                         </p>
                         <p className="text-sm capitalize leading-[160%] text-night-400">
                           0 {token1.name}
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowLeftRightIcon className="w-6 text-night-400" />
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "h-9 w-9 overflow-hidden",
-                          token2.isNft
-                            ? "rounded-[4px]"
-                            : "rounded-full bg-night-1000"
-                        )}
-                      >
-                        {token2.image && (
-                          <img
-                            src={token2.image}
-                            className={cn(
-                              "h-6 w-6 rounded-full",
-                              token2.isNft && "h-9 w-9 rounded-none"
-                            )}
-                            alt={token2.name}
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-medium uppercase leading-[160%] text-night-100">
-                          {token2.name}
-                        </p>
-                        <p className="text-sm capitalize leading-[160%] text-night-400">
-                          0 {token2.name}
                         </p>
                       </div>
                     </div>
@@ -483,8 +486,8 @@ const PoolActivityTable = ({
                   exit={{ height: "0px", opacity: 0 }}
                   className={cn("grid w-full bg-night-1100 py-6 px-3")}
                 >
-                  {token1.isNft &&
-                    token1.reserveItems.map(
+                  {token0.isNft &&
+                    token0.reserveItems.map(
                       ({ tokenId, name, image, amount }) => (
                         <div
                           key={tokenId}

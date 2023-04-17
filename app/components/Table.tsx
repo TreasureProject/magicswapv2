@@ -3,7 +3,7 @@ import { cn } from "~/lib/utils";
 
 interface TableItem {
   label: string;
-  icon?: string | { token1: string | undefined; token2: string | undefined };
+  icon?: string | { token0: string | undefined; token1: string | undefined };
   value: string | number;
 }
 
@@ -33,9 +33,9 @@ const Table = ({ children, items }: TableProps) => {
                     />
                   ) : (
                     <div className="flex w-8 items-center">
-                      {item.icon.token1 ? (
+                      {item.icon.token0 ? (
                         <img
-                          src={item.icon.token1}
+                          src={item.icon.token0}
                           alt={item.label}
                           className="h-5 w-5 min-w-[20px] rounded-full border-2 border-night-1100"
                         />
@@ -43,9 +43,9 @@ const Table = ({ children, items }: TableProps) => {
                         <div className="h-5 w-5 min-w-[20px] rounded-full border-2 border-night-1100 bg-night-900" />
                       )}
 
-                      {item.icon.token2 ? (
+                      {item.icon.token1 ? (
                         <img
-                          src={item.icon.token2}
+                          src={item.icon.token1}
                           alt={item.label}
                           className="min-w-5 h-5 w-5 -translate-x-1/2 rounded-full border-2 border-night-1100"
                         />
