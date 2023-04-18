@@ -1,19 +1,20 @@
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "./ui/Dropdown";
 import { NavLink } from "@remix-run/react";
-import { MagicSwapLogoFull, MagicSwapLogo } from "@treasure-project/branding";
-import { Search, Menu, Info, Play } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
+import { Info, Menu, Play, Search } from "lucide-react";
+import { useState } from "react";
+
+import { Footer } from "./Footer";
 import SearchPopup from "./SearchPopup";
 import { Button } from "./ui/Button";
-import { useState } from "react";
-import { Footer } from "./Footer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/Dropdown";
+import { cn } from "~/lib/utils";
 
 const Pages = [
   { name: "Swap", href: "/" },

@@ -1,9 +1,9 @@
-import type { Pair } from "~/types";
 import {
   getTokenCollectionAddresses,
   getTokenReserveItemIds,
   isTokenNft,
 } from "./tokens.server";
+import type { Pair } from "~/types";
 
 export const getPairCollectionAddresses = (pair: Pair) => [
   ...new Set([

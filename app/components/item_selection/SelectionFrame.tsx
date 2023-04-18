@@ -1,7 +1,8 @@
-import React from "react";
-import type { PoolToken } from "~/types";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
+import React from "react";
+
 import { Button } from "../ui/Button";
+import type { PoolToken } from "~/types";
 
 const SelectionFrame = ({
   title = "Set Title",

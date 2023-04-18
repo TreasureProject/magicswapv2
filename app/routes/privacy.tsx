@@ -1,6 +1,7 @@
 import React from "react";
-import { DiscordSupportBar } from "~/components/FooterBars";
 import { Link } from "react-router-dom";
+
+import { DiscordSupportBar } from "~/components/FooterBars";
 
 const Privacy = () => {
   return (

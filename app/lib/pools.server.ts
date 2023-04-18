@@ -1,3 +1,4 @@
+import { createPoolToken } from "./tokens.server";
 import type {
   Pair,
   Pool,
@@ -6,7 +7,6 @@ import type {
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
-import { createPoolToken } from "./tokens.server";
 
 export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
   if (token1.isNft && !token0.isNft) {

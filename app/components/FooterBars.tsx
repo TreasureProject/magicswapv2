@@ -1,7 +1,8 @@
 import React from "react";
-import { Button } from "./ui/Button";
-import { DiscordIcon } from "./Icons";
+
 import chatMessageImage from "../assets/chat_messages.png";
+import { DiscordIcon } from "./Icons";
+import { Button } from "./ui/Button";
 
 export const DiscordSupportBar = () => {
   return (

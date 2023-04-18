@@ -3,12 +3,14 @@ import { Cog6ToothIcon, Square3Stack3DIcon } from "@heroicons/react/24/solid";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
+import { Decimal } from "decimal.js-light";
+import { useState } from "react";
+
 import { fetchTokens } from "~/api/tokens.server";
-import { Button } from "~/components/ui/Button";
+import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { cn } from "~/lib/utils";
-import type { PoolToken } from "~/types";
+import { Button } from "~/components/ui/Button";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +20,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
-import { useState } from "react";
-import { CurrencyInput } from "~/components/CurrencyInput";
 import { formatUSD } from "~/lib/currency";
-import { Decimal } from "decimal.js-light";
+import { cn } from "~/lib/utils";
+import type { PoolToken } from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
   const tokens = await fetchTokens();

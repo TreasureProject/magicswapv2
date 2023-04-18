@@ -1,4 +1,4 @@
-import type { getPairsQuery, NftType } from ".graphclient";
+import type { NftType, getPairsQuery } from ".graphclient";
 
 /** Environment and helpers */
 export type EnvVar =

@@ -1,4 +1,11 @@
-import { useMemo, useEffect, useState } from "react";
+import {
+  RainbowKitProvider,
+  connectorsForWallets,
+  darkTheme,
+  getDefaultWallets,
+} from "@rainbow-me/rainbowkit";
+import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
+import { ledgerWallet, trustWallet } from "@rainbow-me/rainbowkit/wallets";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
@@ -7,31 +14,23 @@ import {
   Meta,
   Outlet,
   Scripts,
-  useTransition,
+  ScrollRestoration,
   useFetchers,
   useLoaderData,
-  ScrollRestoration,
+  useTransition,
 } from "@remix-run/react";
+import NProgress from "nprogress";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
-import { createClient, configureChains, WagmiConfig } from "wagmi";
+import { WagmiConfig, configureChains, createClient } from "wagmi";
 import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
-import {
-  connectorsForWallets,
-  darkTheme,
-  getDefaultWallets,
-  RainbowKitProvider,
-} from "@rainbow-me/rainbowkit";
-import { trustWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets";
-import NProgress from "nprogress";
 
-import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
-import styles from "./styles/tailwind.css";
-import nProgressStyles from "./styles/nprogress.css";
-
-import type { Env } from "./types";
 import { Layout } from "./components/Layout";
+import nProgressStyles from "./styles/nprogress.css";
+import styles from "./styles/tailwind.css";
+import type { Env } from "./types";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },

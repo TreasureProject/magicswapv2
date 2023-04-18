@@ -1,8 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   useContractWrite as useContractWriteWagmi,
   useWaitForTransaction,
 } from "wagmi";
+
 import type { Optional } from "~/types";
 
 type UseContractWriteArgs = Parameters<typeof useContractWriteWagmi>;
