@@ -9,6 +9,15 @@ import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { cn } from "~/lib/utils";
 import type { PoolToken } from "~/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/Dialog";
 
 export async function loader({ request }: LoaderArgs) {
   const tokens = await fetchTokens();
@@ -58,6 +67,14 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput token={outputToken as PoolToken | undefined} />
       </div>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">Edit Profile</Button>
+        </DialogTrigger>
+        <DialogContent className="border-none bg-transparent shadow-none backdrop-blur-0 sm:max-w-4xl">
+          {/* TODO */}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
