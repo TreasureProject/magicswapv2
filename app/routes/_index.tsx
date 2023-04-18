@@ -5,6 +5,7 @@ import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { Decimal } from "decimal.js-light";
 import { useState } from "react";
+import { useAccount, useBalance } from "wagmi";
 
 import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
@@ -92,6 +93,13 @@ const SwapTokenInput = ({
   className?: string;
 }) => {
   const [amount, setAmount] = useState("0");
+  const { address } = useAccount();
+
+  const { data: balance } = useBalance({
+    address,
+    token: token?.id as `0x${string}`,
+    enabled: !!token && !token.isNft,
+  });
 
   if (!token) {
     return (
@@ -137,7 +145,7 @@ const SwapTokenInput = ({
           <div className="flex items-center gap-2">
             <span className="text-night-400 sm:text-sm">Balance</span>
             <span className="font-semibold text-honey-25 sm:text-sm">
-              24,233
+              {balance?.formatted ?? 0}
             </span>
           </div>
           {/* <Button mode="secondary">Max</Button> */}
