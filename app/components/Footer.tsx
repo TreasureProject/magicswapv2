@@ -1,7 +1,6 @@
 import React from "react";
 import { MagicSwapLogoFull, MagicSwapLogo } from "@treasure-project/branding";
 import { DiscordIcon, TwitterIcon, MagicIcon } from "~/components/Icons";
-import { Container } from "./Container";
 import { Link } from "react-router-dom";
 
 interface LinkType {
@@ -90,9 +89,9 @@ const FooterPoints: {
 
 export const Footer = () => {
   return (
-    <div className="w-full bg-night-1200">
+    <div className="container bg-night-1200">
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-night-800 to-transparent" />
-      <Container className="flex items-center justify-between py-6">
+      <div className="flex items-center justify-between py-6">
         <MagicSwapLogoFull className="h-6" />
         <div className="flex items-center gap-1">
           <MagicIcon className="h-4 text-ruby-900" />
@@ -100,9 +99,9 @@ export const Footer = () => {
             $1,724 <span className="text-night-600">USD</span>{" "}
           </p>
         </div>
-      </Container>
+      </div>
       <div className="w-full border-t border-t-night-800">
-        <Container className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
+        <div className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
           <div className="lg:justify-normal flex flex-col justify-between gap-6 sm:flex-row lg:flex-col">
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-14" />
@@ -165,10 +164,10 @@ export const Footer = () => {
               </div>
             ))}
           </div>
-        </Container>
+        </div>
       </div>
       <div className="w-full border-t border-t-night-800">
-        <Container className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
           <p className="base-500 text-center text-sm text-night-500 md:text-start">
             Copyright © 2022 Magic Swap. All rights reserved.
           </p>
@@ -180,7 +179,7 @@ export const Footer = () => {
               Privacy Policy
             </Link>
           </div>
-        </Container>
+        </div>
       </div>
     </div>
   );

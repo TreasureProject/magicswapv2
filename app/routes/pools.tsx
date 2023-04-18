@@ -8,7 +8,6 @@ import { useState } from "react";
 import { Tabs } from "~/components/Tabs";
 import { PoolIcon } from "~/components/Icons";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/components/Container";
 import { formatUSD } from "~/lib/currency";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -126,7 +125,7 @@ export default function PoolsListPage() {
   const [tab, setTab] = useState("all");
 
   return (
-    <Container className="py-6 sm:py-10">
+    <main className="container">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold">Pools</h1>
@@ -194,6 +193,6 @@ export default function PoolsListPage() {
           <PoolsTable pools={pools as Pool[]} />
         </>
       )}
-    </Container>
+    </main>
   );
 }

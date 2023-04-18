@@ -5,7 +5,6 @@ import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { fetchTokens } from "~/api/tokens.server";
 import { Button } from "~/components/Button";
-import { Container } from "~/components/Container";
 import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { cn } from "~/lib/utils";
@@ -36,7 +35,7 @@ export default function SwapPage() {
   const { inputToken, outputToken } = useLoaderData<typeof loader>();
 
   return (
-    <Container className="max-w-xl py-6 sm:py-10">
+    <main className="mx-auto max-w-xl py-6 sm:py-10">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 text-xl font-bold">
           <SwapIcon className="h-6 w-6 text-night-600" />
@@ -59,7 +58,7 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput token={outputToken as PoolToken | undefined} />
       </div>
-    </Container>
+    </main>
   );
 }
 
@@ -113,7 +112,7 @@ const SwapTokenInput = ({
               24,233
             </span>
           </div>
-          <Button mode="secondary">Max</Button>
+          {/* <Button mode="secondary">Max</Button> */}
         </div>
       </div>
     </div>

@@ -5,7 +5,6 @@ import { json } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
-import { Container } from "~/components/Container";
 import {
   ArrowLeftRight as ArrowLeftRightIcon,
   ExternalLink as ExternalLinkIcon,
@@ -46,7 +45,7 @@ export default function PoolDetailsPage() {
   const poolActivityFilters = ["all", "swap", "deposit", "withdraw"];
 
   return (
-    <Container className="py-6 sm:py-10">
+    <main className="container">
       <h1 className="flex items-center text-2xl font-bold uppercase">
         <Link
           to="/pools"
@@ -334,7 +333,7 @@ export default function PoolDetailsPage() {
           <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
         )}
       </div>
-    </Container>
+    </main>
   );
 }
 
