@@ -1,6 +1,6 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
-import { Button } from "~/components/Button";
+import { Button } from "~/components/ui/Button";
 import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
 import type { Pool } from "~/types";
@@ -85,13 +85,10 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
         </tbody>
       </table>
       <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-          onClick={() => handlePagination("prev")}
-        >
+        <Button variant="ghost" onClick={() => handlePagination("prev")}>
           <ChevronLeft className="w-6" />
           <p className="text-sm font-medium">Previous</p>
-        </button>
+        </Button>
         <p className="text-night-500">
           Showing{" "}
           <span className="font-medium text-night-200">
@@ -108,13 +105,10 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           </span>{" "}
           of <span className="font-medium text-night-200">{pools.length}</span>
         </p>
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-          onClick={() => handlePagination("next")}
-        >
+        <Button variant="ghost" onClick={() => handlePagination("next")}>
           <p className="text-sm font-medium">Next</p>
           <ChevronRight className="w-6" />
-        </button>
+        </Button>
       </nav>
     </div>
   );
@@ -136,7 +130,7 @@ export default function PoolsListPage() {
         </div>
         <div className="flex shrink-0 items-center gap-2.5">
           <Button size="md">New Position</Button>
-          <Button mode="dark" size="md">
+          <Button variant="dark" size="md">
             Learn More
           </Button>
         </div>

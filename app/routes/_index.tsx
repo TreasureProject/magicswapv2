@@ -4,7 +4,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { fetchTokens } from "~/api/tokens.server";
-import { Button } from "~/components/Button";
+import { Button } from "~/components/ui/Button";
 import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { cn } from "~/lib/utils";

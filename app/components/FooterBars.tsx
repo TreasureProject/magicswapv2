@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "./Button";
+import { Button } from "./ui/Button";
 import { DiscordIcon } from "./Icons";
 import chatMessageImage from "../assets/chat_messages.png";
 
@@ -19,7 +19,7 @@ export const DiscordSupportBar = () => {
         alt="Messages of discord users helping each other"
         className="absolute left-[55%] top-1/2 w-[560px] -translate-x-1/2 -translate-y-1/2 opacity-25 lg:opacity-100 "
       />
-      <Button className="relative z-10 w-full px-4 md:w-max ">
+      <Button className="relative z-10 w-full px-4 md:w-max">
         <DiscordIcon className="w-6" />
         Join Server
       </Button>

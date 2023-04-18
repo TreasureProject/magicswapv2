@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "~/components/Button";
+import { Button } from "~/components/ui/Button";
 import { Grid, SwapIcon, PoolsIcon, LearnIcon } from "~/assets/Svgs";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";

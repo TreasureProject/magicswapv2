@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CloseButton } from "~/components/Button";
+import { CloseButton } from "~/components/ui/Button";
 import Input from "~/components/Input";
 import PopupOverlay from "~/components/PopupOverlay";
 import { SearchIcon, VerifiedIcon } from "~/components/Icons";

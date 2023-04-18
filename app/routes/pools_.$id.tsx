@@ -17,7 +17,7 @@ import type { Pool, PoolToken } from "~/types";
 import { formatUSD } from "~/lib/currency";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { cn } from "~/lib/utils";
-import { Button } from "~/components/Button";
+import { Button } from "~/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import SelectionFrame from "~/components/item_selection/SelectionFrame";
 import Table from "~/components/Table";
