@@ -6,8 +6,6 @@ module.exports = {
     v2_routeConvention: true,
   },
   serverDependenciesToBundle: [
-    "@rainbow-me/rainbowkit",
-    "@rainbow-me/rainbowkit/wallets",
     /^@?wagmi.*/,
     /.*/,
   ],

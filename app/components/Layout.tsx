@@ -1,5 +1,6 @@
 import { NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
+import { ConnectKitButton } from "connectkit";
 import { Info, Menu, Play, Search } from "lucide-react";
 import { useState } from "react";
 
@@ -14,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/Dropdown";
+import { truncateEthAddress } from "~/lib/address";
 import { cn } from "~/lib/utils";
 
 const Pages = [
@@ -87,7 +89,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="secondary">Connect Wallet</Button>
+          <ConnectKitButton.Custom>
+            {({ isConnected, show, address }) => {
+              return (
+                <Button variant="secondary" onClick={show}>
+                  {isConnected
+                    ? truncateEthAddress(address ?? "")
+                    : "Connect Wallet"}
+                </Button>
+              );
+            }}
+          </ConnectKitButton.Custom>
         </div>
       </header>
       <div className="relative flex-1">{children}</div>
