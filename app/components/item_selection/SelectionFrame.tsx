@@ -59,7 +59,7 @@ const SelectionFrame = ({
             {[25, 50, 75, 100].map((percent) => (
               <button
                 key={percent}
-                className="rounded-lg py-1.5 px-3 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
+                className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
               >
                 {percent}%
               </button>

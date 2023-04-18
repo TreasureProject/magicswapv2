@@ -102,7 +102,7 @@ export const Footer = () => {
       </div>
       <div className="w-full border-t border-t-night-800">
         <div className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
-          <div className="lg:justify-normal flex flex-col justify-between gap-6 sm:flex-row lg:flex-col">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-14" />
               <h1 className="max-w-[274px] text-2xl font-bold text-night-500">

@@ -77,7 +77,7 @@ export default function PoolDetailsPage() {
                   <span className="font-medium">{formatUSD(pool.tvlUSD)}</span>
                 </span>
               </div>
-              <div className="flex flex-col py-6 px-2">
+              <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
                   <PoolImage pool={pool as Pool} className="h-10 w-10" />
                   <p className="text-base-100 text-3xl font-medium leading-[160%]">
@@ -218,15 +218,15 @@ export default function PoolDetailsPage() {
               <p className="text-sm font-medium">Fees: 5.67%</p>
             </div>
             <div className="flex w-full flex-col gap-3 sm:flex-row ">
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 py-3 px-4">
+              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Volume (24h)</p>
                 <p className="font-bold text-night-100">$11,249,366</p>
               </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 py-3 px-4">
+              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">APR</p>
                 <p className="font-bold text-night-100">4,21%</p>
               </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 py-3 px-4">
+              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Fees (24h)</p>
                 <p className="font-bold text-night-100">$11,249,366</p>
               </div>
@@ -483,7 +483,7 @@ const PoolActivityTable = ({
                   initial={{ height: "0px", opacity: 0 }}
                   animate={{ height: "max", opacity: 1 }}
                   exit={{ height: "0px", opacity: 0 }}
-                  className={cn("grid w-full bg-night-1100 py-6 px-3")}
+                  className={cn("grid w-full bg-night-1100 px-3 py-6")}
                 >
                   {token0.isNft &&
                     token0.reserveItems.map(
