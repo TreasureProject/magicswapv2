@@ -28,6 +28,7 @@
     "buffer-polyfill": "npm:buffer@^6.0.3",
     "class-variance-authority": "^0.5.1",
     "clsx": "^1.2.1",
+    "decimal.js-light": "^2.5.1",
     "framer-motion": "^10.10.0",
     "graphql": "^16.6.0",
     "isbot": "^3.6.6",

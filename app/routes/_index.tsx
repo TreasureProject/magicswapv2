@@ -18,6 +18,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
+import { useState } from "react";
+import { CurrencyInput } from "~/components/CurrencyInput";
+import { formatUSD } from "~/lib/currency";
+import { Decimal } from "decimal.js-light";
 
 export async function loader({ request }: LoaderArgs) {
   const tokens = await fetchTokens();
@@ -86,6 +90,8 @@ const SwapTokenInput = ({
   token?: PoolToken;
   className?: string;
 }) => {
+  const [amount, setAmount] = useState("0");
+
   if (!token) {
     return (
       <button
@@ -102,6 +108,10 @@ const SwapTokenInput = ({
     );
   }
 
+  const amountPriceUSD =
+    amount === "0"
+      ? new Decimal(token.priceUSD)
+      : new Decimal(token.priceUSD).mul(amount);
   return (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -115,9 +125,9 @@ const SwapTokenInput = ({
           </div>
         </div>
         <div className="space-y-1 text-right">
-          <input className="bg-transparent text-right" placeholder="0.00" />
+          <CurrencyInput value={amount} onChange={setAmount} />
           <span className="block text-sm text-night-400">
-            $1,975.25 <span className="text-night-600">(-0.380%)</span>
+            {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
           </span>
         </div>
       </div>
