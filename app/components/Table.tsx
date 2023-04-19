@@ -1,4 +1,6 @@
-import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check as CheckIcon, Copy as CopyIcon } from "lucide-react";
+import React, { useState } from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -64,6 +66,48 @@ const Table = ({ children, items }: TableProps) => {
         </table>
       </div>
       {children && <div className="p-3">{children}</div>}
+    </div>
+  );
+};
+
+interface CopyTableProps {
+  label: string;
+  value: string;
+}
+
+export const CopyTable = ({ label, value }: CopyTableProps) => {
+  const [showCopied, setShowCopied] = useState(false);
+  const copyHandler = () => {
+    navigator.clipboard.writeText(value);
+    setShowCopied(true);
+    setTimeout(() => {
+      setShowCopied(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="flex items-center justify-between rounded-md border border-night-800 p-3">
+      <p className="text-sm text-night-400">{label}</p>
+      <div
+        className="relative flex cursor-pointer items-center gap-2"
+        onClick={copyHandler}
+      >
+        <p className="text-sm text-night-100">{value}</p>
+        <CopyIcon className="h-4 w-4 text-night-400" />
+        <AnimatePresence>
+          {showCopied && (
+            <motion.div
+              className="absolute -right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-full bg-night-900 px-4 py-2 text-sm font-medium text-night-400"
+              initial={{ opacity: 0, right: -40 }}
+              animate={{ opacity: 1, right: -80 }}
+              exit={{ opacity: 0, right: -40 }}
+            >
+              Copied
+              <CheckIcon className="h-3 w-3" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

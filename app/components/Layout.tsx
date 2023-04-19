@@ -38,7 +38,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             className="hidden xl:block"
             onClick={() => setShowSearchPopup(true)}
           >
-            <Search />
+            <Search className="w-5 text-night-400" />
           </button>
           <div className="mx-3 h-5 w-[1px] bg-night-700 md:mx-1.5" />
 
@@ -59,14 +59,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-end gap-3">
+        <div className="flex flex-1 items-center justify-end gap-3 ">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary">
                 <Menu className="w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuContent className="w-56 bg-night-900" align="end">
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <Info className="mr-2 h-4 w-4" />

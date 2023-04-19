@@ -4,6 +4,7 @@ import { json } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRight as ArrowLeftRightIcon,
+  Check as CheckIcon,
   ChevronDown as ChevronDownIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -14,7 +15,9 @@ import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
-import Table from "~/components/Table";
+import { CheckBoxLabeled } from "~/components/CheckBox";
+import { ExchangeIcon } from "~/components/Icons";
+import Table, { CopyTable } from "~/components/Table";
 import SelectionFrame from "~/components/item_selection/SelectionFrame";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
@@ -38,12 +41,21 @@ export async function loader({ params }: LoaderArgs) {
 
 export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
-  const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
+  const [activeTab, setActiveTab] = useState<
+    "deposit" | "withdraw" | "summary"
+  >("deposit");
 
   type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<PoolActivityFilters>("all");
   const poolActivityFilters = ["all", "swap", "deposit", "withdraw"];
+
+  const PoolActionHandler = () => {
+    setActiveTab("summary");
+  };
+
+  // Form state
+  const [checkedTerms, setCheckedTerms] = useState(false);
 
   return (
     <main className="container">
@@ -59,9 +71,9 @@ export default function PoolDetailsPage() {
       <div className="mt-6 space-y-6">
         <div className="flex flex-col gap-10 lg:flex-row ">
           <div className="w-full space-y-6 md:flex-row">
-            <div className="flex  items-center justify-between gap-6 ">
-              <PoolTokenInfo token={pool.baseToken} />
-              <PoolTokenInfo token={pool.quoteToken} />
+            <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center ">
+              <PoolTokenInfo token={pool.baseToken as PoolToken} />
+              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
             </div>
             <div className="h-[1px] bg-night-900" />
             <div className="space-y-4 rounded-md bg-night-1100 p-4">
@@ -234,61 +246,213 @@ export default function PoolDetailsPage() {
             </div>
           </div>
           <div className="flex h-max w-full flex-col gap-6 rounded-lg bg-night-1100 p-4 xl:min-w-[512px]">
-            <div className="flex w-full items-center justify-between  rounded-full bg-night-1200 p-2">
-              <button
-                className={cn(
-                  "w-full rounded-full py-2  font-medium leading-[160%] text-night-400  transition-colors",
-                  activeTab === "deposit" && "bg-night-900 text-night-100"
+            {!(activeTab === "summary") ? (
+              <>
+                <div className="flex w-full items-center justify-between  rounded-full bg-night-1200 p-1">
+                  <button
+                    className={cn(
+                      "w-full rounded-full py-2  font-medium leading-[160%] text-night-400  transition-colors",
+                      activeTab === "deposit" && "bg-night-800 text-night-100"
+                    )}
+                    onClick={() => setActiveTab("deposit")}
+                  >
+                    Deposit
+                  </button>
+                  <button
+                    className={cn(
+                      "w-full rounded-full py-2  font-medium leading-[160%]  text-night-400 transition-colors",
+                      activeTab === "withdraw" && "bg-night-800 text-night-100"
+                    )}
+                    onClick={() => setActiveTab("withdraw")}
+                  >
+                    Withdraw
+                  </button>
+                </div>
+                {activeTab === "withdraw" && (
+                  <SelectionFrame
+                    token={pool.token1 as PoolToken}
+                    mode="transparent"
+                    type="input"
+                    inputLabel={
+                      <div className="flex items-center">
+                        <PoolImage pool={pool} className="h-8 w-8" />
+                        <p className="text-night-400">LP Tokens</p>
+                      </div>
+                    }
+                  />
                 )}
-                onClick={() => setActiveTab("deposit")}
-              >
-                Deposit
-              </button>
-              <button
-                className={cn(
-                  "w-full rounded-full py-2  font-medium leading-[160%]  text-night-400 transition-colors",
-                  activeTab === "withdraw" && "bg-night-900 text-night-100"
+                <SelectionFrame
+                  token={pool.token1 as PoolToken}
+                  mode="transparent"
+                />
+                <SelectionFrame
+                  token={pool.token0 as PoolToken}
+                  mode="transparent"
+                />
+                <Table
+                  items={
+                    activeTab === "deposit"
+                      ? [
+                          { label: "Share of Pool", value: "0.00%" },
+                          {
+                            label: "LP Tokens Received",
+                            icon: {
+                              token0: pool.token0.image,
+                              token1: pool.token1.image,
+                            },
+                            value: 0.0,
+                          },
+                        ]
+                      : [
+                          { label: "Current Share of Pool", value: "0.00%" },
+                          { label: "New Share of Pool", value: "0.00%" },
+                          {
+                            label: "LP Tokens Owned",
+                            icon: {
+                              token0: pool.token0.image,
+                              token1: pool.token1.image,
+                            },
+                            value: 1539,
+                          },
+                          {
+                            label: "LP Tokens Spent",
+                            icon: {
+                              token0: pool.token0.image,
+                              token1: pool.token1.image,
+                            },
+                            value: 0.0,
+                          },
+                        ]
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <ExchangeIcon className="w-5 text-night-500" />
+                    <p className="text-sm text-night-400">
+                      <span className="text-night-100">24,523</span> MAGIC per
+                      Treasure
+                    </p>
+                    <Badge color="secondary" rounded="partially">
+                      T1
+                    </Badge>
+                  </div>
+                </Table>
+                {activeTab === "deposit" && (
+                  <CheckBoxLabeled
+                    setChecked={setCheckedTerms}
+                    checked={checkedTerms}
+                    className="sm:p-4"
+                  >
+                    I understand there is a chance I am not be able to
+                    withdrawal and receive the asset I deposited. If the asset
+                    deposited in the pool is no longer available, I am ok
+                    receiving another asset from the collection.
+                  </CheckBoxLabeled>
                 )}
-                onClick={() => setActiveTab("withdraw")}
-              >
-                Withdraw
-              </button>
-            </div>
-            <SelectionFrame
-              title="Initial Asset"
-              token={pool.token1}
-              mode="transparent"
-            />
-            <SelectionFrame
-              title="Paired Asset"
-              token={pool.token0}
-              mode="transparent"
-            />
-            <Table
-              items={[
-                { label: "Current Share of Pool", value: "0.00%" },
-                { label: "New Share of Pool", value: "0.00%" },
-                {
-                  label: "LP Tokens Owned",
-                  icon: {
-                    token0: pool.token0.image,
-                    token1: pool.token1.image,
-                  },
-                  value: 1539,
-                },
-                {
-                  label: "LP Tokens Spent",
-                  icon: {
-                    token0: pool.token0.image,
-                    token1: pool.token1.image,
-                  },
-                  value: 0.0,
-                },
-              ]}
-            >
-              Test
-            </Table>
-            <Button disabled>Remove Liquidity</Button>
+                <Button onClick={PoolActionHandler}>
+                  {activeTab === "deposit"
+                    ? "Add Liquidity"
+                    : "Remove Liquidity"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="flex w-full flex-col items-center gap-1 pt-6">
+                  <div className="flex items-center gap-1">
+                    <h1 className="text-3xl font-bold leading-[160%]">
+                      Liquidity Removed
+                    </h1>
+                    <CheckIcon className="w-12 text-ruby-800" />
+                  </div>
+                  <p className="max-w-sm text-center text-sm text-night-400">
+                    You have withdrawn the following items from the pool. Your
+                    balance will be updated.
+                  </p>
+                </div>
+                <div className="w-full">
+                  <div className="mb-3 flex w-full items-center justify-between">
+                    <p className="font-medium text-night-400">
+                      {pool.token1.name}
+                    </p>
+                    <p className=" text-night-500">14</p>
+                  </div>
+                  <div className="grid grid-cols-4 justify-between sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-6 xl:grid-cols-7">
+                    {[
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                      {},
+                    ].map((item, index) => (
+                      <div className="flex flex-col items-center" key={index}>
+                        <div className="h-[72px] w-[72px] rounded-md border-2 border-night-1200 bg-night-900"></div>
+                        <p className=" text-sm leading-[160%] text-night-600">
+                          2x
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="w-full">
+                  <p className="mb-3 font-medium capitalize text-night-400">
+                    {pool.token0.name}
+                  </p>
+                  <div className="gap flex items-center gap-4">
+                    {pool.token0.image ? (
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={pool.token0.image}
+                        alt={pool.token0.name}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-night-900" />
+                    )}
+                    <h1 className="text-3xl font-bold text-night-100">
+                      19,429
+                    </h1>
+                  </div>
+                </div>
+                <Table
+                  items={[
+                    {
+                      label: "LP Tokens Spend",
+                      icon: {
+                        token0: pool.token0.image,
+                        token1: pool.token1.image,
+                      },
+                      value: "5398.35",
+                    },
+                    {
+                      label: "LP Token Value",
+                      value: "$125,000.00",
+                    },
+                    {
+                      label: "Percentage of pool",
+                      value: "$0.25%",
+                    },
+                  ]}
+                />
+                <div>
+                  <CopyTable
+                    label="Transaction ID:"
+                    value="2BBWCVM...57YUTU3Q"
+                  />
+                  <div className="mt-2 flex cursor-pointer items-center gap-1 text-night-400 transition-colors hover:text-night-100">
+                    <p className="text-xs">View on Arbiscan</p>
+                    <ExternalLinkIcon className="w-3" />
+                  </div>
+                </div>
+                <Button onClick={() => setActiveTab("deposit")}>Confirm</Button>
+              </>
+            )}
           </div>
         </div>
         <div className="flex w-full items-center justify-between">
@@ -313,7 +477,10 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable token0={pool.token0} token1={pool.token1} />
+        <PoolActivityTable
+          token0={pool.token0 as PoolToken}
+          token1={pool.token1 as PoolToken}
+        />
         <h3 className="flex items-center gap-3 font-medium">
           <ArrowLeftRightIcon className="h-4 w-4" />
           Pool Inventory
@@ -325,10 +492,10 @@ export default function PoolDetailsPage() {
           </Badge>
         </h3>
         {pool.token0.isNft && (
-          <PoolTokenCollectionInventory token={pool.token0} />
+          <PoolTokenCollectionInventory token={pool.token0 as PoolToken} />
         )}
         {pool.token1.isNft && (
-          <PoolTokenCollectionInventory token={pool.token1} />
+          <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
         )}
       </div>
     </main>
