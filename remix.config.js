@@ -8,8 +8,8 @@ module.exports = {
   serverDependenciesToBundle: [
     "@rainbow-me/rainbowkit",
     "@rainbow-me/rainbowkit/wallets",
+    "connectkit",
     /^@?wagmi.*/,
-    /.*/,
   ],
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",

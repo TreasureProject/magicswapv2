@@ -1,18 +1,18 @@
 import type { ExecutionResult } from "graphql";
-import type { Optional, Pool } from "~/types";
+
+import type { getPairQuery, getPairsQuery } from "../../.graphclient";
+import { getPairDocument } from "../../.graphclient";
+import { execute, getPairsDocument } from "../../.graphclient";
+import { fetchTroveCollections } from "./collections.server";
+import { fetchTokenPrices, fetchTroveTokens } from "./tokens.server";
 import {
   getPairCollectionAddresses,
   getPairERC20Addresses,
   getPairReserveItemAddresses,
 } from "~/lib/pairs.server";
 import { createPoolFromPair } from "~/lib/pools.server";
-import type { getPairQuery, getPairsQuery } from "../../.graphclient";
-import { getPairDocument } from "../../.graphclient";
-import { execute, getPairsDocument } from "../../.graphclient";
-import { fetchTroveCollections } from "./collections.server";
-import { fetchTokenPrices, fetchTroveTokens } from "./tokens.server";
 
-export const fetchPools = async (): Promise<Pool[]> => {
+export const fetchPools = async () => {
   const result = (await execute(
     getPairsDocument,
     {}
@@ -34,7 +34,7 @@ export const fetchPools = async (): Promise<Pool[]> => {
   );
 };
 
-export const fetchPool = async (id: string): Promise<Optional<Pool>> => {
+export const fetchPool = async (id: string) => {
   const result = (await execute(getPairDocument, {
     id,
   })) as ExecutionResult<getPairQuery>;

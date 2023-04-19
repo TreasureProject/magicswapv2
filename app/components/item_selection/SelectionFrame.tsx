@@ -1,7 +1,8 @@
-import React from "react";
-import type { PoolToken } from "~/types";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
-import { Button } from "../Button";
+import React from "react";
+
+import { Button } from "../ui/Button";
+import type { PoolToken } from "~/lib/tokens.server";
 
 const SelectionFrame = ({
   title,
@@ -41,7 +42,7 @@ const SelectionFrame = ({
             <p className="text-sm text-night-400">{token.symbol}</p>
           </div>
         </div>
-        <Button mode="dark" size="md">
+        <Button variant="dark" size="md">
           Select Items
         </Button>
       </div>

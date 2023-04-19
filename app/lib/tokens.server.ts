@@ -1,11 +1,10 @@
+import { createPoolTokenCollection } from "./collections.server";
 import type {
-  PoolToken,
   Token,
   TokenPriceMapping,
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
-import { createPoolTokenCollection } from "./collections.server";
 
 // TODO: Move to a token list JSON per chain
 export const NORMALIZED_TOKEN_MAPPING: Record<string, string> = {
@@ -61,7 +60,7 @@ export const createPoolToken = (
   collections: TroveCollectionMapping,
   tokens: TroveTokenMapping,
   prices: TokenPriceMapping
-): PoolToken => {
+) => {
   const tokenCollections =
     token.vaultCollections.map(({ collection }) =>
       createPoolTokenCollection(collection, collections)
@@ -71,7 +70,7 @@ export const createPoolToken = (
     id: token.id,
     name: createTokenName(token, collections),
     symbol: createTokenSymbol(token, collections),
-    image: tokenCollections[0]?.image,
+    image: tokenCollections[0]?.image ?? "",
     collections: tokenCollections,
     isNft: isTokenNft(token),
     priceUSD: prices[tokenAddress] ?? 0,
@@ -84,9 +83,13 @@ export const createPoolToken = (
           tokenId,
           amount,
           name: tokenDetails?.metadata.name ?? "",
-          image: tokenDetails?.image.uri,
-          attributes: tokenDetails?.metadata.attributes.map(
-            ({ value, trait_type: traitType, display_type: displayType }) => ({
+          image: tokenDetails?.image.uri ?? "",
+          attributes: (tokenDetails?.metadata?.attributes || []).map(
+            ({
+              value,
+              trait_type: traitType,
+              display_type: displayType = null,
+            }) => ({
               value,
               traitType,
               displayType,
@@ -97,3 +100,9 @@ export const createPoolToken = (
     ),
   };
 };
+
+export type PoolToken = ReturnType<typeof createPoolToken>;
+
+export type PoolTokenCollection = PoolToken["collections"];
+
+export type TokenReserveItem = PoolToken["reserveItems"];

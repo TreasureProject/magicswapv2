@@ -1,8 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { CloseButton } from "~/components/Button";
-import Input from "~/components/Input";
-import PopupOverlay from "~/components/PopupOverlay";
-import { SearchIcon, VerifiedIcon } from "~/components/Icons";
 import { Link } from "react-router-dom";
 
 // To-Do
@@ -12,12 +8,15 @@ import { Link } from "react-router-dom";
 // Map items to data
 // Filter items based on search
 // format numbers
-
 //Temporary image imports
 import etherCoinImage from "~/assets/ether.png";
+import legionCardImage from "~/assets/genesis_legions_card.png";
 import magicCoinImage from "~/assets/magic.png";
 import smolCoinImage from "~/assets/smol.png";
-import legionCardImage from "~/assets/genesis_legions_card.png";
+import { SearchIcon, VerifiedIcon } from "~/components/Icons";
+import Input from "~/components/Input";
+import PopupOverlay from "~/components/PopupOverlay";
+import { CloseButton } from "~/components/ui/Button";
 
 interface TrendingProps {
   name: string;

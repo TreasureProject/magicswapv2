@@ -1,8 +1,9 @@
-import React from "react";
-import { media } from "~/consts";
-import { Link } from "react-router-dom";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
+import React from "react";
+import { Link } from "react-router-dom";
+
 import { DiscordSupportBar } from "~/components/FooterBars";
+import { media } from "~/consts";
 
 interface FaqProps {
   title: string;

@@ -1,19 +1,22 @@
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "./ui/Dropdown";
 import { NavLink } from "@remix-run/react";
-import { MagicSwapLogoFull, MagicSwapLogo } from "@treasure-project/branding";
-import { Search, Menu, Info, Play } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
+import { ConnectKitButton } from "connectkit";
+import { Info, Menu, Play, Search } from "lucide-react";
+import { useState } from "react";
+
+import { Footer } from "./Footer";
 import SearchPopup from "./SearchPopup";
 import { Button } from "./ui/Button";
-import { useState } from "react";
-import { Footer } from "./Footer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/Dropdown";
+import { truncateEthAddress } from "~/lib/address";
+import { cn } from "~/lib/utils";
 
 const Pages = [
   { name: "Swap", href: "/" },
@@ -56,7 +59,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-end gap-3 border-night-800">
+        <div className="flex flex-1 items-center justify-end gap-3 ">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary">
@@ -86,7 +89,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="default">Connect Wallet</Button>
+          <ConnectKitButton.Custom>
+            {({ isConnected, show, address }) => {
+              return (
+                <Button variant="secondary" onClick={show}>
+                  {isConnected
+                    ? truncateEthAddress(address ?? "")
+                    : "Connect Wallet"}
+                </Button>
+              );
+            }}
+          </ConnectKitButton.Custom>
         </div>
       </header>
       <div className="relative flex-1">{children}</div>

@@ -1,9 +1,10 @@
-import React from "react";
-import { Button } from "~/components/Button";
-import { Grid, SwapIcon, PoolsIcon, LearnIcon } from "~/assets/Svgs";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
+
 import { documentation } from "../consts";
+import { Grid, LearnIcon, PoolsIcon, SwapIcon } from "~/assets/Svgs";
+import { Button } from "~/components/ui/Button";
 
 // import tile1Image from "../assets/tile_1.png";
 // import tile2Image from "../assets/tile_2.png";

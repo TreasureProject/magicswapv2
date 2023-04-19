@@ -1,4 +1,4 @@
-import type { getPairsQuery, NftType } from ".graphclient";
+import type { getPairsQuery } from ".graphclient";
 
 /** Environment and helpers */
 export type EnvVar =
@@ -59,47 +59,3 @@ export type LlamaTokensResponse = {
 };
 
 export type TokenPriceMapping = Record<string, number>;
-
-/** Application types */
-export type TokenReserveItem = {
-  collectionId: string;
-  tokenId: string;
-  name: string;
-  image: string;
-  amount: number;
-  attributes: {
-    value: string | number;
-    traitType: string;
-    displayType?: string;
-  }[];
-};
-
-export type PoolTokenCollection = {
-  id: string;
-  name: string;
-  symbol: string;
-  type: NftType;
-  image: Optional<string>;
-};
-
-export type PoolToken = {
-  id: string;
-  name: string;
-  symbol: string;
-  image: Optional<string>;
-  collections: PoolTokenCollection[];
-  isNft: boolean;
-  priceUSD: number;
-  reserve: number;
-  reserveItems: TokenReserveItem[];
-};
-
-export type Pool = {
-  id: string;
-  name: string;
-  token0: PoolToken;
-  token1: PoolToken;
-  baseToken: PoolToken;
-  quoteToken: PoolToken;
-  tvlUSD: number;
-};

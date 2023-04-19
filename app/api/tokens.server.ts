@@ -1,18 +1,19 @@
 import type { ExecutionResult } from "graphql";
+
+import { fetchTroveCollections } from "./collections.server";
+import type { getTokensQuery } from ".graphclient";
+import { execute, getTokensDocument } from ".graphclient";
+import { NORMALIZED_TOKEN_MAPPING } from "~/lib/tokens.server";
+import { getTokenCollectionAddresses } from "~/lib/tokens.server";
+import { getTokenReserveItemIds } from "~/lib/tokens.server";
+import { isTokenNft } from "~/lib/tokens.server";
+import { createPoolToken } from "~/lib/tokens.server";
 import type {
   LlamaTokensResponse,
   TokenPriceMapping,
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
-import { NORMALIZED_TOKEN_MAPPING } from "~/lib/tokens.server";
-import type { getTokensQuery } from ".graphclient";
-import { execute, getTokensDocument } from ".graphclient";
-import { fetchTroveCollections } from "./collections.server";
-import { getTokenCollectionAddresses } from "~/lib/tokens.server";
-import { getTokenReserveItemIds } from "~/lib/tokens.server";
-import { isTokenNft } from "~/lib/tokens.server";
-import { createPoolToken } from "~/lib/tokens.server";
 
 export const fetchTokens = async () => {
   const result = (await execute(
@@ -55,11 +56,8 @@ export const fetchTroveTokens = async (
   const result = (await response.json()) as TroveToken[];
   return result.reduce((acc, token) => {
     const next = { ...acc };
-    if (!next[token.collectionAddr]) {
-      next[token.collectionAddr] = {};
-    }
-
-    next[token.collectionAddr][token.tokenId] = token;
+    const collection = (next[token.collectionAddr] ??= {});
+    collection[token.tokenId] = token;
     return next;
   }, {} as TroveTokenMapping);
 };
@@ -77,11 +75,14 @@ export const fetchTokenPrices = async (
     `https://coins.llama.fi/prices/current/${normalizedAddresses.join(",")}`
   );
   const result = (await response.json()) as LlamaTokensResponse;
-  return Object.entries(result.coins).reduce(
-    (acc, [address, { price }]) => ({
+  return Object.entries(result.coins).reduce((acc, [address, { price }]) => {
+    const tokenName = address.split(":")[1];
+
+    if (!tokenName) return acc;
+
+    return {
       ...acc,
-      [address.split(":")[1]]: price,
-    }),
-    {} as TokenPriceMapping
-  );
+      [tokenName]: price,
+    };
+  }, {} as TokenPriceMapping);
 };

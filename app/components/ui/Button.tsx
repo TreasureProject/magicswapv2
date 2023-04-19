@@ -1,6 +1,7 @@
-import * as React from "react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { X } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -10,18 +11,18 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        // destructive:
-        //   "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        // outline:
-        //   "border border-input hover:bg-accent hover:text-accent-foreground",
+        dark: "bg-accent text-accent-foreground hover:bg-accent/90",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        // ghost: "hover:bg-accent hover:text-accent-foreground",
-        // link: "underline-offset-4 hover:underline text-primary",
+        outline:
+          "border border-input hover:bg-accent hover:text-accent-foreground",
+        ghost:
+          "hover:bg-accent text-accent-foreground hover:text-accent-foreground/90",
+        link: "underline-offset-4 hover:underline text-primary",
       },
       size: {
-        default: "h-9 px-2",
-        md: "h-10 px-3",
+        default: "h-9 px-3",
+        md: "h-10 px-4",
         lg: "h-11 px-8",
       },
     },
@@ -49,4 +50,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant, size, ...props }, ref) => {
+    return (
+      <Button variant={variant} size={size} ref={ref} {...props}>
+        <X />
+      </Button>
+    );
+  }
+);
+
+CloseButton.displayName = "CloseButton";
+
+export { Button, buttonVariants, CloseButton };
