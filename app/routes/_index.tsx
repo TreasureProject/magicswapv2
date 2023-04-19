@@ -80,7 +80,7 @@ const SwapTokenInput = ({
   token,
   className,
 }: {
-  token: PoolToken | undefined;
+  token?: PoolToken;
   className?: string;
 }) => {
   const [amount, setAmount] = useState("0");
