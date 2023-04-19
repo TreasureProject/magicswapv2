@@ -9,7 +9,6 @@ module.exports = {
     "@rainbow-me/rainbowkit",
     "@rainbow-me/rainbowkit/wallets",
     /^@?wagmi.*/,
-    /.*/,
   ],
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",

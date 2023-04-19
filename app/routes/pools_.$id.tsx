@@ -13,7 +13,6 @@ import {
   ChevronLeft as ChevronLeftIcon,
 } from "lucide-react";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
-import type { Pool, PoolToken } from "~/types";
 import { formatUSD } from "~/lib/currency";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { cn } from "~/lib/utils";
@@ -21,6 +20,7 @@ import { Button } from "~/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import SelectionFrame from "~/components/item_selection/SelectionFrame";
 import Table from "~/components/Table";
+import type { PoolToken } from "~/lib/tokens.server";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -59,8 +59,8 @@ export default function PoolDetailsPage() {
         <div className="flex flex-col gap-10 lg:flex-row ">
           <div className="w-full space-y-6 md:flex-row">
             <div className="flex  items-center justify-between gap-6 ">
-              <PoolTokenInfo token={pool.baseToken as PoolToken} />
-              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
+              <PoolTokenInfo token={pool.baseToken} />
+              <PoolTokenInfo token={pool.quoteToken} />
             </div>
             <div className="h-[1px] bg-night-900" />
             <div className="space-y-4 rounded-md bg-night-1100 p-4">
@@ -79,7 +79,7 @@ export default function PoolDetailsPage() {
               </div>
               <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
-                  <PoolImage pool={pool as Pool} className="h-10 w-10" />
+                  <PoolImage pool={pool} className="h-10 w-10" />
                   <p className="text-base-100 text-3xl font-medium leading-[160%]">
                     0.00
                   </p>
@@ -255,12 +255,12 @@ export default function PoolDetailsPage() {
             </div>
             <SelectionFrame
               title="Initial Asset"
-              token={pool.token1 as PoolToken}
+              token={pool.token1}
               mode="transparent"
             />
             <SelectionFrame
               title="Paired Asset"
-              token={pool.token0 as PoolToken}
+              token={pool.token0}
               mode="transparent"
             />
             <Table
@@ -312,10 +312,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable
-          token0={pool.token0 as PoolToken}
-          token1={pool.token1 as PoolToken}
-        />
+        <PoolActivityTable token0={pool.token0} token1={pool.token1} />
         <h3 className="flex items-center gap-3 font-medium">
           <ArrowLeftRightIcon className="h-4 w-4" />
           Pool Inventory
@@ -327,10 +324,10 @@ export default function PoolDetailsPage() {
           </Badge>
         </h3>
         {pool.token0.isNft && (
-          <PoolTokenCollectionInventory token={pool.token0 as PoolToken} />
+          <PoolTokenCollectionInventory token={pool.token0} />
         )}
         {pool.token1.isNft && (
-          <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
+          <PoolTokenCollectionInventory token={pool.token1} />
         )}
       </div>
     </main>

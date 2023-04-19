@@ -49,17 +49,14 @@ export default function SwapPage() {
         </button>
       </div>
       <div>
-        <SwapTokenInput
-          className="mt-6"
-          token={inputToken as PoolToken | undefined}
-        />
+        <SwapTokenInput className="mt-6" token={inputToken} />
         <Link
           to={`/?in=${outputToken?.id}&out=${inputToken?.id}`}
           className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
-        <SwapTokenInput token={outputToken as PoolToken | undefined} />
+        <SwapTokenInput token={outputToken} />
       </div>
       <Dialog>
         <DialogTrigger asChild>
@@ -77,7 +74,7 @@ const SwapTokenInput = ({
   token,
   className,
 }: {
-  token?: PoolToken;
+  token: PoolToken | undefined;
   className?: string;
 }) => {
   if (!token) {

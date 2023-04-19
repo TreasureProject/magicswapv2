@@ -12,8 +12,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Pool } from "~/lib/pools.server";
 
 export async function loader() {
+  const pools = await fetchPools();
   return json({
-    pools: await fetchPools(),
+    pools,
   });
 }
 
@@ -160,7 +161,7 @@ export default function PoolsListPage() {
         activeTab={tab}
         onChange={setTab}
       />
-      {tab === "all" && <PoolsTable pools={pools as Pool[]} />}
+      {tab === "all" && <PoolsTable pools={pools} />}
       {tab === "user" && (
         <>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">

@@ -1,7 +1,6 @@
 import React from "react";
 import { Settings as SettingsIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { IconDropdown } from "../Dropdown";
 
 interface Props {
   title: string;
@@ -34,9 +33,9 @@ export const Header = ({ title, subtitle, Icon, iconLink = "/" }: Props) => {
           )}
         </div>
       </div>
-      <IconDropdown Icon={SettingsIcon} className="text-night-400">
+      {/* <IconDropdown Icon={SettingsIcon} className="text-night-400">
         Settings
-      </IconDropdown>
+      </IconDropdown> */}
     </div>
   );
 };

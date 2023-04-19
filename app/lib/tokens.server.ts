@@ -70,7 +70,7 @@ export const createPoolToken = (
     id: token.id,
     name: createTokenName(token, collections),
     symbol: createTokenSymbol(token, collections),
-    image: tokenCollections[0]?.image,
+    image: tokenCollections[0]?.image ?? "",
     collections: tokenCollections,
     isNft: isTokenNft(token),
     priceUSD: prices[tokenAddress] ?? 0,
@@ -83,9 +83,13 @@ export const createPoolToken = (
           tokenId,
           amount,
           name: tokenDetails?.metadata.name ?? "",
-          image: tokenDetails?.image.uri,
-          attributes: tokenDetails?.metadata.attributes.map(
-            ({ value, trait_type: traitType, display_type: displayType }) => ({
+          image: tokenDetails?.image.uri ?? "",
+          attributes: (tokenDetails?.metadata?.attributes || []).map(
+            ({
+              value,
+              trait_type: traitType,
+              display_type: displayType = null,
+            }) => ({
               value,
               traitType,
               displayType,
