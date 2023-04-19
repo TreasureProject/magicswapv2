@@ -66,9 +66,7 @@ export default function SwapPage() {
         <DialogTrigger asChild>
           <Button variant="outline">Edit Profile</Button>
         </DialogTrigger>
-        <DialogContent className="border-none bg-transparent shadow-none backdrop-blur-0 sm:max-w-4xl">
-          {/* TODO */}
-        </DialogContent>
+        <DialogContent></DialogContent>
       </Dialog>
     </main>
   );
