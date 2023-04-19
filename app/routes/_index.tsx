@@ -8,16 +8,8 @@ import { Button } from "~/components/ui/Button";
 import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { cn } from "~/lib/utils";
-import type { PoolToken } from "~/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/Dialog";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/Dialog";
+import type { PoolToken } from "~/lib/tokens.server";
 
 export async function loader({ request }: LoaderArgs) {
   const tokens = await fetchTokens();
@@ -41,7 +33,9 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function SwapPage() {
-  const { inputToken, outputToken } = useLoaderData<typeof loader>();
+  const { inputToken, outputToken, tokens } = useLoaderData<typeof loader>();
+
+  console.log(inputToken, outputToken, tokens);
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">

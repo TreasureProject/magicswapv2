@@ -3,13 +3,13 @@ import { json } from "@remix-run/server-runtime";
 import { Button } from "~/components/ui/Button";
 import { fetchPools } from "~/api/pools.server";
 import { PoolImage } from "~/components/pools/PoolImage";
-import type { Pool } from "~/types";
 import { useState } from "react";
 import { Tabs } from "~/components/Tabs";
 import { PoolIcon } from "~/components/Icons";
 import { Badge } from "~/components/Badge";
 import { formatUSD } from "~/lib/currency";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Pool } from "~/lib/pools.server";
 
 export async function loader() {
   return json({

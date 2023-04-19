@@ -1,5 +1,4 @@
 import type {
-  PoolToken,
   Token,
   TokenPriceMapping,
   TroveCollectionMapping,
@@ -61,7 +60,7 @@ export const createPoolToken = (
   collections: TroveCollectionMapping,
   tokens: TroveTokenMapping,
   prices: TokenPriceMapping
-): PoolToken => {
+) => {
   const tokenCollections =
     token.vaultCollections.map(({ collection }) =>
       createPoolTokenCollection(collection, collections)
@@ -97,3 +96,9 @@ export const createPoolToken = (
     ),
   };
 };
+
+export type PoolToken = ReturnType<typeof createPoolToken>;
+
+export type PoolTokenCollection = PoolToken["collections"];
+
+export type TokenReserveItem = PoolToken["reserveItems"];
