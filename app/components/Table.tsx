@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { cn } from "~/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { Check as CheckIcon, Copy as CopyIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+
+import { cn } from "~/lib/utils";
 
 interface TableItem {
   label: string;
