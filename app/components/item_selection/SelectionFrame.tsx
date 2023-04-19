@@ -4,21 +4,25 @@ import { ChevronDown as ChevronDownIcon } from "lucide-react";
 import { Button } from "../Button";
 
 const SelectionFrame = ({
-  title = "Set Title",
+  title,
   token,
   mode = "transparent",
 }: {
-  title: string;
+  title?: string;
   token: PoolToken;
   mode: "solid" | "transparent";
 }) => {
   return (
     <div className="overflow-hidden rounded-lg border border-night-900">
-      <div className="border-b border-b-night-900 bg-night-1100 px-4 py-2 ">
-        <h1 className=" text-sm font-medium leading-[160%] text-night-100">
-          {title}
-        </h1>
-      </div>
+      {!!title && (
+        <>
+          <div className="border-b border-b-night-900 bg-night-1100 px-4 py-2 ">
+            <h1 className=" text-sm font-medium leading-[160%] text-night-100">
+              {title}
+            </h1>
+          </div>
+        </>
+      )}
       <div className="flex items-center justify-between border-b border-night-900 p-4">
         <div className="flex items-center gap-4">
           <div className="flex">
@@ -59,7 +63,7 @@ const SelectionFrame = ({
             {[25, 50, 75, 100].map((percent) => (
               <button
                 key={percent}
-                className="rounded-lg py-1.5 px-3 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
+                className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
               >
                 {percent}%
               </button>
