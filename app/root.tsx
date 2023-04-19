@@ -100,7 +100,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-night-1200 text-white antialiased">
+      <body className="h-full antialiased">
         <WagmiConfig client={client}>
           <ConnectKitProvider>
             <Layout>
