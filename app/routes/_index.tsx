@@ -41,8 +41,6 @@ export async function loader({ request }: LoaderArgs) {
 export default function SwapPage() {
   const { inputToken, outputToken, tokens } = useLoaderData<typeof loader>();
 
-  console.log(inputToken, outputToken, tokens);
-
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
       <div className="flex items-center justify-between gap-3">

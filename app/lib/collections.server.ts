@@ -10,6 +10,6 @@ export const createPoolTokenCollection = (
     name: collectionData?.displayName ?? collection.id,
     symbol: collectionData?.tokenDisplayName.singular ?? "?",
     type: collectionData?.contractType ?? "ERC721",
-    image: collectionData?.thumbnailUri,
+    image: collectionData?.thumbnailUri ?? "",
   };
 };
