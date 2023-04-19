@@ -1,26 +1,27 @@
 import { Link, useLoaderData } from "@remix-run/react";
-import { useState } from "react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import invariant from "tiny-invariant";
-import { fetchPool } from "~/api/pools.server";
-import { Badge } from "~/components/Badge";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRight as ArrowLeftRightIcon,
-  ExternalLink as ExternalLinkIcon,
   ChevronDown as ChevronDownIcon,
-  ChevronRight as ChevronRightIcon,
   ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  ExternalLink as ExternalLinkIcon,
 } from "lucide-react";
-import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
-import { formatUSD } from "~/lib/currency";
-import { PoolImage } from "~/components/pools/PoolImage";
-import { cn } from "~/lib/utils";
-import { Button } from "~/components/ui/Button";
-import { motion, AnimatePresence } from "framer-motion";
-import SelectionFrame from "~/components/item_selection/SelectionFrame";
+import { useState } from "react";
+import invariant from "tiny-invariant";
+
+import { fetchPool } from "~/api/pools.server";
+import { Badge } from "~/components/Badge";
 import Table from "~/components/Table";
+import SelectionFrame from "~/components/item_selection/SelectionFrame";
+import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
+import { Button } from "~/components/ui/Button";
+import { formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
+import { cn } from "~/lib/utils";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");

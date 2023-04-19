@@ -1,4 +1,3 @@
-import { useMemo, useEffect, useState } from "react";
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
@@ -7,36 +6,26 @@ import {
   Meta,
   Outlet,
   Scripts,
-  useTransition,
+  ScrollRestoration,
   useFetchers,
   useLoaderData,
-  ScrollRestoration,
+  useTransition,
 } from "@remix-run/react";
-import { Toaster } from "sonner";
-import { createClient, configureChains, WagmiConfig } from "wagmi";
-import { arbitrum, arbitrumGoerli } from "wagmi/chains";
-import { alchemyProvider } from "wagmi/providers/alchemy";
-import { publicProvider } from "wagmi/providers/public";
-import {
-  connectorsForWallets,
-  darkTheme,
-  getDefaultWallets,
-  RainbowKitProvider,
-} from "@rainbow-me/rainbowkit";
-import { trustWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets";
+import { ConnectKitProvider, getDefaultClient } from "connectkit";
 import NProgress from "nprogress";
+import { useEffect, useMemo, useState } from "react";
+import { Toaster } from "sonner";
+import { WagmiConfig, createClient } from "wagmi";
+import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 
-import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
-import styles from "./styles/tailwind.css";
-import nProgressStyles from "./styles/nprogress.css";
-
-import type { Env } from "./types";
 import { Layout } from "./components/Layout";
+import nProgressStyles from "./styles/nprogress.css";
+import styles from "./styles/tailwind.css";
+import type { Env } from "./types";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
   { rel: "stylesheet", href: nProgressStyles },
-  { rel: "stylesheet", href: rainbowStyles },
 ];
 
 export const meta: MetaFunction = () => ({
@@ -70,37 +59,19 @@ export const loader = async () => {
 export default function App() {
   const { ENV } = useLoaderData<typeof loader>();
 
-  const [{ client, chains }] = useState(() => {
-    const testChains =
-      ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : [];
+  const [client] = useState(() =>
+    createClient(
+      getDefaultClient({
+        appName: "MagicSwap",
+        alchemyId: ENV.PUBLIC_ALCHEMY_KEY,
+        chains: [
+          arbitrum,
+          ...(ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : []),
+        ],
+      })
+    )
+  );
 
-    const { chains, provider } = configureChains(
-      // Configure this to chains you want
-      [arbitrum, ...testChains],
-      [alchemyProvider({ apiKey: ENV.PUBLIC_ALCHEMY_KEY }), publicProvider()]
-    );
-
-    const { wallets } = getDefaultWallets({
-      appName: "MagicSwap",
-      chains,
-    });
-
-    const connectors = connectorsForWallets([
-      ...wallets,
-      {
-        groupName: "Others",
-        wallets: [trustWallet({ chains }), ledgerWallet({ chains })],
-      },
-    ]);
-
-    const client = createClient({
-      autoConnect: true,
-      connectors,
-      provider,
-    });
-
-    return { client, chains };
-  });
   const transition = useTransition();
 
   const fetchers = useFetchers();
@@ -131,11 +102,11 @@ export default function App() {
       </head>
       <body className="h-full bg-night-1200 text-white antialiased">
         <WagmiConfig client={client}>
-          <RainbowKitProvider chains={chains} theme={darkTheme()}>
+          <ConnectKitProvider>
             <Layout>
               <Outlet />
             </Layout>
-          </RainbowKitProvider>
+          </ConnectKitProvider>
         </WagmiConfig>
         <Toaster richColors />
         <Scripts />

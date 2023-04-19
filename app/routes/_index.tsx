@@ -3,13 +3,19 @@ import { Cog6ToothIcon, Square3Stack3DIcon } from "@heroicons/react/24/solid";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
+import { Decimal } from "decimal.js-light";
+import { useState } from "react";
+import { useAccount, useBalance } from "wagmi";
+
 import { fetchTokens } from "~/api/tokens.server";
-import { Button } from "~/components/ui/Button";
+import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { cn } from "~/lib/utils";
+import { Button } from "~/components/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/Dialog";
+import { formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
+import { cn } from "~/lib/utils";
 
 export async function loader({ request }: LoaderArgs) {
   const tokens = await fetchTokens();
@@ -77,6 +83,15 @@ const SwapTokenInput = ({
   token: PoolToken | undefined;
   className?: string;
 }) => {
+  const [amount, setAmount] = useState("0");
+  const { address } = useAccount();
+
+  const { data: balance } = useBalance({
+    address,
+    token: token?.id as `0x${string}`,
+    enabled: !!token && !token.isNft,
+  });
+
   if (!token) {
     return (
       <button
@@ -93,6 +108,10 @@ const SwapTokenInput = ({
     );
   }
 
+  const amountPriceUSD =
+    amount === "0"
+      ? new Decimal(token.priceUSD)
+      : new Decimal(token.priceUSD).mul(amount);
   return (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -106,9 +125,9 @@ const SwapTokenInput = ({
           </div>
         </div>
         <div className="space-y-1 text-right">
-          <input className="bg-transparent text-right" placeholder="0.00" />
+          <CurrencyInput value={amount} onChange={setAmount} />
           <span className="block text-sm text-night-400">
-            $1,975.25 <span className="text-night-600">(-0.380%)</span>
+            {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
           </span>
         </div>
       </div>
@@ -117,7 +136,7 @@ const SwapTokenInput = ({
           <div className="flex items-center gap-2">
             <span className="text-night-400 sm:text-sm">Balance</span>
             <span className="font-semibold text-honey-25 sm:text-sm">
-              24,233
+              {balance?.formatted ?? 0}
             </span>
           </div>
           {/* <Button mode="secondary">Max</Button> */}

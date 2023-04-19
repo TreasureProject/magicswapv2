@@ -1,10 +1,10 @@
+import { createPoolTokenCollection } from "./collections.server";
 import type {
   Token,
   TokenPriceMapping,
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
-import { createPoolTokenCollection } from "./collections.server";
 
 // TODO: Move to a token list JSON per chain
 export const NORMALIZED_TOKEN_MAPPING: Record<string, string> = {

@@ -1,16 +1,16 @@
 import type { ExecutionResult } from "graphql";
-import type { Optional } from "~/types";
+
+import type { getPairQuery, getPairsQuery } from "../../.graphclient";
+import { getPairDocument } from "../../.graphclient";
+import { execute, getPairsDocument } from "../../.graphclient";
+import { fetchTroveCollections } from "./collections.server";
+import { fetchTokenPrices, fetchTroveTokens } from "./tokens.server";
 import {
   getPairCollectionAddresses,
   getPairERC20Addresses,
   getPairReserveItemAddresses,
 } from "~/lib/pairs.server";
 import { createPoolFromPair } from "~/lib/pools.server";
-import type { getPairQuery, getPairsQuery } from "../../.graphclient";
-import { getPairDocument } from "../../.graphclient";
-import { execute, getPairsDocument } from "../../.graphclient";
-import { fetchTroveCollections } from "./collections.server";
-import { fetchTokenPrices, fetchTroveTokens } from "./tokens.server";
 
 export const fetchPools = async () => {
   const result = (await execute(

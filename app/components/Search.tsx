@@ -1,6 +1,7 @@
 import React from "react";
-import { SearchIcon } from "~/components/Icons";
 import { twMerge } from "tailwind-merge";
+
+import { SearchIcon } from "~/components/Icons";
 
 interface Props {
   className?: string;

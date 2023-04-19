@@ -62,10 +62,6 @@
   }
 }
 
-[data-rk] {
-  @apply h-full;
-}
-
 @font-face {
   font-family: "Whyte";
   font-style: normal;

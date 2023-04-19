@@ -1,5 +1,6 @@
-import React from "react";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
+import React from "react";
+
 import { Button } from "../ui/Button";
 import type { PoolToken } from "~/lib/tokens.server";
 
