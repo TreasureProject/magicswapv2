@@ -86,7 +86,7 @@ export default function SwapPage() {
       <div>
         <SwapTokenInput
           className="mt-6"
-          token={poolTokenIn}
+          token={poolTokenIn ?? tokenIn}
           amount={amountIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
@@ -109,7 +109,7 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={poolTokenOut}
+          token={poolTokenOut ?? tokenOut}
           amount={amountOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
