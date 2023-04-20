@@ -7,44 +7,70 @@ import { Decimal } from "decimal.js-light";
 import { useState } from "react";
 import { useAccount, useBalance } from "wagmi";
 
+import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/Dialog";
 import { formatUSD } from "~/lib/currency";
+import { getAmountIn, getAmountOut } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 
 export async function loader({ request }: LoaderArgs) {
-  const tokens = await fetchTokens();
+  const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
 
   const url = new URL(request.url);
   const inputAddress = url.searchParams.get("in");
   const outputAddress = url.searchParams.get("out");
 
-  const inputToken = inputAddress
+  const tokenIn = inputAddress
     ? tokens.find(({ id }) => id === inputAddress)
     : tokens.find(({ name }) => name === "MAGIC");
-  const outputToken = outputAddress
+  const tokenOut = outputAddress
     ? tokens.find(({ id }) => id === outputAddress)
     : undefined;
 
+  // TODO: update routing logic to path through multiple pools
+  const pool = pools.find(
+    ({ token0, token1 }) =>
+      (token0.id === tokenIn?.id || token1.id === tokenIn?.id) &&
+      (token0.id === tokenOut?.id || token1.id === tokenOut?.id)
+  );
+  const path = pool ? [pool] : [];
+
   return json({
     tokens,
-    inputToken,
-    outputToken,
+    tokenIn,
+    tokenOut,
+    path,
   });
 }
 
 export default function SwapPage() {
-  const { inputToken, outputToken, tokens } = useLoaderData<typeof loader>();
+  const {
+    tokens,
+    tokenIn,
+    tokenOut,
+    path: [pool],
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [{ amountIn, amountOut, isExactOut }, setTrade] = useState({
+    amountIn: "0",
+    amountOut: "0",
+    isExactOut: false,
+  });
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     setSearchParams(searchParams);
   };
+
+  const poolTokenIn =
+    pool?.token0.id === tokenIn?.id ? pool?.token0 : pool?.token1;
+  const poolTokenOut =
+    pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
@@ -60,20 +86,44 @@ export default function SwapPage() {
       <div>
         <SwapTokenInput
           className="mt-6"
-          token={inputToken}
+          token={poolTokenIn ?? tokenIn}
+          amount={amountIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
+          onUpdateAmount={(amountIn) =>
+            setTrade({
+              amountIn,
+              amountOut: getAmountOut(
+                amountIn,
+                poolTokenIn?.reserve,
+                poolTokenOut?.reserve
+              ),
+              isExactOut: false,
+            })
+          }
         />
         <Link
-          to={`/?in=${outputToken?.id}&out=${inputToken?.id}`}
+          to={`/?in=${tokenOut?.id}&out=${tokenIn?.id}`}
           className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={outputToken}
+          token={poolTokenOut ?? tokenOut}
+          amount={amountOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
+          onUpdateAmount={(amountOut) =>
+            setTrade({
+              amountIn: getAmountIn(
+                amountOut,
+                poolTokenIn?.reserve,
+                poolTokenOut?.reserve
+              ),
+              amountOut,
+              isExactOut: true,
+            })
+          }
         />
       </div>
     </main>
@@ -82,17 +132,20 @@ export default function SwapPage() {
 
 const SwapTokenInput = ({
   token,
+  amount,
   tokens,
   onSelect,
+  onUpdateAmount,
   className,
 }: {
   token?: PoolToken;
+  amount: string;
   tokens: PoolToken[];
   onSelect: (token: PoolToken) => void;
+  onUpdateAmount: (amount: string) => void;
   className?: string;
 }) => {
   const [tab, setTab] = useState<"tokens" | "collections">("collections");
-  const [amount, setAmount] = useState("0");
   const { address } = useAccount();
 
   const { data: balance } = useBalance({
@@ -101,8 +154,9 @@ const SwapTokenInput = ({
     enabled: !!token && !token.isNft,
   });
 
+  const parsedAmount = Number(amount);
   const amountPriceUSD =
-    amount === "0"
+    Number.isNaN(parsedAmount) || parsedAmount === 0
       ? new Decimal(token?.priceUSD ?? 0)
       : new Decimal(token?.priceUSD ?? 0).mul(amount);
 
@@ -127,7 +181,7 @@ const SwapTokenInput = ({
               </button>
             </DialogTrigger>
             <div className="space-y-1 text-right">
-              <CurrencyInput value={amount} onChange={setAmount} />
+              <CurrencyInput value={amount} onChange={onUpdateAmount} />
               <span className="block text-sm text-night-400">
                 {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
               </span>
