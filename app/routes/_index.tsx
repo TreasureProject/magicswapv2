@@ -15,6 +15,7 @@ import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
+import { NumberInput } from "~/components/NumberInput";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import {
   Dialog,
@@ -24,6 +25,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuTrigger,
+} from "~/components/ui/Dropdown";
+import { useSettings } from "~/contexts/settings";
 import { formatUSD } from "~/lib/currency";
 import { getAmountIn, getAmountOut } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -67,6 +75,7 @@ export default function SwapPage() {
     path: [pool],
   } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
   const [{ amountIn, amountOut, isExactOut }, setTrade] = useState({
     amountIn: "0",
     amountOut: "0",
@@ -90,9 +99,57 @@ export default function SwapPage() {
           <SwapIcon className="h-6 w-6" />
           Swap
         </div>
-        <button>
-          <SettingsIcon className="h-6 w-6" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button>
+              <SettingsIcon className="h-6 w-6" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-56 bg-night-900 p-3 text-sm text-honey-100"
+            align="end"
+          >
+            <h3 className="text-base font-medium">Transaction Settings</h3>
+            <DropdownMenuGroup className="mt-2 space-y-1">
+              <label htmlFor="settingsSlippage">Slippage tolerance</label>
+              <NumberInput
+                id="settingsSlippage"
+                className="px-2 py-1.5"
+                value={slippage}
+                onChange={updateSlippage}
+                minValue={0.001}
+                maxValue={0.49}
+                placeholder="0.5%"
+                formatOptions={{
+                  style: "percent",
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 2,
+                }}
+                errorMessage="Slippage must be between 0.1% and 49%"
+                errorCondition={(value) => value > 49}
+                autoFocus
+              />
+            </DropdownMenuGroup>
+            <DropdownMenuGroup className="mt-4 space-y-1">
+              <label htmlFor="settingsDeadline">Transaction Deadline</label>
+              <NumberInput
+                id="settingsDeadline"
+                className="px-2 py-1.5"
+                value={deadline}
+                onChange={updateDeadline}
+                minValue={1}
+                maxValue={60}
+                placeholder="20"
+                errorMessage="Deadline must be between 1 and 60"
+                errorCondition={(value) => value > 60}
+              >
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span className="text-sm text-night-400">Minutes</span>
+                </div>
+              </NumberInput>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div>
         <SwapTokenInput
