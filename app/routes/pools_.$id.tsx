@@ -72,8 +72,8 @@ export default function PoolDetailsPage() {
         <div className="flex flex-col gap-10 lg:flex-row ">
           <div className="w-full space-y-6 md:flex-row">
             <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center ">
-              <PoolTokenInfo token={pool.baseToken as PoolToken} />
-              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
+              <PoolTokenInfo token={pool.baseToken} />
+              <PoolTokenInfo token={pool.quoteToken} />
             </div>
             <div className="h-[1px] bg-night-900" />
             <div className="space-y-4 rounded-md bg-night-1100 p-4">
@@ -270,7 +270,7 @@ export default function PoolDetailsPage() {
                 </div>
                 {activeTab === "withdraw" && (
                   <SelectionFrame
-                    token={pool.token1 as PoolToken}
+                    token={pool.token1}
                     mode="transparent"
                     type="input"
                     inputLabel={
@@ -281,14 +281,8 @@ export default function PoolDetailsPage() {
                     }
                   />
                 )}
-                <SelectionFrame
-                  token={pool.token1 as PoolToken}
-                  mode="transparent"
-                />
-                <SelectionFrame
-                  token={pool.token0 as PoolToken}
-                  mode="transparent"
-                />
+                <SelectionFrame token={pool.token1} mode="transparent" />
+                <SelectionFrame token={pool.token0} mode="transparent" />
                 <Table
                   items={
                     activeTab === "deposit"
@@ -477,10 +471,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable
-          token0={pool.token0 as PoolToken}
-          token1={pool.token1 as PoolToken}
-        />
+        <PoolActivityTable token0={pool.token0} token1={pool.token1} />
         <h3 className="flex items-center gap-3 font-medium">
           <ArrowLeftRightIcon className="h-4 w-4" />
           Pool Inventory
@@ -492,10 +483,10 @@ export default function PoolDetailsPage() {
           </Badge>
         </h3>
         {pool.token0.isNft && (
-          <PoolTokenCollectionInventory token={pool.token0 as PoolToken} />
+          <PoolTokenCollectionInventory token={pool.token0} />
         )}
         {pool.token1.isNft && (
-          <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
+          <PoolTokenCollectionInventory token={pool.token1} />
         )}
       </div>
     </main>

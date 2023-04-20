@@ -53,7 +53,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close asChild>
-        <Button variant="ghost" className="absolute right-0 top-4">
+        <Button variant="ghost" className="absolute right-6 top-6">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </Button>
@@ -98,7 +98,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight text-honey-25",
       className
     )}
     {...props}

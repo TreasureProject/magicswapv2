@@ -12,7 +12,14 @@ import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/Dialog";
 import { formatUSD } from "~/lib/currency";
 import { getAmountIn, getAmountOut } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -214,13 +221,16 @@ const SwapTokenInput = ({
           </button>
         </DialogTrigger>
       )}
-      <DialogContent>
-        <h1 className="font-semibold text-honey-25">Select Asset</h1>
+      <DialogContent className="rounded-none border-none bg-transparent shadow-none">
+        <DialogHeader>
+          <DialogTitle>Select Asset</DialogTitle>
+          <DialogDescription>Select an asset to swap with.</DialogDescription>
+        </DialogHeader>
         <div className="rounded-lg bg-night-1100 p-4">
           <div className="grid grid-cols-2 gap-3">
             <button
               className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-night-600 bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
                 tab === "tokens" &&
                   "border-night-800 bg-night-800 text-honey-25"
               )}
@@ -231,7 +241,7 @@ const SwapTokenInput = ({
             </button>
             <button
               className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-night-600 bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
                 tab === "collections" &&
                   "border-night-800 bg-night-800 text-honey-25"
               )}
@@ -245,25 +255,27 @@ const SwapTokenInput = ({
             {tokens
               .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
               .map((token) => (
-                <li key={token.id} className="">
-                  <button
-                    className="w-full rounded-lg px-3 py-2 hover:bg-night-900"
-                    onClick={() => onSelect(token)}
-                  >
-                    <div className="flex w-full items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <PoolTokenImage token={token} className="h-9 w-9" />
-                        <div className="text-left text-sm">
-                          <span className="block font-semibold text-honey-25">
-                            {token.name}
-                          </span>
-                          <span className="block text-night-600">
-                            {token.symbol}
-                          </span>
-                        </div>
-                      </div>
+                <li
+                  key={token.id}
+                  className="relative rounded-lg px-3 py-2 hover:bg-night-900"
+                >
+                  {/* <div className="flex w-full items-center justify-between gap-3"> */}
+                  <div className="flex items-center gap-3">
+                    <PoolTokenImage token={token} className="h-9 w-9" />
+                    <div className="text-left text-sm">
+                      <span className="block font-semibold text-honey-25">
+                        {token.name}
+                      </span>
+                      <span className="block text-night-600">
+                        {token.symbol}
+                      </span>
                     </div>
-                  </button>
+                  </div>
+                  {/* </div> */}
+                  <button
+                    onClick={() => onSelect(token)}
+                    className="absolute inset-0"
+                  />
                 </li>
               ))}
           </ul>
