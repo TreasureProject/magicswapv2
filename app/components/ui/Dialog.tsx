@@ -9,7 +9,7 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({
+export const DialogPortal = ({
   className,
   children,
   ...props
@@ -36,6 +36,20 @@ const DialogOverlay = React.forwardRef<
   />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+
+export const FullDialogPortal = ({
+  className,
+  children,
+}: {
+  className: string;
+  children: React.react;
+}) => (
+  <DialogPortal>
+    <div className="fixed left-0 top-0 z-10 flex h-screen w-screen items-center justify-center bg-night-1200/90 shadow-2xl backdrop-blur-xl">
+      {children}
+    </div>
+  </DialogPortal>
+);
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
