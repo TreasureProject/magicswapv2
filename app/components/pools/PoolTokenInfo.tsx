@@ -1,4 +1,4 @@
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
+import { GlobeIcon } from "lucide-react";
 
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -32,7 +32,7 @@ export const PoolTokenInfo = ({ token }: Props) => {
             rel="noopener noreferrer"
             className="transition-colors hover:text-white"
           >
-            <GlobeAltIcon className="h-4 w-4" />
+            <GlobeIcon className="h-4 w-4" />
           </a>
         </span>
       </div>

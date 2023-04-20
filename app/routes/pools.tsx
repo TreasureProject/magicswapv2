@@ -1,6 +1,6 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
@@ -88,7 +88,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
       </table>
       <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
         <Button variant="ghost" onClick={() => handlePagination("prev")}>
-          <ChevronLeft className="w-6" />
+          <ChevronLeftIcon className="w-6" />
           <p className="text-sm font-medium">Previous</p>
         </Button>
         <p className="text-night-500">
@@ -109,7 +109,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
         </p>
         <Button variant="ghost" onClick={() => handlePagination("next")}>
           <p className="text-sm font-medium">Next</p>
-          <ChevronRight className="w-6" />
+          <ChevronRightIcon className="w-6" />
         </Button>
       </nav>
     </div>

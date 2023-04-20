@@ -1,5 +1,4 @@
-import { ChevronRight as ChevronRightIcon } from "lucide-react";
-import React from "react";
+import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { DiscordSupportBar } from "~/components/FooterBars";

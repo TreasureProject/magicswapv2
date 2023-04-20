@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "~/lib/utils";
@@ -54,7 +54,7 @@ const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant, size, ...props }, ref) => {
     return (
       <Button variant={variant} size={size} ref={ref} {...props}>
-        <X />
+        <XIcon />
       </Button>
     );
   }

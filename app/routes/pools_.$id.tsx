@@ -3,12 +3,12 @@ import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowLeftRight as ArrowLeftRightIcon,
-  Check as CheckIcon,
-  ChevronDown as ChevronDownIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  ExternalLink as ExternalLinkIcon,
+  ArrowLeftRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 import { useState } from "react";
 import invariant from "tiny-invariant";

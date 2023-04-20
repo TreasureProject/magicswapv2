@@ -1,9 +1,13 @@
-import { ArrowDownIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import { Cog6ToothIcon, Square3Stack3DIcon } from "@heroicons/react/24/solid";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { Decimal } from "decimal.js-light";
+import {
+  ArrowDownIcon,
+  ChevronDownIcon,
+  LayersIcon,
+  SettingsIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useAccount, useBalance } from "wagmi";
 
@@ -81,13 +85,13 @@ export default function SwapPage() {
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 text-night-600">
         <div className="flex items-center gap-1.5 text-xl font-bold">
-          <SwapIcon className="h-6 w-6 text-night-600" />
+          <SwapIcon className="h-6 w-6" />
           Swap
         </div>
         <button>
-          <Cog6ToothIcon className="h-6 w-6 text-night-600" />
+          <SettingsIcon className="h-6 w-6" />
         </button>
       </div>
       <div>
@@ -215,7 +219,7 @@ const SwapTokenInput = ({
             )}
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-night-800 text-night-600 transition-colors group-hover:text-honey-50">
-              <Square3Stack3DIcon className="h-6 w-6" />
+              <LayersIcon className="h-6 w-6" />
             </div>
             Select Asset
           </button>
@@ -247,7 +251,7 @@ const SwapTokenInput = ({
               )}
               onClick={() => setTab("collections")}
             >
-              <Square3Stack3DIcon className="h-4 w-4" />
+              <LayersIcon className="h-4 w-4" />
               Collections
             </button>
           </div>

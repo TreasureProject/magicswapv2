@@ -1,3 +1,4 @@
+import { SearchIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -13,7 +14,6 @@ import etherCoinImage from "~/assets/ether.png";
 import legionCardImage from "~/assets/genesis_legions_card.png";
 import magicCoinImage from "~/assets/magic.png";
 import smolCoinImage from "~/assets/smol.png";
-import { SearchIcon, VerifiedIcon } from "~/components/Icons";
 import Input from "~/components/Input";
 import PopupOverlay from "~/components/PopupOverlay";
 import { CloseButton } from "~/components/ui/Button";
@@ -62,10 +62,7 @@ const TrendingBox = ({ data }: { data: TrendingProps }) => {
         <img src={data.image} className="h-14 w-14" alt={data.name} />
         <div className="flex flex-col">
           <h1 className="text-xl font-bold text-night-100">{data.name}</h1>
-          <div className="flex items-center gap-1">
-            <VerifiedIcon className="w-3.5 text-sapphire-500" />
-            <p className="text-sm text-night-600">{data.collection}</p>
-          </div>
+          <p className="text-sm text-night-600">{data.collection}</p>
         </div>
       </div>
       <div className="flex items-center gap-6">

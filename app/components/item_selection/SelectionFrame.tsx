@@ -1,4 +1,4 @@
-import { ChevronDown as ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 
 import { Button } from "../ui/Button";
