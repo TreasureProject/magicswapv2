@@ -112,14 +112,17 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
   const { address } = useAccount();
 
   React.useEffect(() => {
-    if (!address) return;
+    if (!address || !token.isNft) {
+      return;
+    }
+
     const params = new URLSearchParams({
       address,
       slug: token.urlSlug,
     });
 
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, load, token.urlSlug]);
+  }, [address, token.isNft, load, token.urlSlug]);
 
   const selectionHandler = (item: ItemCardProps) => {
     if (selectedItems.includes(item)) {

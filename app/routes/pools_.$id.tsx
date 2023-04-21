@@ -18,20 +18,21 @@ import { useAccount, useBalance } from "wagmi";
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { CheckBoxLabeled } from "~/components/CheckBox";
-import { ExchangeIcon } from "~/components/Icons";
 import Table, { CopyTable } from "~/components/Table";
 import SelectionFrame from "~/components/item_selection/SelectionFrame";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
+import { PoolTokenInput } from "~/components/pools/PoolTokenInput";
 import { Button } from "~/components/ui/Button";
 import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
+import { estimateLp, quote } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { AddressString } from "~/types";
+import type { AddressString, Optional } from "~/types";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -50,6 +51,11 @@ export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
   const { address } = useAccount();
   const [activeTab, setActiveTab] = useState<string>("deposit");
+  const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
+  const [depositInput, setDepositInput] = useState({
+    value: "0",
+    isExactQuote: false,
+  });
 
   type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -84,10 +90,26 @@ export default function PoolDetailsPage() {
   const lpShare =
     Number(formatEther(lpBalance?.value ?? "0")) / pool.totalSupply;
 
+  const amountBase = depositInput.isExactQuote
+    ? quote(depositInput.value, pool.quoteToken.reserve, pool.baseToken.reserve)
+    : depositInput.value;
+  const amountQuote = depositInput.isExactQuote
+    ? depositInput.value
+    : quote(
+        depositInput.value,
+        pool.baseToken.reserve,
+        pool.quoteToken.reserve
+      );
+  const estimatedLp = estimateLp(
+    depositInput.value,
+    pool.baseToken.reserve,
+    pool.totalSupply
+  );
+
   return (
     <Dialog>
       <main className="container">
-        <SelectionPopup token={pool.token1} />
+        {selectingToken ? <SelectionPopup token={selectingToken} /> : null}
         <h1 className="flex items-center text-2xl font-bold uppercase">
           <Link
             to="/pools"
@@ -277,8 +299,6 @@ export default function PoolDetailsPage() {
                   {activeTab === "withdraw" && (
                     <SelectionFrame
                       token={pool.token1 as PoolToken}
-                      mode="transparent"
-                      type="input"
                       inputLabel={
                         <div className="flex items-center">
                           <PoolImage pool={pool} className="h-8 w-8" />
@@ -287,28 +307,46 @@ export default function PoolDetailsPage() {
                       }
                     />
                   )}
-                  <SelectionFrame
-                    token={pool.baseToken}
-                    balance={baseTokenBalance?.formatted}
-                    mode="transparent"
-                  />
-                  <SelectionFrame
-                    token={pool.quoteToken}
-                    balance={quoteTokenBalance?.formatted}
-                    mode="transparent"
-                  />
+                  {!pool.baseToken.isNft ? (
+                    <PoolTokenInput
+                      token={pool.baseToken}
+                      balance={baseTokenBalance?.formatted}
+                      amount={amountBase}
+                      onUpdateAmount={(value) =>
+                        setDepositInput({ value, isExactQuote: false })
+                      }
+                    />
+                  ) : null}
+                  {!pool.quoteToken.isNft ? (
+                    <PoolTokenInput
+                      token={pool.quoteToken}
+                      balance={quoteTokenBalance?.formatted}
+                      amount={amountQuote}
+                      onUpdateAmount={(value) =>
+                        setDepositInput({ value, isExactQuote: true })
+                      }
+                    />
+                  ) : null}
                   <Table
                     items={
                       activeTab === "deposit"
                         ? [
-                            { label: "Share of Pool", value: "0.00%" },
                             {
                               label: "LP Tokens Received",
                               icon: {
                                 token0: pool.baseToken.image,
                                 token1: pool.quoteToken.image,
                               },
-                              value: 0.0,
+                              value: formatBalance(estimatedLp),
+                            },
+                            {
+                              label: "Share of Pool",
+                              value: formatPercent(
+                                pool.totalSupply > 0
+                                  ? Number(estimatedLp) /
+                                      (pool.totalSupply + Number(estimatedLp))
+                                  : 0
+                              ),
                             },
                           ]
                         : [
@@ -332,30 +370,20 @@ export default function PoolDetailsPage() {
                             },
                           ]
                     }
-                  >
-                    <div className="flex items-center gap-2">
-                      <ExchangeIcon className="w-5 text-night-500" />
-                      <p className="text-sm text-night-400">
-                        <span className="text-night-100">24,523</span> MAGIC per
-                        Treasure
-                      </p>
-                      <Badge color="secondary" rounded="partially">
-                        T1
-                      </Badge>
-                    </div>
-                  </Table>
-                  {activeTab === "deposit" && (
-                    <CheckBoxLabeled
-                      setChecked={setCheckedTerms}
-                      checked={checkedTerms}
-                      className="sm:p-4"
-                    >
-                      I understand there is a chance I am not be able to
-                      withdrawal and receive the asset I deposited. If the asset
-                      deposited in the pool is no longer available, I am ok
-                      receiving another asset from the collection.
-                    </CheckBoxLabeled>
-                  )}
+                  />
+                  {activeTab === "deposit" &&
+                    (pool.baseToken.isNft || pool.quoteToken.isNft) && (
+                      <CheckBoxLabeled
+                        setChecked={setCheckedTerms}
+                        checked={checkedTerms}
+                        className="sm:p-4"
+                      >
+                        I understand there is a chance I am not be able to
+                        withdrawal and receive the asset I deposited. If the
+                        asset deposited in the pool is no longer available, I am
+                        ok receiving another asset from the collection.
+                      </CheckBoxLabeled>
+                    )}
                   <Button onClick={PoolActionHandler}>
                     {activeTab === "deposit"
                       ? "Add Liquidity"

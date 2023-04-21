@@ -18,7 +18,7 @@ const SelectionFrame = ({
   title?: string;
   token: PoolToken;
   balance?: string;
-  mode: "solid" | "transparent";
+  mode?: "solid" | "transparent";
   inputLabel?: React.ReactNode;
   type?: "select" | "input";
 }) => {

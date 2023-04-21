@@ -38,3 +38,38 @@ export const getAmountIn = (
     ? "0"
     : numerator.div(denominator).add(1).toString();
 };
+
+export const quote = (
+  amountBase: string,
+  reserveBase: number | undefined,
+  reserveQuote: number | undefined
+) => {
+  const parsedAmountBase = Number(amountBase);
+  if (Number.isNaN(parsedAmountBase)) {
+    return "0";
+  }
+
+  const denominator = new Decimal(reserveBase ?? 0);
+  return denominator.lte(0)
+    ? "0"
+    : new Decimal(amountBase)
+        .mul(reserveQuote ?? 0)
+        .div(denominator)
+        .toString();
+};
+
+export const estimateLp = (
+  amount: string,
+  reserve: number | undefined,
+  totalSupply: number
+) => {
+  const parsedAmount = Number(amount);
+  if (Number.isNaN(parsedAmount)) {
+    return "0";
+  }
+
+  const denominator = new Decimal(reserve ?? 0);
+  return denominator.lte(0)
+    ? "0"
+    : new Decimal(amount).mul(totalSupply).div(denominator).toString();
+};
