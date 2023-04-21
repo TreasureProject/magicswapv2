@@ -17,7 +17,6 @@
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@ethersproject/units": "^5.7.0",
-    "@graphql-mesh/utils": "^0.43.23",
     "@radix-ui/react-dialog": "^1.0.3",
     "@radix-ui/react-dropdown-menu": "^2.0.4",
     "@radix-ui/react-popover": "^1.0.5",
@@ -47,7 +46,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
-    "@graphprotocol/client-cli": "^2.2.20",
+    "@graphprotocol/client-cli": "2.2.20",
     "@remix-run/dev": "^1.14.0",
     "@remix-run/eslint-config": "^1.14.0",
     "@remix-run/server-runtime": "^1.14.0",
