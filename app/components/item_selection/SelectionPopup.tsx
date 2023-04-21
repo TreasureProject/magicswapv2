@@ -107,10 +107,10 @@ const ItemCard = ({
 );
 
 export const SelectionPopup = ({ token }: { token: PoolToken }) => {
-  const [selectedItems, setSelectedItems] = useState<ItemCardProps[] | []>([]);
+  const [selectedItems, setSelectedItems] = useState<ItemCardProps[]>([]);
   const [activeTab, setActiveTab] = useState<string>("filters");
-  const [activeFilters, setActiveFilters] = useState<string[] | []>([]);
-  const [expandedFilters, setExpandedFilters] = useState<string[] | []>([]);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [expandedFilters, setExpandedFilters] = useState<string[]>([]);
 
   const selectionHandler = (item: ItemCardProps) => {
     if (selectedItems.includes(item)) {
@@ -352,7 +352,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <NumberSelect number={0} />
+                          <NumberSelect />
                           <button
                             className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
                             onClick={() => selectionHandler(item)}

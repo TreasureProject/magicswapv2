@@ -1,3 +1,5 @@
+import { formatEther } from "@ethersproject/units";
+
 import { createPoolToken } from "./tokens.server";
 import type { PoolToken } from "./tokens.server";
 import type {
@@ -46,6 +48,7 @@ export const createPoolFromPair = (
     name: createPoolName(token0, token1),
     token0: poolToken0,
     token1: poolToken1,
+    totalSupply: Number(formatEther(pair.totalSupply)),
     baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
     quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
     tvlUSD: token0PriceUSD * reserve0 * 2,

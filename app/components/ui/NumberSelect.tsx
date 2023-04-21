@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import { cn } from "~/lib/utils";
 
-export const NumberSelect = ({ max = 99 }: { max: number }) => {
+export const NumberSelect = ({ max = 99 }: { max?: number }) => {
   const [number, setNumber] = useState<number>(0);
 
   const updateNumber = (direction: "add" | "sub") => {

@@ -41,8 +41,8 @@ export const FullDialogPortal = ({
   className,
   children,
 }: {
-  className: string;
-  children: React.react;
+  className?: string;
+  children: React.ReactNode;
 }) => (
   <DialogPortal>
     <div className="fixed left-0 top-0 z-10 flex h-screen w-screen items-center justify-center bg-night-1200/90 shadow-2xl backdrop-blur-xl">
