@@ -29,6 +29,7 @@ fragment PairFragment on Pair {
   }
   reserve0
   reserve1
+  totalSupply
 }
 
 query getPairs {

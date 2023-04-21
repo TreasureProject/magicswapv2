@@ -14,8 +14,8 @@ export const PoolTokenInfo = ({ token }: Props) => {
     <div className="flex items-center gap-6">
       <div
         className={cn(
-          "h-20 w-20 overflow-hidden",
-          token.isNft ? "rounded" : "rounded-full"
+          "overflow-hidden",
+          token.isNft ? "h-20 w-20 rounded" : "h-14 w-14 rounded-full"
         )}
       >
         <img src={token.image} alt="" />

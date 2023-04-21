@@ -1,3 +1,4 @@
+import { formatEther } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import invariant from "tiny-invariant";
+import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
@@ -25,9 +27,11 @@ import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { Button } from "~/components/ui/Button";
 import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
-import { formatUSD } from "~/lib/currency";
+import { formatBalance, formatUSD } from "~/lib/currency";
+import { formatPercent } from "~/lib/number";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { AddressString } from "~/types";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -44,6 +48,7 @@ export async function loader({ params }: LoaderArgs) {
 
 export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
+  const { address } = useAccount();
   const [activeTab, setActiveTab] = useState<string>("deposit");
 
   type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
@@ -57,6 +62,27 @@ export default function PoolDetailsPage() {
 
   // Form state
   const [checkedTerms, setCheckedTerms] = useState(false);
+
+  const { data: lpBalance } = useBalance({
+    address,
+    token: pool.id as AddressString,
+    enabled: !!address,
+  });
+
+  const { data: baseTokenBalance } = useBalance({
+    address,
+    token: pool.baseToken.id as AddressString,
+    enabled: !!address && !pool.baseToken.isNft,
+  });
+
+  const { data: quoteTokenBalance } = useBalance({
+    address,
+    token: pool.quoteToken.id as AddressString,
+    enabled: !!address && !pool.quoteToken.isNft,
+  });
+
+  const lpShare =
+    Number(formatEther(lpBalance?.value ?? "0")) / pool.totalSupply;
 
   return (
     <Dialog>
@@ -91,7 +117,7 @@ export default function PoolDetailsPage() {
                     </abbr>
                     :{" "}
                     <span className="font-medium">
-                      {formatUSD(pool.tvlUSD)}
+                      {formatUSD(pool.tvlUSD * lpShare)}
                     </span>
                   </span>
                 </div>
@@ -99,68 +125,54 @@ export default function PoolDetailsPage() {
                   <div className="flex items-center">
                     <PoolImage pool={pool} className="h-10 w-10" />
                     <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                      0.00
+                      {formatBalance(lpBalance?.formatted ?? 0)}
                     </p>
                   </div>
                   <p className="text-sm text-night-400">
                     Current LP Token Balance
                   </p>
                 </div>
-                <div className="flex w-full flex-col gap-4 px-2 sm:flex-row lg:flex-col xl:flex-row xl:gap-0 ">
-                  <div className="flex w-1/2 flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <p className="font-bold leading-[160%] text-night-100">
-                        {pool.baseToken.name}
-                      </p>
-                      <div className="h-3 w-[1px] bg-night-400" />
-                      <p className="font-regular uppercase leading-[160%] text-night-300">
-                        {pool.baseToken.symbol}
-                      </p>
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-4">
-                        <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
-                          {pool.baseToken.image && (
-                            <img src={pool.baseToken.image} alt="" />
-                          )}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {[pool.baseToken, pool.quoteToken].map((token) => (
+                    <div key={token.id} className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <p className="font-bold leading-[160%] text-night-100">
+                          {token.name}
+                        </p>
+                        {token.name.toUpperCase() !==
+                        token.symbol.toUpperCase() ? (
+                          <>
+                            <div className="h-3 w-[1px] bg-night-400" />
+                            <p className="font-regular uppercase leading-[160%] text-night-300">
+                              {token.symbol}
+                            </p>
+                          </>
+                        ) : null}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
+                            {!!token.image && <img src={token.image} alt="" />}
+                          </div>
+                          <p className="text-3xl font-medium leading-[160%]">
+                            {formatBalance(token.reserve * lpShare)}
+                          </p>
                         </div>
-                        <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                          0
+                        <p className="text-night-500">
+                          {formatUSD(token.reserve * lpShare * token.priceUSD)}
                         </p>
                       </div>
-                      <p className="text-night-500">$0.00</p>
                     </div>
-                  </div>
-                  <div className="flex w-1/2 flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <p className="font-bold leading-[160%] text-night-100">
-                        {pool.quoteToken.name}
-                      </p>
-                      <div className="h-3 w-[1px] bg-night-400" />
-                      <p className="font-regular uppercase leading-[160%] text-night-300">
-                        {pool.quoteToken.symbol}
-                      </p>
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-4">
-                        <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
-                          {pool.quoteToken.image && (
-                            <img src={pool.quoteToken.image} alt="" />
-                          )}
-                        </div>
-                        <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                          0
-                        </p>
-                      </div>
-                      <p className="text-night-500">$0.00</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
                 <Table
                   items={[
-                    { label: "Initial LP Tokens", value: 0.0 },
-                    { label: "Rewards earned", value: 0.0 },
-                    { label: "Current share of pool", value: 0.0 },
+                    // { label: "Initial LP Tokens", value: 0.0 },
+                    // { label: "Rewards Earned", value: 0.0 },
+                    {
+                      label: "Current Share of Pool",
+                      value: formatPercent(lpShare),
+                    },
                   ]}
                 />
               </div>
@@ -213,7 +225,7 @@ export default function PoolDetailsPage() {
                       <div className="flex items-center gap-3">
                         <span className="font-medium text-night-100">
                           {" "}
-                          {token.reserve}
+                          {formatBalance(token.reserve)}
                         </span>
                         <div className="h-3 w-[1px] bg-night-700" />
                         <span className="font-medium text-night-400">
@@ -275,8 +287,16 @@ export default function PoolDetailsPage() {
                       }
                     />
                   )}
-                  <SelectionFrame token={pool.baseToken} mode="transparent" />
-                  <SelectionFrame token={pool.quoteToken} mode="transparent" />
+                  <SelectionFrame
+                    token={pool.baseToken}
+                    balance={baseTokenBalance?.formatted}
+                    mode="transparent"
+                  />
+                  <SelectionFrame
+                    token={pool.quoteToken}
+                    balance={quoteTokenBalance?.formatted}
+                    mode="transparent"
+                  />
                   <Table
                     items={
                       activeTab === "deposit"

@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
 import { useSettings } from "~/contexts/settings";
-import { formatUSD } from "~/lib/currency";
+import { formatBalance, formatUSD } from "~/lib/currency";
 import { getAmountIn, getAmountOut } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -261,7 +261,7 @@ const SwapTokenInput = ({
               <div className="flex items-center gap-2">
                 <span className="text-night-400 sm:text-sm">Balance</span>
                 <span className="font-semibold text-honey-25 sm:text-sm">
-                  {balance?.formatted ?? 0}
+                  {formatBalance(balance?.formatted ?? 0)}
                 </span>
               </div>
               {/* <Button mode="secondary">Max</Button> */}

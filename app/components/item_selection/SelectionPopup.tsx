@@ -23,7 +23,6 @@ import IconToggle from "../ui/IconToggle";
 import { MultiSelect } from "../ui/MultiSelect";
 import { NumberSelect } from "../ui/NumberSelect";
 import Searchbar from "../ui/Searchbar";
-import { DialogTrigger } from "~/components/ui/Dialog";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";

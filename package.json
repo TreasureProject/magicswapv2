@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@ethersproject/units": "^5.7.0",
     "@radix-ui/react-dialog": "^1.0.3",
     "@radix-ui/react-dropdown-menu": "^2.0.4",
     "@radix-ui/react-popover": "^1.0.5",
@@ -46,7 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
-    "@graphprotocol/client-cli": "^2.2.20",
+    "@graphprotocol/client-cli": "^2.2.21",
     "@remix-run/dev": "^1.14.0",
     "@remix-run/eslint-config": "^1.14.0",
     "@remix-run/server-runtime": "^1.14.0",
@@ -68,6 +69,19 @@
     "tailwindcss": "^3.2.7",
     "tailwindcss-animate": "^1.0.5",
     "typescript": "^4.9.5"
+  },
+  "peerDependencies": {
+    "@graphql-mesh/cache-localforage": "0.7.20",
+    "@graphql-mesh/cross-helpers": "^0.3.4",
+    "@graphql-mesh/graphql": "0.34.17",
+    "@graphql-mesh/http": "0.3.29",
+    "@graphql-mesh/merger-bare": "0.16.25",
+    "@graphql-mesh/runtime": "^0.46.24",
+    "@graphql-mesh/store": "^0.9.20",
+    "@graphql-mesh/types": "^0.91.15",
+    "@graphql-mesh/utils": "^0.43.23",
+    "@graphql-typed-document-node/core": "3.2.0",
+    "@whatwg-node/fetch": "^0.8.3"
   },
   "engines": {
     "node": ">=18.15.0"

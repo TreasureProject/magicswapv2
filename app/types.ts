@@ -15,6 +15,8 @@ export type Env = {
 
 export type Optional<T> = T | undefined;
 
+export type AddressString = `0x${string}`;
+
 /** Data Transfer Objects */
 // Subgraph
 export type Pair = getPairsQuery["pairs"][number];
