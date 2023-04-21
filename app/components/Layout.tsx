@@ -1,7 +1,7 @@
 import { NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { ConnectKitButton } from "connectkit";
-import { Info, Menu, Play, Search } from "lucide-react";
+import { InfoIcon, MenuIcon, PlayIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Footer } from "./Footer";
@@ -38,7 +38,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             className="hidden xl:block"
             onClick={() => setShowSearchPopup(true)}
           >
-            <Search className="w-5 text-night-400" />
+            <SearchIcon className="w-5 text-night-400" />
           </button>
           <div className="mx-3 h-5 w-[1px] bg-night-700 md:mx-1.5" />
 
@@ -63,17 +63,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary">
-                <Menu className="w-5" />
+                <MenuIcon className="w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-night-900" align="end">
               <DropdownMenuGroup>
                 <DropdownMenuItem>
-                  <Info className="mr-2 h-4 w-4" />
+                  <InfoIcon className="mr-2 h-4 w-4" />
                   <span>Documentation</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Play className="mr-2 h-4 w-4" />
+                  <PlayIcon className="mr-2 h-4 w-4" />
                   <span>Tutorials</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>

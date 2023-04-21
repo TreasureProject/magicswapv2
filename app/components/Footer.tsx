@@ -136,7 +136,7 @@ export const Footer = () => {
               <div className="flex flex-col gap-3" key={key}>
                 <p className="text-sm font-medium">{key}</p>
                 <div className="flex flex-col gap-2 text-night-500">
-                  {FooterPoints[key].map((link: LinkType) => {
+                  {FooterPoints[key]?.map((link: LinkType) => {
                     if (link.type === "external") {
                       return (
                         <a

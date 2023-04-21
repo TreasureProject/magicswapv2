@@ -1,7 +1,5 @@
-import React from "react";
+import { SearchIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-
-import { SearchIcon } from "~/components/Icons";
 
 interface Props {
   className?: string;
