@@ -73,3 +73,12 @@ export const estimateLp = (
     ? "0"
     : new Decimal(amount).mul(totalSupply).div(denominator).toString();
 };
+
+export const getAmountMin = (amount: string, slippage: number) => {
+  const parsedAmount = Number(amount);
+  if (Number.isNaN(parsedAmount)) {
+    return 0;
+  }
+
+  return parsedAmount - (parsedAmount * slippage * 1000) / 1000;
+};

@@ -2,6 +2,7 @@ fragment TokenFragment on Token {
   id
   name
   symbol
+  decimals
   vaultCollections {
     collection {
       id

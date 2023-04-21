@@ -10,12 +10,13 @@
     "dev": "remix dev",
     "start": "remix-serve build",
     "typecheck": "tsc",
-    "codegen": "graphclient build",
+    "codegen": "graphclient build && wagmi generate",
     "lint": "prettier --write 'app/**/{*.ts,*.tsx}' && eslint --fix --no-error-on-unmatched-pattern 'app/**/{*.ts,*.tsx}'",
     "prepare": "husky install"
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/units": "^5.7.0",
     "@radix-ui/react-dialog": "^1.0.3",
     "@radix-ui/react-dropdown-menu": "^2.0.4",
@@ -59,6 +60,7 @@
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
+    "@wagmi/cli": "^0.1.15",
     "babel-loader": "^8.3.0",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
@@ -81,7 +83,8 @@
     "@graphql-mesh/types": "^0.91.15",
     "@graphql-mesh/utils": "^0.43.23",
     "@graphql-typed-document-node/core": "3.2.0",
-    "@whatwg-node/fetch": "^0.8.3"
+    "@whatwg-node/fetch": "^0.8.3",
+    "esbuild": "0.15.13"
   },
   "engines": {
     "node": ">=18.15.0"

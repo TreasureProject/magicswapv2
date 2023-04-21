@@ -1,4 +1,5 @@
-import { formatEther } from "@ethersproject/units";
+import { BigNumber } from "@ethersproject/bignumber";
+import { formatEther, parseUnits } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -27,9 +28,18 @@ import { PoolTokenInput } from "~/components/pools/PoolTokenInput";
 import { Button } from "~/components/ui/Button";
 import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
+import { useSettings } from "~/contexts/settings";
+import {
+  magicSwapV2RouterAddress,
+  useErc20Allowance,
+  useErc20Approve,
+  useMagicSwapV2RouterAddLiquidity,
+  usePrepareErc20Approve,
+  usePrepareMagicSwapV2RouterAddLiquidity,
+} from "~/generated";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
-import { estimateLp, quote } from "~/lib/pools";
+import { estimateLp, getAmountMin, quote } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { AddressString, Optional } from "~/types";
@@ -50,6 +60,7 @@ export async function loader({ params }: LoaderArgs) {
 export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
   const { address } = useAccount();
+  const { slippage, deadline } = useSettings();
   const [activeTab, setActiveTab] = useState<string>("deposit");
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [depositInput, setDepositInput] = useState({
@@ -62,12 +73,10 @@ export default function PoolDetailsPage() {
     useState<PoolActivityFilters>("all");
   const poolActivityFilters = ["all", "swap", "deposit", "withdraw"];
 
-  const PoolActionHandler = () => {
-    setActiveTab("summary");
-  };
-
   // Form state
   const [checkedTerms, setCheckedTerms] = useState(false);
+
+  const isDepositing = activeTab === "deposit" && depositInput.value !== "0";
 
   const { data: lpBalance } = useBalance({
     address,
@@ -87,12 +96,25 @@ export default function PoolDetailsPage() {
     enabled: !!address && !pool.quoteToken.isNft,
   });
 
+  const { data: baseTokenAllowance } = useErc20Allowance({
+    address: pool.baseToken.id as AddressString,
+    args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
+    enabled: !!address && !pool.baseToken.isNft && isDepositing,
+  });
+
+  const { data: quoteTokenAllowance } = useErc20Allowance({
+    address: pool.quoteToken.id as AddressString,
+    args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
+    enabled: !!address && !pool.quoteToken.isNft && isDepositing,
+  });
+
   const lpShare =
     Number(formatEther(lpBalance?.value ?? "0")) / pool.totalSupply;
 
   const amountBase = depositInput.isExactQuote
     ? quote(depositInput.value, pool.quoteToken.reserve, pool.baseToken.reserve)
     : depositInput.value;
+
   const amountQuote = depositInput.isExactQuote
     ? depositInput.value
     : quote(
@@ -100,11 +122,66 @@ export default function PoolDetailsPage() {
         pool.baseToken.reserve,
         pool.quoteToken.reserve
       );
+
   const estimatedLp = estimateLp(
     depositInput.value,
     pool.baseToken.reserve,
     pool.totalSupply
   );
+
+  const amountBaseBN = BigNumber.from(
+    parseUnits(amountBase, pool.baseToken.decimals)
+  );
+  const amountQuoteBN = BigNumber.from(
+    parseUnits(amountQuote, pool.quoteToken.decimals)
+  );
+
+  const isBaseTokenApproved = baseTokenAllowance?.gte(amountBaseBN) ?? false;
+  const isQuoteTokenApproved = quoteTokenAllowance?.gte(amountQuoteBN) ?? false;
+
+  const { config: approveBaseTokenConfig } = usePrepareErc20Approve({
+    address: pool.baseToken.id as AddressString,
+    args: [magicSwapV2RouterAddress[421613], amountBaseBN],
+    enabled: !isBaseTokenApproved,
+  });
+  const { write: approveBaseToken } = useErc20Approve(approveBaseTokenConfig);
+
+  const { config: approveQuoteTokenConfig } = usePrepareErc20Approve({
+    address: pool.quoteToken.id as AddressString,
+    args: [magicSwapV2RouterAddress[421613], amountQuoteBN],
+    enabled: !isBaseTokenApproved,
+  });
+  const { write: approveQuoteToken } = useErc20Approve(approveQuoteTokenConfig);
+
+  const { config: addLiquidityConfig } =
+    usePrepareMagicSwapV2RouterAddLiquidity({
+      args: [
+        pool.baseToken.id as AddressString,
+        pool.quoteToken.id as AddressString,
+        amountBaseBN,
+        amountQuoteBN,
+        depositInput.isExactQuote
+          ? BigNumber.from(
+              parseUnits(
+                getAmountMin(amountBase, slippage).toString(),
+                pool.baseToken.decimals
+              )
+            )
+          : amountBaseBN,
+        depositInput.isExactQuote
+          ? amountQuoteBN
+          : BigNumber.from(
+              parseUnits(
+                getAmountMin(amountQuote, slippage).toString(),
+                pool.quoteToken.decimals
+              )
+            ),
+        address ?? "0x0",
+        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
+      ],
+    });
+  const { write: addLiquidity } =
+    useMagicSwapV2RouterAddLiquidity(addLiquidityConfig);
 
   return (
     <Dialog>
@@ -384,7 +461,22 @@ export default function PoolDetailsPage() {
                         ok receiving another asset from the collection.
                       </CheckBoxLabeled>
                     )}
-                  <Button onClick={PoolActionHandler}>
+                  {isDepositing && !isBaseTokenApproved && (
+                    <Button onClick={() => approveBaseToken?.()}>
+                      Approve {pool.baseToken.symbol}
+                    </Button>
+                  )}
+                  {isDepositing && !isQuoteTokenApproved && (
+                    <Button onClick={() => approveQuoteToken?.()}>
+                      Approve {pool.quoteToken.symbol}
+                    </Button>
+                  )}
+                  <Button
+                    disabled={
+                      !address || !isBaseTokenApproved || !isQuoteTokenApproved
+                    }
+                    onClick={() => addLiquidity?.()}
+                  >
                     {activeTab === "deposit"
                       ? "Add Liquidity"
                       : "Remove Liquidity"}
