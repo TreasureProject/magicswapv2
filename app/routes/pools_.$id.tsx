@@ -59,7 +59,7 @@ export default function PoolDetailsPage() {
   const [checkedTerms, setCheckedTerms] = useState(false);
 
   return (
-    <Dialog open={true}>
+    <Dialog>
       <main className="container">
         <SelectionPopup token={pool.token1} />
         <h1 className="flex items-center text-2xl font-bold uppercase">

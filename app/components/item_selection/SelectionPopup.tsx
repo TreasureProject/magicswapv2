@@ -1,3 +1,4 @@
+import { useFetcher } from "@remix-run/react";
 import {
   Check as CheckIcon,
   ChevronDown as ChevronDownIcon,
@@ -13,6 +14,7 @@ import {
   X as XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
+import { useAccount } from "wagmi";
 
 import placeholderImg from "../../assets/placeholder.png";
 import { CheckBox } from "../CheckBox";
@@ -25,6 +27,7 @@ import { DialogTrigger } from "~/components/ui/Dialog";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { TroveToken } from "~/types";
 
 interface ItemCardProps {
   name: string;
@@ -74,34 +77,28 @@ const exampleFilters = [
   },
 ];
 
-const ItemCard = ({
-  item,
-  selected,
-}: {
-  item: ItemCardProps;
-  selected: boolean;
-}) => (
+const ItemCard = ({ item }: { item: TroveToken }) => (
   <div
     className={cn(
-      "relative cursor-pointer flex-col overflow-hidden rounded-lg bg-night-900",
-      selected && "border border-night-100"
+      "relative cursor-pointer flex-col overflow-hidden rounded-lg bg-night-900"
+      // selected && "border border-night-100"
     )}
   >
-    {selected && (
+    {/* {selected && (
       <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
         <CheckIcon className="w-3" />
       </div>
-    )}
+    )} */}
 
     <div className="relative w-full overflow-hidden">
       <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md bg-honey-800/10 text-honey-400">
-        <StarIcon className="h-3 w-3 " />
+        <StarIcon className="h-3 w-3" />
       </div>
-      <img src={item.image} alt={item.name} className="w-full" />
+      <img src={item.image.uri} alt={item.tokenId} className="w-full" />
     </div>
     <div className="p-3">
-      <p className="text-sm font-medium text-night-100">{item.name}</p>
-      <p className="text-night-400">{item.id}</p>
+      <p className="text-sm font-medium text-night-100">{item.metadata.name}</p>
+      <p className="text-night-400">{item.tokenId}</p>
     </div>
   </div>
 );
@@ -111,6 +108,19 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
   const [activeTab, setActiveTab] = useState<string>("filters");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [expandedFilters, setExpandedFilters] = useState<string[]>([]);
+  const fetcher = useFetcher<TroveToken[]>();
+  const { load } = fetcher;
+  const { address } = useAccount();
+
+  React.useEffect(() => {
+    if (!address) return;
+    const params = new URLSearchParams({
+      address,
+      slug: token.urlSlug,
+    });
+
+    load(`/resources/get-collection/?${params.toString()}`);
+  }, [address, load, token.urlSlug]);
 
   const selectionHandler = (item: ItemCardProps) => {
     if (selectedItems.includes(item)) {
@@ -212,12 +222,12 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
           initial deposited items are still available
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-3 overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
-        {exampleItems.map((item, index) => (
-          <div onClick={() => selectionHandler(item)} key={index}>
-            <ItemCard selected={selectedItems.includes(item)} item={item} />{" "}
-          </div>
-        ))}
+      <div className="overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
+        <div className="grid grid-cols-5 gap-3 overflow-auto">
+          {fetcher.data?.map((item) => (
+            <ItemCard key={item.tokenId} item={item} />
+          ))}
+        </div>
       </div>
       <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
         <MultiSelect
@@ -239,7 +249,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
         />
         <div className="h-full overflow-auto">
           {activeTab === "filters" ? (
-            <>
+            <div className="space-y-2">
               {exampleFilters.map((filter) => (
                 <div
                   className="flex flex-col gap-3 rounded-md bg-night-1000 p-4 transition-all"
@@ -303,50 +313,48 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                   )}
                 </div>
               ))}
-            </>
+            </div>
           ) : (
             <div className="flex flex-col justify-between">
-              <div>
-                <p className="px-3 text-sm leading-[160%] text-night-400">
-                  Selected assets
-                </p>
-                <div className="flex flex-col gap-2">
-                  {selectedItems.map((item) => (
-                    <div
-                      className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
-                      key={item.name}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-10 w-10 rounded-[4px]"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-[4px] bg-night-800" />
-                        )}
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium text-night-100">
-                            {item.name}
-                          </p>
-                          <p className="text-sm text-night-400">{item.id}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <NumberSelect max={0} />
-                        <button
-                          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
-                          onClick={() => selectionHandler(item)}
-                        >
-                          <XIcon className="w-4 text-night-400" />
-                        </button>
+              <p className="px-3 text-sm leading-[160%] text-night-400">
+                Selected assets
+              </p>
+              <div className="flex flex-col gap-2">
+                {selectedItems.map((item) => (
+                  <div
+                    className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
+                    key={item.name}
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-10 w-10 rounded-[4px]"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-[4px] bg-night-800" />
+                      )}
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium text-night-100">
+                          {item.name}
+                        </p>
+                        <p className="text-sm text-night-400">{item.id}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-2">
+                      <NumberSelect max={0} />
+                      <button
+                        className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
+                        onClick={() => selectionHandler(item)}
+                      >
+                        <XIcon className="w-4 text-night-400" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex w-full flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm text-night-500">Total:</p>

@@ -67,6 +67,7 @@ export const createPoolToken = (
     ) ?? [];
   const symbol = createTokenSymbol(token, collections);
   const isNft = isTokenNft(token);
+
   return {
     id: token.id,
     name: createTokenName(token, collections),
@@ -75,6 +76,7 @@ export const createPoolToken = (
       tokenCollections[0]?.image ??
       (isNft ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
     collections: tokenCollections,
+    urlSlug: tokenCollections[0]?.urlSlug ?? "",
     isNft,
     priceUSD: prices[NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id] ?? 0,
     reserve: 0,

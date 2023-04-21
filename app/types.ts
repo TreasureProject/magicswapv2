@@ -5,7 +5,9 @@ export type EnvVar =
   | "PUBLIC_ALCHEMY_KEY"
   | "PUBLIC_NODE_ENV"
   | "PUBLIC_ENABLE_TESTNETS"
-  | "EXCHANGE_ENDPOINT";
+  | "MAGICSWAPV2_API_URL"
+  | "TROVE_API_URL"
+  | "TROVE_API_NETWORK";
 
 export type Env = {
   [key in EnvVar]: string;
@@ -27,6 +29,7 @@ export type TroveCollection = {
   contractType: "ERC721" | "ERC1155";
   displayName: string;
   thumbnailUri: string;
+  urlSlug: string;
   tokenDisplayName: {
     singular: string;
     plural: string;

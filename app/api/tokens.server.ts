@@ -41,6 +41,21 @@ export const fetchTokens = async () => {
   );
 };
 
+export const fetchCollectionOwnedByAddress = async (
+  address: string,
+  slug: string
+) => {
+  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  url.searchParams.set("userAddress", address);
+  url.searchParams.set("slugs", slug);
+  url.searchParams.set("chains", process.env.TROVE_API_NETWORK);
+
+  const response = await fetch(url.toString());
+  const result = (await response.json()) as TroveToken[];
+
+  return result;
+};
+
 export const fetchTroveTokens = async (
   ids: string[]
 ): Promise<TroveTokenMapping> => {
