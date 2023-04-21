@@ -9,6 +9,15 @@ module.exports = {
   presets: [require("@treasure-project/tailwind-config")],
   theme: {
     extend: {
+      gridTemplateAreas: {
+        "nft-modal": [
+          "header header header header header",
+          "misc misc misc selection selection",
+          "nft nft nft selection selection",
+          "nft nft nft selection selection",
+          "nft nft nft selection selection",
+        ],
+      },
       colors: {
         border: "#282F3D",
         // input: "hsl(var(--input))",
@@ -45,5 +54,8 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@savvywombat/tailwindcss-grid-areas"),
+  ],
 };

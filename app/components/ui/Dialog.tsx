@@ -14,8 +14,13 @@ export const DialogPortal = ({
   children,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props}>
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+  <DialogPrimitive.Portal {...props}>
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-end justify-center sm:items-center",
+        className
+      )}
+    >
       {children}
     </div>
   </DialogPrimitive.Portal>
@@ -37,25 +42,31 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-export const FullDialogPortal = ({
-  className,
-  children,
-}: {
-  className: string;
-  children: React.react;
-}) => (
-  <DialogPortal>
-    <div className="fixed left-0 top-0 z-10 flex h-screen w-screen items-center justify-center bg-night-1200/90 shadow-2xl backdrop-blur-xl">
+export const TransparentDialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal className="sm:items-start">
+    <DialogContent
+      ref={ref}
+      className={cn(
+        "rounded-none border-none bg-transparent shadow-none",
+        className
+      )}
+      {...props}
+    >
       {children}
-    </div>
+    </DialogContent>
   </DialogPortal>
-);
+));
+
+TransparentDialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
-  <DialogPortal>
+  <>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -67,13 +78,13 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close asChild>
-        <Button variant="ghost" className="absolute right-6 top-6">
+        <Button variant="ghost" className="absolute right-6 top-6 rounded-full">
           <XIcon className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </Button>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
-  </DialogPortal>
+  </>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 

@@ -1,3 +1,4 @@
+import { DialogPortal } from "@radix-ui/react-dialog";
 import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -282,66 +283,68 @@ const SwapTokenInput = ({
           </button>
         </DialogTrigger>
       )}
-      <DialogContent className="rounded-none border-none bg-transparent shadow-none">
-        <DialogHeader>
-          <DialogTitle>Select Asset</DialogTitle>
-          <DialogDescription>Select an asset to swap with.</DialogDescription>
-        </DialogHeader>
-        <div className="rounded-lg bg-night-1100 p-4">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                tab === "tokens" &&
-                  "border-night-800 bg-night-800 text-honey-25"
-              )}
-              onClick={() => setTab("tokens")}
-            >
-              <TokenIcon className="h-4 w-4" />
-              Tokens
-            </button>
-            <button
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                tab === "collections" &&
-                  "border-night-800 bg-night-800 text-honey-25"
-              )}
-              onClick={() => setTab("collections")}
-            >
-              <LayersIcon className="h-4 w-4" />
-              Collections
-            </button>
-          </div>
-          <ul className="mt-4 border-t border-night-900 pt-4">
-            {tokens
-              .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
-              .map((token) => (
-                <li
-                  key={token.id}
-                  className="relative rounded-lg px-3 py-2 hover:bg-night-900"
-                >
-                  {/* <div className="flex w-full items-center justify-between gap-3"> */}
-                  <div className="flex items-center gap-3">
-                    <PoolTokenImage token={token} className="h-9 w-9" />
-                    <div className="text-left text-sm">
-                      <span className="block font-semibold text-honey-25">
-                        {token.name}
-                      </span>
-                      <span className="block text-night-600">
-                        {token.symbol}
-                      </span>
+      <DialogPortal>
+        <DialogContent className="rounded-none border-none bg-transparent shadow-none">
+          <DialogHeader>
+            <DialogTitle>Select Asset</DialogTitle>
+            <DialogDescription>Select an asset to swap with.</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg bg-night-1100 p-4">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+                  tab === "tokens" &&
+                    "border-night-800 bg-night-800 text-honey-25"
+                )}
+                onClick={() => setTab("tokens")}
+              >
+                <TokenIcon className="h-4 w-4" />
+                Tokens
+              </button>
+              <button
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+                  tab === "collections" &&
+                    "border-night-800 bg-night-800 text-honey-25"
+                )}
+                onClick={() => setTab("collections")}
+              >
+                <LayersIcon className="h-4 w-4" />
+                Collections
+              </button>
+            </div>
+            <ul className="mt-4 border-t border-night-900 pt-4">
+              {tokens
+                .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
+                .map((token) => (
+                  <li
+                    key={token.id}
+                    className="relative rounded-lg px-3 py-2 hover:bg-night-900"
+                  >
+                    {/* <div className="flex w-full items-center justify-between gap-3"> */}
+                    <div className="flex items-center gap-3">
+                      <PoolTokenImage token={token} className="h-9 w-9" />
+                      <div className="text-left text-sm">
+                        <span className="block font-semibold text-honey-25">
+                          {token.name}
+                        </span>
+                        <span className="block text-night-600">
+                          {token.symbol}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  {/* </div> */}
-                  <button
-                    onClick={() => onSelect(token)}
-                    className="absolute inset-0"
-                  />
-                </li>
-              ))}
-          </ul>
-        </div>
-      </DialogContent>
+                    {/* </div> */}
+                    <button
+                      onClick={() => onSelect(token)}
+                      className="absolute inset-0"
+                    />
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 };

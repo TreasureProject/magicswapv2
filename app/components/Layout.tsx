@@ -66,7 +66,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <MenuIcon className="w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-night-900" align="end">
+            <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <InfoIcon className="mr-2 h-4 w-4" />
