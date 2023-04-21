@@ -64,7 +64,7 @@ const SelectionFrame = ({
             className="w-full border-none bg-transparent text-xl font-medium text-night-100 outline-none"
             placeholder="0.00"
           />
-          <label className="nowr w-max">{inputLabel}</label>
+          <label className="w-max whitespace-nowrap">{inputLabel}</label>
         </div>
       )}
       <div
