@@ -2,6 +2,7 @@ import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 
 import { Button } from "../ui/Button";
+import { DialogTrigger } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 
@@ -48,9 +49,13 @@ const SelectionFrame = ({
               <p className="text-sm text-night-400">{token.symbol}</p>
             </div>
           </div>
-          <Button variant="dark" size="md">
-            Select Items
-          </Button>
+          {token.isNft && (
+            <DialogTrigger asChild>
+              <Button variant="dark" size="md">
+                Select Items
+              </Button>
+            </DialogTrigger>
+          )}
         </div>
       )}
       {type === "input" && (
