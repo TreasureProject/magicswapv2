@@ -1,6 +1,5 @@
 import { useFetcher } from "@remix-run/react";
 import {
-  Check as CheckIcon,
   ChevronDown as ChevronDownIcon,
   Table as ColumnIcon,
   SlidersHorizontal as FilterIcon,
