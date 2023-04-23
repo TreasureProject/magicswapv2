@@ -1,8 +1,9 @@
 import { BigNumber } from "@ethersproject/bignumber";
-import { formatEther, parseUnits } from "@ethersproject/units";
+import { formatEther, parseEther, parseUnits } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
+import Decimal from "decimal.js-light";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -20,9 +21,10 @@ import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { CheckBoxLabeled } from "~/components/CheckBox";
 import Table, { CopyTable } from "~/components/Table";
-import SelectionFrame from "~/components/item_selection/SelectionFrame";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolInput } from "~/components/pools/PoolInput";
+import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { PoolTokenInput } from "~/components/pools/PoolTokenInput";
 import { Button } from "~/components/ui/Button";
@@ -34,12 +36,19 @@ import {
   useErc20Allowance,
   useErc20Approve,
   useMagicSwapV2RouterAddLiquidity,
+  useMagicSwapV2RouterRemoveLiquidity,
   usePrepareErc20Approve,
   usePrepareMagicSwapV2RouterAddLiquidity,
+  usePrepareMagicSwapV2RouterRemoveLiquidity,
 } from "~/generated";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
-import { estimateLp, getAmountMin, quote } from "~/lib/pools";
+import {
+  getAmountMin,
+  getLpCountForTokens,
+  getTokenCountForLp,
+  quote,
+} from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { AddressString, Optional } from "~/types";
@@ -67,6 +76,7 @@ export default function PoolDetailsPage() {
     value: "0",
     isExactQuote: false,
   });
+  const [withdrawInput, setWithdrawInput] = useState("0");
 
   type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -77,8 +87,9 @@ export default function PoolDetailsPage() {
   const [checkedTerms, setCheckedTerms] = useState(false);
 
   const isDepositing = activeTab === "deposit" && depositInput.value !== "0";
+  const isWithdrawing = activeTab === "withdraw" && withdrawInput !== "0";
 
-  const { data: lpBalance } = useBalance({
+  const { data: rawLpBalance } = useBalance({
     address,
     token: pool.id as AddressString,
     enabled: !!address,
@@ -108,8 +119,15 @@ export default function PoolDetailsPage() {
     enabled: !!address && !pool.quoteToken.isNft && isDepositing,
   });
 
-  const lpShare =
-    Number(formatEther(lpBalance?.value ?? "0")) / pool.totalSupply;
+  const { data: lpTokenAllowance } = useErc20Allowance({
+    address: pool.id as AddressString,
+    args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
+    enabled: !!address && isWithdrawing,
+  });
+
+  const lpBalance = formatEther(rawLpBalance?.value ?? "0");
+
+  const lpShare = Number(lpBalance) / pool.totalSupply;
 
   const amountBase = depositInput.isExactQuote
     ? quote(depositInput.value, pool.quoteToken.reserve, pool.baseToken.reserve)
@@ -123,21 +141,30 @@ export default function PoolDetailsPage() {
         pool.quoteToken.reserve
       );
 
-  const estimatedLp = estimateLp(
+  const estimatedLp = getLpCountForTokens(
     depositInput.value,
     pool.baseToken.reserve,
     pool.totalSupply
   );
 
-  const amountBaseBN = BigNumber.from(
-    parseUnits(amountBase, pool.baseToken.decimals)
+  const estimatedAmountBase = getTokenCountForLp(
+    withdrawInput,
+    pool.baseToken.reserve,
+    pool.totalSupply
   );
-  const amountQuoteBN = BigNumber.from(
-    parseUnits(amountQuote, pool.quoteToken.decimals)
+  const estimatedAmountQuote = getTokenCountForLp(
+    withdrawInput,
+    pool.quoteToken.reserve,
+    pool.totalSupply
   );
+
+  const amountBaseBN = parseUnits(amountBase, pool.baseToken.decimals);
+  const amountQuoteBN = parseUnits(amountQuote, pool.quoteToken.decimals);
+  const amountLpBN = parseEther(withdrawInput);
 
   const isBaseTokenApproved = baseTokenAllowance?.gte(amountBaseBN) ?? false;
   const isQuoteTokenApproved = quoteTokenAllowance?.gte(amountQuoteBN) ?? false;
+  const isLpTokenApproved = lpTokenAllowance?.gte(amountLpBN) ?? false;
 
   const { config: approveBaseTokenConfig } = usePrepareErc20Approve({
     address: pool.baseToken.id as AddressString,
@@ -153,6 +180,13 @@ export default function PoolDetailsPage() {
   });
   const { write: approveQuoteToken } = useErc20Approve(approveQuoteTokenConfig);
 
+  const { config: approveLpTokenConfig } = usePrepareErc20Approve({
+    address: pool.id as AddressString,
+    args: [magicSwapV2RouterAddress[421613], amountLpBN],
+    enabled: !isLpTokenApproved,
+  });
+  const { write: approveLpToken } = useErc20Approve(approveLpTokenConfig);
+
   const { config: addLiquidityConfig } =
     usePrepareMagicSwapV2RouterAddLiquidity({
       args: [
@@ -161,27 +195,51 @@ export default function PoolDetailsPage() {
         amountBaseBN,
         amountQuoteBN,
         depositInput.isExactQuote
-          ? BigNumber.from(
-              parseUnits(
-                getAmountMin(amountBase, slippage).toString(),
-                pool.baseToken.decimals
-              )
+          ? parseUnits(
+              getAmountMin(amountBase, slippage).toString(),
+              pool.baseToken.decimals
             )
           : amountBaseBN,
         depositInput.isExactQuote
           ? amountQuoteBN
-          : BigNumber.from(
-              parseUnits(
-                getAmountMin(amountQuote, slippage).toString(),
-                pool.quoteToken.decimals
-              )
+          : parseUnits(
+              getAmountMin(amountQuote, slippage).toString(),
+              pool.quoteToken.decimals
             ),
         address ?? "0x0",
         BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
       ],
+      enabled:
+        !!address &&
+        isDepositing &&
+        isBaseTokenApproved &&
+        isQuoteTokenApproved,
     });
   const { write: addLiquidity } =
     useMagicSwapV2RouterAddLiquidity(addLiquidityConfig);
+
+  const { config: removeLiquidityConfig } =
+    usePrepareMagicSwapV2RouterRemoveLiquidity({
+      args: [
+        pool.baseToken.id as AddressString,
+        pool.quoteToken.id as AddressString,
+        amountLpBN,
+        parseUnits(
+          getAmountMin(estimatedAmountBase, slippage).toString(),
+          pool.baseToken.decimals
+        ),
+        parseUnits(
+          getAmountMin(estimatedAmountQuote, slippage).toString(),
+          pool.quoteToken.decimals
+        ),
+        address ?? "0x0",
+        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
+      ],
+      enabled: !!address && isWithdrawing && isLpTokenApproved,
+    });
+  const { write: removeLiquidity } = useMagicSwapV2RouterRemoveLiquidity(
+    removeLiquidityConfig
+  );
 
   return (
     <Dialog>
@@ -224,7 +282,7 @@ export default function PoolDetailsPage() {
                   <div className="flex items-center">
                     <PoolImage pool={pool} className="h-10 w-10" />
                     <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                      {formatBalance(lpBalance?.formatted ?? 0)}
+                      {formatBalance(rawLpBalance?.formatted ?? 0)}
                     </p>
                   </div>
                   <p className="text-sm text-night-400">
@@ -373,43 +431,109 @@ export default function PoolDetailsPage() {
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                   />
-                  {activeTab === "withdraw" && (
-                    <SelectionFrame
-                      token={pool.token1 as PoolToken}
-                      inputLabel={
-                        <div className="flex items-center">
-                          <PoolImage pool={pool} className="h-8 w-8" />
-                          <p className="text-night-400">LP Tokens</p>
-                        </div>
-                      }
-                    />
+                  {activeTab === "withdraw" ? (
+                    <>
+                      <PoolInput
+                        pool={pool}
+                        balance={lpBalance}
+                        amount={withdrawInput}
+                        onUpdateAmount={setWithdrawInput}
+                      />
+                      {withdrawInput !== "0" && (
+                        <>
+                          <div className="flex items-center justify-between gap-3 overflow-hidden rounded-lg border border-night-900 p-4">
+                            <div className="flex items-center gap-4">
+                              <PoolTokenImage token={pool.baseToken} />
+                              <div className="space-y-1">
+                                <p className="text-xl font-medium">
+                                  {pool.baseToken.name}
+                                </p>
+                                {pool.baseToken.name.toUpperCase() !==
+                                  pool.baseToken.symbol.toUpperCase() && (
+                                  <p className="text-sm text-night-400">
+                                    {pool.baseToken.symbol}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1 text-right">
+                              <span>{formatBalance(estimatedAmountBase)}</span>
+                              <span className="block text-sm text-night-400">
+                                {formatUSD(
+                                  new Decimal(
+                                    estimatedAmountBase === "0"
+                                      ? 1
+                                      : estimatedAmountBase
+                                  )
+                                    .mul(pool.baseToken.priceUSD)
+                                    .toFixed(2, Decimal.ROUND_DOWN)
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-3 overflow-hidden rounded-lg border border-night-900 p-4">
+                            <div className="flex items-center gap-4">
+                              <PoolTokenImage token={pool.quoteToken} />
+                              <div className="space-y-1">
+                                <p className="text-xl font-medium">
+                                  {pool.quoteToken.name}
+                                </p>
+                                {pool.quoteToken.name.toUpperCase() !==
+                                  pool.quoteToken.symbol.toUpperCase() && (
+                                  <p className="text-sm text-night-400">
+                                    {pool.quoteToken.symbol}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1 text-right">
+                              <span>{formatBalance(estimatedAmountQuote)}</span>
+                              <span className="block text-sm text-night-400">
+                                {formatUSD(
+                                  new Decimal(
+                                    estimatedAmountQuote === "0"
+                                      ? 1
+                                      : estimatedAmountQuote
+                                  )
+                                    .mul(pool.quoteToken.priceUSD)
+                                    .toFixed(2, Decimal.ROUND_DOWN)
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {!pool.baseToken.isNft ? (
+                        <PoolTokenInput
+                          token={pool.baseToken}
+                          balance={baseTokenBalance?.formatted}
+                          amount={amountBase}
+                          onUpdateAmount={(value) =>
+                            setDepositInput({ value, isExactQuote: false })
+                          }
+                        />
+                      ) : null}
+                      {!pool.quoteToken.isNft ? (
+                        <PoolTokenInput
+                          token={pool.quoteToken}
+                          balance={quoteTokenBalance?.formatted}
+                          amount={amountQuote}
+                          onUpdateAmount={(value) =>
+                            setDepositInput({ value, isExactQuote: true })
+                          }
+                        />
+                      ) : null}
+                    </>
                   )}
-                  {!pool.baseToken.isNft ? (
-                    <PoolTokenInput
-                      token={pool.baseToken}
-                      balance={baseTokenBalance?.formatted}
-                      amount={amountBase}
-                      onUpdateAmount={(value) =>
-                        setDepositInput({ value, isExactQuote: false })
-                      }
-                    />
-                  ) : null}
-                  {!pool.quoteToken.isNft ? (
-                    <PoolTokenInput
-                      token={pool.quoteToken}
-                      balance={quoteTokenBalance?.formatted}
-                      amount={amountQuote}
-                      onUpdateAmount={(value) =>
-                        setDepositInput({ value, isExactQuote: true })
-                      }
-                    />
-                  ) : null}
                   <Table
                     items={
                       activeTab === "deposit"
                         ? [
                             {
-                              label: "LP Tokens Received",
+                              label: "Estimated LP Tokens",
                               icon: {
                                 token0: pool.baseToken.image,
                                 token1: pool.quoteToken.image,
@@ -426,26 +550,7 @@ export default function PoolDetailsPage() {
                               ),
                             },
                           ]
-                        : [
-                            { label: "Current Share of Pool", value: "0.00%" },
-                            { label: "New Share of Pool", value: "0.00%" },
-                            {
-                              label: "LP Tokens Owned",
-                              icon: {
-                                token0: pool.baseToken.image,
-                                token1: pool.quoteToken.image,
-                              },
-                              value: 1539,
-                            },
-                            {
-                              label: "LP Tokens Spent",
-                              icon: {
-                                token0: pool.baseToken.image,
-                                token1: pool.quoteToken.image,
-                              },
-                              value: 0.0,
-                            },
-                          ]
+                        : [{ label: "New Share of Pool", value: "0.00%" }]
                     }
                   />
                   {activeTab === "deposit" &&
@@ -461,21 +566,37 @@ export default function PoolDetailsPage() {
                         ok receiving another asset from the collection.
                       </CheckBoxLabeled>
                     )}
-                  {isDepositing && !isBaseTokenApproved && (
-                    <Button onClick={() => approveBaseToken?.()}>
-                      Approve {pool.baseToken.symbol}
-                    </Button>
+                  {isDepositing && (
+                    <>
+                      {!isBaseTokenApproved && (
+                        <Button onClick={() => approveBaseToken?.()}>
+                          Approve {pool.baseToken.symbol}
+                        </Button>
+                      )}
+                      {!isQuoteTokenApproved && (
+                        <Button onClick={() => approveQuoteToken?.()}>
+                          Approve {pool.quoteToken.symbol}
+                        </Button>
+                      )}
+                    </>
                   )}
-                  {isDepositing && !isQuoteTokenApproved && (
-                    <Button onClick={() => approveQuoteToken?.()}>
-                      Approve {pool.quoteToken.symbol}
+                  {isWithdrawing && !isLpTokenApproved && (
+                    <Button onClick={() => approveLpToken?.()}>
+                      Approve LP Token
                     </Button>
                   )}
                   <Button
                     disabled={
-                      !address || !isBaseTokenApproved || !isQuoteTokenApproved
+                      !address ||
+                      (activeTab === "deposit" &&
+                        (!isBaseTokenApproved || !isQuoteTokenApproved)) ||
+                      (activeTab === "withdraw" && !isLpTokenApproved)
                     }
-                    onClick={() => addLiquidity?.()}
+                    onClick={() =>
+                      activeTab === "deposit"
+                        ? addLiquidity?.()
+                        : removeLiquidity?.()
+                    }
                   >
                     {activeTab === "deposit"
                       ? "Add Liquidity"

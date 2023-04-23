@@ -16,7 +16,7 @@ export const getAmountOut = (
   const denominator = new Decimal(reserveIn ?? 0)
     .mul(10000)
     .add(amountInWithFee);
-  return denominator.lte(0) ? "0" : numerator.div(denominator).toString();
+  return denominator.gt(0) ? numerator.div(denominator).toString() : "0";
 };
 
 export const getAmountIn = (
@@ -34,9 +34,7 @@ export const getAmountIn = (
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
     .mul(10000 - totalFee);
-  return denominator.lte(0)
-    ? "0"
-    : numerator.div(denominator).add(1).toString();
+  return denominator.gt(0) ? numerator.div(denominator).add(1).toString() : "0";
 };
 
 export const quote = (
@@ -44,34 +42,49 @@ export const quote = (
   reserveBase: number | undefined,
   reserveQuote: number | undefined
 ) => {
-  const parsedAmountBase = Number(amountBase);
-  if (Number.isNaN(parsedAmountBase)) {
+  if (Number.isNaN(Number(amountBase))) {
     return "0";
   }
 
   const denominator = new Decimal(reserveBase ?? 0);
-  return denominator.lte(0)
-    ? "0"
-    : new Decimal(amountBase)
+  return denominator.gt(0)
+    ? new Decimal(amountBase)
         .mul(reserveQuote ?? 0)
         .div(denominator)
-        .toString();
+        .toString()
+    : "0";
 };
 
-export const estimateLp = (
+export const getLpCountForTokens = (
   amount: string,
   reserve: number | undefined,
   totalSupply: number
 ) => {
-  const parsedAmount = Number(amount);
-  if (Number.isNaN(parsedAmount)) {
+  if (Number.isNaN(Number(amount))) {
     return "0";
   }
 
   const denominator = new Decimal(reserve ?? 0);
-  return denominator.lte(0)
-    ? "0"
-    : new Decimal(amount).mul(totalSupply).div(denominator).toString();
+  return denominator.gt(0)
+    ? new Decimal(amount).mul(totalSupply).div(denominator).toString()
+    : "0";
+};
+
+export const getTokenCountForLp = (
+  amount: string,
+  reserve: number | undefined,
+  totalSupply: number
+) => {
+  if (Number.isNaN(Number(amount))) {
+    return "0";
+  }
+
+  return totalSupply > 0
+    ? new Decimal(amount)
+        .mul(reserve ?? 0)
+        .div(totalSupply)
+        .toString()
+    : "0";
 };
 
 export const getAmountMin = (amount: string, slippage: number) => {
