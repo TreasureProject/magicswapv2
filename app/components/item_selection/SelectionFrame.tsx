@@ -1,19 +1,23 @@
-import { ChevronDown as ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 
 import { Button } from "../ui/Button";
+import { DialogTrigger } from "~/components/ui/Dialog";
+import { formatBalance } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 
 const SelectionFrame = ({
   title,
   token,
+  balance = "0",
   mode = "transparent",
   inputLabel,
   type = "select",
 }: {
   title?: string;
   token: PoolToken;
+  balance?: string;
   mode: "solid" | "transparent";
   inputLabel?: React.ReactNode;
   type?: "select" | "input";
@@ -48,9 +52,13 @@ const SelectionFrame = ({
               <p className="text-sm text-night-400">{token.symbol}</p>
             </div>
           </div>
-          <Button variant="dark" size="md">
-            Select Items
-          </Button>
+          {token.isNft && (
+            <DialogTrigger asChild>
+              <Button variant="dark" size="md">
+                Select Items
+              </Button>
+            </DialogTrigger>
+          )}
         </div>
       )}
       {type === "input" && (
@@ -72,13 +80,17 @@ const SelectionFrame = ({
           (token.isNft ? (
             <div className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:bg-night-900">
               <p className="text-sm text-night-500">Inventory</p>
-              <p className="text-sm font-medium text-night-100">23</p>
+              <p className="text-sm font-medium text-night-100">
+                {formatBalance(balance)}
+              </p>
               <ChevronDownIcon className="h-5 w-5 text-night-100" />
             </div>
           ) : (
             <p className="pl-2 text-sm text-night-400">
               Balance:
-              <span className="pl-1 font-medium text-night-100">24,000.00</span>
+              <span className="pl-1 font-medium text-night-100">
+                {formatBalance(balance)}
+              </span>
             </p>
           ))}
         {token.isNft ? (

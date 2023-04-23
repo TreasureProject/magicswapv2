@@ -1,4 +1,4 @@
-import { Check as CheckIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import React from "react";
 
 import { cn } from "~/lib/utils";
@@ -18,7 +18,7 @@ export const CheckBox = ({
     <div
       className={cn(
         " flex h-4 w-4 min-w-[16px] cursor-pointer items-center justify-center rounded-[4px] border-[1.5px] border-night-600",
-        checked && "border-none bg-ruby-800",
+        checked && "border-none bg-night-100",
         className
       )}
       onClick={() => setChecked(!checked)}

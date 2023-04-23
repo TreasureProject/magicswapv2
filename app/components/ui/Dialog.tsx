@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "./Button";
@@ -9,13 +9,18 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({
+export const DialogPortal = ({
   className,
   children,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props}>
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+  <DialogPrimitive.Portal {...props}>
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-end justify-center sm:items-center",
+        className
+      )}
+    >
       {children}
     </div>
   </DialogPrimitive.Portal>
@@ -37,11 +42,31 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+export const TransparentDialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal className="sm:items-start">
+    <DialogContent
+      ref={ref}
+      className={cn(
+        "rounded-none border-none bg-transparent shadow-none",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </DialogContent>
+  </DialogPortal>
+));
+
+TransparentDialogContent.displayName = DialogPrimitive.Content.displayName;
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
-  <DialogPortal>
+  <>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -53,13 +78,13 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close asChild>
-        <Button variant="ghost" className="absolute right-0 top-4">
-          <X className="h-4 w-4" />
+        <Button variant="ghost" className="absolute right-6 top-6 rounded-full">
+          <XIcon className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </Button>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
-  </DialogPortal>
+  </>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
@@ -98,7 +123,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight text-honey-25",
       className
     )}
     {...props}

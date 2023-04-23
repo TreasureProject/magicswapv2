@@ -1,4 +1,4 @@
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
+import { GlobeIcon } from "lucide-react";
 
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -14,8 +14,8 @@ export const PoolTokenInfo = ({ token }: Props) => {
     <div className="flex items-center gap-6">
       <div
         className={cn(
-          "h-20 w-20 overflow-hidden",
-          token.isNft ? "rounded" : "rounded-full"
+          "overflow-hidden",
+          token.isNft ? "h-20 w-20 rounded" : "h-14 w-14 rounded-full"
         )}
       >
         <img src={token.image} alt="" />
@@ -32,7 +32,7 @@ export const PoolTokenInfo = ({ token }: Props) => {
             rel="noopener noreferrer"
             className="transition-colors hover:text-white"
           >
-            <GlobeAltIcon className="h-4 w-4" />
+            <GlobeIcon className="h-4 w-4" />
           </a>
         </span>
       </div>

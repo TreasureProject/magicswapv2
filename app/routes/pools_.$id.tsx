@@ -1,17 +1,19 @@
+import { formatEther } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowLeftRight as ArrowLeftRightIcon,
-  Check as CheckIcon,
-  ChevronDown as ChevronDownIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  ExternalLink as ExternalLinkIcon,
+  ArrowLeftRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 import { useState } from "react";
 import invariant from "tiny-invariant";
+import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
@@ -19,12 +21,17 @@ import { CheckBoxLabeled } from "~/components/CheckBox";
 import { ExchangeIcon } from "~/components/Icons";
 import Table, { CopyTable } from "~/components/Table";
 import SelectionFrame from "~/components/item_selection/SelectionFrame";
+import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { Button } from "~/components/ui/Button";
-import { formatUSD } from "~/lib/currency";
+import { Dialog } from "~/components/ui/Dialog";
+import { MultiSelect } from "~/components/ui/MultiSelect";
+import { formatBalance, formatUSD } from "~/lib/currency";
+import { formatPercent } from "~/lib/number";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { AddressString } from "~/types";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -41,9 +48,8 @@ export async function loader({ params }: LoaderArgs) {
 
 export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
-  const [activeTab, setActiveTab] = useState<
-    "deposit" | "withdraw" | "summary"
-  >("deposit");
+  const { address } = useAccount();
+  const [activeTab, setActiveTab] = useState<string>("deposit");
 
   type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -57,450 +63,453 @@ export default function PoolDetailsPage() {
   // Form state
   const [checkedTerms, setCheckedTerms] = useState(false);
 
+  const { data: lpBalance } = useBalance({
+    address,
+    token: pool.id as AddressString,
+    enabled: !!address,
+  });
+
+  const { data: baseTokenBalance } = useBalance({
+    address,
+    token: pool.baseToken.id as AddressString,
+    enabled: !!address && !pool.baseToken.isNft,
+  });
+
+  const { data: quoteTokenBalance } = useBalance({
+    address,
+    token: pool.quoteToken.id as AddressString,
+    enabled: !!address && !pool.quoteToken.isNft,
+  });
+
+  const lpShare =
+    Number(formatEther(lpBalance?.value ?? "0")) / pool.totalSupply;
+
   return (
-    <main className="container">
-      <h1 className="flex items-center text-2xl font-bold uppercase">
-        <Link
-          to="/pools"
-          className="py-2 pl-2 pr-4 text-night-400 transition-colors hover:text-night-100"
-        >
-          <ChevronLeftIcon className="h-6" />
-        </Link>
-        {pool.name} Pool
-      </h1>
-      <div className="mt-6 space-y-6">
-        <div className="flex flex-col gap-10 lg:flex-row ">
-          <div className="w-full space-y-6 md:flex-row">
-            <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center ">
-              <PoolTokenInfo token={pool.baseToken as PoolToken} />
-              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
-            </div>
-            <div className="h-[1px] bg-night-900" />
-            <div className="space-y-4 rounded-md bg-night-1100 p-4">
-              <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                <h3 className="font-semibold">Your Positions</h3>
-                <span className="text-night-200">
-                  <abbr
-                    title="Total Value Locked"
-                    className="text-night-600 no-underline"
-                  >
-                    TVL
-                  </abbr>{" "}
-                  :{" "}
-                  <span className="font-medium">{formatUSD(pool.tvlUSD)}</span>
-                </span>
+    <Dialog>
+      <main className="container">
+        <SelectionPopup token={pool.token1} />
+        <h1 className="flex items-center text-2xl font-bold uppercase">
+          <Link
+            to="/pools"
+            className="py-2 pl-2 pr-4 text-night-400 transition-colors hover:text-night-100"
+          >
+            <ChevronLeftIcon className="h-6" />
+          </Link>
+          {pool.name} Pool
+        </h1>
+        <div className="mt-6 space-y-6">
+          <div className="flex flex-col gap-10 lg:flex-row">
+            <div className="w-full space-y-6 md:flex-row">
+              <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center">
+                <PoolTokenInfo token={pool.baseToken} />
+                <PoolTokenInfo token={pool.quoteToken} />
               </div>
-              <div className="flex flex-col px-2 py-6">
-                <div className="flex items-center">
-                  <PoolImage pool={pool} className="h-10 w-10" />
-                  <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                    0.00
+              <div className="h-[1px] bg-night-900" />
+              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
+                  <h3 className="font-semibold">Your Positions</h3>
+                  <span className="text-night-200">
+                    <abbr
+                      title="Total Value Locked"
+                      className="text-night-600 no-underline"
+                    >
+                      TVL
+                    </abbr>
+                    :{" "}
+                    <span className="font-medium">
+                      {formatUSD(pool.tvlUSD * lpShare)}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex flex-col px-2 py-6">
+                  <div className="flex items-center">
+                    <PoolImage pool={pool} className="h-10 w-10" />
+                    <p className="text-base-100 text-3xl font-medium leading-[160%]">
+                      {formatBalance(lpBalance?.formatted ?? 0)}
+                    </p>
+                  </div>
+                  <p className="text-sm text-night-400">
+                    Current LP Token Balance
                   </p>
                 </div>
-                <p className="text-sm text-night-400">
-                  Current LP token Balance
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-4 px-2 sm:flex-row lg:flex-col xl:flex-row xl:gap-0 ">
-                <div className="flex w-1/2 flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <p className="font-bold uppercase leading-[160%] text-night-100">
-                      {pool.token1.name}
-                    </p>
-                    <div className="h-3 w-[1px] bg-night-400" />
-                    <p className="font-regular leading-[160%] text-night-300">
-                      {!pool.token1.isNft && "$"}
-                      {pool.token1.name}
-                    </p>
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-4">
-                      <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
-                        {pool.token1.image && (
-                          <img
-                            src={pool.token1.image}
-                            alt={`${pool.token1.name} token`}
-                          />
-                        )}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {[pool.baseToken, pool.quoteToken].map((token) => (
+                    <div key={token.id} className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <p className="font-bold leading-[160%] text-night-100">
+                          {token.name}
+                        </p>
+                        {token.name.toUpperCase() !==
+                        token.symbol.toUpperCase() ? (
+                          <>
+                            <div className="h-3 w-[1px] bg-night-400" />
+                            <p className="font-regular uppercase leading-[160%] text-night-300">
+                              {token.symbol}
+                            </p>
+                          </>
+                        ) : null}
                       </div>
-                      <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                        {pool.token1.reserve}
-                      </p>
-                    </div>
-                    <p className="text-night-500">$0.00</p>
-                  </div>
-                </div>
-                <div className="flex w-1/2 flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <p className="font-bold uppercase leading-[160%] text-night-100">
-                      {pool.token0.name}
-                    </p>
-                    <div className="h-3 w-[1px] bg-night-400" />
-                    <p className="font-regular leading-[160%] text-night-300">
-                      {!pool.token0.isNft && "$"}
-                      {pool.token0.name}
-                    </p>
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-4">
-                      <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
-                        {pool.token0.image && (
-                          <img
-                            src={pool.token0.image}
-                            alt={`${pool.token0.name} token`}
-                          />
-                        )}
-                      </div>
-                      <p className="text-base-100 text-3xl font-medium leading-[160%]">
-                        {pool.token0.reserve}
-                      </p>
-                    </div>
-                    <p className="text-night-500">$0.00</p>
-                  </div>
-                </div>
-              </div>
-              <Table
-                items={[
-                  { label: "Initial LP Tokens", value: 0.0 },
-                  { label: "Rewards earned", value: 0.0 },
-                  { label: "Current share of pool", value: 0.0 },
-                ]}
-              />
-            </div>
-            <div className="space-y-4 rounded-md bg-night-1100 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-semibold">Pool Reserves</h3>
-                <span className="text-night-200">
-                  <abbr
-                    title="Total Value Locked"
-                    className="text-night-600 no-underline"
-                  >
-                    TVL
-                  </abbr>{" "}
-                  :{" "}
-                  <span className="font-medium">{formatUSD(pool.tvlUSD)}</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center gap-4 text-night-400">
-                <span className="font-medium">
-                  <span className="text-night-100">1</span>{" "}
-                  {pool.baseToken.symbol}
-                </span>
-                <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
-                <span className="font-medium">
-                  <span className="text-night-100">
-                    {pool.quoteToken.reserve / pool.baseToken.reserve}
-                  </span>{" "}
-                  {pool.quoteToken.symbol}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                {[pool.baseToken, pool.quoteToken].map((token) => (
-                  <div
-                    key={token.id}
-                    className="flex items-center justify-between gap-4 rounded-md bg-night-1200 p-3"
-                  >
-                    <div className="flex items-center gap-2 font-semibold">
-                      <div
-                        className={cn(
-                          "h-6 w-6 overflow-hidden rounded-full bg-night-900"
-                          // token.isNft ? "rounded" : "rounded-full"
-                        )}
-                      >
-                        {!!token.image && <img src={token.image} alt="" />}
-                      </div>
-                      {token.symbol}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-night-100">
-                        {" "}
-                        {token.reserve}
-                      </span>
-                      <div className="h-3 w-[1px] bg-night-700" />
-                      <span className="font-medium text-night-400">
-                        {" "}
-                        {formatUSD(token.reserve * token.priceUSD)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
-              <p className="text-sm font-medium">Rewards: 0.52%</p>
-              <p className="text-sm font-medium">Fees: 5.67%</p>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row ">
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Volume (24h)</p>
-                <p className="font-bold text-night-100">$11,249,366</p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">APR</p>
-                <p className="font-bold text-night-100">4,21%</p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Fees (24h)</p>
-                <p className="font-bold text-night-100">$11,249,366</p>
-              </div>
-            </div>
-          </div>
-          {/*Here the code splits between the left and right side (atleast on desktop) */}
-          <div className="flex h-max w-full flex-col gap-6 rounded-lg bg-night-1100 p-4 xl:min-w-[512px]">
-            {!(activeTab === "summary") ? (
-              <>
-                <div className="flex w-full items-center justify-between  rounded-full bg-night-1200 p-1">
-                  <button
-                    className={cn(
-                      "w-full rounded-full py-2  font-medium leading-[160%] text-night-400  transition-colors",
-                      activeTab === "deposit" && "bg-night-800 text-night-100"
-                    )}
-                    onClick={() => setActiveTab("deposit")}
-                  >
-                    Deposit
-                  </button>
-                  <button
-                    className={cn(
-                      "w-full rounded-full py-2  font-medium leading-[160%]  text-night-400 transition-colors",
-                      activeTab === "withdraw" && "bg-night-800 text-night-100"
-                    )}
-                    onClick={() => setActiveTab("withdraw")}
-                  >
-                    Withdraw
-                  </button>
-                </div>
-                {activeTab === "withdraw" && (
-                  <SelectionFrame
-                    token={pool.token1 as PoolToken}
-                    mode="transparent"
-                    type="input"
-                    inputLabel={
-                      <div className="flex items-center">
-                        <PoolImage pool={pool} className="h-8 w-8" />
-                        <p className="text-night-400">LP Tokens</p>
-                      </div>
-                    }
-                  />
-                )}
-                <SelectionFrame
-                  token={pool.token1 as PoolToken}
-                  mode="transparent"
-                />
-                <SelectionFrame
-                  token={pool.token0 as PoolToken}
-                  mode="transparent"
-                />
-                <Table
-                  items={
-                    activeTab === "deposit"
-                      ? [
-                          { label: "Share of Pool", value: "0.00%" },
-                          {
-                            label: "LP Tokens Received",
-                            icon: {
-                              token0: pool.token0.image,
-                              token1: pool.token1.image,
-                            },
-                            value: 0.0,
-                          },
-                        ]
-                      : [
-                          { label: "Current Share of Pool", value: "0.00%" },
-                          { label: "New Share of Pool", value: "0.00%" },
-                          {
-                            label: "LP Tokens Owned",
-                            icon: {
-                              token0: pool.token0.image,
-                              token1: pool.token1.image,
-                            },
-                            value: 1539,
-                          },
-                          {
-                            label: "LP Tokens Spent",
-                            icon: {
-                              token0: pool.token0.image,
-                              token1: pool.token1.image,
-                            },
-                            value: 0.0,
-                          },
-                        ]
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <ExchangeIcon className="w-5 text-night-500" />
-                    <p className="text-sm text-night-400">
-                      <span className="text-night-100">24,523</span> MAGIC per
-                      Treasure
-                    </p>
-                    <Badge color="secondary" rounded="partially">
-                      T1
-                    </Badge>
-                  </div>
-                </Table>
-                {activeTab === "deposit" && (
-                  <CheckBoxLabeled
-                    setChecked={setCheckedTerms}
-                    checked={checkedTerms}
-                    className="sm:p-4"
-                  >
-                    I understand there is a chance I am not be able to
-                    withdrawal and receive the asset I deposited. If the asset
-                    deposited in the pool is no longer available, I am ok
-                    receiving another asset from the collection.
-                  </CheckBoxLabeled>
-                )}
-                <Button onClick={PoolActionHandler}>
-                  {activeTab === "deposit"
-                    ? "Add Liquidity"
-                    : "Remove Liquidity"}
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="flex w-full flex-col items-center gap-1 pt-6">
-                  <div className="flex items-center gap-1">
-                    <h1 className="text-3xl font-bold leading-[160%]">
-                      Liquidity Removed
-                    </h1>
-                    <CheckIcon className="w-12 text-ruby-800" />
-                  </div>
-                  <p className="max-w-sm text-center text-sm text-night-400">
-                    You have withdrawn the following items from the pool. Your
-                    balance will be updated.
-                  </p>
-                </div>
-                <div className="w-full">
-                  <div className="mb-3 flex w-full items-center justify-between">
-                    <p className="font-medium text-night-400">
-                      {pool.token1.name}
-                    </p>
-                    <p className=" text-night-500">14</p>
-                  </div>
-                  <div className="grid grid-cols-4 justify-between sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-6 xl:grid-cols-7">
-                    {[
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                      {},
-                    ].map((item, index) => (
-                      <div className="flex flex-col items-center" key={index}>
-                        <div className="h-[72px] w-[72px] rounded-md border-2 border-night-1200 bg-night-900"></div>
-                        <p className=" text-sm leading-[160%] text-night-600">
-                          2x
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
+                            {!!token.image && <img src={token.image} alt="" />}
+                          </div>
+                          <p className="text-3xl font-medium leading-[160%]">
+                            {formatBalance(token.reserve * lpShare)}
+                          </p>
+                        </div>
+                        <p className="text-night-500">
+                          {formatUSD(token.reserve * lpShare * token.priceUSD)}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="w-full">
-                  <p className="mb-3 font-medium capitalize text-night-400">
-                    {pool.token0.name}
-                  </p>
-                  <div className="gap flex items-center gap-4">
-                    {pool.token0.image ? (
-                      <img
-                        className="h-10 w-10 rounded-full"
-                        src={pool.token0.image}
-                        alt={pool.token0.name}
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-night-900" />
-                    )}
-                    <h1 className="text-3xl font-bold text-night-100">
-                      19,429
-                    </h1>
-                  </div>
+                    </div>
+                  ))}
                 </div>
                 <Table
                   items={[
+                    // { label: "Initial LP Tokens", value: 0.0 },
+                    // { label: "Rewards Earned", value: 0.0 },
                     {
-                      label: "LP Tokens Spend",
-                      icon: {
-                        token0: pool.token0.image,
-                        token1: pool.token1.image,
-                      },
-                      value: "5398.35",
-                    },
-                    {
-                      label: "LP Token Value",
-                      value: "$125,000.00",
-                    },
-                    {
-                      label: "Percentage of pool",
-                      value: "$0.25%",
+                      label: "Current Share of Pool",
+                      value: formatPercent(lpShare),
                     },
                   ]}
                 />
-                <div>
-                  <CopyTable
-                    label="Transaction ID:"
-                    value="2BBWCVM...57YUTU3Q"
-                  />
-                  <div className="mt-2 flex cursor-pointer items-center gap-1 text-night-400 transition-colors hover:text-night-100">
-                    <p className="text-xs">View on Arbiscan</p>
-                    <ExternalLinkIcon className="w-3" />
-                  </div>
+              </div>
+              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold">Pool Reserves</h3>
+                  <span className="text-night-200">
+                    <abbr
+                      title="Total Value Locked"
+                      className="text-night-600 no-underline"
+                    >
+                      TVL
+                    </abbr>
+                    :{" "}
+                    <span className="font-medium">
+                      {formatUSD(pool.tvlUSD)}
+                    </span>
+                  </span>
                 </div>
-                <Button onClick={() => setActiveTab("deposit")}>Confirm</Button>
-              </>
-            )}
+                <div className="flex items-center justify-center gap-4 text-night-400">
+                  <span className="font-medium">
+                    <span className="text-night-100">1</span>{" "}
+                    {pool.baseToken.symbol}
+                  </span>
+                  <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
+                  <span className="font-medium">
+                    <span className="text-night-100">
+                      {pool.quoteToken.reserve / pool.baseToken.reserve}
+                    </span>{" "}
+                    {pool.quoteToken.symbol}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {[pool.baseToken, pool.quoteToken].map((token) => (
+                    <div
+                      key={token.id}
+                      className="flex items-center justify-between gap-4 rounded-md bg-night-1200 p-3"
+                    >
+                      <div className="flex items-center gap-2 font-semibold">
+                        <div
+                          className={cn(
+                            "h-6 w-6 overflow-hidden rounded-full bg-night-900"
+                            // token.isNft ? "rounded" : "rounded-full"
+                          )}
+                        >
+                          {!!token.image && <img src={token.image} alt="" />}
+                        </div>
+                        {token.symbol}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-night-100">
+                          {" "}
+                          {formatBalance(token.reserve)}
+                        </span>
+                        <div className="h-3 w-[1px] bg-night-700" />
+                        <span className="font-medium text-night-400">
+                          {" "}
+                          {formatUSD(token.reserve * token.priceUSD)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
+                <p className="text-sm font-medium">Rewards: 0.52%</p>
+                <p className="text-sm font-medium">Fees: 5.67%</p>
+              </div>
+              <div className="flex w-full flex-col gap-3 sm:flex-row ">
+                <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                  <p className="text-night-500">Volume (24h)</p>
+                  <p className="font-bold text-night-100">$11,249,366</p>
+                </div>
+                <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                  <p className="text-night-500">APR</p>
+                  <p className="font-bold text-night-100">4,21%</p>
+                </div>
+                <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                  <p className="text-night-500">Fees (24h)</p>
+                  <p className="font-bold text-night-100">$11,249,366</p>
+                </div>
+              </div>
+            </div>
+            {/*Here the code splits between the left and right side (atleast on desktop) */}
+            <div className="flex h-max w-full flex-col gap-6 rounded-lg bg-night-1100 p-4 xl:min-w-[512px]">
+              {!(activeTab === "summary") ? (
+                <>
+                  <MultiSelect
+                    tabs={[
+                      {
+                        id: "deposit",
+                        name: "Deposit",
+                      },
+                      {
+                        id: "withdraw",
+                        name: "Withdraw",
+                      },
+                    ]}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                  />
+                  {activeTab === "withdraw" && (
+                    <SelectionFrame
+                      token={pool.token1 as PoolToken}
+                      mode="transparent"
+                      type="input"
+                      inputLabel={
+                        <div className="flex items-center">
+                          <PoolImage pool={pool} className="h-8 w-8" />
+                          <p className="text-night-400">LP Tokens</p>
+                        </div>
+                      }
+                    />
+                  )}
+                  <SelectionFrame
+                    token={pool.baseToken}
+                    balance={baseTokenBalance?.formatted}
+                    mode="transparent"
+                  />
+                  <SelectionFrame
+                    token={pool.quoteToken}
+                    balance={quoteTokenBalance?.formatted}
+                    mode="transparent"
+                  />
+                  <Table
+                    items={
+                      activeTab === "deposit"
+                        ? [
+                            { label: "Share of Pool", value: "0.00%" },
+                            {
+                              label: "LP Tokens Received",
+                              icon: {
+                                token0: pool.baseToken.image,
+                                token1: pool.quoteToken.image,
+                              },
+                              value: 0.0,
+                            },
+                          ]
+                        : [
+                            { label: "Current Share of Pool", value: "0.00%" },
+                            { label: "New Share of Pool", value: "0.00%" },
+                            {
+                              label: "LP Tokens Owned",
+                              icon: {
+                                token0: pool.baseToken.image,
+                                token1: pool.quoteToken.image,
+                              },
+                              value: 1539,
+                            },
+                            {
+                              label: "LP Tokens Spent",
+                              icon: {
+                                token0: pool.baseToken.image,
+                                token1: pool.quoteToken.image,
+                              },
+                              value: 0.0,
+                            },
+                          ]
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <ExchangeIcon className="w-5 text-night-500" />
+                      <p className="text-sm text-night-400">
+                        <span className="text-night-100">24,523</span> MAGIC per
+                        Treasure
+                      </p>
+                      <Badge color="secondary" rounded="partially">
+                        T1
+                      </Badge>
+                    </div>
+                  </Table>
+                  {activeTab === "deposit" && (
+                    <CheckBoxLabeled
+                      setChecked={setCheckedTerms}
+                      checked={checkedTerms}
+                      className="sm:p-4"
+                    >
+                      I understand there is a chance I am not be able to
+                      withdrawal and receive the asset I deposited. If the asset
+                      deposited in the pool is no longer available, I am ok
+                      receiving another asset from the collection.
+                    </CheckBoxLabeled>
+                  )}
+                  <Button onClick={PoolActionHandler}>
+                    {activeTab === "deposit"
+                      ? "Add Liquidity"
+                      : "Remove Liquidity"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="flex w-full flex-col items-center gap-1 pt-6">
+                    <div className="flex items-center gap-1">
+                      <h1 className="text-3xl font-bold leading-[160%]">
+                        Liquidity Removed
+                      </h1>
+                      <CheckIcon className="w-12 text-ruby-800" />
+                    </div>
+                    <p className="max-w-sm text-center text-sm text-night-400">
+                      You have withdrawn the following items from the pool. Your
+                      balance will be updated.
+                    </p>
+                  </div>
+                  <div className="w-full">
+                    <div className="mb-3 flex w-full items-center justify-between">
+                      <p className="font-medium text-night-400">
+                        {pool.baseToken.name}
+                      </p>
+                      <p className=" text-night-500">14</p>
+                    </div>
+                    <div className="grid grid-cols-4 justify-between sm:grid-cols-6 md:grid-cols-10 lg:grid-cols-6 xl:grid-cols-7">
+                      {[
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                      ].map((item, index) => (
+                        <div className="flex flex-col items-center" key={index}>
+                          <div className="h-[72px] w-[72px] rounded-md border-2 border-night-1200 bg-night-900"></div>
+                          <p className=" text-sm leading-[160%] text-night-600">
+                            2x
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="w-full">
+                    <p className="mb-3 font-medium capitalize text-night-400">
+                      {pool.quoteToken.name}
+                    </p>
+                    <div className="gap flex items-center gap-4">
+                      {pool.quoteToken.image ? (
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src={pool.quoteToken.image}
+                          alt=""
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-night-900" />
+                      )}
+                      <h1 className="text-3xl font-bold text-night-100">
+                        19,429
+                      </h1>
+                    </div>
+                  </div>
+                  <Table
+                    items={[
+                      {
+                        label: "LP Tokens Spend",
+                        icon: {
+                          token0: pool.baseToken.image,
+                          token1: pool.quoteToken.image,
+                        },
+                        value: "5398.35",
+                      },
+                      {
+                        label: "LP Token Value",
+                        value: "$125,000.00",
+                      },
+                      {
+                        label: "Percentage of pool",
+                        value: "$0.25%",
+                      },
+                    ]}
+                  />
+                  <div>
+                    <CopyTable
+                      label="Transaction ID:"
+                      value="2BBWCVM...57YUTU3Q"
+                    />
+                    <div className="mt-2 flex cursor-pointer items-center gap-1 text-night-400 transition-colors hover:text-night-100">
+                      <p className="text-xs">View on Arbiscan</p>
+                      <ExternalLinkIcon className="w-3" />
+                    </div>
+                  </div>
+                  <Button onClick={() => setActiveTab("deposit")}>
+                    Confirm
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        {/*Here the pool & inventory start */}
-        <div className="flex w-full items-center justify-between">
-          <h3 className="flex items-center gap-3 font-medium">
-            <ArrowLeftRightIcon className="h-4 w-4" />
-            Pool Activity
-          </h3>
-          <div className="flex gap-2">
-            {poolActivityFilters.map((filter) => (
-              <button
-                className={cn(
-                  "text-sm font-medium capitalize text-night-400 hover:text-night-200",
-                  filter === poolActivityFilter && "text-night-100"
-                )}
-                key={filter}
-                onClick={() =>
-                  setPoolActivityFilter(filter as PoolActivityFilters)
-                }
-              >
-                {filter}
-              </button>
-            ))}
+          {/*Here the pool & inventory start */}
+          <div className="flex w-full items-center justify-between">
+            <h3 className="flex items-center gap-3 font-medium">
+              <ArrowLeftRightIcon className="h-4 w-4" />
+              Pool Activity
+            </h3>
+            <div className="flex gap-2">
+              {poolActivityFilters.map((filter) => (
+                <button
+                  className={cn(
+                    "text-sm font-medium capitalize text-night-400 hover:text-night-200",
+                    filter === poolActivityFilter && "text-night-100"
+                  )}
+                  key={filter}
+                  onClick={() =>
+                    setPoolActivityFilter(filter as PoolActivityFilters)
+                  }
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
+          <PoolActivityTable token0={pool.baseToken} token1={pool.quoteToken} />
+          {pool.baseToken.isNft || pool.quoteToken.isNft ? (
+            <>
+              <h3 className="flex items-center gap-3 font-medium">
+                <ArrowLeftRightIcon className="h-4 w-4" />
+                Pool Inventory
+                <Badge>
+                  {pool.baseToken.collections.length +
+                    pool.quoteToken.collections.length}
+                </Badge>
+              </h3>
+              {pool.baseToken.isNft && (
+                <PoolTokenCollectionInventory token={pool.baseToken} />
+              )}
+              {pool.quoteToken.isNft && (
+                <PoolTokenCollectionInventory token={pool.quoteToken} />
+              )}
+            </>
+          ) : null}
         </div>
-        <PoolActivityTable
-          token0={pool.token0 as PoolToken}
-          token1={pool.token1 as PoolToken}
-        />
-        <h3 className="flex items-center gap-3 font-medium">
-          <ArrowLeftRightIcon className="h-4 w-4" />
-          Pool Inventory
-          <Badge>
-            {pool.token0.collections.length +
-              pool.token1.collections.length +
-              (pool.token0.isNft ? 0 : 1) +
-              (pool.token1.isNft ? 0 : 1)}
-          </Badge>
-        </h3>
-        {pool.token0.isNft && (
-          <PoolTokenCollectionInventory token={pool.token0 as PoolToken} />
-        )}
-        {pool.token1.isNft && (
-          <PoolTokenCollectionInventory token={pool.token1 as PoolToken} />
-        )}
-      </div>
-    </main>
+      </main>
+    </Dialog>
   );
 }
 
@@ -706,9 +715,9 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
       <div key={id} className="rounded-lg bg-night-1100">
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
-            <span className="font-semibold">{symbol}</span>
+            <span className="font-semibold">{name}</span>
             <span className="h-3 w-[1px] bg-night-400" />
-            <span className="text-night-400">{name}</span>
+            <span className="uppercase text-night-400">{symbol}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {token.reserveItems
