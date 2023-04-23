@@ -77,9 +77,8 @@ export default function SwapPage() {
   } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
-  const [{ amountIn, amountOut, isExactOut }, setTrade] = useState({
-    amountIn: "0",
-    amountOut: "0",
+  const [swapInput, setSwapInput] = useState({
+    value: "0",
     isExactOut: false,
   });
 
@@ -92,6 +91,17 @@ export default function SwapPage() {
     pool?.token0.id === tokenIn?.id ? pool?.token0 : pool?.token1;
   const poolTokenOut =
     pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
+
+  const amountIn = swapInput.isExactOut
+    ? getAmountIn(swapInput.value, poolTokenIn?.reserve, poolTokenOut?.reserve)
+    : swapInput.value;
+  const amountOut = swapInput.isExactOut
+    ? swapInput.value
+    : getAmountOut(
+        swapInput.value,
+        poolTokenIn?.reserve,
+        poolTokenOut?.reserve
+      );
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
@@ -159,14 +169,9 @@ export default function SwapPage() {
           amount={amountIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
-          onUpdateAmount={(amountIn) =>
-            setTrade({
-              amountIn,
-              amountOut: getAmountOut(
-                amountIn,
-                poolTokenIn?.reserve,
-                poolTokenOut?.reserve
-              ),
+          onUpdateAmount={(value) =>
+            setSwapInput({
+              value,
               isExactOut: false,
             })
           }
@@ -182,14 +187,9 @@ export default function SwapPage() {
           amount={amountOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
-          onUpdateAmount={(amountOut) =>
-            setTrade({
-              amountIn: getAmountIn(
-                amountOut,
-                poolTokenIn?.reserve,
-                poolTokenOut?.reserve
-              ),
-              amountOut,
+          onUpdateAmount={(value) =>
+            setSwapInput({
+              value,
               isExactOut: true,
             })
           }

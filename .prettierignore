@@ -1,5 +1,4 @@
 .cache/
-app/graphql/*.generated.ts
-functions/
-node_modules/
-public/build/
+/app/generated.ts
+/node_modules/
+/public/build/
