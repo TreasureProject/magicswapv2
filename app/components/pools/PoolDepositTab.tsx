@@ -170,8 +170,6 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     onSuccess,
   ]);
 
-  console.log(selectingToken);
-
   return (
     <div className="space-y-4">
       <Dialog>

@@ -1,3 +1,5 @@
+import { BigNumber } from "@ethersproject/bignumber";
+import { parseUnits } from "@ethersproject/units";
 import {
   Link,
   useLoaderData,
@@ -13,8 +15,8 @@ import {
   LayersIcon,
   SettingsIcon,
 } from "lucide-react";
-import { useState } from "react";
-import { useAccount, useBalance } from "wagmi";
+import { useEffect, useState } from "react";
+import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
@@ -22,6 +24,7 @@ import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
 import { NumberInput } from "~/components/NumberInput";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import { Button } from "~/components/ui/Button";
 import {
   Dialog,
   DialogContent,
@@ -38,10 +41,26 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
 import { useSettings } from "~/contexts/settings";
+import {
+  magicSwapV2RouterAddress,
+  useErc20Allowance,
+  useErc20Approve,
+  useMagicSwapV2RouterSwapExactTokensForTokens,
+  useMagicSwapV2RouterSwapTokensForExactTokens,
+  usePrepareErc20Approve,
+  usePrepareMagicSwapV2RouterSwapExactTokensForTokens,
+  usePrepareMagicSwapV2RouterSwapTokensForExactTokens,
+} from "~/generated";
 import { formatBalance, formatUSD } from "~/lib/currency";
-import { getAmountIn, getAmountOut } from "~/lib/pools";
+import {
+  getAmountIn,
+  getAmountMax,
+  getAmountMin,
+  getAmountOut,
+} from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { AddressString } from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
   const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
@@ -80,14 +99,13 @@ export default function SwapPage() {
     tokenOut,
     path: [pool],
   } = useLoaderData<typeof loader>();
+  const { address } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
   const [swapInput, setSwapInput] = useState({
     value: "0",
     isExactOut: false,
   });
-
-  console.log(useLoaderData<typeof loader>());
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -100,15 +118,139 @@ export default function SwapPage() {
     pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
   const amountIn = swapInput.isExactOut
-    ? getAmountIn(swapInput.value, poolTokenIn?.reserve, poolTokenOut?.reserve)
+    ? getAmountIn(
+        swapInput.value,
+        poolTokenIn?.reserve,
+        poolTokenOut?.reserve,
+        tokenIn?.decimals
+      )
     : swapInput.value;
   const amountOut = swapInput.isExactOut
     ? swapInput.value
     : getAmountOut(
         swapInput.value,
         poolTokenIn?.reserve,
-        poolTokenOut?.reserve
+        poolTokenOut?.reserve,
+        tokenOut?.decimals
       );
+
+  const amountInBN = parseUnits(amountIn, tokenIn?.decimals);
+  const amountOutBN = parseUnits(amountOut, tokenOut?.decimals);
+
+  const hasAmounts = amountInBN.gt(0) && amountOutBN.gt(0);
+
+  const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
+    address,
+    token: tokenIn?.id as AddressString,
+    enabled: !!address && !!tokenIn && !tokenIn.isNft,
+  });
+  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
+    {
+      address,
+      token: tokenOut?.id as AddressString,
+      enabled: !!address && !!tokenOut && !tokenOut.isNft,
+    }
+  );
+
+  const { data: tokenInAllowance, refetch: refetchTokenInAllowance } =
+    useErc20Allowance({
+      address: tokenIn?.id as AddressString,
+      args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
+      enabled: !!address && !!tokenIn && !tokenIn.isNft && hasAmounts,
+    });
+
+  const isTokenInApproved = tokenInAllowance?.gte(amountInBN) ?? false;
+
+  const { config: approveTokenInConfig } = usePrepareErc20Approve({
+    address: tokenIn?.id as AddressString,
+    args: [magicSwapV2RouterAddress[421613], amountInBN],
+    enabled: !isTokenInApproved,
+  });
+  const { data: approveTokenInData, write: approveTokenIn } =
+    useErc20Approve(approveTokenInConfig);
+  const { isSuccess: isApproveTokenInSuccess } =
+    useWaitForTransaction(approveTokenInData);
+
+  const { config: swapExactTokensForTokensConfig } =
+    usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
+      args: [
+        amountInBN,
+        parseUnits(
+          getAmountMin(amountOut, slippage).toString(),
+          tokenOut?.decimals
+        ),
+        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
+        address ?? "0x0",
+        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
+      ],
+      enabled:
+        !!address &&
+        !!poolTokenIn &&
+        !!poolTokenOut &&
+        hasAmounts &&
+        !swapInput.isExactOut,
+    });
+  const {
+    data: swapExactTokensForTokensData,
+    write: swapExactTokensForTokens,
+  } = useMagicSwapV2RouterSwapExactTokensForTokens(
+    swapExactTokensForTokensConfig
+  );
+  const { isSuccess: isSwapExactTokensForTokensSuccess } =
+    useWaitForTransaction(swapExactTokensForTokensData);
+
+  const { config: swapTokensForExactTokensConfig } =
+    usePrepareMagicSwapV2RouterSwapTokensForExactTokens({
+      args: [
+        amountOutBN,
+        parseUnits(
+          getAmountMax(amountIn, slippage).toString(),
+          tokenIn?.decimals
+        ),
+        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
+        address ?? "0x0",
+        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
+      ],
+      enabled:
+        !!address &&
+        !!poolTokenIn &&
+        !!poolTokenOut &&
+        hasAmounts &&
+        swapInput.isExactOut,
+    });
+  const {
+    data: swapTokensForExactTokensData,
+    write: swapTokensForExactTokens,
+  } = useMagicSwapV2RouterSwapTokensForExactTokens(
+    swapTokensForExactTokensConfig
+  );
+  const { isSuccess: isSwapTokensForExactTokensSuccess } =
+    useWaitForTransaction(swapTokensForExactTokensData);
+
+  useEffect(() => {
+    if (isApproveTokenInSuccess) {
+      refetchTokenInAllowance();
+    }
+  }, [isApproveTokenInSuccess, refetchTokenInAllowance]);
+
+  useEffect(() => {
+    if (
+      isSwapExactTokensForTokensSuccess ||
+      isSwapTokensForExactTokensSuccess
+    ) {
+      setSwapInput({
+        value: "0",
+        isExactOut: false,
+      });
+      refetchTokenInBalance();
+      refetchTokenOutBalance();
+    }
+  }, [
+    isSwapExactTokensForTokensSuccess,
+    isSwapTokensForExactTokensSuccess,
+    refetchTokenInBalance,
+    refetchTokenOutBalance,
+  ]);
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
@@ -173,6 +315,7 @@ export default function SwapPage() {
         <SwapTokenInput
           className="mt-6"
           token={poolTokenIn ?? tokenIn}
+          balance={tokenInBalance?.formatted}
           amount={amountIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
@@ -191,6 +334,7 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput
           token={poolTokenOut ?? tokenOut}
+          balance={tokenOutBalance?.formatted}
           amount={amountOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
@@ -201,6 +345,24 @@ export default function SwapPage() {
             })
           }
         />
+        <div className="mt-4 space-y-1.5">
+          {!isTokenInApproved && (
+            <Button className="w-full" onClick={() => approveTokenIn?.()}>
+              Approve {tokenIn?.name}
+            </Button>
+          )}
+          <Button
+            className="w-full"
+            disabled={!isTokenInApproved || !hasAmounts}
+            onClick={() =>
+              swapInput.isExactOut
+                ? swapTokensForExactTokens?.()
+                : swapExactTokensForTokens?.()
+            }
+          >
+            Swap Items
+          </Button>
+        </div>
       </div>
     </main>
   );
@@ -208,6 +370,7 @@ export default function SwapPage() {
 
 const SwapTokenInput = ({
   token,
+  balance = "0",
   amount,
   tokens,
   onSelect,
@@ -215,6 +378,7 @@ const SwapTokenInput = ({
   className,
 }: {
   token?: PoolToken;
+  balance?: string;
   amount: string;
   tokens: PoolToken[];
   onSelect: (token: PoolToken) => void;
@@ -222,14 +386,7 @@ const SwapTokenInput = ({
   className?: string;
 }) => {
   const [tab, setTab] = useState<"tokens" | "collections">("collections");
-  const { address } = useAccount();
   const location = useLocation();
-
-  const { data: balance } = useBalance({
-    address,
-    token: token?.id as `0x${string}`,
-    enabled: !!token && !token.isNft,
-  });
 
   const parsedAmount = Number(amount);
   const amountPriceUSD =
@@ -270,7 +427,7 @@ const SwapTokenInput = ({
               <div className="flex items-center gap-2">
                 <span className="text-night-400 sm:text-sm">Balance</span>
                 <span className="font-semibold text-honey-25 sm:text-sm">
-                  {formatBalance(balance?.formatted ?? 0)}
+                  {formatBalance(balance)}
                 </span>
               </div>
               {/* <Button mode="secondary">Max</Button> */}
