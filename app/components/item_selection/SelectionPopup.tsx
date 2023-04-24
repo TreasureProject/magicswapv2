@@ -4,6 +4,7 @@ import {
   Table as ColumnIcon,
   SlidersHorizontal as FilterIcon,
   LayoutGrid as GridIcon,
+  Loader,
   Minus as MinusIcon,
   Plus as PlusIcon,
   RotateCw as RefreshIcon,
@@ -17,11 +18,21 @@ import { useAccount } from "wagmi";
 
 import placeholderImg from "../../assets/placeholder.png";
 import { CheckBox } from "../CheckBox";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/Accordion";
 import { Button } from "../ui/Button";
+import { Checkbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
+import { Label } from "../ui/Label";
 import { MultiSelect } from "../ui/MultiSelect";
 import { NumberSelect } from "../ui/NumberSelect";
+import { ScrollArea } from "../ui/ScrollArea";
 import Searchbar from "../ui/Searchbar";
+import type { TroveFilters } from "~/api/tokens.server";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -35,47 +46,13 @@ interface ItemCardProps {
   image: string;
 }
 
-const exampleItems: ItemCardProps[] = [];
-
-for (let i = 0; i < 20; i++) {
-  const id = Math.floor(Math.random() * 900) + 100;
-  const obj = {
-    name: "Wildbreach",
-    owned: i < 3,
-    image: placeholderImg,
-    id: id,
-    info: "",
-  };
-  exampleItems.push(obj);
-}
-
-const exampleFilters = [
-  {
-    name: "category",
-    values: [
-      "alchemy",
-      "arcana",
-      "brewing",
-      "enchanting",
-      "leatherworking",
-      "smithing",
-    ],
-  },
-  {
-    name: "Staking Boost",
-    values: ["10%", "20%", "25%", "50%"],
-  },
-  {
-    name: "tier",
-    values: ["tier 1", "tier 2", "tier 3"],
-  },
-  {
-    name: "clothing",
-    values: ["test", "test2", "test3"],
-  },
-];
-
-const ItemCard = ({ item }: { item: TroveToken }) => (
+const ItemCard = ({
+  item,
+  onClick,
+}: {
+  item: TroveToken;
+  onClick: () => void;
+}) => (
   <div
     className={cn(
       "relative cursor-pointer flex-col overflow-hidden rounded-lg bg-night-900"
@@ -98,16 +75,19 @@ const ItemCard = ({ item }: { item: TroveToken }) => (
       <p className="text-sm font-medium text-night-100">{item.metadata.name}</p>
       <p className="text-night-400">{item.tokenId}</p>
     </div>
+    <button className="absolute inset-0" onClick={onClick}>
+      <span className="sr-only">Select {item.metadata.name}</span>
+    </button>
   </div>
 );
 
 export const SelectionPopup = ({ token }: { token: PoolToken }) => {
-  const [selectedItems, setSelectedItems] = useState<ItemCardProps[]>([]);
+  const [selectedItems, setSelectedItems] = useState<TroveToken[]>([]);
   const [activeTab, setActiveTab] = useState<string>("filters");
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [expandedFilters, setExpandedFilters] = useState<string[]>([]);
   const fetcher = useFetcher<TroveToken[]>();
+  const filterFetcher = useFetcher<TroveFilters>();
   const { load } = fetcher;
+  const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
 
   React.useEffect(() => {
@@ -120,42 +100,21 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
       slug: token.urlSlug,
     });
 
+    loadFilters(`/resources/get-filters/?slug=${token.urlSlug}`);
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, token.isNft, load, token.urlSlug]);
+  }, [address, token.isNft, load, token.urlSlug, loadFilters]);
 
-  const selectionHandler = (item: ItemCardProps) => {
+  const selectionHandler = (item: TroveToken) => {
     if (selectedItems.includes(item)) {
-      const itemIndex = selectedItems.findIndex((i) => i.id === item.id);
+      const itemIndex = selectedItems.findIndex(
+        (i) => i.tokenId === item.tokenId
+      );
       setSelectedItems([
         ...selectedItems.slice(0, itemIndex),
         ...selectedItems.slice(itemIndex + 1),
       ]);
     } else {
       setSelectedItems([...selectedItems, item]);
-    }
-  };
-
-  const filterHandler = (filter: string) => {
-    if (activeFilters.includes(filter)) {
-      const itemIndex = activeFilters.findIndex((f) => f === filter);
-      setActiveFilters([
-        ...activeFilters.slice(0, itemIndex),
-        ...activeFilters.slice(itemIndex + 1),
-      ]);
-    } else {
-      setActiveFilters([...activeFilters, filter]);
-    }
-  };
-
-  const expandFilterHandler = (filter: string) => {
-    if (expandedFilters.includes(filter)) {
-      const itemIndex = expandedFilters.findIndex((f) => f === filter);
-      setExpandedFilters([
-        ...expandedFilters.slice(0, itemIndex),
-        ...expandedFilters.slice(itemIndex + 1),
-      ]);
-    } else {
-      setExpandedFilters([...expandedFilters, filter]);
     }
   };
 
@@ -214,7 +173,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
             ]}
           />
           <button className="flex h-9 w-9 items-center justify-center rounded-md text-night-600 transition-colors  hover:bg-night-1000 hover:text-night-100">
-            <RefreshIcon className="h-4 w-4 " />
+            <RefreshIcon className="h-4 w-4" />
           </button>
         </div>
         <div className="flex items-center gap-2 rounded-md bg-honey-800/10 p-2 text-honey-400">
@@ -226,7 +185,11 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
       <div className="overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
         <div className="grid grid-cols-5 gap-3 overflow-auto">
           {fetcher.data?.map((item) => (
-            <ItemCard key={item.tokenId} item={item} />
+            <ItemCard
+              key={item.tokenId}
+              item={item}
+              onClick={() => selectionHandler(item)}
+            />
           ))}
         </div>
       </div>
@@ -248,89 +211,68 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />
-        <div className="h-full overflow-auto">
+        <ScrollArea className="relative h-full">
           {activeTab === "filters" ? (
-            <div className="space-y-2">
-              {exampleFilters.map((filter) => (
-                <div
-                  className="flex flex-col gap-3 rounded-md bg-night-1000 p-4 transition-all"
-                  key={filter.name}
-                >
-                  <div className="flex w-full items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium capitalize leading-[160%] text-night-100">
-                        {filter.name}
-                      </p>
-                      <p className=" py-.5 h-max rounded-lg bg-night-100 px-2 text-xs font-medium leading-[160%] text-night-1200">
-                        22
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium leading-[160%]  text-night-100">
-                        2
-                      </p>
-                      <button
-                        className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
-                        onClick={() => expandFilterHandler(filter.name)}
-                      >
-                        {expandedFilters.includes(filter.name) ? (
-                          <MinusIcon className="w-4 text-night-400" />
-                        ) : (
-                          <PlusIcon className="w-4 text-night-400" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedFilters.includes(filter.name) && (
-                    <>
-                      <Searchbar
-                        placeholder="Search name or paste address"
-                        className="h-10 w-full bg-night-800"
-                      />
-                      <div className="flex flex-col gap-2.5 py-2">
-                        {filter.values.map((value) => (
-                          <div
-                            className="flex w-full items-center justify-between"
-                            key={value}
-                          >
-                            <div className="flex items-center gap-3">
-                              <CheckBox
-                                setChecked={() => filterHandler(value)}
-                                checked={activeFilters.includes(value)}
-                              />
-                              <p className="text-sm capitalize leading-[160%] text-night-400">
-                                {value}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-night-100">7</p>
-                              <p className="text-night-400">(15.22%)</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
+            <>
+              {filterFetcher.state === "loading" ? (
+                <div className="flex h-full items-center justify-center">
+                  <Loader className="h-8 w-8 animate-spin text-night-400" />
                 </div>
-              ))}
-            </div>
+              ) : filterFetcher.state === "idle" && filterFetcher.data ? (
+                <Accordion type="multiple" className="space-y-2">
+                  {filterFetcher.data?.map((filter) => (
+                    <AccordionItem
+                      className="rounded-md border-none bg-night-1000"
+                      value={filter.traitName}
+                      key={filter.traitName}
+                    >
+                      <AccordionTrigger className="p-4 text-night-100">
+                        {filter.traitName}
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4">
+                        <div className="flex flex-col gap-2.5">
+                          {filter.values.map((value) => (
+                            <div
+                              className="flex w-full items-center justify-between"
+                              key={value.valueName}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Checkbox id={value.valueName} />
+                                <Label htmlFor={value.valueName}>
+                                  <p className="text-sm capitalize leading-[160%] text-night-400">
+                                    {value.valueName}
+                                  </p>
+                                </Label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-night-100">7</p>
+                                <p className="text-night-400">(15.22%)</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              ) : null}
+            </>
           ) : (
-            <div className="flex flex-col justify-between">
+            <div className="flex min-h-full flex-col">
               <p className="px-3 text-sm leading-[160%] text-night-400">
                 Selected assets
               </p>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-1 flex-col gap-2">
                 {selectedItems.map((item) => (
                   <div
                     className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
-                    key={item.name}
+                    key={item.tokenId}
                   >
                     <div className="flex items-center gap-3">
                       {item.image ? (
                         <img
-                          src={item.image}
-                          alt={item.name}
+                          src={item.image.uri}
+                          alt={item.metadata.name}
                           className="h-10 w-10 rounded-[4px]"
                         />
                       ) : (
@@ -338,13 +280,13 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                       )}
                       <div className="flex flex-col">
                         <p className="text-sm font-medium text-night-100">
-                          {item.name}
+                          {item.metadata.name}
                         </p>
-                        <p className="text-sm text-night-400">{item.id}</p>
+                        <p className="text-sm text-night-400">{item.tokenId}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <NumberSelect max={0} />
+                      {token.type === "ERC1155" && <NumberSelect max={0} />}
                       <button
                         className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
                         onClick={() => selectionHandler(item)}
@@ -355,7 +297,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-3">
+              <div className="sticky bottom-0 flex w-full flex-col gap-3 bg-night-1100/50 backdrop-blur-sm">
                 <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm text-night-500">Total:</p>
@@ -377,7 +319,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
               </div>
             </div>
           )}
-        </div>
+        </ScrollArea>
       </div>
     </TransparentDialogContent>
   );

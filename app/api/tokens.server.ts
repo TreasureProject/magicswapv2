@@ -11,6 +11,8 @@ import { createPoolToken } from "~/lib/tokens.server";
 import type {
   LlamaTokensResponse,
   TokenPriceMapping,
+  TraitMetadata,
+  TraitsResponse,
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
@@ -40,6 +42,65 @@ export const fetchTokens = async () => {
     createPoolToken(token, collections, tokens, erc20Prices)
   );
 };
+
+export const fetchFilters = async (slug: string) => {
+  console.log(
+    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`
+  );
+  const response = await fetch(
+    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`
+  );
+
+  const { traitsMap } = (await response.json()) as TraitsResponse;
+
+  return Object.entries(traitsMap).map(([traitName, traitMetadata]) => {
+    const values = Object.entries(traitMetadata.valuesMap).map(
+      ([valueName, valueMetadata]) => {
+        return {
+          valueName,
+          count: valueMetadata.valueCount,
+          valuePriority: valueMetadata.valuePriority ?? 0,
+        };
+      }
+    );
+    if (traitMetadata.display_order === "name") {
+      // Priority sort, then sort by alphabetical order of valueName.
+      values.sort((a, b) => {
+        if (a.valuePriority !== b.valuePriority) {
+          return b.valuePriority - a.valuePriority;
+        }
+
+        return a.valueName.localeCompare(b.valueName);
+      });
+    } else if (traitMetadata.display_order === "frequency_desc") {
+      // Priority sort, then sort by descending frequency of value count.
+      values.sort((a, b) => {
+        if (a.valuePriority !== b.valuePriority) {
+          return b.valuePriority - a.valuePriority;
+        }
+
+        return b.count - a.count;
+      });
+    } else {
+      // Priority sort, then sort by ascending frequency of value count.
+      values.sort((a, b) => {
+        if (a.valuePriority !== b.valuePriority) {
+          return b.valuePriority - a.valuePriority;
+        }
+
+        return a.count - b.count;
+      });
+    }
+
+    return {
+      ...traitMetadata,
+      traitName,
+      values,
+    };
+  });
+};
+
+export type TroveFilters = ReturnType<typeof fetchFilters>;
 
 export const fetchCollectionOwnedByAddress = async (
   address: string,

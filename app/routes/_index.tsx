@@ -1,5 +1,9 @@
-import { DialogPortal } from "@radix-ui/react-dialog";
-import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import {
+  Link,
+  useLoaderData,
+  useLocation,
+  useSearchParams,
+} from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { Decimal } from "decimal.js-light";
@@ -23,6 +27,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
@@ -81,6 +86,8 @@ export default function SwapPage() {
     value: "0",
     isExactOut: false,
   });
+
+  console.log(useLoaderData<typeof loader>());
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -216,6 +223,7 @@ const SwapTokenInput = ({
 }) => {
   const [tab, setTab] = useState<"tokens" | "collections">("collections");
   const { address } = useAccount();
+  const location = useLocation();
 
   const { data: balance } = useBalance({
     address,
@@ -230,7 +238,8 @@ const SwapTokenInput = ({
       : new Decimal(token?.priceUSD ?? 0).mul(amount);
 
   return (
-    <Dialog>
+    // Unmount the dialog when the location changes
+    <Dialog key={location.search}>
       {token ? (
         <div
           className={cn("overflow-hidden rounded-lg bg-night-1100", className)}
@@ -284,7 +293,7 @@ const SwapTokenInput = ({
         </DialogTrigger>
       )}
       <DialogPortal>
-        <DialogContent className="rounded-none border-none bg-transparent shadow-none">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Select Asset</DialogTitle>
             <DialogDescription>Select an asset to swap with.</DialogDescription>
