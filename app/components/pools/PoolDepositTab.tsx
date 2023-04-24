@@ -44,7 +44,6 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const amountBase = isExactQuote
     ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
     : amount;
-
   const amountQuote = isExactQuote
     ? amount
     : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve);
@@ -52,13 +51,14 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const amountBaseBN = parseUnits(amountBase, pool.baseToken.decimals);
   const amountQuoteBN = parseUnits(amountQuote, pool.quoteToken.decimals);
 
+  const hasAmount = amountBaseBN.gt(0);
+
   const { data: baseTokenBalance, refetch: refetchBaseTokenBalance } =
     useBalance({
       address,
       token: pool.baseToken.id as AddressString,
       enabled: !!address && !pool.baseToken.isNft,
     });
-
   const { data: quoteTokenBalance, refetch: refetchQuoteTokenBalance } =
     useBalance({
       address,
@@ -70,14 +70,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     useErc20Allowance({
       address: pool.baseToken.id as AddressString,
       args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.baseToken.isNft && amountBaseBN.gt(0),
+      enabled: !!address && !pool.baseToken.isNft && hasAmount,
     });
-
   const { data: quoteTokenAllowance, refetch: refetchQuoteTokenAllowance } =
     useErc20Allowance({
       address: pool.quoteToken.id as AddressString,
       args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.quoteToken.isNft && amountQuoteBN.gt(0),
+      enabled: !!address && !pool.quoteToken.isNft && hasAmount,
     });
 
   const isBaseTokenApproved = baseTokenAllowance?.gte(amountBaseBN) ?? false;
@@ -127,10 +126,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
       ],
       enabled:
-        !!address &&
-        amountBaseBN.gt(0) &&
-        isBaseTokenApproved &&
-        isQuoteTokenApproved,
+        !!address && hasAmount && isBaseTokenApproved && isQuoteTokenApproved,
     });
   const { data: addLiquidityData, write: addLiquidity } =
     useMagicSwapV2RouterAddLiquidity(addLiquidityConfig);
@@ -267,7 +263,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
       )}
       <Button
         className="w-full"
-        disabled={!address || !isBaseTokenApproved || !isQuoteTokenApproved}
+        disabled={
+          !address ||
+          !hasAmount ||
+          !isBaseTokenApproved ||
+          !isQuoteTokenApproved ||
+          (requiresTerms && !checkedTerms)
+        }
         onClick={() => addLiquidity?.()}
       >
         Add Liquidity

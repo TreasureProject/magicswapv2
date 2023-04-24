@@ -19,7 +19,7 @@ export const PoolImage = ({ pool, className, ...divProps }: Props) => {
       <PoolTokenImage
         token={pool.quoteToken}
         className={cn(
-          "-translate-x-1/2",
+          "-translate-x-1/3",
           "border-2 border-night-1100 ",
           className
         )}

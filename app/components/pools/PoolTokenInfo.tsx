@@ -6,12 +6,13 @@ import { cn } from "~/lib/utils";
 
 type Props = {
   token: PoolToken;
+  className?: string;
 };
 
-export const PoolTokenInfo = ({ token }: Props) => {
+export const PoolTokenInfo = ({ token, className }: Props) => {
   const blockExplorer = useBlockExplorer();
   return (
-    <div className="flex items-center gap-6">
+    <div className={cn("flex items-center gap-6", className)}>
       <div
         className={cn(
           "overflow-hidden",
@@ -23,11 +24,14 @@ export const PoolTokenInfo = ({ token }: Props) => {
       <div>
         <span className="text-lg font-bold uppercase">{token.symbol}</span>
         <span className="flex items-center gap-1.5 text-sm font-medium text-night-400">
-          {token.isNft ? "NFT" : "Token"} | {token.name}{" "}
+          {token.isNft ? "NFT " : "Token "}
+          {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
+            <>| {token.name}</>
+          )}
           <a
-            // href={`${blockExplorer}/address/${
-            //   token.collections?.[0]?.id ?? token.id
-            // }`}
+            href={`${blockExplorer}/address/${
+              token.collections?.[0]?.id ?? token.id
+            }`}
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors hover:text-white"
