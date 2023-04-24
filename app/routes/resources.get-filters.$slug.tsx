@@ -6,16 +6,18 @@ import invariant from "tiny-invariant";
 import { fetchFilters } from "~/api/tokens.server";
 
 export const loader = async (args: LoaderArgs) => {
-  const url = new URL(args.request.url);
-
-  const slug = url.searchParams.get("slug");
+  const { slug } = args.params;
 
   invariant(slug, "Missing slug");
 
   try {
     const filterList = await fetchFilters(slug.toLowerCase());
 
-    return json(filterList);
+    return json(filterList, {
+      headers: {
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
   } catch (e) {
     throw notFound({
       message: "Collection not found",

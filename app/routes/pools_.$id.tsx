@@ -521,9 +521,9 @@ const PoolActivityTable = ({
                 <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                   12:42:00
                 </td>
-                <div className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
                   <button className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100">
-                    <ExternalLinkIcon className="w-5 " />
+                    <ExternalLinkIcon className="w-5" />
                   </button>
                   <button
                     className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
@@ -536,7 +536,7 @@ const PoolActivityTable = ({
                       )}
                     />
                   </button>
-                </div>
+                </td>
               </tr>
 
               {expandedRow === 0 && (

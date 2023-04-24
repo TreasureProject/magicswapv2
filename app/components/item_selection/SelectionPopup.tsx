@@ -17,7 +17,7 @@ import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
 import placeholderImg from "../../assets/placeholder.png";
-import { CheckBox } from "../CheckBox";
+import { LoaderIcon } from "../Icons";
 import {
   Accordion,
   AccordionContent,
@@ -25,7 +25,7 @@ import {
   AccordionTrigger,
 } from "../ui/Accordion";
 import { Button } from "../ui/Button";
-import { Checkbox } from "../ui/Checkbox";
+import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
 import { Label } from "../ui/Label";
 import { MultiSelect } from "../ui/MultiSelect";
@@ -100,7 +100,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
       slug: token.urlSlug,
     });
 
-    loadFilters(`/resources/get-filters/?slug=${token.urlSlug}`);
+    loadFilters(`/resources/get-filters/${token.urlSlug}`);
     load(`/resources/get-collection/?${params.toString()}`);
   }, [address, token.isNft, load, token.urlSlug, loadFilters]);
 
@@ -216,7 +216,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
             <>
               {filterFetcher.state === "loading" ? (
                 <div className="flex h-full items-center justify-center">
-                  <Loader className="h-8 w-8 animate-spin text-night-400" />
+                  <LoaderIcon className="h-8 w-8 " />
                 </div>
               ) : filterFetcher.state === "idle" && filterFetcher.data ? (
                 <Accordion type="multiple" className="space-y-2">
@@ -236,14 +236,12 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                               className="flex w-full items-center justify-between"
                               key={value.valueName}
                             >
-                              <div className="flex items-center gap-3">
-                                <Checkbox id={value.valueName} />
-                                <Label htmlFor={value.valueName}>
-                                  <p className="text-sm capitalize leading-[160%] text-night-400">
-                                    {value.valueName}
-                                  </p>
-                                </Label>
-                              </div>
+                              <LabeledCheckbox id={value.valueName}>
+                                <span className="capitalize">
+                                  {value.valueName}
+                                </span>
+                              </LabeledCheckbox>
+
                               <div className="flex items-center gap-2">
                                 <p className="font-medium text-night-100">7</p>
                                 <p className="text-night-400">(15.22%)</p>

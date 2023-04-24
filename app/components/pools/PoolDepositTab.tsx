@@ -3,10 +3,10 @@ import { parseUnits } from "@ethersproject/units";
 import { useEffect, useState } from "react";
 import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
 
-import { CheckBoxLabeled } from "../CheckBox";
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button } from "../ui/Button";
+import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
@@ -38,55 +38,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     amount: "0",
     isExactQuote: false,
   });
-  const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>({
-    id: "0xd17691500fd4aeac95d9ad11aa6947c51f9d9fad",
-    name: "Treasures",
-    symbol: "TREASURE",
-    decimals: "18",
-    image: "https://djmahssgw62sw.cloudfront.net/0/Treasures.jpg",
-    collections: [
-      {
-        id: "0x3243e84a1b067b4cd4094114e0dc71ac13d80556",
-        urlSlug: "treasures-ag",
-        name: "Treasures",
-        symbol: "Treasure",
-        type: "ERC1155",
-        image: "https://djmahssgw62sw.cloudfront.net/0/Treasures.jpg",
-      },
-    ],
-    urlSlug: "treasures-ag",
-    isNft: true,
-    priceUSD: 9.04,
-    reserve: 1,
-    type: "ERC1155",
-    reserveItems: [
-      {
-        collectionId: "0x3243e84a1b067b4cd4094114e0dc71ac13d80556",
-        tokenId: "117",
-        amount: 1,
-        name: "Quarter-Penny",
-        image:
-          "https://d382590x7sfjta.cloudfront.net/general/0x0d8270e93885748768b9ab8c79acf8dc39b534943238bb5ccecd934aa5038348.jpg",
-        attributes: [
-          {
-            value: "0.8%",
-            traitType: "Staking Boost",
-            displayType: null,
-          },
-          {
-            value: "Leatherworking",
-            traitType: "Category",
-            displayType: null,
-          },
-          {
-            value: 5,
-            traitType: "Tier",
-            displayType: "numeric",
-          },
-        ],
-      },
-    ],
-  });
+  const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
 
   const amountBase = isExactQuote
@@ -226,7 +178,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
 
   return (
     <div className="space-y-4">
-      <Dialog open={true}>
+      <Dialog>
         {selectingToken ? <SelectionPopup token={selectingToken} /> : null}
         {pool.baseToken.isNft ? (
           <PoolNftTokenInput
@@ -290,16 +242,18 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         ]}
       />
       {requiresTerms && (
-        <CheckBoxLabeled
+        <LabeledCheckbox
           setChecked={setCheckedTerms}
           checked={checkedTerms}
           className="sm:p-4"
-        >
-          I understand there is a chance I am not be able to withdrawal and
+          id="terms"
+          description="I understand there is a chance I am not be able to withdrawal and
           receive the asset I deposited. If the asset deposited in the pool is
           no longer available, I am ok receiving another asset from the
-          collection.
-        </CheckBoxLabeled>
+          collection."
+        >
+          Accept terms and conditions
+        </LabeledCheckbox>
       )}
       {!isBaseTokenApproved && (
         <Button className="w-full" onClick={() => approveBaseToken?.()}>

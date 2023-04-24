@@ -1,6 +1,14 @@
+import { Loader } from "lucide-react";
+
+import { cn } from "~/lib/utils";
+
 interface Props {
   className?: string;
 }
+
+export const LoaderIcon = ({ className }: Props) => (
+  <Loader className={cn("animate-spin text-night-400", className)} />
+);
 
 export const DiscordIcon = ({ className }: Props) => (
   <svg viewBox="0 0 20 20" className={className}>
