@@ -3,23 +3,46 @@ import { json } from "@remix-run/server-runtime";
 import { notFound } from "remix-utils";
 import invariant from "tiny-invariant";
 
-import { fetchCollectionOwnedByAddress } from "~/api/tokens.server";
+import {
+  fetchCollectionOwnedByAddress,
+  fetchIdsFromCollection,
+} from "~/api/tokens.server";
+import type { TroveToken } from "~/types";
 
 export const loader = async (args: LoaderArgs) => {
   const url = new URL(args.request.url);
 
   const address = url.searchParams.get("address");
   const slug = url.searchParams.get("slug");
+  const traits = url.searchParams.get("traits");
+  const type = url.searchParams.get("type");
+  const tokenIds = url.searchParams.get("tokenIds");
 
-  invariant(address, "Missing address");
+  invariant(type, "Missing type");
+
+  const isVault = type === "vault";
 
   invariant(slug, "Missing slug");
 
   try {
-    const tokens = await fetchCollectionOwnedByAddress(
-      address,
-      slug.toLowerCase()
-    );
+    let tokens: TroveToken[];
+
+    if (isVault) {
+      invariant(tokenIds, "Missing tokenIds");
+      tokens = await fetchIdsFromCollection(
+        tokenIds,
+        slug.toLowerCase(),
+        traits
+      );
+    } else {
+      invariant(address, "Missing address");
+
+      tokens = await fetchCollectionOwnedByAddress(
+        address,
+        slug.toLowerCase(),
+        traits
+      );
+    }
 
     return json(tokens);
   } catch (e) {

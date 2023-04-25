@@ -3,7 +3,8 @@ import { Decimal } from "decimal.js-light";
 export const getAmountOut = (
   amountIn: string,
   reserveIn: number | undefined,
-  reserveOut: number | undefined
+  reserveOut: number | undefined,
+  decimals = "18"
 ) => {
   const parsedAmountIn = Number(amountIn);
   if (Number.isNaN(parsedAmountIn) || parsedAmountIn === 0) {
@@ -16,13 +17,19 @@ export const getAmountOut = (
   const denominator = new Decimal(reserveIn ?? 0)
     .mul(10000)
     .add(amountInWithFee);
-  return denominator.gt(0) ? numerator.div(denominator).toString() : "0";
+  return denominator.gt(0)
+    ? numerator
+        .div(denominator)
+        .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
+        .toString()
+    : "0";
 };
 
 export const getAmountIn = (
   amountOut: string,
   reserveIn: number | undefined,
-  reserveOut: number | undefined
+  reserveOut: number | undefined,
+  decimals = "18"
 ) => {
   const parsedAmountOut = Number(amountOut);
   if (Number.isNaN(parsedAmountOut) || parsedAmountOut === 0) {
@@ -34,7 +41,13 @@ export const getAmountIn = (
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
     .mul(10000 - totalFee);
-  return denominator.gt(0) ? numerator.div(denominator).add(1).toString() : "0";
+  return denominator.gt(0)
+    ? numerator
+        .div(denominator)
+        .add(1)
+        .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
+        .toString()
+    : "0";
 };
 
 export const quote = (
@@ -85,6 +98,15 @@ export const getTokenCountForLp = (
         .div(totalSupply)
         .toString()
     : "0";
+};
+
+export const getAmountMax = (amount: string, slippage: number) => {
+  const parsedAmount = Number(amount);
+  if (Number.isNaN(parsedAmount)) {
+    return 0;
+  }
+
+  return parsedAmount + (parsedAmount * slippage * 1000) / 1000;
 };
 
 export const getAmountMin = (amount: string, slippage: number) => {

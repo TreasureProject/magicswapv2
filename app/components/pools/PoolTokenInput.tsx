@@ -1,6 +1,9 @@
 import Decimal from "decimal.js-light";
+import { Loader } from "lucide-react";
+import { ClientOnly } from "remix-utils";
 
 import { CurrencyInput } from "../CurrencyInput";
+import { LoaderIcon } from "../Icons";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 
@@ -41,10 +44,12 @@ export const PoolTokenInput = ({
         </div>
       </div>
       <div className="flex h-12 items-center justify-between bg-night-1000 p-2 pr-4">
-        <p className="pl-2 text-sm text-night-400">
+        <p className="flex items-center pl-2 text-sm text-night-400">
           Balance:
-          <span className="pl-1 font-medium text-night-100">
-            {formatBalance(balance)}
+          <span className="inline-block pl-1 font-medium text-night-100">
+            <ClientOnly fallback={<LoaderIcon className="h-3.5 w-3.5" />}>
+              {() => <span>{formatBalance(balance)}</span>}
+            </ClientOnly>
           </span>
         </p>
         <p className="text-xs text-night-400">

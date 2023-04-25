@@ -40,7 +40,7 @@ export type TroveCollection = {
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
 
-export type TroveToken = {
+type BasicTroveToken = {
   collectionAddr: string;
   tokenId: string;
   image: {
@@ -56,7 +56,63 @@ export type TroveToken = {
   };
 };
 
+type TroveTokenERC721 = BasicTroveToken & {
+  contractType: "ERC721";
+};
+
+type TroveTokenERC1155 = BasicTroveToken & {
+  contractType: "ERC1155";
+  queryUserQuantityOwned?: number;
+};
+
+export type TroveToken = TroveTokenERC721 | TroveTokenERC1155;
+
+export type TroveTokenWithQuantity = TroveToken & {
+  quantity: number;
+};
+
 export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;
+
+type BaseTraitMetadata = {
+  traitCount: number;
+  valuesMap: Record<
+    string | number,
+    { valueCount: number; valuePriority?: number }
+  >;
+  display_order?: string;
+  superTrait?: string;
+  subTrait?: string;
+};
+
+type DefaultTraitMetadata = {
+  display_type?: "default";
+} & BaseTraitMetadata;
+
+type NumericTraitMetadata = {
+  display_type?: "numeric";
+  valueMin: number;
+  valueMax: number;
+  traitCount: number;
+  valueStep: number;
+} & BaseTraitMetadata;
+
+type PercentageTraitMetadata = {
+  display_type?: "percentage";
+} & BaseTraitMetadata;
+
+export type TraitMetadata =
+  | DefaultTraitMetadata
+  | NumericTraitMetadata
+  | PercentageTraitMetadata;
+
+export type TraitsResponse = {
+  traitsMap: Record<string, TraitMetadata>;
+};
+
+export type Traits = TraitMetadata & {
+  traitName: string;
+  values: { valueName: string; count: number }[];
+};
 
 // DeFiLlama
 export type LlamaTokensResponse = {

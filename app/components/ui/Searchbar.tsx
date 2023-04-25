@@ -12,7 +12,7 @@ const Searchbar = ({ placeholder, className }: SearchbarProps) => {
   return (
     <div
       className={cn(
-        "flex h-9 items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600",
+        "flex items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600",
         className
       )}
     >

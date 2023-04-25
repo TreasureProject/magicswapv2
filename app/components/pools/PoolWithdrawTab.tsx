@@ -33,6 +33,8 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const [amount, setAmount] = useState("0");
 
   const amountBN = parseEther(amount);
+  const hasAmount = amountBN.gt(0);
+
   const amountBase = getTokenCountForLp(
     amount,
     pool.baseToken.reserve,
@@ -56,7 +58,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const { config: approveConfig } = usePrepareErc20Approve({
     address: pool.id as AddressString,
     args: [magicSwapV2RouterAddress[421613], amountBN],
-    enabled: !isApproved && amountBN.gt(0),
+    enabled: !isApproved && hasAmount,
   });
   const { data: approveData, write: approve } = useErc20Approve(approveConfig);
   const { isSuccess: isApproveSuccess } = useWaitForTransaction(approveData);
@@ -72,7 +74,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
         address ?? "0x0",
         BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
       ],
-      enabled: !!address && isApproved && amountBN.gt(0),
+      enabled: !!address && isApproved && hasAmount,
     });
   const { data: removeLiquidityData, write: removeLiquidity } =
     useMagicSwapV2RouterRemoveLiquidity(removeLiquidityConfig);
@@ -140,7 +142,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
       )}
       <Button
         className="w-full"
-        disabled={!address || !isApproved}
+        disabled={!address || !isApproved || !hasAmount}
         onClick={() => removeLiquidity?.()}
       >
         Remove Liquidity

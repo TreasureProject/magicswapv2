@@ -78,6 +78,7 @@ export const createPoolToken = (
       (isNft ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
+    type: tokenCollections[0]?.type ?? "ERC721",
     isNft,
     priceUSD: prices[NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id] ?? 0,
     reserve: 0,

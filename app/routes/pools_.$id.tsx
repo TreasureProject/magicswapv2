@@ -28,7 +28,7 @@ import { formatBalance, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { AddressString, Optional } from "~/types";
+import type { AddressString } from "~/types";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -74,7 +74,7 @@ export default function PoolDetailsPage() {
         {pool.name} Pool
       </h1>
       <div className="mt-6 space-y-6">
-        <div className="flex flex-col gap-10 lg:flex-row">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div className="w-full space-y-6 md:flex-row">
             <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center">
               <PoolTokenInfo token={pool.baseToken} />
@@ -211,7 +211,7 @@ export default function PoolDetailsPage() {
                 ))}
               </div>
             </div>
-            <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
+            {/* <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
               <p className="text-sm font-medium">Rewards: 0.52%</p>
               <p className="text-sm font-medium">Fees: 5.67%</p>
             </div>
@@ -228,10 +228,10 @@ export default function PoolDetailsPage() {
                 <p className="text-night-500">Fees (24h)</p>
                 <p className="font-bold text-night-100">$11,249,366</p>
               </div>
-            </div>
+            </div> */}
           </div>
           {/*Here the code splits between the left and right side (atleast on desktop) */}
-          <div className="w-full space-y-6 rounded-lg bg-night-1100 p-4 xl:min-w-[512px]">
+          <div className="space-y-6 rounded-lg bg-night-1100 p-4">
             <MultiSelect
               tabs={[
                 {
@@ -521,9 +521,9 @@ const PoolActivityTable = ({
                 <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                   12:42:00
                 </td>
-                <div className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
                   <button className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100">
-                    <ExternalLinkIcon className="w-5 " />
+                    <ExternalLinkIcon className="w-5" />
                   </button>
                   <button
                     className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
@@ -536,7 +536,7 @@ const PoolActivityTable = ({
                       )}
                     />
                   </button>
-                </div>
+                </td>
               </tr>
 
               {expandedRow === 0 && (

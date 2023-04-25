@@ -3,8 +3,16 @@ import React, { useState } from "react";
 
 import { cn } from "~/lib/utils";
 
-export const NumberSelect = ({ max = 99 }: { max?: number }) => {
-  const [number, setNumber] = useState<number>(0);
+export const NumberSelect = ({
+  max = 99,
+  onChange,
+  value,
+}: {
+  max?: number;
+  onChange: (num: number) => void;
+  value: number;
+}) => {
+  const [number, setNumber] = useState<number>(value);
 
   const updateNumber = (direction: "add" | "sub") => {
     if (direction === "add" && number < max) {
@@ -14,6 +22,10 @@ export const NumberSelect = ({ max = 99 }: { max?: number }) => {
       return setNumber(number - 1);
     }
   };
+
+  React.useEffect(() => {
+    onChange(number);
+  }, [number, onChange]);
 
   return (
     <div className="flex items-center gap-2 rounded-md bg-night-1100 p-2">

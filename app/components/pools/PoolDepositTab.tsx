@@ -3,10 +3,10 @@ import { parseUnits } from "@ethersproject/units";
 import { useEffect, useState } from "react";
 import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
 
-import { CheckBoxLabeled } from "../CheckBox";
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button } from "../ui/Button";
+import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
@@ -44,7 +44,6 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const amountBase = isExactQuote
     ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
     : amount;
-
   const amountQuote = isExactQuote
     ? amount
     : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve);
@@ -52,13 +51,14 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const amountBaseBN = parseUnits(amountBase, pool.baseToken.decimals);
   const amountQuoteBN = parseUnits(amountQuote, pool.quoteToken.decimals);
 
+  const hasAmount = amountBaseBN.gt(0);
+
   const { data: baseTokenBalance, refetch: refetchBaseTokenBalance } =
     useBalance({
       address,
       token: pool.baseToken.id as AddressString,
       enabled: !!address && !pool.baseToken.isNft,
     });
-
   const { data: quoteTokenBalance, refetch: refetchQuoteTokenBalance } =
     useBalance({
       address,
@@ -70,14 +70,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     useErc20Allowance({
       address: pool.baseToken.id as AddressString,
       args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.baseToken.isNft && amountBaseBN.gt(0),
+      enabled: !!address && !pool.baseToken.isNft && hasAmount,
     });
-
   const { data: quoteTokenAllowance, refetch: refetchQuoteTokenAllowance } =
     useErc20Allowance({
       address: pool.quoteToken.id as AddressString,
       args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.quoteToken.isNft && amountQuoteBN.gt(0),
+      enabled: !!address && !pool.quoteToken.isNft && hasAmount,
     });
 
   const isBaseTokenApproved = baseTokenAllowance?.gte(amountBaseBN) ?? false;
@@ -127,10 +126,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
       ],
       enabled:
-        !!address &&
-        amountBaseBN.gt(0) &&
-        isBaseTokenApproved &&
-        isQuoteTokenApproved,
+        !!address && hasAmount && isBaseTokenApproved && isQuoteTokenApproved,
     });
   const { data: addLiquidityData, write: addLiquidity } =
     useMagicSwapV2RouterAddLiquidity(addLiquidityConfig);
@@ -177,7 +173,11 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   return (
     <div className="space-y-4">
       <Dialog>
-        {selectingToken ? <SelectionPopup token={selectingToken} /> : null}
+        <SelectionPopup
+          type="inventory"
+          token={selectingToken}
+          onSubmit={(tokens) => console.log(tokens)}
+        />
         {pool.baseToken.isNft ? (
           <PoolNftTokenInput
             token={pool.baseToken}
@@ -240,16 +240,18 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         ]}
       />
       {requiresTerms && (
-        <CheckBoxLabeled
-          setChecked={setCheckedTerms}
+        <LabeledCheckbox
+          onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
           className="sm:p-4"
-        >
-          I understand there is a chance I am not be able to withdrawal and
+          id="terms"
+          description="I understand there is a chance I am not be able to withdrawal and
           receive the asset I deposited. If the asset deposited in the pool is
           no longer available, I am ok receiving another asset from the
-          collection.
-        </CheckBoxLabeled>
+          collection."
+        >
+          Accept terms and conditions
+        </LabeledCheckbox>
       )}
       {!isBaseTokenApproved && (
         <Button className="w-full" onClick={() => approveBaseToken?.()}>
@@ -263,7 +265,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
       )}
       <Button
         className="w-full"
-        disabled={!address || !isBaseTokenApproved || !isQuoteTokenApproved}
+        disabled={
+          !address ||
+          !hasAmount ||
+          !isBaseTokenApproved ||
+          !isQuoteTokenApproved ||
+          (requiresTerms && !checkedTerms)
+        }
         onClick={() => addLiquidity?.()}
       >
         Add Liquidity

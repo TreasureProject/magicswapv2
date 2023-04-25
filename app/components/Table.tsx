@@ -19,7 +19,7 @@ const Table = ({ children, items }: TableProps) => {
   return (
     <div className="rounded-md border border-night-800 ">
       <div className={cn("p-3", children && "border-b border-night-800")}>
-        <table className="w-full space-y-3 ">
+        {/* <table className="w-full space-y-3 ">
           {items.map((item) => (
             <tr
               className="flex w-full items-center justify-between"
@@ -63,7 +63,7 @@ const Table = ({ children, items }: TableProps) => {
               </div>
             </tr>
           ))}
-        </table>
+        </table> */}
       </div>
       {children && <div className="p-3">{children}</div>}
     </div>
