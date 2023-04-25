@@ -89,7 +89,7 @@ const landing = () => {
               opacity: 1,
             }}
             transition={{
-              delay: 0.6,
+              delay: 0.4,
             }}
           >
             Watch Tutorial
@@ -109,7 +109,7 @@ const landing = () => {
             y: 0,
           }}
           transition={{
-            delay: 0.2,
+            delay: 0.1,
           }}
         >
           <StatisticCard
@@ -130,7 +130,7 @@ const landing = () => {
             y: 0,
           }}
           transition={{
-            delay: 0.4,
+            delay: 0.2,
           }}
         >
           <StatisticCard
@@ -150,7 +150,7 @@ const landing = () => {
             y: 0,
           }}
           transition={{
-            delay: 0.6,
+            delay: 0.3,
           }}
         >
           <StatisticCard
@@ -170,7 +170,7 @@ const landing = () => {
             y: 0,
           }}
           transition={{
-            delay: 0.8,
+            delay: 0.4,
           }}
         >
           <StatisticCard value="535.000" title="NFTs Supplied" />
