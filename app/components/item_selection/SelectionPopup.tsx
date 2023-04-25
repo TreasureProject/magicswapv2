@@ -3,7 +3,6 @@ import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
-  ChevronDown as ChevronDownIcon,
   Table as ColumnIcon,
   SlidersHorizontal as FilterIcon,
   LayoutGrid as GridIcon,
@@ -88,9 +87,10 @@ export const SelectionPopup = ({
   const [activeTab, setActiveTab] = useState<string>("filters");
   const fetcher = useFetcher<TroveToken[]>();
   const filterFetcher = useFetcher<TroveFilters>();
-  const { load, Form, submit } = fetcher;
+  const { load, Form, submit, submission } = fetcher;
   const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
+  const traitInfoRef = React.useRef<string>("");
   const vaultTokenIds = React.useMemo(
     () =>
       token?.reserveItems.reduce((acc, item) => {
@@ -101,7 +101,18 @@ export const SelectionPopup = ({
 
   const fetchFromVault = type === "vault";
 
+  // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
+    if (submission) {
+      const traitsInfo = submission.formData.getAll("traits")[0];
+
+      if (typeof traitsInfo === "string") {
+        traitInfoRef.current = traitsInfo;
+      }
+    }
+  }, [submission]);
+
+  const fetchCollection = React.useCallback(() => {
     if (!address || !token?.isNft) {
       return;
     }
@@ -110,7 +121,6 @@ export const SelectionPopup = ({
       slug: token.urlSlug,
     });
 
-    loadFilters(`/resources/get-filters/${token.urlSlug}`);
     if (fetchFromVault && vaultTokenIds) {
       params.set("type", "vault");
       params.set("tokenIds", vaultTokenIds);
@@ -118,16 +128,27 @@ export const SelectionPopup = ({
       params.set("type", "inventory");
       params.set("address", address);
     }
+
+    if (traitInfoRef.current.length > 0) {
+      params.set("traits", traitInfoRef.current);
+    }
     load(`/resources/get-collection/?${params.toString()}`);
   }, [
     address,
-    token?.isNft,
-    load,
-    token?.urlSlug,
-    loadFilters,
     fetchFromVault,
+    load,
+    token?.isNft,
+    token?.urlSlug,
     vaultTokenIds,
   ]);
+
+  React.useEffect(() => {
+    if (!token?.isNft) {
+      return;
+    }
+    fetchCollection();
+    loadFilters(`/resources/get-filters/${token.urlSlug}`);
+  }, [token?.isNft, token?.urlSlug, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.includes(item)) {
@@ -163,13 +184,13 @@ export const SelectionPopup = ({
         </p>
       </div>
       <div className="space-y-4 grid-in-misc">
-        <div className="flex items-center gap-3">
+        <div className="flex items-stretch gap-3">
           <Searchbar
             placeholder="Search name or paste address"
             className="w-full"
           />
-          <button className="flex h-9 w-9 min-w-[36px] items-center justify-center rounded-md bg-night-1000 text-night-600 transition-colors  hover:bg-night-900 hover:text-night-100">
-            <SettingsIcon className="h-4 w-4 " />
+          <button className="rounded-md bg-night-1000 px-2 text-night-600 transition-colors  hover:bg-night-900 hover:text-night-100">
+            <SettingsIcon className="h-4 w-4" />
           </button>
           <IconToggle
             icons={[
@@ -183,8 +204,11 @@ export const SelectionPopup = ({
               },
             ]}
           />
-          <button className="flex h-9 w-9 items-center justify-center rounded-md text-night-600 transition-colors  hover:bg-night-1000 hover:text-night-100">
-            <RefreshIcon className="h-4 w-4" />
+          <button
+            onClick={fetchCollection}
+            className="group rounded-md px-2 text-night-600 transition-colors hover:bg-night-1000 hover:text-night-100"
+          >
+            <RefreshIcon className="h-4 w-4 group-hover:animate-rotate-45" />
           </button>
         </div>
         <div className="flex items-center gap-2 rounded-md bg-honey-800/10 p-2 text-honey-400">
@@ -247,7 +271,6 @@ export const SelectionPopup = ({
                     const formData = new FormData(e.currentTarget);
                     const traits = formData.getAll("traits");
                     const traitsString = traits.join(",");
-
                     formData.set("traits", traitsString);
 
                     submit(formData, {
