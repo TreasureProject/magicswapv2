@@ -86,7 +86,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
   const [activeTab, setActiveTab] = useState<string>("filters");
   const fetcher = useFetcher<TroveToken[]>();
   const filterFetcher = useFetcher<TroveFilters>();
-  const { load } = fetcher;
+  const { load, Form, submit } = fetcher;
   const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
 
@@ -96,7 +96,7 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
     }
 
     const params = new URLSearchParams({
-      address,
+      address: address,
       slug: token.urlSlug,
     });
 
@@ -117,6 +117,8 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
       setSelectedItems([...selectedItems, item]);
     }
   };
+
+  console.log(fetcher);
 
   return (
     <TransparentDialogContent className="h-full grid-areas-nft-modal [grid-template-columns:repeat(4,20%)_1fr] [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl">
@@ -183,15 +185,21 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
         </div>
       </div>
       <div className="overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
-        <div className="grid grid-cols-5 gap-3 overflow-auto">
-          {fetcher.data?.map((item) => (
-            <ItemCard
-              key={item.tokenId}
-              item={item}
-              onClick={() => selectionHandler(item)}
-            />
-          ))}
-        </div>
+        {fetcher.state === "loading" || fetcher.state === "submitting" ? (
+          <div className="flex h-full items-center justify-center">
+            <LoaderIcon className="h-8 w-8" />
+          </div>
+        ) : fetcher.state === "idle" && fetcher.data ? (
+          <div className="grid grid-cols-5 gap-3 overflow-auto">
+            {fetcher.data?.map((item) => (
+              <ItemCard
+                key={item.tokenId}
+                item={item}
+                onClick={() => selectionHandler(item)}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
       <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
         <MultiSelect
@@ -219,40 +227,64 @@ export const SelectionPopup = ({ token }: { token: PoolToken }) => {
                   <LoaderIcon className="h-8 w-8 " />
                 </div>
               ) : filterFetcher.state === "idle" && filterFetcher.data ? (
-                <Accordion type="multiple" className="space-y-2">
-                  {filterFetcher.data?.map((filter) => (
-                    <AccordionItem
-                      className="rounded-md border-none bg-night-1000"
-                      value={filter.traitName}
-                      key={filter.traitName}
-                    >
-                      <AccordionTrigger className="p-4 text-night-100">
-                        {filter.traitName}
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4">
-                        <div className="flex flex-col gap-2.5">
-                          {filter.values.map((value) => (
-                            <div
-                              className="flex w-full items-center justify-between"
-                              key={value.valueName}
-                            >
-                              <LabeledCheckbox id={value.valueName}>
-                                <span className="capitalize">
-                                  {value.valueName}
-                                </span>
-                              </LabeledCheckbox>
+                <Form
+                  onChange={(e) => {
+                    const formData = new FormData(e.currentTarget);
+                    const traits = formData.getAll("traits");
+                    const traitsString = traits.join(",");
 
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium text-night-100">7</p>
-                                <p className="text-night-400">(15.22%)</p>
+                    formData.set("traits", traitsString);
+
+                    submit(formData, {
+                      replace: true,
+                      method: "get",
+                      action: "/resources/get-collection",
+                    });
+                  }}
+                >
+                  <input type="hidden" name="address" value={address} />
+                  <input type="hidden" name="slug" value={token.urlSlug} />
+                  <Accordion type="multiple" className="space-y-2">
+                    {filterFetcher.data?.map((filter) => (
+                      <AccordionItem
+                        className="rounded-md border-none bg-night-1000"
+                        value={filter.traitName}
+                        key={filter.traitName}
+                      >
+                        <AccordionTrigger className="p-4 text-night-100">
+                          {filter.traitName}
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4">
+                          <div className="flex flex-col gap-2.5">
+                            {filter.values.map((value) => (
+                              <div
+                                className="flex w-full items-center justify-between"
+                                key={value.valueName}
+                              >
+                                <LabeledCheckbox
+                                  id={value.valueName}
+                                  name="traits"
+                                  value={`${filter.traitName}:${value.valueName}`}
+                                >
+                                  <span className="capitalize">
+                                    {value.valueName}
+                                  </span>
+                                </LabeledCheckbox>
+
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-night-100">
+                                    7
+                                  </p>
+                                  <p className="text-night-400">(15.22%)</p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </Form>
               ) : null}
             </>
           ) : (

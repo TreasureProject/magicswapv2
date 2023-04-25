@@ -237,7 +237,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
       />
       {requiresTerms && (
         <LabeledCheckbox
-          setChecked={setCheckedTerms}
+          onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
           className="sm:p-4"
           id="terms"

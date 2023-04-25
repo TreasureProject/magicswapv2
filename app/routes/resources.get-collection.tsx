@@ -10,6 +10,7 @@ export const loader = async (args: LoaderArgs) => {
 
   const address = url.searchParams.get("address");
   const slug = url.searchParams.get("slug");
+  const traits = url.searchParams.get("traits");
 
   invariant(address, "Missing address");
 
@@ -18,7 +19,8 @@ export const loader = async (args: LoaderArgs) => {
   try {
     const tokens = await fetchCollectionOwnedByAddress(
       address,
-      slug.toLowerCase()
+      slug.toLowerCase(),
+      traits
     );
 
     return json(tokens);

@@ -28,40 +28,33 @@ const Checkbox = React.forwardRef<
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
-const LabeledCheckbox = (props: {
-  checked?: boolean;
-  setChecked?: (checked: boolean) => void;
+const LabeledCheckbox = ({
+  children,
+  className,
+  description,
+  ...props
+}: {
   children: React.ReactNode;
   className?: string;
-  id: string;
   description?: string;
-}) => (
+} & React.ComponentProps<typeof CheckboxPrimitive.Root>) => (
   <div
     className={cn(
       "flex items-center space-x-2",
       {
-        "items-start": props.description,
+        "items-start": description,
       },
-      props.className
+      className
     )}
   >
-    <Checkbox
-      id={props.id}
-      {...(props.setChecked && props.checked
-        ? {
-            checked: props.checked,
-            onCheckedChange: props.setChecked,
-          }
-        : {})}
-      className={cn(props.description && "mt-[1px]")}
-    />
+    <Checkbox className={cn(description && "mt-[1px]")} {...props} />
     <div className="grid gap-1.5 leading-none">
       <Label htmlFor={props.id} className="text-sm">
-        {props.children}
+        {children}
       </Label>
-      {props.description && (
+      {description && (
         <p className="text-sm leading-[140%] text-muted-foreground">
-          {props.description}
+          {description}
         </p>
       )}
     </div>
