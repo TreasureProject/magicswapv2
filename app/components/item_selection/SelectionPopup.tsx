@@ -151,7 +151,7 @@ export const SelectionPopup = ({
   }, [token?.isNft, token?.urlSlug, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
-    if (selectedItems.includes(item)) {
+    if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
       const itemIndex = selectedItems.findIndex(
         (i) => i.tokenId === item.tokenId
       );
@@ -229,12 +229,12 @@ export const SelectionPopup = ({
                 selected={selectedItems.some((i) => i.tokenId === item.tokenId)}
                 key={item.tokenId}
                 item={item}
-                onClick={() =>
+                onClick={() => {
                   selectionHandler({
                     ...item,
                     quantity: 0,
-                  })
-                }
+                  });
+                }}
               />
             ))}
           </div>
