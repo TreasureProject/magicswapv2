@@ -97,7 +97,7 @@ const landing = () => {
           </motion.button>
         </div>
       </div>
-      <div className="container grid w-full -translate-y-[12.5%] grid-cols-1 gap-3 sm:-translate-y-1/4 sm:grid-cols-2 md:gap-6 lg:-translate-y-1/2 lg:grid-cols-4">
+      <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
         <motion.div
           className="div"
           initial={{
@@ -176,7 +176,12 @@ const landing = () => {
           <StatisticCard value="535.000" title="NFTs Supplied" />
         </motion.div>
       </div>
-      <div className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row">
+      <motion.div
+        className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
         <div className="flex flex-col items-center gap-6 md:max-w-md md:items-start">
           <h1 className="text-center text-3xl font-bold leading-[160%] text-night-100  md:text-start">
             Universal Token Compatibility
@@ -197,8 +202,12 @@ const landing = () => {
             className="w-[460px] "
           />
         </div>
-      </div>
-      <div>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
         <p className="mb-8 w-full text-center text-xl font-medium leading-[120%] text-night-400">
           What makes magic swap special?
         </p>
@@ -222,8 +231,13 @@ const landing = () => {
             link="e"
           />
         </div>
-      </div>
-      <div className="container">
+      </motion.div>
+      <motion.div
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
         <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8 ">
           <h1 className="relative z-10 text-3xl font-medium leading-[120%] text-night-100">
             Role of <span className="uppercase text-ruby-900">$MAGIC</span>
@@ -245,7 +259,7 @@ const landing = () => {
           />
           <div className="absolute right-40 top-4 h-[490px] w-[490px] translate-x-1/2 rounded-full  bg-ruby-900 opacity-20 blur-[999px]" />
         </div>
-      </div>
+      </motion.div>
       <div className=" relative mt-8 overflow-hidden border-t border-t-night-1000 py-8 md:mt-16 md:py-16">
         <div className="container">
           <div className="bordernight-800  relative flex w-full flex-col justify-between gap-6 overflow-hidden rounded-lg border bg-night-1100 p-6 sm:flex-row sm:items-center">

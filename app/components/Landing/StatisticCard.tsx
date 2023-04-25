@@ -18,10 +18,10 @@ const StatisticCard = ({
   title,
 }: Props) => {
   return (
-    <div className="relative flex h-[88px] w-full flex-col justify-center overflow-hidden rounded-lg border-t border-t-night-800 bg-night-1000 px-6 shadow-xl md:h-[110px] md:px-8">
-      <div className="relative z-10 flex items-center gap-2 md:gap-3">
-        {!!Icon && <Icon className={cn("w-5 md:w-6", iconClass)} />}
-        <p className="text-xl font-bold leading-[160%] text-night-100 md:text-2xl">
+    <div className="relative flex h-[88px] w-full flex-col justify-center overflow-hidden rounded-lg border-t border-t-night-800 bg-night-1000 px-6 shadow-xl lg:h-[110px] lg:px-8">
+      <div className="relative z-10 flex items-center gap-2 lg:gap-3">
+        {!!Icon && <Icon className={cn("w-5 lg:w-6", iconClass)} />}
+        <p className="text-xl font-bold leading-[160%] text-night-100 lg:text-2xl">
           {value}
         </p>
       </div>
