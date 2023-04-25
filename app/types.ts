@@ -40,7 +40,7 @@ export type TroveCollection = {
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
 
-export type TroveToken = {
+type BasicTroveToken = {
   collectionAddr: string;
   tokenId: string;
   image: {
@@ -54,6 +54,21 @@ export type TroveToken = {
       display_type?: string;
     }[];
   };
+};
+
+type TroveTokenERC721 = BasicTroveToken & {
+  contractType: "ERC721";
+};
+
+type TroveTokenERC1155 = BasicTroveToken & {
+  contractType: "ERC1155";
+  queryUserQuantityOwned?: number;
+};
+
+export type TroveToken = TroveTokenERC721 | TroveTokenERC1155;
+
+export type TroveTokenWithQuantity = TroveToken & {
+  quantity: number;
 };
 
 export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;

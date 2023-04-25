@@ -173,13 +173,11 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   return (
     <div className="space-y-4">
       <Dialog>
-        {selectingToken ? (
-          <SelectionPopup
-            type="vault"
-            token={selectingToken}
-            onSubmit={(tokens) => console.log(tokens)}
-          />
-        ) : null}
+        <SelectionPopup
+          type="inventory"
+          token={selectingToken}
+          onSubmit={(tokens) => console.log(tokens)}
+        />
         {pool.baseToken.isNft ? (
           <PoolNftTokenInput
             token={pool.baseToken}

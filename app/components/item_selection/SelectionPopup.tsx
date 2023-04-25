@@ -34,7 +34,7 @@ import type { TroveFilters } from "~/api/tokens.server";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { TroveToken } from "~/types";
+import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
   selected,
@@ -79,10 +79,10 @@ export const SelectionPopup = ({
 }: {
   token?: PoolToken;
   type: "vault" | "inventory";
-  onSubmit: (items: TroveToken[]) => void;
-  selectedTokenIds?: TroveToken[];
+  onSubmit: (items: TroveTokenWithQuantity[]) => void;
+  selectedTokenIds?: TroveTokenWithQuantity[];
 }) => {
-  const [selectedItems, setSelectedItems] = useState<TroveToken[]>(
+  const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     selectedTokenIds || []
   );
   const [activeTab, setActiveTab] = useState<string>("filters");
@@ -129,7 +129,7 @@ export const SelectionPopup = ({
     vaultTokenIds,
   ]);
 
-  const selectionHandler = (item: TroveToken) => {
+  const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.includes(item)) {
       const itemIndex = selectedItems.findIndex(
         (i) => i.tokenId === item.tokenId
@@ -202,10 +202,15 @@ export const SelectionPopup = ({
           <div className="grid grid-cols-6 gap-3">
             {fetcher.data.map((item) => (
               <ItemCard
-                selected={selectedItems.includes(item)}
+                selected={selectedItems.some((i) => i.tokenId === item.tokenId)}
                 key={item.tokenId}
                 item={item}
-                onClick={() => selectionHandler(item)}
+                onClick={() =>
+                  selectionHandler({
+                    ...item,
+                    quantity: 0,
+                  })
+                }
               />
             ))}
           </div>
@@ -335,7 +340,27 @@ export const SelectionPopup = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {token.type === "ERC1155" && <NumberSelect max={0} />}
+                        {item.contractType === "ERC1155" && (
+                          <NumberSelect
+                            onChange={(num) => {
+                              setSelectedItems((prev) =>
+                                prev.map((i) =>
+                                  i.tokenId === item.tokenId
+                                    ? { ...i, quantity: num }
+                                    : i
+                                )
+                              );
+                            }}
+                            value={item.quantity}
+                            max={
+                              type === "inventory"
+                                ? item.queryUserQuantityOwned || 1
+                                : token.reserveItems.find(
+                                    (i) => i.tokenId === item.tokenId
+                                  )?.amount || 1
+                            }
+                          />
+                        )}
                         <button
                           className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
                           onClick={() => selectionHandler(item)}

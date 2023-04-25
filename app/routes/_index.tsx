@@ -107,8 +107,6 @@ export default function SwapPage() {
     isExactOut: false,
   });
 
-  console.log(useLoaderData<typeof loader>());
-
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     setSearchParams(searchParams);

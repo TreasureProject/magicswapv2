@@ -44,9 +44,6 @@ export const fetchTokens = async () => {
 };
 
 export const fetchFilters = async (slug: string) => {
-  console.log(
-    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`
-  );
   const response = await fetch(
     `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`
   );
