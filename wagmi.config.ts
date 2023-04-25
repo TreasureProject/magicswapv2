@@ -1,6 +1,7 @@
 import { defineConfig } from "@wagmi/cli";
 import { etherscan, react } from "@wagmi/cli/plugins";
-import { erc20ABI } from "wagmi";
+import { erc1155ABI } from "./artifacts/ERC1155";
+import { erc20ABI, erc721ABI } from "wagmi";
 import { arbitrumGoerli } from "wagmi/chains";
 
 export default defineConfig({
@@ -9,6 +10,14 @@ export default defineConfig({
     {
       name: "ERC20",
       abi: erc20ABI,
+    },
+    {
+      name: "ERC721",
+      abi: erc721ABI,
+    },
+    {
+      name: "ERC1155",
+      abi: erc1155ABI,
     },
   ],
   plugins: [

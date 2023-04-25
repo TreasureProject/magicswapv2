@@ -16,7 +16,6 @@ import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
-import { Badge } from "~/components/Badge";
 import Table, { CopyTable } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
@@ -380,10 +379,6 @@ export default function PoolDetailsPage() {
             <h3 className="flex items-center gap-3 font-medium">
               <ArrowLeftRightIcon className="h-4 w-4" />
               Pool Inventory
-              <Badge>
-                {pool.baseToken.collections.length +
-                  pool.quoteToken.collections.length}
-              </Badge>
             </h3>
             {pool.baseToken.isNft && (
               <PoolTokenCollectionInventory token={pool.baseToken} />

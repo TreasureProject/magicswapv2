@@ -2,15 +2,14 @@ import { Close } from "@radix-ui/react-dialog";
 import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Check,
-  Table as ColumnIcon,
-  SlidersHorizontal as FilterIcon,
-  LayoutGrid as GridIcon,
-  RotateCw as RefreshIcon,
-  Settings as SettingsIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Star as StarIcon,
-  X as XIcon,
+  CheckIcon,
+  TableIcon as ColumnIcon,
+  SlidersHorizontalIcon as FilterIcon,
+  LayoutGridIcon as GridIcon,
+  RotateCwIcon as RefreshIcon,
+  SettingsIcon,
+  ShoppingCartIcon, // StarIcon,
+  XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
@@ -52,7 +51,7 @@ const ItemCard = ({
   >
     {selected && (
       <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
-        <Check className="w-3" />
+        <CheckIcon className="w-3" />
       </div>
     )}
     <img
@@ -211,11 +210,11 @@ export const SelectionPopup = ({
             <RefreshIcon className="h-4 w-4 group-hover:animate-rotate-45" />
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-md bg-honey-800/10 p-2 text-honey-400">
+        {/* <div className="flex items-center gap-2 rounded-md bg-honey-800/10 p-2 text-honey-400">
           <StarIcon className="h-6 w-4" />
           <span className="font-medium text-night-100">6 of your 7 </span>{" "}
           initial deposited items are still available
-        </div>
+        </div> */}
       </div>
       <div className="overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
         {fetcher.state === "loading" || fetcher.state === "submitting" ? (
@@ -311,12 +310,12 @@ export const SelectionPopup = ({
                                   </span>
                                 </LabeledCheckbox>
 
-                                <div className="flex items-center gap-2">
+                                {/* <div className="flex items-center gap-2">
                                   <p className="font-medium text-night-100">
                                     7
                                   </p>
                                   <p className="text-night-400">(15.22%)</p>
-                                </div>
+                                </div> */}
                               </div>
                             ))}
                           </div>

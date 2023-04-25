@@ -12,13 +12,11 @@ import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
 import { useSettings } from "~/contexts/settings";
 import {
-  magicSwapV2RouterAddress,
-  useErc20Allowance,
-  useErc20Approve,
   useMagicSwapV2RouterAddLiquidity,
-  usePrepareErc20Approve,
   usePrepareMagicSwapV2RouterAddLiquidity,
 } from "~/generated";
+import { useApprove } from "~/hooks/useApprove";
+import { useIsApproved } from "~/hooks/useIsApproved";
 import { formatBalance } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
@@ -66,42 +64,33 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
       enabled: !!address && !pool.quoteToken.isNft,
     });
 
-  const { data: baseTokenAllowance, refetch: refetchBaseTokenAllowance } =
-    useErc20Allowance({
-      address: pool.baseToken.id as AddressString,
-      args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.baseToken.isNft && hasAmount,
+  const { isApproved: isBaseTokenApproved, refetch: refetchBaseTokenApproval } =
+    useIsApproved({
+      token: pool.baseToken,
+      amount: amountBaseBN,
+      enabled: hasAmount,
     });
-  const { data: quoteTokenAllowance, refetch: refetchQuoteTokenAllowance } =
-    useErc20Allowance({
-      address: pool.quoteToken.id as AddressString,
-      args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !pool.quoteToken.isNft && hasAmount,
-    });
-
-  const isBaseTokenApproved = baseTokenAllowance?.gte(amountBaseBN) ?? false;
-  const isQuoteTokenApproved = quoteTokenAllowance?.gte(amountQuoteBN) ?? false;
-
-  const { config: approveBaseTokenConfig } = usePrepareErc20Approve({
-    address: pool.baseToken.id as AddressString,
-    args: [magicSwapV2RouterAddress[421613], amountBaseBN],
-    enabled: !isBaseTokenApproved,
+  const {
+    isApproved: isQuoteTokenApproved,
+    refetch: refetchQuoteTokenApproval,
+  } = useIsApproved({
+    token: pool.quoteToken,
+    amount: amountQuoteBN,
+    enabled: hasAmount,
   });
-  const { data: approveBaseTokenData, write: approveBaseToken } =
-    useErc20Approve(approveBaseTokenConfig);
-  const { isSuccess: isApproveBaseTokenSuccess } =
-    useWaitForTransaction(approveBaseTokenData);
 
-  const { data: approveQuoteTokenData, config: approveQuoteTokenConfig } =
-    usePrepareErc20Approve({
-      address: pool.quoteToken.id as AddressString,
-      args: [magicSwapV2RouterAddress[421613], amountQuoteBN],
+  const { approve: approveBaseToken, isSuccess: isApproveBaseTokenSuccess } =
+    useApprove({
+      token: pool.baseToken,
+      amount: amountBaseBN,
       enabled: !isBaseTokenApproved,
     });
-  const { write: approveQuoteToken } = useErc20Approve(approveQuoteTokenConfig);
-  const { isSuccess: isApproveQuoteTokenSuccess } = useWaitForTransaction(
-    approveQuoteTokenData
-  );
+  const { approve: approveQuoteToken, isSuccess: isApproveQuoteTokenSuccess } =
+    useApprove({
+      token: pool.quoteToken,
+      amount: amountQuoteBN,
+      enabled: !isQuoteTokenApproved,
+    });
 
   const { config: addLiquidityConfig } =
     usePrepareMagicSwapV2RouterAddLiquidity({
@@ -143,15 +132,15 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
 
   useEffect(() => {
     if (isApproveBaseTokenSuccess) {
-      refetchBaseTokenAllowance();
+      refetchBaseTokenApproval();
     }
-  }, [isApproveBaseTokenSuccess, refetchBaseTokenAllowance]);
+  }, [isApproveBaseTokenSuccess, refetchBaseTokenApproval]);
 
   useEffect(() => {
     if (isApproveQuoteTokenSuccess) {
-      refetchQuoteTokenAllowance();
+      refetchQuoteTokenApproval();
     }
-  }, [isApproveQuoteTokenSuccess, refetchQuoteTokenAllowance]);
+  }, [isApproveQuoteTokenSuccess, refetchQuoteTokenApproval]);
 
   useEffect(() => {
     if (isAddLiquiditySuccess) {
