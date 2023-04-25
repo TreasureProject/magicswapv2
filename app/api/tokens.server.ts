@@ -121,6 +121,27 @@ export const fetchCollectionOwnedByAddress = async (
   return result;
 };
 
+export const fetchIdsFromCollection = async (
+  tokenIds: string,
+  slug: string,
+  traits: string | null
+) => {
+  const url = new URL(
+    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`
+  );
+
+  url.searchParams.set("ids", tokenIds);
+
+  if (traits) {
+    url.searchParams.set("traits", traits);
+  }
+
+  const response = await fetch(url.toString());
+  const result = (await response.json()).tokens as TroveToken[];
+
+  return result;
+};
+
 export const fetchTroveTokens = async (
   ids: string[]
 ): Promise<TroveTokenMapping> => {
