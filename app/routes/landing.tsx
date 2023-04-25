@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ChevronRight as ChevronRightIcon,
   PlayCircle as PlayIcon,
@@ -26,48 +27,154 @@ const landing = () => {
       <div className="ruby-glow h-[548px] w-screen border-b border-b-night-800">
         <div className="container flex h-full flex-col items-center justify-center gap-8">
           <div className="flex flex-col gap-3">
-            <h1 className="max-w-lg text-center text-4xl font-bold leading-[120%] text-night-100">
+            <motion.h1
+              initial={{
+                opacity: 0,
+                y: -30,
+              }}
+              animate={{
+                opacity: 100,
+                y: 0,
+              }}
+              className="max-w-lg text-center text-4xl font-bold leading-[120%] text-night-100"
+            >
               The Gateway to the cross-game economy.
-            </h1>
-            <p className="text-center text-night-300">
+            </motion.h1>
+            <motion.p
+              className="text-center text-night-300"
+              initial={{
+                opacity: 0,
+                y: -30,
+              }}
+              animate={{
+                opacity: 100,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.2,
+              }}
+            >
               Buy, Sell, Swap{" "}
               <span className="text-medium uppercase text-honey-800">any</span>{" "}
               token using MagicSwap’s AMM
-            </p>
+            </motion.p>
           </div>
-          <div className="flex w-[90%] max-w-md gap-3 sm:w-full">
+          <motion.div
+            className="flex max-w-md gap-3 sm:w-full"
+            initial={{
+              opacity: 0,
+              y: -30,
+            }}
+            animate={{
+              opacity: 100,
+              y: 0,
+            }}
+            transition={{
+              delay: 0.4,
+            }}
+          >
             <Button className="w-full" size="lg">
               Start Trading
             </Button>
             <Button className="w-full" variant="secondary" size="lg">
               Start Trading
             </Button>
-          </div>
-          <button className="flex items-center gap-2 py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors hover:text-night-100">
+          </motion.div>
+          <motion.button
+            className="flex items-center gap-2 py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors hover:text-night-100"
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              delay: 0.6,
+            }}
+          >
             Watch Tutorial
             <PlayIcon className="w-4 " />
-          </button>
+          </motion.button>
         </div>
       </div>
       <div className="container grid w-full -translate-y-[12.5%] grid-cols-1 gap-3 sm:-translate-y-1/4 sm:grid-cols-2 md:gap-6 lg:-translate-y-1/2 lg:grid-cols-4">
-        <StatisticCard
-          Icon={MagicIcon}
-          value="$2.00"
-          title="Magic Price"
-          Background={FlatMagicIcon}
-        />
-        <StatisticCard
-          value="4,530,000"
-          title="TRADES"
-          Background={ExchangeIcon}
-        />
-
-        <StatisticCard
-          value="$500,000.00"
-          title="Volume Today"
-          Background={ChartIcon}
-        />
-        <StatisticCard value="535.000" title="NFTs Supplied" />
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.2,
+          }}
+        >
+          <StatisticCard
+            Icon={MagicIcon}
+            value="$2.00"
+            title="Magic Price"
+            Background={FlatMagicIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.4,
+          }}
+        >
+          <StatisticCard
+            value="4,530,000"
+            title="TRADES"
+            Background={ExchangeIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.6,
+          }}
+        >
+          <StatisticCard
+            value="$500,000.00"
+            title="Volume Today"
+            Background={ChartIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.8,
+          }}
+        >
+          <StatisticCard value="535.000" title="NFTs Supplied" />
+        </motion.div>
       </div>
       <div className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row">
         <div className="flex flex-col items-center gap-6 md:max-w-md md:items-start">
