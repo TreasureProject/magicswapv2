@@ -53,9 +53,12 @@ Button.displayName = "Button";
 const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant, size, ...props }, ref) => {
     return (
-      <Button variant={variant} size={size} ref={ref} {...props}>
-        <XIcon />
-      </Button>
+      <button
+        className="flex h-7 w-7 items-center justify-center rounded-full bg-night-900 text-night-600 transition-colors hover:bg-ruby-800 hover:text-night-100"
+        {...props}
+      >
+        <XIcon className="w-4" />
+      </button>
     );
   }
 );
