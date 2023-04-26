@@ -1,3 +1,4 @@
+import { MagicLogo } from "@treasure-project/branding";
 import { motion } from "framer-motion";
 import {
   ChevronRight as ChevronRightIcon,
@@ -12,7 +13,6 @@ import {
   ChartIcon,
   ExchangeIcon,
   FlatMagicIcon,
-  MagicIcon,
   PoolIcon,
   RoyaltiesIcon,
   SweepIcon,
@@ -113,7 +113,7 @@ const landing = () => {
           }}
         >
           <StatisticCard
-            Icon={MagicIcon}
+            Icon={MagicLogo}
             value="$2.00"
             title="Magic Price"
             Background={FlatMagicIcon}

@@ -1,7 +1,7 @@
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Link } from "react-router-dom";
 
-import { DiscordIcon, MagicIcon, TwitterIcon } from "~/components/Icons";
+import { DiscordIcon, TwitterIcon } from "~/components/Icons";
 import { media } from "~/consts";
 
 interface LinkType {
