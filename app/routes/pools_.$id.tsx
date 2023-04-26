@@ -607,10 +607,12 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
                   key={tokenId}
                   className="relative h-24 w-24 overflow-hidden rounded"
                 >
-                  <img src={image} alt={name} />
-                  <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
-                    {amount}x
-                  </span>
+                  <img src={image} alt={name} title={name} />
+                  {token.type === "ERC1155" && (
+                    <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
+                      {amount}x
+                    </span>
+                  )}
                 </div>
               ))}
           </div>

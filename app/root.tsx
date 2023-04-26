@@ -35,6 +35,7 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const strictEntries = <T extends Record<string, any>>(
   object: T
 ): [keyof T, T[keyof T]][] => {

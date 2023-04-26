@@ -11,7 +11,6 @@ import { createPoolToken } from "~/lib/tokens.server";
 import type {
   LlamaTokensResponse,
   TokenPriceMapping,
-  TraitMetadata,
   TraitsResponse,
   TroveToken,
   TroveTokenMapping,

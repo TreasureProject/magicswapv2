@@ -8,7 +8,7 @@ import {
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
   SettingsIcon,
-  ShoppingCartIcon, // StarIcon,
+  ShoppingCartIcon,
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
@@ -90,14 +90,10 @@ export const SelectionPopup = ({
   const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
-  const vaultTokenIds = React.useMemo(
-    () =>
-      token?.reserveItems.reduce((acc, item) => {
-        return `${acc},${item.tokenId}`;
-      }, ""),
-    [token?.reserveItems]
-  );
 
+  const vaultTokenIds = token?.reserveItems
+    .map(({ tokenId }) => tokenId)
+    .join(",");
   const fetchFromVault = type === "vault";
 
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
@@ -184,11 +180,8 @@ export const SelectionPopup = ({
       </div>
       <div className="space-y-4 grid-in-misc">
         <div className="flex items-stretch gap-3">
-          <Searchbar
-            placeholder="Search name or paste address"
-            className="w-full"
-          />
-          <button className="rounded-md bg-night-1000 px-2 text-night-600 transition-colors  hover:bg-night-900 hover:text-night-100">
+          <Searchbar placeholder="Search name or token ID" className="w-full" />
+          <button className="rounded-md bg-night-1000 px-2 text-night-600 transition-colors hover:bg-night-900 hover:text-night-100">
             <SettingsIcon className="h-4 w-4" />
           </button>
           <IconToggle
@@ -305,7 +298,7 @@ export const SelectionPopup = ({
                                   name="traits"
                                   value={`${filter.traitName}:${value.valueName}`}
                                 >
-                                  <span className="capitalize">
+                                  <span className="cursor-pointer capitalize">
                                     {value.valueName}
                                   </span>
                                 </LabeledCheckbox>
@@ -331,71 +324,77 @@ export const SelectionPopup = ({
               <p className="px-3 text-sm leading-[160%] text-night-400">
                 Selected assets
               </p>
-              <div className="mt-2 flex flex-1 flex-col gap-2">
-                <AnimatePresence initial={false} mode="popLayout">
-                  {selectedItems.map((item) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
-                      key={item.tokenId}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={item.image.uri}
-                            alt={item.metadata.name}
-                            className="h-10 w-10 rounded-[4px]"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-[4px] bg-night-800" />
-                        )}
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium text-night-100">
-                            {item.metadata.name}
-                          </p>
-                          <p className="text-sm text-night-400">
-                            {item.tokenId}
-                          </p>
+              {selectedItems.length > 0 ? (
+                <div className="mt-2 flex flex-1 flex-col gap-2">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {selectedItems.map((item) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
+                        key={item.tokenId}
+                      >
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={item.image.uri}
+                              alt={item.metadata.name}
+                              className="h-10 w-10 rounded-[4px]"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-[4px] bg-night-800" />
+                          )}
+                          <div className="flex flex-col">
+                            <p className="text-sm font-medium text-night-100">
+                              {item.metadata.name}
+                            </p>
+                            <p className="text-sm text-night-400">
+                              {item.tokenId}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {item.contractType === "ERC1155" && (
-                          <NumberSelect
-                            onChange={(num) => {
-                              setSelectedItems((prev) =>
-                                prev.map((i) =>
-                                  i.tokenId === item.tokenId
-                                    ? { ...i, quantity: num }
-                                    : i
-                                )
-                              );
-                            }}
-                            value={item.quantity}
-                            max={
-                              type === "inventory"
-                                ? item.queryUserQuantityOwned || 1
-                                : token.reserveItems.find(
-                                    (i) => i.tokenId === item.tokenId
-                                  )?.amount || 1
-                            }
-                          />
-                        )}
-                        <button
-                          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
-                          onClick={() => selectionHandler(item)}
-                        >
-                          <XIcon className="w-4 text-night-400" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-              <div className="sticky bottom-0 flex w-full flex-col gap-3 bg-night-1100/50 backdrop-blur-sm">
-                <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
+                        <div className="flex items-center gap-2">
+                          {item.contractType === "ERC1155" && (
+                            <NumberSelect
+                              onChange={(num) => {
+                                setSelectedItems((prev) =>
+                                  prev.map((i) =>
+                                    i.tokenId === item.tokenId
+                                      ? { ...i, quantity: num }
+                                      : i
+                                  )
+                                );
+                              }}
+                              value={item.quantity}
+                              max={
+                                type === "inventory"
+                                  ? item.queryUserQuantityOwned || 1
+                                  : token.reserveItems.find(
+                                      (i) => i.tokenId === item.tokenId
+                                    )?.amount || 1
+                              }
+                            />
+                          )}
+                          <button
+                            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
+                            onClick={() => selectionHandler(item)}
+                          >
+                            <XIcon className="w-4 text-night-400" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <p className="flex grow items-center justify-center text-honey-50">
+                  You haven't selected any assets yet.
+                </p>
+              )}
+              <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
+                {/* <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm text-night-500">Total:</p>
                     <div className="h-4 w-4 rounded-full bg-night-700" />
@@ -409,18 +408,26 @@ export const SelectionPopup = ({
                   >
                     Clear
                   </button>
-                </div>
-                <Close asChild>
+                </div> */}
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     size="md"
-                    onClick={() => {
-                      onSubmit(selectedItems);
-                    }}
-                    disabled={selectedItems.length === 0}
+                    variant="secondary"
+                    onClick={() => setSelectedItems([])}
                   >
-                    Add to swap
+                    Clear
                   </Button>
-                </Close>
+                  <Close asChild>
+                    <Button
+                      size="md"
+                      onClick={() => {
+                        onSubmit(selectedItems);
+                      }}
+                    >
+                      Save selections
+                    </Button>
+                  </Close>
+                </div>
               </div>
             </div>
           )}

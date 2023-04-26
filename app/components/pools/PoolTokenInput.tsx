@@ -1,5 +1,4 @@
 import Decimal from "decimal.js-light";
-import { Loader } from "lucide-react";
 import { ClientOnly } from "remix-utils";
 
 import { CurrencyInput } from "../CurrencyInput";

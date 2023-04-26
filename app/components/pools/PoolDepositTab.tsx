@@ -107,6 +107,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           pool.quoteToken.decimals
         ),
     nfts: baseNfts,
+    enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
   });
 
   const estimatedLp = getLpCountForTokens(
