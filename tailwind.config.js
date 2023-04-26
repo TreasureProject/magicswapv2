@@ -18,11 +18,17 @@ module.exports = {
           "nft nft nft selection selection",
         ],
       },
+      boxShadow: {
+        glow: "0px 0px 120px rgba(31, 45, 69, 0.5)"
+      },
       colors: {
         border: "#282F3D",
         // input: "hsl(var(--input))",
         ring: colors.night[1000],
         background: colors.night[1200],
+        backgroundImage: {
+          'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        },
         foreground: "#ffffff",
         primary: {
           DEFAULT: colors.ruby[900],

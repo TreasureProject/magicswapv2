@@ -5,6 +5,7 @@ import { InfoIcon, MenuIcon, PlayIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Footer } from "./Footer";
+import { DiscordIcon, TwitterIcon } from "./Icons";
 import SearchPopup from "./SearchPopup";
 import { Button } from "./ui/Button";
 import {
@@ -35,12 +36,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <MagicSwapLogoFull className="hidden h-7 md:block" />
           <MagicSwapLogo className="h-7 md:hidden" />
           <button
-            className="hidden xl:block"
+            className="ml-3 flex items-center gap-2 rounded-lg border border-night-800 p-2 text-night-600 hover:text-night-300 md:border-none  md:p-0"
             onClick={() => setShowSearchPopup(true)}
           >
-            <SearchIcon className="w-5 text-night-400" />
+            <SearchIcon className="h-4 w-4 " />
+            <p className="hidden text-sm md:block">Quick Search</p>
           </button>
-          <div className="mx-3 h-5 w-[1px] bg-night-700 md:mx-1.5" />
+          <div className="mx-3 hidden h-5 w-[1px] bg-night-700 md:mx-1.5 md:block" />
 
           <div className="hidden items-center lg:flex">
             {Pages.map((page) => (
@@ -62,17 +64,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex flex-1 items-center justify-end gap-3 ">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary">
-                <MenuIcon className="w-5" />
+              <Button variant="secondary" className="w-9 px-0">
+                <MenuIcon className="w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="font-medium text-night-200 hover:text-night-100">
                   <InfoIcon className="mr-2 h-4 w-4" />
                   <span>Documentation</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="font-medium text-night-200 hover:text-night-100">
                   <PlayIcon className="mr-2 h-4 w-4" />
                   <span>Tutorials</span>
                 </DropdownMenuItem>
@@ -87,12 +89,23 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <DropdownMenuItem>
                 <span>Terms of Service</span>
               </DropdownMenuItem>
+              <div className="flex items-center gap-3 p-3">
+                <button>
+                  <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
+                </button>
+                <button>
+                  <TwitterIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
+                </button>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
           <ConnectKitButton.Custom>
             {({ isConnected, show, address }) => {
               return (
-                <Button variant="secondary" onClick={show}>
+                <Button
+                  variant={isConnected ? "secondary" : "default"}
+                  onClick={show}
+                >
                   {isConnected
                     ? truncateEthAddress(address ?? "")
                     : "Connect Wallet"}
