@@ -1,516 +1,296 @@
-import { BigNumber } from "@ethersproject/bignumber";
-import { parseUnits } from "@ethersproject/units";
+import { Link } from "@remix-run/react";
+import { MagicLogo } from "@treasure-project/branding";
+import { motion } from "framer-motion";
 import {
-  Link,
-  useLoaderData,
-  useLocation,
-  useSearchParams,
-} from "@remix-run/react";
-import type { LoaderArgs } from "@remix-run/server-runtime";
-import { json } from "@remix-run/server-runtime";
-import { Decimal } from "decimal.js-light";
-import {
-  ArrowDownIcon,
-  ChevronDownIcon,
-  LayersIcon,
-  SettingsIcon,
+  ChevronRight as ChevronRightIcon,
+  PlayCircle as PlayIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
 
-import { fetchPools } from "~/api/pools.server";
-import { fetchTokens } from "~/api/tokens.server";
-import { CurrencyInput } from "~/components/CurrencyInput";
-import { SwapIcon, TokenIcon } from "~/components/Icons";
-import { NumberInput } from "~/components/NumberInput";
-import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import collectionsImage from "../assets/collections.png";
+import magicIllustration from "../assets/magic_illustration.png";
+import tokenGraphicImage from "../assets/token_graphic.png";
+import {
+  ChartIcon,
+  ExchangeIcon,
+  FlatMagicIcon,
+  PoolIcon,
+  RoyaltiesIcon,
+  SweepIcon,
+} from "~/assets/Svgs";
+import InfoCard from "~/components/Landing/InfoCard";
+import StatisticCard from "~/components/Landing/StatisticCard";
 import { Button } from "~/components/ui/Button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/Dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "~/components/ui/Dropdown";
-import { useSettings } from "~/contexts/settings";
-import {
-  magicSwapV2RouterAddress,
-  useErc20Allowance,
-  useErc20Approve,
-  useMagicSwapV2RouterSwapExactTokensForTokens,
-  useMagicSwapV2RouterSwapTokensForExactTokens,
-  usePrepareErc20Approve,
-  usePrepareMagicSwapV2RouterSwapExactTokensForTokens,
-  usePrepareMagicSwapV2RouterSwapTokensForExactTokens,
-} from "~/generated";
-import { formatBalance, formatUSD } from "~/lib/currency";
-import {
-  getAmountIn,
-  getAmountMax,
-  getAmountMin,
-  getAmountOut,
-} from "~/lib/pools";
-import type { PoolToken } from "~/lib/tokens.server";
-import { cn } from "~/lib/utils";
-import type { AddressString } from "~/types";
 
-export async function loader({ request }: LoaderArgs) {
-  const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
-
-  const url = new URL(request.url);
-  const inputAddress = url.searchParams.get("in");
-  const outputAddress = url.searchParams.get("out");
-
-  const tokenIn = inputAddress
-    ? tokens.find(({ id }) => id === inputAddress)
-    : tokens.find(({ name }) => name === "MAGIC");
-  const tokenOut = outputAddress
-    ? tokens.find(({ id }) => id === outputAddress)
-    : undefined;
-
-  // TODO: update routing logic to path through multiple pools
-  const pool = pools.find(
-    ({ token0, token1 }) =>
-      (token0.id === tokenIn?.id || token1.id === tokenIn?.id) &&
-      (token0.id === tokenOut?.id || token1.id === tokenOut?.id)
-  );
-  const path = pool ? [pool] : [];
-
-  return json({
-    tokens,
-    tokenIn,
-    tokenOut,
-    path,
-  });
-}
-
-export default function SwapPage() {
-  const {
-    tokens,
-    tokenIn,
-    tokenOut,
-    path: [pool],
-  } = useLoaderData<typeof loader>();
-  const { address } = useAccount();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
-  const [swapInput, setSwapInput] = useState({
-    value: "0",
-    isExactOut: false,
-  });
-
-  const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
-    searchParams.set(direction, token.id);
-    setSearchParams(searchParams);
-  };
-
-  const poolTokenIn =
-    pool?.token0.id === tokenIn?.id ? pool?.token0 : pool?.token1;
-  const poolTokenOut =
-    pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
-
-  const amountIn = swapInput.isExactOut
-    ? getAmountIn(
-        swapInput.value,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenIn?.decimals
-      )
-    : swapInput.value;
-  const amountOut = swapInput.isExactOut
-    ? swapInput.value
-    : getAmountOut(
-        swapInput.value,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenOut?.decimals
-      );
-
-  const amountInBN = parseUnits(amountIn, tokenIn?.decimals);
-  const amountOutBN = parseUnits(amountOut, tokenOut?.decimals);
-
-  const hasAmounts = amountInBN.gt(0) && amountOutBN.gt(0);
-
-  const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
-    address,
-    token: tokenIn?.id as AddressString,
-    enabled: !!address && !!tokenIn && !tokenIn.isNft,
-  });
-  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
-    {
-      address,
-      token: tokenOut?.id as AddressString,
-      enabled: !!address && !!tokenOut && !tokenOut.isNft,
-    }
-  );
-
-  const { data: tokenInAllowance, refetch: refetchTokenInAllowance } =
-    useErc20Allowance({
-      address: tokenIn?.id as AddressString,
-      args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !!tokenIn && !tokenIn.isNft && hasAmounts,
-    });
-
-  const isTokenInApproved = tokenInAllowance?.gte(amountInBN) ?? false;
-
-  const { config: approveTokenInConfig } = usePrepareErc20Approve({
-    address: tokenIn?.id as AddressString,
-    args: [magicSwapV2RouterAddress[421613], amountInBN],
-    enabled: !isTokenInApproved,
-  });
-  const { data: approveTokenInData, write: approveTokenIn } =
-    useErc20Approve(approveTokenInConfig);
-  const { isSuccess: isApproveTokenInSuccess } =
-    useWaitForTransaction(approveTokenInData);
-
-  const { config: swapExactTokensForTokensConfig } =
-    usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
-      args: [
-        amountInBN,
-        parseUnits(
-          getAmountMin(amountOut, slippage).toString(),
-          tokenOut?.decimals
-        ),
-        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
-        address ?? "0x0",
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
-      enabled:
-        !!address &&
-        !!poolTokenIn &&
-        !!poolTokenOut &&
-        hasAmounts &&
-        !swapInput.isExactOut,
-    });
-  const {
-    data: swapExactTokensForTokensData,
-    write: swapExactTokensForTokens,
-  } = useMagicSwapV2RouterSwapExactTokensForTokens(
-    swapExactTokensForTokensConfig
-  );
-  const { isSuccess: isSwapExactTokensForTokensSuccess } =
-    useWaitForTransaction(swapExactTokensForTokensData);
-
-  const { config: swapTokensForExactTokensConfig } =
-    usePrepareMagicSwapV2RouterSwapTokensForExactTokens({
-      args: [
-        amountOutBN,
-        parseUnits(
-          getAmountMax(amountIn, slippage).toString(),
-          tokenIn?.decimals
-        ),
-        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
-        address ?? "0x0",
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
-      enabled:
-        !!address &&
-        !!poolTokenIn &&
-        !!poolTokenOut &&
-        hasAmounts &&
-        swapInput.isExactOut,
-    });
-  const {
-    data: swapTokensForExactTokensData,
-    write: swapTokensForExactTokens,
-  } = useMagicSwapV2RouterSwapTokensForExactTokens(
-    swapTokensForExactTokensConfig
-  );
-  const { isSuccess: isSwapTokensForExactTokensSuccess } =
-    useWaitForTransaction(swapTokensForExactTokensData);
-
-  useEffect(() => {
-    if (isApproveTokenInSuccess) {
-      refetchTokenInAllowance();
-    }
-  }, [isApproveTokenInSuccess, refetchTokenInAllowance]);
-
-  useEffect(() => {
-    if (
-      isSwapExactTokensForTokensSuccess ||
-      isSwapTokensForExactTokensSuccess
-    ) {
-      setSwapInput({
-        value: "0",
-        isExactOut: false,
-      });
-      refetchTokenInBalance();
-      refetchTokenOutBalance();
-    }
-  }, [
-    isSwapExactTokensForTokensSuccess,
-    isSwapTokensForExactTokensSuccess,
-    refetchTokenInBalance,
-    refetchTokenOutBalance,
-  ]);
-
+const landing = () => {
   return (
-    <main className="mx-auto max-w-xl py-6 sm:py-10">
-      <div className="flex items-center justify-between gap-3 text-night-600">
-        <div className="flex items-center gap-1.5 text-xl font-bold">
-          <SwapIcon className="h-6 w-6" />
-          Swap
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button>
-              <SettingsIcon className="h-6 w-6" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-56 bg-night-900 p-3 text-sm text-honey-100"
-            align="end"
+    <div className="max-w-screen mb-24 overflow-x-hidden">
+      <div className="ruby-glow h-[548px] w-screen border-b border-b-night-800">
+        <div className="container flex h-full flex-col items-center justify-center gap-8">
+          <div className="flex flex-col gap-3">
+            <motion.h1
+              initial={{
+                opacity: 0,
+                y: -30,
+              }}
+              animate={{
+                opacity: 100,
+                y: 0,
+              }}
+              className="max-w-lg text-center text-4xl font-bold leading-[120%] text-night-100"
+            >
+              The Gateway to the cross-game economy.
+            </motion.h1>
+            <motion.p
+              className="text-center text-night-300"
+              initial={{
+                opacity: 0,
+                y: -30,
+              }}
+              animate={{
+                opacity: 100,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.2,
+              }}
+            >
+              Buy, Sell, Swap{" "}
+              <span className="text-medium uppercase text-honey-800">any</span>{" "}
+              token using MagicSwap’s AMM
+            </motion.p>
+          </div>
+          <motion.div
+            className="flex max-w-md items-center justify-center gap-3 sm:w-full"
+            initial={{
+              opacity: 0,
+              y: -30,
+            }}
+            animate={{
+              opacity: 100,
+              y: 0,
+            }}
+            transition={{
+              delay: 0.4,
+            }}
           >
-            <h3 className="text-base font-medium">Transaction Settings</h3>
-            <DropdownMenuGroup className="mt-2 space-y-1">
-              <label htmlFor="settingsSlippage">Slippage tolerance</label>
-              <NumberInput
-                id="settingsSlippage"
-                className="px-2 py-1.5"
-                value={slippage}
-                onChange={updateSlippage}
-                minValue={0.001}
-                maxValue={0.49}
-                placeholder="0.5%"
-                formatOptions={{
-                  style: "percent",
-                  minimumFractionDigits: 1,
-                  maximumFractionDigits: 2,
-                }}
-                errorMessage="Slippage must be between 0.1% and 49%"
-                errorCondition={(value) => value > 49}
-                autoFocus
-              />
-            </DropdownMenuGroup>
-            <DropdownMenuGroup className="mt-4 space-y-1">
-              <label htmlFor="settingsDeadline">Transaction Deadline</label>
-              <NumberInput
-                id="settingsDeadline"
-                className="px-2 py-1.5"
-                value={deadline}
-                onChange={updateDeadline}
-                minValue={1}
-                maxValue={60}
-                placeholder="20"
-                errorMessage="Deadline must be between 1 and 60"
-                errorCondition={(value) => value > 60}
-              >
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-sm text-night-400">Minutes</span>
-                </div>
-              </NumberInput>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div>
-        <SwapTokenInput
-          className="mt-6"
-          token={poolTokenIn ?? tokenIn}
-          balance={tokenInBalance?.formatted}
-          amount={amountIn}
-          tokens={tokens}
-          onSelect={(token) => handleSelectToken("in", token)}
-          onUpdateAmount={(value) =>
-            setSwapInput({
-              value,
-              isExactOut: false,
-            })
-          }
-        />
-        <Link
-          to={`/?in=${tokenOut?.id}&out=${tokenIn?.id}`}
-          className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
-        >
-          <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-        </Link>
-        <SwapTokenInput
-          token={poolTokenOut ?? tokenOut}
-          balance={tokenOutBalance?.formatted}
-          amount={amountOut}
-          tokens={tokens}
-          onSelect={(token) => handleSelectToken("out", token)}
-          onUpdateAmount={(value) =>
-            setSwapInput({
-              value,
-              isExactOut: true,
-            })
-          }
-        />
-        <div className="mt-4 space-y-1.5">
-          {!isTokenInApproved && (
-            <Button className="w-full" onClick={() => approveTokenIn?.()}>
-              Approve {tokenIn?.name}
-            </Button>
-          )}
-          <Button
-            className="w-full"
-            disabled={!isTokenInApproved || !hasAmounts}
-            onClick={() =>
-              swapInput.isExactOut
-                ? swapTokensForExactTokens?.()
-                : swapExactTokensForTokens?.()
-            }
+            <Link to="/swap">
+              <Button className="w-full" size="lg">
+                Start Trading
+              </Button>
+            </Link>
+            <Link to="/pools">
+              <Button className="w-full" variant="secondary" size="lg">
+                Add Liquidity
+              </Button>
+            </Link>
+          </motion.div>
+          <motion.button
+            className="flex items-center gap-2 py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors hover:text-night-100"
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              delay: 0.4,
+            }}
           >
-            Swap Items
-          </Button>
+            Watch Tutorial
+            <PlayIcon className="w-4 " />
+          </motion.button>
         </div>
       </div>
-    </main>
-  );
-}
-
-const SwapTokenInput = ({
-  token,
-  balance = "0",
-  amount,
-  tokens,
-  onSelect,
-  onUpdateAmount,
-  className,
-}: {
-  token?: PoolToken;
-  balance?: string;
-  amount: string;
-  tokens: PoolToken[];
-  onSelect: (token: PoolToken) => void;
-  onUpdateAmount: (amount: string) => void;
-  className?: string;
-}) => {
-  const [tab, setTab] = useState<"tokens" | "collections">("collections");
-  const location = useLocation();
-
-  const parsedAmount = Number(amount);
-  const amountPriceUSD =
-    Number.isNaN(parsedAmount) || parsedAmount === 0
-      ? new Decimal(token?.priceUSD ?? 0)
-      : new Decimal(token?.priceUSD ?? 0).mul(amount);
-
-  return (
-    // Unmount the dialog when the location changes
-    <Dialog key={location.search}>
-      {token ? (
-        <div
-          className={cn("overflow-hidden rounded-lg bg-night-1100", className)}
+      <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.1,
+          }}
         >
-          <div className="flex items-center justify-between gap-3 p-4">
-            <DialogTrigger asChild>
-              <button className="flex items-center gap-4 text-left">
-                <PoolTokenImage className="h-12 w-12" token={token} />
-                <div className="space-y-1">
-                  <span className="flex items-center gap-1.5 text-lg font-medium text-honey-25">
-                    {token.name} <ChevronDownIcon className="h-3 w-3" />
-                  </span>
-                  <span className="block text-sm text-night-600">
-                    {token.symbol}
-                  </span>
-                </div>
-              </button>
-            </DialogTrigger>
-            <div className="space-y-1 text-right">
-              <CurrencyInput value={amount} onChange={onUpdateAmount} />
-              <span className="block text-sm text-night-400">
-                {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
-              </span>
-            </div>
-          </div>
-          <div className="bg-night-800 px-4 py-2.5 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-night-400 sm:text-sm">Balance</span>
-                <span className="font-semibold text-honey-25 sm:text-sm">
-                  {formatBalance(balance)}
-                </span>
-              </div>
-              {/* <Button mode="secondary">Max</Button> */}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <DialogTrigger asChild>
-          <button
-            className={cn(
-              "group flex w-full items-center gap-4 rounded-lg bg-night-1100 px-4 py-5 text-xl font-medium text-night-400 transition-colors hover:text-honey-25",
-              className
-            )}
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-night-800 text-night-600 transition-colors group-hover:text-honey-50">
-              <LayersIcon className="h-6 w-6" />
-            </div>
-            Select Asset
+          <StatisticCard
+            Icon={MagicLogo}
+            value="$2.00"
+            title="Magic Price"
+            Background={FlatMagicIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.2,
+          }}
+        >
+          <StatisticCard
+            value="4,530,000"
+            title="TRADES"
+            Background={ExchangeIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.3,
+          }}
+        >
+          <StatisticCard
+            value="$500,000.00"
+            title="Volume Today"
+            Background={ChartIcon}
+          />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.4,
+          }}
+        >
+          <StatisticCard value="535.000" title="NFTs Supplied" />
+        </motion.div>
+      </div>
+      <motion.div
+        className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="flex flex-col items-center gap-6 md:max-w-md md:items-start">
+          <h1 className="text-center text-3xl font-bold leading-[160%] text-night-100  md:text-start">
+            Universal Token Compatibility
+          </h1>
+          <p className="text-md max-w-[80%] text-center leading-[160%] text-night-500 md:max-w-none md:text-start  lg:text-lg">
+            Support pools for both ERC-20s and NFTs through a single router, and
+            enable trading of all items within game economies.
+          </p>
+          <button className="flex  items-center gap-2 text-night-500 transition-colors hover:text-night-100 ">
+            Learn more
+            <ChevronRightIcon className="w-5" />
           </button>
-        </DialogTrigger>
-      )}
-      <DialogPortal>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Asset</DialogTitle>
-            <DialogDescription>Select an asset to swap with.</DialogDescription>
-          </DialogHeader>
-          <div className="rounded-lg bg-night-1100 p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                  tab === "tokens" &&
-                    "border-night-800 bg-night-800 text-honey-25"
-                )}
-                onClick={() => setTab("tokens")}
-              >
-                <TokenIcon className="h-4 w-4" />
-                Tokens
-              </button>
-              <button
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                  tab === "collections" &&
-                    "border-night-800 bg-night-800 text-honey-25"
-                )}
-                onClick={() => setTab("collections")}
-              >
-                <LayersIcon className="h-4 w-4" />
-                Collections
-              </button>
+        </div>
+        <div className="flex w-full items-center justify-center">
+          <img
+            src={tokenGraphicImage}
+            alt="illustration of trading items on magicswap"
+            className="w-[460px] "
+          />
+        </div>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <p className="mb-8 w-full text-center text-xl font-medium leading-[120%] text-night-400">
+          What makes magic swap special?
+        </p>
+        <div className="container grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <InfoCard
+            Icon={RoyaltiesIcon}
+            title="Automated Royalties"
+            description="Automated royalties that can be set for each pool- a feature that is directly integrated into the pool creation progress."
+            link="e"
+          />
+          <InfoCard
+            Icon={PoolIcon}
+            title="NFT:NFT Pools"
+            description="MagicSwap allows projects to create pools that use an ERC-1155 as the base pair, a first for NFT AMMs."
+            link="e"
+          />
+          <InfoCard
+            Icon={SweepIcon}
+            title="Sweeping"
+            description="MagicSwap allows user to sweep any number of NFTs from the pools."
+            link="e"
+          />
+        </div>
+      </motion.div>
+      <motion.div
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8 ">
+          <h1 className="relative z-10 text-3xl font-medium leading-[120%] text-night-100">
+            Role of <span className="uppercase text-ruby-900">$MAGIC</span>
+          </h1>
+          <p className="text-md relative z-10 max-w-3xl leading-[160%] text-night-400 md:text-lg">
+            MagicSwap utilizes{" "}
+            <span className="font-medium uppercase text-night-100">$MAGIC</span>{" "}
+            as the governance as well as fee token. The protocol will also
+            collect the royalties currently in place on the Trove marketplace:{" "}
+            <span className="font-medium text-honey-100">2.5% for the DAO</span>{" "}
+            and a variable{" "}
+            <span className="font-medium text-night-600">0-20%</span> for the
+            project creator
+          </p>
+          <img
+            src={magicIllustration}
+            alt="Magic Illustration"
+            className="absolute right-12 top-4  box-border hidden h-[316px] w-[316px] opacity-10 md:block lg:opacity-100"
+          />
+          <div className="absolute right-40 top-4 h-[490px] w-[490px] translate-x-1/2 rounded-full  bg-ruby-900 opacity-20 blur-[999px]" />
+        </div>
+      </motion.div>
+      <div className=" relative mt-8 overflow-hidden border-t border-t-night-1000 py-8 md:mt-16 md:py-16">
+        <div className="container">
+          <div className="bordernight-800  relative flex w-full flex-col justify-between gap-6 overflow-hidden rounded-lg border bg-night-1100 p-6 sm:flex-row sm:items-center">
+            <div className="gap-.5 relative z-10 flex flex-col">
+              <h1 className="text-lg font-medium text-night-100">
+                Start trading today
+              </h1>
+              <p className="max-w-[80%] text-sm text-night-400 sm:max-w-none ">
+                Explore our huge library of pools and get your desired NFTs!
+              </p>
             </div>
-            <ul className="mt-4 border-t border-night-900 pt-4">
-              {tokens
-                .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
-                .map((token) => (
-                  <li
-                    key={token.id}
-                    className="relative rounded-lg px-3 py-2 hover:bg-night-900"
-                  >
-                    {/* <div className="flex w-full items-center justify-between gap-3"> */}
-                    <div className="flex items-center gap-3">
-                      <PoolTokenImage token={token} className="h-9 w-9" />
-                      <div className="text-left text-sm">
-                        <span className="block font-semibold text-honey-25">
-                          {token.name}
-                        </span>
-                        <span className="block text-night-600">
-                          {token.symbol}
-                        </span>
-                      </div>
-                    </div>
-                    {/* </div> */}
-                    <button
-                      onClick={() => onSelect(token)}
-                      className="absolute inset-0"
-                    />
-                  </li>
-                ))}
-            </ul>
+            <Link to="/pools">
+              <Button size="md" className="relative z-10">
+                Explore Pools
+              </Button>
+            </Link>
+            <img
+              src={collectionsImage}
+              className="absolute left-1/4 top-1/2 w-[420px] -translate-y-1/2 opacity-25 sm:left-1/2 sm:w-64  md:opacity-100"
+              alt="Different collections on magicswap"
+            />
           </div>
-        </DialogContent>
-      </DialogPortal>
-    </Dialog>
+        </div>
+        <div className="absolute bottom-0 left-1/2 h-32 w-3/4 -translate-x-1/2 translate-y-1/2 rounded-full bg-night-700 opacity-20 blur-[300px]"></div>
+      </div>
+    </div>
   );
 };
+
+export default landing;

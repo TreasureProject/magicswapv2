@@ -1,4 +1,4 @@
-import { NavLink } from "@remix-run/react";
+import { Link, NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { ConnectKitButton } from "connectkit";
 import { InfoIcon, MenuIcon, PlayIcon, SearchIcon } from "lucide-react";
@@ -20,9 +20,9 @@ import { truncateEthAddress } from "~/lib/address";
 import { cn } from "~/lib/utils";
 
 const Pages = [
-  { name: "Swap", href: "/" },
-  { name: "Tokens", href: "/tokens" },
-  { name: "NFTs", href: "/nfts" },
+  { name: "Swap", href: "/swap" },
+  // { name: "Tokens", href: "/tokens" },
+  // { name: "NFTs", href: "/nfts" },
   { name: "Pools", href: "/pools" },
 ];
 
@@ -33,8 +33,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="flex min-h-full flex-col">
       <header className="container flex h-24 items-center">
         <div className="flex items-center md:gap-3">
-          <MagicSwapLogoFull className="hidden h-7 md:block" />
-          <MagicSwapLogo className="h-7 md:hidden" />
+          <Link to="/">
+            <MagicSwapLogoFull className="hidden h-7 md:block" />
+            <MagicSwapLogo className="h-7 md:hidden" />
+          </Link>
           <button
             className="ml-3 flex items-center gap-2 rounded-lg border border-night-800 p-2 text-night-600 hover:text-night-300 md:border-none  md:p-0"
             onClick={() => setShowSearchPopup(true)}
