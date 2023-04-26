@@ -83,7 +83,7 @@ export const SelectionPopup = ({
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     selectedTokens || []
   );
-  const [activeTab, setActiveTab] = useState<string>("filters");
+  const [activeTab, setActiveTab] = useState<string>("items");
   const fetcher = useFetcher<TroveToken[]>();
   const filterFetcher = useFetcher<TroveFilters>();
   const { load, Form, submit, submission } = fetcher;

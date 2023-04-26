@@ -80,7 +80,7 @@ export const createPoolToken = (
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
     type: tokenCollections[0]?.type ?? "ERC721",
     isNft,
-    collectionId: tokenCollections[0]?.id,
+    collectionId: tokenCollections[0]?.id ?? "",
     priceUSD: prices[NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id] ?? 0,
     reserve: 0,
     reserveItems: token.vaultReserveItems.map(
