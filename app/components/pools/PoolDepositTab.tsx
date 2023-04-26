@@ -1,7 +1,6 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { parseUnits } from "@ethersproject/units";
 import { useEffect, useState } from "react";
-import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
@@ -11,10 +10,7 @@ import { Dialog } from "../ui/Dialog";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
 import { useSettings } from "~/contexts/settings";
-import {
-  useMagicSwapV2RouterAddLiquidity,
-  usePrepareMagicSwapV2RouterAddLiquidity,
-} from "~/generated";
+import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { formatBalance } from "~/lib/currency";
@@ -22,7 +18,7 @@ import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
-import type { AddressString, Optional } from "~/types";
+import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   pool: Pool;
@@ -30,10 +26,12 @@ type Props = {
 };
 
 export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
-  const { address = "0x0" } = useAccount();
-  const { slippage, deadline } = useSettings();
-  const [{ amount, isExactQuote }, setTrade] = useState({
+  const { address } = useAccount();
+  const { slippage } = useSettings();
+  const [{ amount, baseNfts, quoteNfts, isExactQuote }, setTrade] = useState({
     amount: "0",
+    baseNfts: [] as TroveTokenWithQuantity[],
+    quoteNfts: [] as TroveTokenWithQuantity[],
     isExactQuote: false,
   });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
@@ -92,35 +90,24 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
       enabled: !isQuoteTokenApproved,
     });
 
-  const { config: addLiquidityConfig } =
-    usePrepareMagicSwapV2RouterAddLiquidity({
-      args: [
-        pool.baseToken.id as AddressString,
-        pool.quoteToken.id as AddressString,
-        amountBaseBN,
-        amountQuoteBN,
-        isExactQuote
-          ? parseUnits(
-              getAmountMin(amountBase, slippage).toString(),
-              pool.baseToken.decimals
-            )
-          : amountBaseBN,
-        isExactQuote
-          ? amountQuoteBN
-          : parseUnits(
-              getAmountMin(amountQuote, slippage).toString(),
-              pool.quoteToken.decimals
-            ),
-        address ?? "0x0",
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
-      enabled:
-        !!address && hasAmount && isBaseTokenApproved && isQuoteTokenApproved,
-    });
-  const { data: addLiquidityData, write: addLiquidity } =
-    useMagicSwapV2RouterAddLiquidity(addLiquidityConfig);
-  const { isSuccess: isAddLiquiditySuccess } =
-    useWaitForTransaction(addLiquidityData);
+  const { addLiquidity, isSuccess: isAddLiquiditySuccess } = useAddLiquidity({
+    pool,
+    amountBase: amountBaseBN,
+    amountQuote: amountQuoteBN,
+    amountBaseMin: isExactQuote
+      ? parseUnits(
+          getAmountMin(amountBase, slippage).toString(),
+          pool.baseToken.decimals
+        )
+      : amountBaseBN,
+    amountQuoteMin: isExactQuote
+      ? amountQuoteBN
+      : parseUnits(
+          getAmountMin(amountQuote, slippage).toString(),
+          pool.quoteToken.decimals
+        ),
+    nfts: baseNfts,
+  });
 
   const estimatedLp = getLpCountForTokens(
     amount,
@@ -146,6 +133,8 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     if (isAddLiquiditySuccess) {
       setTrade({
         amount: "0",
+        baseNfts: [],
+        quoteNfts: [],
         isExactQuote: false,
       });
       refetchBaseTokenBalance();
@@ -165,16 +154,24 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         <SelectionPopup
           type="inventory"
           token={selectingToken}
-          onSubmit={(tokens) => console.log(tokens)}
+          selectedTokens={
+            selectingToken?.id === pool.baseToken.id ? baseNfts : quoteNfts
+          }
+          onSubmit={(tokens) =>
+            setTrade({
+              amount: tokens.length.toString(),
+              baseNfts: selectingToken?.id === pool.baseToken.id ? tokens : [],
+              quoteNfts:
+                selectingToken?.id === pool.quoteToken.id ? tokens : [],
+              isExactQuote: false,
+            })
+          }
         />
         {pool.baseToken.isNft ? (
           <PoolNftTokenInput
             token={pool.baseToken}
-            balance={baseTokenBalance?.formatted}
-            amount={amountBase}
-            onUpdateAmount={(amount) =>
-              setTrade({ amount, isExactQuote: false })
-            }
+            balance="0"
+            selectedNfts={baseNfts}
             onOpenSelect={setSelectingToken}
           />
         ) : (
@@ -183,18 +180,20 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             balance={baseTokenBalance?.formatted}
             amount={amountBase}
             onUpdateAmount={(amount) =>
-              setTrade({ amount, isExactQuote: false })
+              setTrade({
+                amount,
+                baseNfts: [],
+                quoteNfts: [],
+                isExactQuote: false,
+              })
             }
           />
         )}
         {pool.quoteToken.isNft ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
-            balance={quoteTokenBalance?.formatted}
-            amount={amountQuote}
-            onUpdateAmount={(amount) =>
-              setTrade({ amount, isExactQuote: true })
-            }
+            balance="0"
+            selectedNfts={quoteNfts}
             onOpenSelect={setSelectingToken}
           />
         ) : (
@@ -203,7 +202,12 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             balance={quoteTokenBalance?.formatted}
             amount={amountQuote}
             onUpdateAmount={(amount) =>
-              setTrade({ amount, isExactQuote: true })
+              setTrade({
+                amount,
+                baseNfts: [],
+                quoteNfts: [],
+                isExactQuote: true,
+              })
             }
           />
         )}

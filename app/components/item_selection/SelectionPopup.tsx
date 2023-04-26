@@ -73,15 +73,15 @@ export const SelectionPopup = ({
   token,
   type,
   onSubmit,
-  selectedTokenIds,
+  selectedTokens,
 }: {
   token?: PoolToken;
   type: "vault" | "inventory";
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
-  selectedTokenIds?: TroveTokenWithQuantity[];
+  selectedTokens?: TroveTokenWithQuantity[];
 }) => {
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
-    selectedTokenIds || []
+    selectedTokens || []
   );
   const [activeTab, setActiveTab] = useState<string>("filters");
   const fetcher = useFetcher<TroveToken[]>();
@@ -231,7 +231,7 @@ export const SelectionPopup = ({
                 onClick={() => {
                   selectionHandler({
                     ...item,
-                    quantity: 0,
+                    quantity: 1,
                   });
                 }}
               />

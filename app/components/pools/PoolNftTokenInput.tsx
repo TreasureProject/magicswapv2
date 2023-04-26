@@ -1,22 +1,18 @@
-import Decimal from "decimal.js-light";
-
-import { CurrencyInput } from "../CurrencyInput";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
-import { formatBalance, formatUSD } from "~/lib/currency";
+import { formatBalance } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
+import type { TroveTokenWithQuantity } from "~/types";
 
 export const PoolNftTokenInput = ({
   token,
   balance = "0",
-  amount,
-  onUpdateAmount,
+  selectedNfts,
   onOpenSelect,
 }: {
   token: PoolToken;
   balance?: string;
-  amount: string;
-  onUpdateAmount: (amount: string) => void;
+  selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
 }) => {
   return (
@@ -35,7 +31,7 @@ export const PoolNftTokenInput = ({
         </div>
         <DialogTrigger asChild>
           <Button variant="dark" size="md" onClick={() => onOpenSelect(token)}>
-            Select Items
+            {selectedNfts.length > 0 ? "Edit Selection" : "Select Items"}
           </Button>
         </DialogTrigger>
       </div>
