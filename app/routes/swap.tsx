@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { parseUnits } from "@ethersproject/units";
 import {
   Link,
@@ -8,6 +7,7 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
+import { ConnectKitButton } from "connectkit";
 import { Decimal } from "decimal.js-light";
 import {
   ArrowDownIcon,
@@ -16,7 +16,7 @@ import {
   SettingsIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAccount, useBalance, useWaitForTransaction } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
@@ -41,16 +41,9 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
 import { useSettings } from "~/contexts/settings";
-import {
-  magicSwapV2RouterAddress,
-  useErc20Allowance,
-  useErc20Approve,
-  useMagicSwapV2RouterSwapExactTokensForTokens,
-  useMagicSwapV2RouterSwapTokensForExactTokens,
-  usePrepareErc20Approve,
-  usePrepareMagicSwapV2RouterSwapExactTokensForTokens,
-  usePrepareMagicSwapV2RouterSwapTokensForExactTokens,
-} from "~/generated";
+import { useApprove } from "~/hooks/useApprove";
+import { useIsApproved } from "~/hooks/useIsApproved";
+import { useSwap } from "~/hooks/useSwap";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import {
   getAmountIn,
@@ -72,6 +65,13 @@ export async function loader({ request }: LoaderArgs) {
   const tokenIn = inputAddress
     ? tokens.find(({ id }) => id === inputAddress)
     : tokens.find(({ name }) => name === "MAGIC");
+
+  if (!tokenIn) {
+    throw new Response("Input token not found", {
+      status: 404,
+    });
+  }
+
   const tokenOut = outputAddress
     ? tokens.find(({ id }) => id === outputAddress)
     : undefined;
@@ -99,7 +99,7 @@ export default function SwapPage() {
     tokenOut,
     path: [pool],
   } = useLoaderData<typeof loader>();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
   const [swapInput, setSwapInput] = useState({
@@ -113,7 +113,7 @@ export default function SwapPage() {
   };
 
   const poolTokenIn =
-    pool?.token0.id === tokenIn?.id ? pool?.token0 : pool?.token1;
+    pool?.token0.id === tokenIn.id ? pool?.token0 : pool?.token1;
   const poolTokenOut =
     pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
@@ -122,7 +122,7 @@ export default function SwapPage() {
         swapInput.value,
         poolTokenIn?.reserve,
         poolTokenOut?.reserve,
-        tokenIn?.decimals
+        tokenIn.decimals
       )
     : swapInput.value;
   const amountOut = swapInput.isExactOut
@@ -134,110 +134,65 @@ export default function SwapPage() {
         tokenOut?.decimals
       );
 
-  const amountInBN = parseUnits(amountIn, tokenIn?.decimals);
+  const amountInBN = parseUnits(amountIn, tokenIn.decimals);
   const amountOutBN = parseUnits(amountOut, tokenOut?.decimals);
 
   const hasAmounts = amountInBN.gt(0) && amountOutBN.gt(0);
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
-    token: tokenIn?.id as AddressString,
-    enabled: !!address && !!tokenIn && !tokenIn.isNft,
+    token: tokenIn.id as AddressString,
+    enabled: isConnected && !tokenIn.isNft,
   });
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
     {
       address,
       token: tokenOut?.id as AddressString,
-      enabled: !!address && !!tokenOut && !tokenOut.isNft,
+      enabled: isConnected && !!tokenOut && !tokenOut.isNft,
     }
   );
 
-  const { data: tokenInAllowance, refetch: refetchTokenInAllowance } =
-    useErc20Allowance({
-      address: tokenIn?.id as AddressString,
-      args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
-      enabled: !!address && !!tokenIn && !tokenIn.isNft && hasAmounts,
+  const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
+    useIsApproved({
+      token: tokenIn,
+      amount: amountInBN,
+      enabled: isConnected && hasAmounts,
     });
 
-  const isTokenInApproved = tokenInAllowance?.gte(amountInBN) ?? false;
+  const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
+    useApprove({
+      token: tokenIn,
+      amount: amountInBN,
+      enabled: !isTokenInApproved,
+    });
 
-  const { config: approveTokenInConfig } = usePrepareErc20Approve({
-    address: tokenIn?.id as AddressString,
-    args: [magicSwapV2RouterAddress[421613], amountInBN],
-    enabled: !isTokenInApproved,
-  });
-  const { data: approveTokenInData, write: approveTokenIn } =
-    useErc20Approve(approveTokenInConfig);
-  const { isSuccess: isApproveTokenInSuccess } =
-    useWaitForTransaction(approveTokenInData);
-
-  const { config: swapExactTokensForTokensConfig } =
-    usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
-      args: [
-        amountInBN,
-        parseUnits(
+  const { swap, isSuccess: isSwapSuccess } = useSwap({
+    tokenIn,
+    tokenOut,
+    amountIn: swapInput.isExactOut
+      ? parseUnits(
+          getAmountMax(amountIn, slippage).toString(),
+          tokenIn.decimals
+        )
+      : amountInBN,
+    amountOut: swapInput.isExactOut
+      ? amountOutBN
+      : parseUnits(
           getAmountMin(amountOut, slippage).toString(),
           tokenOut?.decimals
         ),
-        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
-        address ?? "0x0",
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
-      enabled:
-        !!address &&
-        !!poolTokenIn &&
-        !!poolTokenOut &&
-        hasAmounts &&
-        !swapInput.isExactOut,
-    });
-  const {
-    data: swapExactTokensForTokensData,
-    write: swapExactTokensForTokens,
-  } = useMagicSwapV2RouterSwapExactTokensForTokens(
-    swapExactTokensForTokensConfig
-  );
-  const { isSuccess: isSwapExactTokensForTokensSuccess } =
-    useWaitForTransaction(swapExactTokensForTokensData);
-
-  const { config: swapTokensForExactTokensConfig } =
-    usePrepareMagicSwapV2RouterSwapTokensForExactTokens({
-      args: [
-        amountOutBN,
-        parseUnits(
-          getAmountMax(amountIn, slippage).toString(),
-          tokenIn?.decimals
-        ),
-        [poolTokenIn?.id as AddressString, poolTokenOut?.id as AddressString],
-        address ?? "0x0",
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
-      enabled:
-        !!address &&
-        !!poolTokenIn &&
-        !!poolTokenOut &&
-        hasAmounts &&
-        swapInput.isExactOut,
-    });
-  const {
-    data: swapTokensForExactTokensData,
-    write: swapTokensForExactTokens,
-  } = useMagicSwapV2RouterSwapTokensForExactTokens(
-    swapTokensForExactTokensConfig
-  );
-  const { isSuccess: isSwapTokensForExactTokensSuccess } =
-    useWaitForTransaction(swapTokensForExactTokensData);
+    isExactOut: swapInput.isExactOut,
+    enabled: isConnected && !!tokenOut && hasAmounts,
+  });
 
   useEffect(() => {
     if (isApproveTokenInSuccess) {
-      refetchTokenInAllowance();
+      refetchTokenInApproval();
     }
-  }, [isApproveTokenInSuccess, refetchTokenInAllowance]);
+  }, [isApproveTokenInSuccess, refetchTokenInApproval]);
 
   useEffect(() => {
-    if (
-      isSwapExactTokensForTokensSuccess ||
-      isSwapTokensForExactTokensSuccess
-    ) {
+    if (isSwapSuccess) {
       setSwapInput({
         value: "0",
         isExactOut: false,
@@ -245,12 +200,7 @@ export default function SwapPage() {
       refetchTokenInBalance();
       refetchTokenOutBalance();
     }
-  }, [
-    isSwapExactTokensForTokensSuccess,
-    isSwapTokensForExactTokensSuccess,
-    refetchTokenInBalance,
-    refetchTokenOutBalance,
-  ]);
+  }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
@@ -327,7 +277,7 @@ export default function SwapPage() {
           }
         />
         <Link
-          to={`/?in=${tokenOut?.id}&out=${tokenIn?.id}`}
+          to={`/?in=${tokenOut?.id}&out=${tokenIn.id}`}
           className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
@@ -346,22 +296,30 @@ export default function SwapPage() {
           }
         />
         <div className="mt-4 space-y-1.5">
-          {!isTokenInApproved && (
-            <Button className="w-full" onClick={() => approveTokenIn?.()}>
-              Approve {tokenIn?.name}
-            </Button>
+          {isConnected ? (
+            <>
+              {!isTokenInApproved && hasAmounts && (
+                <Button className="w-full" onClick={() => approveTokenIn()}>
+                  Approve {tokenIn.name}
+                </Button>
+              )}
+              <Button
+                className="w-full"
+                disabled={!isTokenInApproved || !hasAmounts}
+                onClick={() => swap()}
+              >
+                Swap Items
+              </Button>
+            </>
+          ) : (
+            <ConnectKitButton.Custom>
+              {({ show }) => (
+                <Button className="w-full" onClick={show}>
+                  Connect Wallet
+                </Button>
+              )}
+            </ConnectKitButton.Custom>
           )}
-          <Button
-            className="w-full"
-            disabled={!isTokenInApproved || !hasAmounts}
-            onClick={() =>
-              swapInput.isExactOut
-                ? swapTokensForExactTokens?.()
-                : swapExactTokensForTokens?.()
-            }
-          >
-            Swap Items
-          </Button>
         </div>
       </div>
     </main>
