@@ -1,3 +1,4 @@
+import type { BigNumber } from "@ethersproject/bignumber";
 import { Decimal } from "decimal.js-light";
 
 export const getAmountOut = (
@@ -17,12 +18,12 @@ export const getAmountOut = (
   const denominator = new Decimal(reserveIn ?? 0)
     .mul(10000)
     .add(amountInWithFee);
-  return denominator.gt(0)
-    ? numerator
-        .div(denominator)
+  const value = denominator.gt(0) ? numerator.div(denominator) : new Decimal(0);
+  return value.lt(1)
+    ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
+    : value
         .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
-        .toString()
-    : "0";
+        .toString();
 };
 
 export const getAmountIn = (
@@ -41,13 +42,14 @@ export const getAmountIn = (
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
     .mul(10000 - totalFee);
-  return denominator.gt(0)
-    ? numerator
-        .div(denominator)
-        .add(1)
+  const value = denominator.gt(0)
+    ? numerator.div(denominator).add(1)
+    : new Decimal(0);
+  return value.lt(1)
+    ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
+    : value
         .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
-        .toString()
-    : "0";
+        .toString();
 };
 
 export const quote = (
@@ -117,3 +119,9 @@ export const getAmountMin = (amount: string, slippage: number) => {
 
   return parsedAmount - (parsedAmount * slippage * 1000) / 1000;
 };
+
+export const getAmountMaxBN = (amount: BigNumber, slippage: number) =>
+  amount.add(amount.mul(slippage * 1000).div(1000));
+
+export const getAmountMinBN = (amount: BigNumber, slippage: number) =>
+  amount.sub(amount.mul(slippage * 1000).div(1000));
