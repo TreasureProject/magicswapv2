@@ -282,7 +282,12 @@ export default function SwapPage() {
             })
           }
           onSelectNfts={(tokens) =>
-            setTrade((trade) => ({ ...trade, nftsIn: tokens }))
+            setTrade({
+              amount: tokens.length.toString(),
+              nftsIn: tokens,
+              nftsOut: [],
+              isExactOut: false,
+            })
           }
         />
         <Link

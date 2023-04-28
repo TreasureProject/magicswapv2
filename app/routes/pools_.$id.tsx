@@ -19,6 +19,7 @@ import { fetchPool } from "~/api/pools.server";
 import Table, { CopyTable } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
@@ -99,7 +100,7 @@ export default function PoolDetailsPage() {
               <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
                   <PoolImage pool={pool} className="h-10 w-10" />
-                  <p className="text-base-100 text-3xl font-medium leading-[160%]">
+                  <p className="text-base-100 text-3xl font-medium">
                     {formatBalance(rawLpBalance?.formatted ?? 0)}
                   </p>
                 </div>
@@ -111,14 +112,12 @@ export default function PoolDetailsPage() {
                 {[pool.baseToken, pool.quoteToken].map((token) => (
                   <div key={token.id} className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <p className="font-bold leading-[160%] text-night-100">
-                        {token.name}
-                      </p>
+                      <p className="font-bold text-night-100">{token.name}</p>
                       {token.name.toUpperCase() !==
                       token.symbol.toUpperCase() ? (
                         <>
                           <div className="h-3 w-[1px] bg-night-400" />
-                          <p className="font-regular uppercase leading-[160%] text-night-300">
+                          <p className="font-regular uppercase text-night-300">
                             {token.symbol}
                           </p>
                         </>
@@ -126,10 +125,8 @@ export default function PoolDetailsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 overflow-hidden rounded-full bg-night-1000">
-                          {!!token.image && <img src={token.image} alt="" />}
-                        </div>
-                        <p className="text-3xl font-medium leading-[160%]">
+                        <PoolTokenImage className="h-7 w-7" token={token} />
+                        <p className="text-3xl font-medium">
                           {formatBalance(token.reserve * lpShare)}
                         </p>
                       </div>
@@ -173,7 +170,9 @@ export default function PoolDetailsPage() {
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <span className="font-medium">
                   <span className="text-night-100">
-                    {pool.quoteToken.reserve / pool.baseToken.reserve}
+                    {formatBalance(
+                      pool.quoteToken.reserve / pool.baseToken.reserve
+                    )}
                   </span>{" "}
                   {pool.quoteToken.symbol}
                 </span>
@@ -182,29 +181,19 @@ export default function PoolDetailsPage() {
                 {[pool.baseToken, pool.quoteToken].map((token) => (
                   <div
                     key={token.id}
-                    className="flex items-center justify-between gap-4 rounded-md bg-night-1200 p-3"
+                    className="flex items-center justify-between gap-3 rounded-md bg-night-1200 p-3"
                   >
                     <div className="flex items-center gap-2 font-semibold">
-                      <div
-                        className={cn(
-                          "h-6 w-6 overflow-hidden rounded-full bg-night-900"
-                          // token.isNft ? "rounded" : "rounded-full"
-                        )}
-                      >
-                        {!!token.image && <img src={token.image} alt="" />}
-                      </div>
+                      <PoolTokenImage className="h-6 w-6" token={token} />
                       {token.symbol}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-night-100">
-                        {" "}
+                    <div className="space-y-0.5 text-right font-medium">
+                      <p className="text-night-100">
                         {formatBalance(token.reserve)}
-                      </span>
-                      <div className="h-3 w-[1px] bg-night-700" />
-                      <span className="font-medium text-night-400">
-                        {" "}
+                      </p>
+                      <p className="text-xs text-night-400">
                         {formatUSD(token.reserve * token.priceUSD)}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -253,9 +242,7 @@ export default function PoolDetailsPage() {
               <>
                 <div className="flex w-full flex-col items-center gap-1 pt-6">
                   <div className="flex items-center gap-1">
-                    <h1 className="text-3xl font-bold leading-[160%]">
-                      Liquidity Removed
-                    </h1>
+                    <h1 className="text-3xl font-bold">Liquidity Removed</h1>
                     <CheckIcon className="w-12 text-ruby-800" />
                   </div>
                   <p className="max-w-sm text-center text-sm text-night-400">
@@ -289,9 +276,7 @@ export default function PoolDetailsPage() {
                     ].map((item, index) => (
                       <div className="flex flex-col items-center" key={index}>
                         <div className="h-[72px] w-[72px] rounded-md border-2 border-night-1200 bg-night-900"></div>
-                        <p className=" text-sm leading-[160%] text-night-600">
-                          2x
-                        </p>
+                        <p className=" text-sm text-night-600">2x</p>
                       </div>
                     ))}
                   </div>
@@ -466,10 +451,10 @@ const PoolActivityTable = ({
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <p className="font-medium uppercase leading-[160%] text-night-100">
+                        <p className="font-medium uppercase text-night-100">
                           {token0.name}
                         </p>
-                        <p className="text-sm capitalize leading-[160%] text-night-400">
+                        <p className="text-sm capitalize text-night-400">
                           0 {token0.name}
                         </p>
                       </div>
@@ -496,10 +481,10 @@ const PoolActivityTable = ({
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <p className="font-medium uppercase leading-[160%] text-night-100">
+                        <p className="font-medium uppercase text-night-100">
                           {token1.name}
                         </p>
-                        <p className="text-sm capitalize leading-[160%] text-night-400">
+                        <p className="text-sm capitalize text-night-400">
                           0 {token1.name}
                         </p>
                       </div>
