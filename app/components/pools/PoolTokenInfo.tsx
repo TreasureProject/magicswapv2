@@ -29,7 +29,7 @@ export const PoolTokenInfo = ({ token, className }: Props) => {
             <>| {token.name}</>
           )}
           <a
-            href={`${blockExplorer}/address/${
+            href={`${blockExplorer.url}/address/${
               token.collections?.[0]?.id ?? token.id
             }`}
             target="_blank"

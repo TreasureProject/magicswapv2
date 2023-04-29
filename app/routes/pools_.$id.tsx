@@ -5,13 +5,15 @@ import { json } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRightIcon,
+  ArrowRightIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExternalLinkIcon,
+  PlusIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
@@ -24,11 +26,14 @@ import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
 import { MultiSelect } from "~/components/ui/MultiSelect";
+import { useBlockExplorer } from "~/hooks/useBlockExplorer";
+import { truncateEthAddress } from "~/lib/address";
 import { formatBalance, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { formatNumber, formatPercent } from "~/lib/number";
+import type { Pool, PoolTransactionType } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { AddressString } from "~/types";
+import type { AddressString, Optional } from "~/types";
 
 export async function loader({ params }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
@@ -48,10 +53,8 @@ export default function PoolDetailsPage() {
   const { address } = useAccount();
   const [activeTab, setActiveTab] = useState<string>("deposit");
 
-  type PoolActivityFilters = "all" | "swap" | "deposit" | "withdraw";
   const [poolActivityFilter, setPoolActivityFilter] =
-    useState<PoolActivityFilters>("all");
-  const poolActivityFilters = ["all", "swap", "deposit", "withdraw"];
+    useState<Optional<PoolTransactionType>>();
 
   const { data: rawLpBalance } = useBalance({
     address,
@@ -341,24 +344,39 @@ export default function PoolDetailsPage() {
             <ArrowLeftRightIcon className="h-4 w-4" />
             Pool Activity
           </h3>
-          <div className="flex gap-2">
-            {poolActivityFilters.map((filter) => (
+          <div className="flex items-center gap-3">
+            {[
+              {
+                label: "All",
+                value: undefined,
+              },
+              {
+                label: "Swaps",
+                value: "Swap" as PoolTransactionType,
+              },
+              {
+                label: "Deposits",
+                value: "Deposit" as PoolTransactionType,
+              },
+              {
+                label: "Withdrawals",
+                value: "Withdrawal" as PoolTransactionType,
+              },
+            ].map(({ label, value }) => (
               <button
+                key={label}
                 className={cn(
                   "text-sm font-medium capitalize text-night-400 hover:text-night-200",
-                  filter === poolActivityFilter && "text-night-100"
+                  value === poolActivityFilter && "text-night-100"
                 )}
-                key={filter}
-                onClick={() =>
-                  setPoolActivityFilter(filter as PoolActivityFilters)
-                }
+                onClick={() => setPoolActivityFilter(value)}
               >
-                {filter}
+                {label}
               </button>
             ))}
           </div>
         </div>
-        <PoolActivityTable token0={pool.baseToken} token1={pool.quoteToken} />
+        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
         {pool.baseToken.isNft || pool.quoteToken.isNft ? (
           <>
             <h3 className="flex items-center gap-3 font-medium">
@@ -379,15 +397,16 @@ export default function PoolDetailsPage() {
 }
 
 const PoolActivityTable = ({
-  token0,
-  token1,
+  pool,
+  filter,
 }: {
-  token0: PoolToken;
-  token1: PoolToken;
+  pool: Pool;
+  filter?: PoolTransactionType;
 }) => {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const showPerPage = 12;
   const [activePage, setActivePage] = useState<number>(0);
+  const blockExplorer = useBlockExplorer();
 
   const handlePagination = (direction: "next" | "prev") => {
     if (direction === "next" && activePage < 1 / showPerPage - 1) {
@@ -397,151 +416,166 @@ const PoolActivityTable = ({
       setActivePage(activePage - 1);
     }
   };
+
+  const transactions = pool.transactions.filter(
+    ({ type }) => !filter || type === filter
+  );
+
   return (
     <div>
       <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
         <thead className="border-b border-b-night-900">
-          <tr>
-            <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
+          <tr className="text-sm text-night-200">
+            <th className="px-4 py-2.5 text-left font-normal sm:px-5">
+              Tokens
+            </th>
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
               Action
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5 ">
-              Action
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+              Value
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
-              <abbr title="Annual Percentage Rate" className="no-underline">
-                Amount
-              </abbr>
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+              User
             </th>
-            <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
-              <abbr title="Total Value Locked" className="no-underline">
-                Token Amount
-              </abbr>
+            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
+              Date
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
-              Time
-            </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5"></th>
+            <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
           </tr>
         </thead>
         <AnimatePresence>
           <tbody className="transition-all">
             <>
-              <tr className="border-b border-b-night-900 transition-colors">
-                <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "h-9 w-9 overflow-hidden",
-                          token0.isNft
-                            ? "rounded-[4px]"
-                            : "rounded-full bg-night-1000"
-                        )}
-                      >
-                        {token0.image && (
-                          <img
-                            src={token0.image}
-                            className={cn(
-                              "h-6 w-6 rounded-full",
-                              token0.isNft && "h-9 w-9 rounded-none"
-                            )}
-                            alt={token0.name}
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-medium uppercase text-night-100">
-                          {token0.name}
-                        </p>
-                        <p className="text-sm capitalize text-night-400">
-                          0 {token0.name}
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowLeftRightIcon className="w-6 text-night-400" />
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "h-9 w-9 overflow-hidden",
-                          token1.isNft
-                            ? "rounded-[4px]"
-                            : "rounded-full bg-night-1000"
-                        )}
-                      >
-                        {token1.image && (
-                          <img
-                            src={token1.image}
-                            className={cn(
-                              "h-6 w-6 rounded-full",
-                              token1.isNft && "h-9 w-9 rounded-none"
-                            )}
-                            alt={token1.name}
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="font-medium uppercase text-night-100">
-                          {token1.name}
-                        </p>
-                        <p className="text-sm capitalize text-night-400">
-                          0 {token1.name}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                  Sell
-                </td>
-                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                  $0.00
-                </td>
-                <td className="px-4 py-4 text-right sm:px-5">0</td>
-                <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                  12:42:00
-                </td>
-                <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
-                  <button className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100">
-                    <ExternalLinkIcon className="w-5" />
-                  </button>
-                  <button
-                    className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
-                    onClick={() => setExpandedRow(expandedRow === 0 ? null : 0)}
-                  >
-                    <ChevronDownIcon
-                      className={cn(
-                        "w-5 transition-all",
-                        expandedRow === 0 && "-rotate-180"
-                      )}
-                    />
-                  </button>
-                </td>
-              </tr>
+              {transactions.map((tx) => {
+                let baseToken: PoolToken;
+                let baseAmount: string;
+                let quoteToken: PoolToken;
+                let quoteAmount: string;
+                const isSwap = tx.type === "Swap";
+                if (isSwap) {
+                  if (tx.isAmount1Out) {
+                    baseToken = pool.token0;
+                    baseAmount = tx.amount0;
+                    quoteToken = pool.token1;
+                    quoteAmount = tx.amount1;
+                  } else {
+                    baseToken = pool.token1;
+                    baseAmount = tx.amount1;
+                    quoteToken = pool.token0;
+                    quoteAmount = tx.amount0;
+                  }
+                } else {
+                  baseToken = pool.baseToken;
+                  quoteToken = pool.quoteToken;
+                  if (baseToken.id === pool.token0.id) {
+                    baseAmount = tx.amount0;
+                    quoteAmount = tx.amount1;
+                  } else {
+                    baseAmount = tx.amount1;
+                    quoteAmount = tx.amount0;
+                  }
+                }
 
-              {expandedRow === 0 && (
-                <motion.div
-                  initial={{ height: "0px", opacity: 0 }}
-                  animate={{ height: "max", opacity: 1 }}
-                  exit={{ height: "0px", opacity: 0 }}
-                  className={cn("grid w-full bg-night-1100 px-3 py-6")}
-                >
-                  {token0.isNft &&
-                    token0.reserveItems.map(
-                      ({ tokenId, name, image, amount }) => (
-                        <div
-                          key={tokenId}
-                          className="relative h-24 w-24 overflow-hidden rounded"
-                        >
-                          <img src={image} alt={name} />
-                          <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
-                            {amount}x
-                          </span>
+                return (
+                  <Fragment key={tx.hash}>
+                    <tr className="border-b border-b-night-900 transition-colors">
+                      <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
+                        <div className="flex items-center gap-4 text-sm text-night-400">
+                          <div className="flex items-center gap-2.5">
+                            <PoolTokenImage
+                              className="h-9 w-9"
+                              token={baseToken}
+                            />
+                            <span>
+                              <span className="text-honey-25">
+                                {formatBalance(baseAmount)}
+                              </span>{" "}
+                              {baseToken.symbol}
+                            </span>
+                          </div>
+                          {isSwap ? (
+                            <ArrowRightIcon className="h-6 w-6" />
+                          ) : (
+                            <PlusIcon className="h-6 w-6" />
+                          )}
+                          <div className="flex items-center gap-2.5">
+                            <PoolTokenImage
+                              className="h-9 w-9"
+                              token={quoteToken}
+                            />
+                            <span>
+                              <span className="text-honey-25">
+                                {formatBalance(quoteAmount)}
+                              </span>{" "}
+                              {quoteToken.symbol}
+                            </span>
+                          </div>
                         </div>
-                      )
-                    )}
-                </motion.div>
-              )}
+                      </td>
+                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                        {tx.type}
+                      </td>
+                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                        ?
+                      </td>
+                      <td className="px-4 py-4 text-center sm:px-5">
+                        {truncateEthAddress(tx.user.id)}
+                      </td>
+                      <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+                        {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
+                      </td>
+                      <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                        <a
+                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                          href={`${blockExplorer.url}/tx/${tx.hash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`View on ${blockExplorer.name}`}
+                        >
+                          <ExternalLinkIcon className="h-4 w-4" />
+                        </a>
+                        {/* <button
+                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
+                          onClick={() =>
+                            setExpandedRow(expandedRow === 0 ? null : 0)
+                          }
+                        >
+                          <ChevronDownIcon
+                            className={cn(
+                              "w-5 transition-all",
+                              expandedRow === 0 && "-rotate-180"
+                            )}
+                          />
+                        </button> */}
+                      </td>
+                    </tr>
+                    {/* {expandedRow === 0 && (
+                      <motion.div
+                        initial={{ height: "0px", opacity: 0 }}
+                        animate={{ height: "max", opacity: 1 }}
+                        exit={{ height: "0px", opacity: 0 }}
+                        className={cn("grid w-full bg-night-1100 px-3 py-6")}
+                      >
+                        {token0.isNft &&
+                          token0.reserveItems.map(
+                            ({ tokenId, name, image, amount }) => (
+                              <div
+                                key={tokenId}
+                                className="relative h-24 w-24 overflow-hidden rounded"
+                              >
+                                <img src={image} alt={name} />
+                                <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-bold text-night-900">
+                                  {amount}x
+                                </span>
+                              </div>
+                            )
+                          )}
+                      </motion.div>
+                    )} */}
+                  </Fragment>
+                );
+              })}
             </>
           </tbody>
         </AnimatePresence>
@@ -559,8 +593,14 @@ const PoolActivityTable = ({
           <span className="font-medium text-night-200">
             {activePage * showPerPage + 1}
           </span>{" "}
-          to <span className="font-medium text-night-200">1</span> of{" "}
-          <span className="font-medium text-night-200">1</span>
+          to{" "}
+          <span className="font-medium text-night-200">
+            {formatNumber(transactions.length)}
+          </span>{" "}
+          of{" "}
+          <span className="font-medium text-night-200">
+            {formatNumber(pool.txCount)}
+          </span>
         </p>
         <button
           className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"

@@ -52,7 +52,11 @@ export const createPoolFromPair = (
     baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
     quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
     tvlUSD: token0PriceUSD * reserve0 * 2,
+    txCount: pair.txCount,
+    transactions: pair.transactions,
   };
 };
 
 export type Pool = ReturnType<typeof createPoolFromPair>;
+
+export type PoolTransactionType = Pool["transactions"][number]["type"];
