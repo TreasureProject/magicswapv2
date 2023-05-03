@@ -204,6 +204,20 @@ export default function SwapPage() {
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
+  useEffect(() => {
+    setTrade((trade) => ({
+      ...trade,
+      nftsIn: [],
+    }));
+  }, [tokenIn.id]);
+
+  useEffect(() => {
+    setTrade((trade) => ({
+      ...trade,
+      nftsOut: [],
+    }));
+  }, [tokenOut?.id]);
+
   return (
     <main className="mx-auto max-w-xl py-6 sm:py-10">
       <div className="flex items-center justify-between gap-3 text-night-600">
@@ -404,19 +418,58 @@ const SwapTokenInput = ({
         </Dialog>
         <div className="space-y-1 text-right">
           {token.isNft ? (
-            <Dialog>
-              <SelectionPopup
-                type={isOut ? "vault" : "inventory"}
-                token={token}
-                selectedTokens={selectedNfts}
-                onSubmit={onSelectNfts}
-              />
-              <DialogTrigger asChild>
-                <Button variant="dark" size="md">
-                  Select Items
-                </Button>
-              </DialogTrigger>
-            </Dialog>
+            selectedNfts.length > 0 ? (
+              <div className="flex items-center space-x-2">
+                {selectedNfts.length > 5 ? (
+                  <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
+                    <p className="text-xs font-semibold text-night-500">
+                      +{selectedNfts.length - 5}
+                    </p>
+                  </div>
+                ) : null}
+                <div
+                  className={cn("flex", {
+                    "-space-x-5": token.type === "ERC721",
+                  })}
+                >
+                  {selectedNfts
+                    .slice(0, Math.min(selectedNfts.length, 5))
+                    .map((nft) => {
+                      return (
+                        <div
+                          key={nft.tokenId}
+                          className="flex flex-col items-center"
+                        >
+                          <img
+                            className="h-12 w-12 rounded border-2 border-night-1100"
+                            src={nft.image.uri}
+                            alt={nft.metadata.name}
+                          />
+                          {token.type === "ERC1155" ? (
+                            <p className="text-xs text-night-600">
+                              {nft.quantity}x
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ) : (
+              <Dialog>
+                <SelectionPopup
+                  type={isOut ? "vault" : "inventory"}
+                  token={token}
+                  selectedTokens={selectedNfts}
+                  onSubmit={onSelectNfts}
+                />
+                <DialogTrigger asChild>
+                  <Button variant="dark" size="md">
+                    Select Items
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            )
           ) : (
             <>
               <CurrencyInput value={amount} onChange={onUpdateAmount} />
@@ -437,7 +490,19 @@ const SwapTokenInput = ({
               {formatBalance(balance)}
             </span>
           </div>
-          {/* <Button mode="secondary">Max</Button> */}
+          {selectedNfts.length > 0 ? (
+            <Dialog>
+              <SelectionPopup
+                type={isOut ? "vault" : "inventory"}
+                token={token}
+                selectedTokens={selectedNfts}
+                onSubmit={onSelectNfts}
+              />
+              <DialogTrigger asChild>
+                <Button variant="ghost">Edit Selection</Button>
+              </DialogTrigger>
+            </Dialog>
+          ) : null}
         </div>
       </div>
     </div>
