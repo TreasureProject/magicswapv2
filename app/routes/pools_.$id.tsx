@@ -517,7 +517,7 @@ const PoolActivityTable = ({
                         {tx.type}
                       </td>
                       <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                        {formatUSD(tx.amountUsd)}
+                        {formatUSD(tx.amountUSD)}
                       </td>
                       <td className="px-4 py-4 text-center sm:px-5">
                         {truncateEthAddress(tx.user.id)}

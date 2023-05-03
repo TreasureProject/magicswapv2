@@ -41,7 +41,7 @@ fragment PairFragment on Pair {
     }
     amount0
     amount1
-    amountUsd
+    amountUSD
     isAmount1Out
   }
 }
