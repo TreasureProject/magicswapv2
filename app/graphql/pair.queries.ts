@@ -28,6 +28,11 @@ export const PAIR_FRAGMENT = gql`
       amountUSD
       isAmount1Out
     }
+    dayData(first: 7, orderBy: date, orderDirection: desc) {
+      reserveUSD
+      volumeUSD
+      txCount
+    }
   }
 `;
 

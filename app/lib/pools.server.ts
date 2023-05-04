@@ -12,6 +12,11 @@ export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
   return `${token0.symbol} / ${token1.symbol}`;
 };
 
+const getPoolAPY = (volume1w: number, reserveUSD: number) => {
+  const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
+  return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
+};
+
 export const createPoolFromPair = (
   pair: Pair,
   collections: TroveCollectionMapping,
@@ -38,6 +43,11 @@ export const createPoolFromPair = (
     priceUSD: token1PriceUSD,
     reserve: reserve1,
   };
+  const reserveUSD = Number(pair.reserveUSD);
+  const volume1w = pair.dayData.reduce(
+    (total, { volumeUSD }) => total + Number(volumeUSD),
+    0
+  );
   return {
     ...pair,
     name: createPoolName(token0, token1),
@@ -46,6 +56,10 @@ export const createPoolFromPair = (
     totalSupply: Number(formatEther(pair.totalSupply)),
     baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
     quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
+    reserveUSD,
+    volume24h: Number(pair.dayData[0]?.volumeUSD ?? 0),
+    volume1w,
+    apy: getPoolAPY(volume1w, reserveUSD),
   };
 };
 

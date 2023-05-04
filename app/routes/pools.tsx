@@ -12,6 +12,7 @@ import { Tabs } from "~/components/Tabs";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Button } from "~/components/ui/Button";
 import { formatUSD } from "~/lib/currency";
+import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { getSession } from "~/sessions";
 import type { Optional } from "~/types";
@@ -59,7 +60,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
             </th>
             <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
               <abbr title="Annual Percentage Rate" className="no-underline">
-                APR
+                APY
               </abbr>
             </th>
             <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
@@ -85,10 +86,10 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                 </Link>
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                ?
+                {formatUSD(pool.volume24h)}
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                ?
+                {formatPercent(pool.apy)}
               </td>
               <td className="px-4 py-4 text-right sm:px-5">
                 {formatUSD(pool.reserveUSD)}
