@@ -1,4 +1,5 @@
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/server-runtime";
 import { MagicLogo } from "@treasure-project/branding";
 import { motion } from "framer-motion";
 import {
@@ -9,6 +10,7 @@ import {
 import collectionsImage from "../assets/collections.png";
 import magicIllustration from "../assets/magic_illustration.png";
 import tokenGraphicImage from "../assets/token_graphic.png";
+import { fetchStats } from "~/api/stats.server";
 import {
   ChartIcon,
   ExchangeIcon,
@@ -20,8 +22,18 @@ import {
 import InfoCard from "~/components/Landing/InfoCard";
 import StatisticCard from "~/components/Landing/StatisticCard";
 import { Button } from "~/components/ui/Button";
+import { formatUSD } from "~/lib/currency";
+import { formatNumber } from "~/lib/number";
 
-const landing = () => {
+export async function loader() {
+  const stats = await fetchStats();
+  return json({
+    stats,
+  });
+}
+
+export default function Homepage() {
+  const { stats } = useLoaderData<typeof loader>();
   return (
     <div className="max-w-screen mb-24 overflow-x-hidden">
       <div className="ruby-glow h-[548px] w-screen border-b border-b-night-800">
@@ -118,8 +130,8 @@ const landing = () => {
         >
           <StatisticCard
             Icon={MagicLogo}
-            value="$2.00"
-            title="Magic Price"
+            value={formatUSD(stats.global?.magicUSD ?? 0)}
+            title="MAGIC Price"
             Background={FlatMagicIcon}
           />
         </motion.div>
@@ -138,8 +150,8 @@ const landing = () => {
           }}
         >
           <StatisticCard
-            value="4,530,000"
-            title="TRADES"
+            value={stats.global?.txCount ?? 0}
+            title="Transactions"
             Background={ExchangeIcon}
           />
         </motion.div>
@@ -158,7 +170,7 @@ const landing = () => {
           }}
         >
           <StatisticCard
-            value="$500,000.00"
+            value={formatUSD(stats.day?.volumeUSD ?? 0)}
             title="Volume Today"
             Background={ChartIcon}
           />
@@ -177,7 +189,10 @@ const landing = () => {
             delay: 0.4,
           }}
         >
-          <StatisticCard value="535.000" title="NFTs Supplied" />
+          <StatisticCard
+            value={formatNumber(stats.global?.reserveNFT ?? 0)}
+            title="NFTs Supplied"
+          />
         </motion.div>
       </div>
       <motion.div
@@ -291,6 +306,4 @@ const landing = () => {
       </div>
     </div>
   );
-};
-
-export default landing;
+}

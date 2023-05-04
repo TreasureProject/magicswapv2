@@ -6,7 +6,7 @@ interface Props {
   Icon?: React.ElementType;
   iconClass?: string;
   Background?: React.ElementType;
-  value: string;
+  value: string | number;
   title: string;
 }
 

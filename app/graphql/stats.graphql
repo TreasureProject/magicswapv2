@@ -1,0 +1,14 @@
+query getStats {
+  factories {
+    reserveNFT
+    txCount
+    magicUSD
+  }
+  dayDatas(
+    orderBy: date
+    orderDirection: desc
+    first: 1
+  ) {
+    volumeUSD
+  }
+}
