@@ -113,10 +113,3 @@ export type Traits = TraitMetadata & {
   traitName: string;
   values: { valueName: string; count: number }[];
 };
-
-// DeFiLlama
-export type LlamaTokensResponse = {
-  coins: Record<string, { price: number }>;
-};
-
-export type TokenPriceMapping = Record<string, number>;

@@ -13,6 +13,7 @@ export const PAIR_FRAGMENT = gql`
     }
     reserve0
     reserve1
+    reserveUSD
     totalSupply
     txCount
     transactions(orderBy: timestamp, orderDirection: desc) {

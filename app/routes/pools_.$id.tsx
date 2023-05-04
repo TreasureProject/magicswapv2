@@ -96,7 +96,7 @@ export default function PoolDetailsPage() {
                   </abbr>
                   :{" "}
                   <span className="font-medium">
-                    {formatUSD(pool.tvlUSD * lpShare)}
+                    {formatUSD(Number(pool.reserveUSD) * lpShare)}
                   </span>
                 </span>
               </div>
@@ -162,7 +162,9 @@ export default function PoolDetailsPage() {
                     TVL
                   </abbr>
                   :{" "}
-                  <span className="font-medium">{formatUSD(pool.tvlUSD)}</span>
+                  <span className="font-medium">
+                    {formatUSD(pool.reserveUSD)}
+                  </span>
                 </span>
               </div>
               <div className="flex items-center justify-center gap-4 text-night-400">

@@ -91,7 +91,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                 ?
               </td>
               <td className="px-4 py-4 text-right sm:px-5">
-                {formatUSD(pool.tvlUSD)}
+                {formatUSD(pool.reserveUSD)}
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
                 ?

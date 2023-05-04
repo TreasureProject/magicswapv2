@@ -1,20 +1,13 @@
 import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
+import { fetchMagicUSD } from "./stats.server";
 import type { getTokensQuery } from ".graphclient";
 import { execute, getTokensDocument } from ".graphclient";
-import { NORMALIZED_TOKEN_MAPPING } from "~/lib/tokens.server";
 import { getTokenCollectionAddresses } from "~/lib/tokens.server";
 import { getTokenReserveItemIds } from "~/lib/tokens.server";
-import { isTokenNft } from "~/lib/tokens.server";
 import { createPoolToken } from "~/lib/tokens.server";
-import type {
-  LlamaTokensResponse,
-  TokenPriceMapping,
-  TraitsResponse,
-  TroveToken,
-  TroveTokenMapping,
-} from "~/types";
+import type { TraitsResponse, TroveToken, TroveTokenMapping } from "~/types";
 
 export const fetchTokens = async () => {
   const result = (await execute(
@@ -22,7 +15,7 @@ export const fetchTokens = async () => {
     {}
   )) as ExecutionResult<getTokensQuery>;
   const { tokens: rawTokens = [] } = result.data ?? {};
-  const [collections, tokens, erc20Prices] = await Promise.all([
+  const [collections, tokens, magicUSD] = await Promise.all([
     fetchTroveCollections([
       ...new Set(
         rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
@@ -31,14 +24,10 @@ export const fetchTokens = async () => {
     fetchTroveTokens([
       ...new Set(rawTokens.flatMap((token) => getTokenReserveItemIds(token))),
     ]),
-    fetchTokenPrices([
-      ...new Set(
-        rawTokens.flatMap((token) => (isTokenNft(token) ? [] : [token.id]))
-      ),
-    ]),
+    fetchMagicUSD(),
   ]);
   return rawTokens.map((token) =>
-    createPoolToken(token, collections, tokens, erc20Prices)
+    createPoolToken(token, collections, tokens, magicUSD)
   );
 };
 
@@ -157,29 +146,4 @@ export const fetchTroveTokens = async (
     collection[token.tokenId] = token;
     return next;
   }, {} as TroveTokenMapping);
-};
-
-export const fetchTokenPrices = async (
-  addresses: string[]
-): Promise<TokenPriceMapping> => {
-  const normalizedAddresses = addresses.map(
-    (address) =>
-      `arbitrum:${
-        NORMALIZED_TOKEN_MAPPING[address.toLowerCase()] ?? address.toLowerCase()
-      }`
-  );
-  const response = await fetch(
-    `https://coins.llama.fi/prices/current/${normalizedAddresses.join(",")}`
-  );
-  const result = (await response.json()) as LlamaTokensResponse;
-  return Object.entries(result.coins).reduce((acc, [address, { price }]) => {
-    const tokenName = address.split(":")[1];
-
-    if (!tokenName) return acc;
-
-    return {
-      ...acc,
-      [tokenName]: price,
-    };
-  }, {} as TokenPriceMapping);
 };

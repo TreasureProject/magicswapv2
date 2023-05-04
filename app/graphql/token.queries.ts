@@ -6,6 +6,7 @@ export const TOKEN_FRAGMENT = gql`
     name
     symbol
     decimals
+    derivedMAGIC
     vaultCollections {
       collection {
         id

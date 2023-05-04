@@ -14,3 +14,8 @@ export const fetchStats = async () => {
     day: dayDatas[0],
   };
 };
+
+export const fetchMagicUSD = async () => {
+  const stats = await fetchStats();
+  return Number(stats.global?.magicUSD ?? 0);
+};

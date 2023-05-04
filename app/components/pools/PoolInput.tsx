@@ -29,7 +29,7 @@ export const PoolInput = ({
           <span className="block text-sm text-night-400">
             {formatUSD(
               new Decimal(amount === "0" ? 1 : amount)
-                .mul(pool.tvlUSD)
+                .mul(pool.reserveUSD)
                 .div(pool.totalSupply)
                 .toFixed(2, Decimal.ROUND_DOWN)
             )}

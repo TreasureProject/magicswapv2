@@ -1,10 +1,5 @@
 import { createPoolTokenCollection } from "./collections.server";
-import type {
-  Token,
-  TokenPriceMapping,
-  TroveCollectionMapping,
-  TroveTokenMapping,
-} from "~/types";
+import type { Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 // TODO: Move to a token list JSON per chain
 export const NORMALIZED_TOKEN_MAPPING: Record<string, string> = {
@@ -59,7 +54,7 @@ export const createPoolToken = (
   token: Token,
   collections: TroveCollectionMapping,
   tokens: TroveTokenMapping,
-  prices: TokenPriceMapping
+  magicUSD: number
 ) => {
   const tokenCollections =
     token.vaultCollections.map(({ collection }) =>
@@ -69,10 +64,9 @@ export const createPoolToken = (
   const isNft = isTokenNft(token);
 
   return {
-    id: token.id,
+    ...token,
     name: createTokenName(token, collections),
     symbol,
-    decimals: token.decimals,
     image:
       tokenCollections[0]?.image ??
       (isNft ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
@@ -81,7 +75,7 @@ export const createPoolToken = (
     type: tokenCollections[0]?.type ?? "ERC721",
     isNft,
     collectionId: tokenCollections[0]?.id ?? "",
-    priceUSD: prices[NORMALIZED_TOKEN_MAPPING[token.id] ?? token.id] ?? 0,
+    priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
     reserveItems: token.vaultReserveItems.map(
       ({ collection, tokenId, amount }) => {

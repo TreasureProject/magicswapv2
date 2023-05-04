@@ -4,29 +4,27 @@ import type { getPairQuery, getPairsQuery } from "../../.graphclient";
 import { getPairDocument } from "../../.graphclient";
 import { execute, getPairsDocument } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
-import { fetchTokenPrices, fetchTroveTokens } from "./tokens.server";
+import { fetchMagicUSD } from "./stats.server";
+import { fetchTroveTokens } from "./tokens.server";
 import {
   getPairCollectionAddresses,
-  getPairERC20Addresses,
   getPairReserveItemAddresses,
 } from "~/lib/pairs.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import type { Pair } from "~/types";
 
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
-  const [collections, tokens, erc20Prices] = await Promise.all([
+  const [collections, tokens, magicUSD] = await Promise.all([
     fetchTroveCollections([
       ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
     ]),
     fetchTroveTokens([
       ...new Set(pairs.flatMap((pair) => getPairReserveItemAddresses(pair))),
     ]),
-    fetchTokenPrices([
-      ...new Set(pairs.flatMap((pair) => getPairERC20Addresses(pair))),
-    ]),
+    fetchMagicUSD(),
   ]);
   return pairs.map((pair) =>
-    createPoolFromPair(pair, collections, tokens, erc20Prices)
+    createPoolFromPair(pair, collections, tokens, magicUSD)
   );
 };
 
@@ -48,10 +46,10 @@ export const fetchPool = async (id: string) => {
     return undefined;
   }
 
-  const [collections, tokens, erc20Prices] = await Promise.all([
+  const [collections, tokens, magicUSD] = await Promise.all([
     fetchTroveCollections(getPairCollectionAddresses(pair)),
     fetchTroveTokens(getPairReserveItemAddresses(pair)),
-    fetchTokenPrices(getPairERC20Addresses(pair)),
+    fetchMagicUSD(),
   ]);
-  return createPoolFromPair(pair, collections, tokens, erc20Prices);
+  return createPoolFromPair(pair, collections, tokens, magicUSD);
 };

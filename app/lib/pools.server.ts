@@ -2,12 +2,7 @@ import { formatEther } from "@ethersproject/units";
 
 import { createPoolToken } from "./tokens.server";
 import type { PoolToken } from "./tokens.server";
-import type {
-  Pair,
-  TokenPriceMapping,
-  TroveCollectionMapping,
-  TroveTokenMapping,
-} from "~/types";
+import type { Pair, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
   if (token1.isNft && !token0.isNft) {
@@ -21,10 +16,10 @@ export const createPoolFromPair = (
   pair: Pair,
   collections: TroveCollectionMapping,
   tokens: TroveTokenMapping,
-  prices: TokenPriceMapping
+  magicUSD: number
 ) => {
-  const token0 = createPoolToken(pair.token0, collections, tokens, prices);
-  const token1 = createPoolToken(pair.token1, collections, tokens, prices);
+  const token0 = createPoolToken(pair.token0, collections, tokens, magicUSD);
+  const token1 = createPoolToken(pair.token1, collections, tokens, magicUSD);
   const reserve0 = Number(pair.reserve0);
   const reserve1 = Number(pair.reserve1);
   const token0PriceUSD =
@@ -44,16 +39,13 @@ export const createPoolFromPair = (
     reserve: reserve1,
   };
   return {
-    id: pair.id,
+    ...pair,
     name: createPoolName(token0, token1),
     token0: poolToken0,
     token1: poolToken1,
     totalSupply: Number(formatEther(pair.totalSupply)),
     baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
     quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
-    tvlUSD: token0PriceUSD * reserve0 * 2,
-    txCount: pair.txCount,
-    transactions: pair.transactions,
   };
 };
 
