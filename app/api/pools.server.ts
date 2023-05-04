@@ -11,13 +11,9 @@ import {
   getPairReserveItemAddresses,
 } from "~/lib/pairs.server";
 import { createPoolFromPair } from "~/lib/pools.server";
+import type { Pair } from "~/types";
 
-export const fetchPools = async () => {
-  const result = (await execute(
-    getPairsDocument,
-    {}
-  )) as ExecutionResult<getPairsQuery>;
-  const { pairs = [] } = result.data ?? {};
+export const createPoolsFromPairs = async (pairs: Pair[]) => {
   const [collections, tokens, erc20Prices] = await Promise.all([
     fetchTroveCollections([
       ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
@@ -32,6 +28,15 @@ export const fetchPools = async () => {
   return pairs.map((pair) =>
     createPoolFromPair(pair, collections, tokens, erc20Prices)
   );
+};
+
+export const fetchPools = async () => {
+  const result = (await execute(
+    getPairsDocument,
+    {}
+  )) as ExecutionResult<getPairsQuery>;
+  const { pairs = [] } = result.data ?? {};
+  return createPoolsFromPairs(pairs);
 };
 
 export const fetchPool = async (id: string) => {

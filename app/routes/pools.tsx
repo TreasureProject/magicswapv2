@@ -1,9 +1,11 @@
 import { Link, useLoaderData } from "@remix-run/react";
+import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
+import { fetchUser } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { PoolIcon } from "~/components/Icons";
 import { Tabs } from "~/components/Tabs";
@@ -11,11 +13,23 @@ import { PoolImage } from "~/components/pools/PoolImage";
 import { Button } from "~/components/ui/Button";
 import { formatUSD } from "~/lib/currency";
 import type { Pool } from "~/lib/pools.server";
+import { getSession } from "~/sessions";
+import type { Optional } from "~/types";
 
-export async function loader() {
-  const pools = await fetchPools();
+export async function loader({ request }: LoaderArgs) {
+  let address: Optional<string>;
+  const session = await getSession(request.headers.get("Cookie"));
+  if (session.has("address")) {
+    address = session.get("address");
+  }
+
+  const [pools, user] = await Promise.all([
+    fetchPools(),
+    address ? fetchUser(address) : undefined,
+  ]);
   return json({
     pools,
+    user,
   });
 }
 
@@ -117,7 +131,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
 };
 
 export default function PoolsListPage() {
-  const { pools } = useLoaderData<typeof loader>();
+  const { pools, user } = useLoaderData<typeof loader>();
   const [tab, setTab] = useState("all");
 
   return (
@@ -154,7 +168,7 @@ export default function PoolsListPage() {
             title: (
               <div className="flex items-center justify-center gap-2">
                 Your Positions
-                <Badge>0</Badge>
+                <Badge>{user?.liquidityPositions.length ?? 0}</Badge>
               </div>
             ),
           },
@@ -167,26 +181,30 @@ export default function PoolsListPage() {
         <>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
             <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
-              <span className="text-xl">0</span>
+              <span className="text-xl">
+                {user?.liquidityPositions.length ?? 0}
+              </span>
               <span className="text-sm text-night-300">Open Positions</span>
             </div>
             <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
-              <span className="text-xl">$0.00</span>
+              <span className="text-xl">?</span>
               <span className="text-sm text-night-300">Rewards Earned</span>
             </div>
-            <div className="col-span-2 flex items-center justify-center rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
-              <span>
-                You currently do not have any open positions.{" "}
-                <Link
-                  to=""
-                  className="text-ruby-900 transition-colors hover:text-ruby-800"
-                >
-                  Create a new position
-                </Link>
-              </span>
-            </div>
+            {!user?.liquidityPositions.length && (
+              <div className="col-span-2 flex items-center justify-center rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
+                <span>
+                  You currently do not have any open positions.{" "}
+                  <Link
+                    to=""
+                    className="text-ruby-900 transition-colors hover:text-ruby-800"
+                  >
+                    Create a new position
+                  </Link>
+                </span>
+              </div>
+            )}
           </div>
-          <PoolsTable pools={pools as Pool[]} />
+          <PoolsTable pools={(user?.pools ?? []) as Pool[]} />
         </>
       )}
     </main>

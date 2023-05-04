@@ -2,11 +2,12 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { parseEther, parseUnits } from "@ethersproject/units";
 import Decimal from "decimal.js-light";
 import { useEffect, useState } from "react";
-import { useAccount, useWaitForTransaction } from "wagmi";
+import { useWaitForTransaction } from "wagmi";
 
 import { Button } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 import { PoolTokenImage } from "./PoolTokenImage";
+import { useAccount } from "~/contexts/account";
 import { useSettings } from "~/contexts/settings";
 import {
   magicSwapV2RouterAddress,
@@ -28,7 +29,7 @@ type Props = {
 };
 
 export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
-  const { address = "0x0" } = useAccount();
+  const { address, addressArg } = useAccount();
   const { slippage, deadline } = useSettings();
   const [amount, setAmount] = useState("0");
 
@@ -50,7 +51,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
 
   const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
     address: pool.id as AddressString,
-    args: [address ?? "0x0", magicSwapV2RouterAddress[421613]],
+    args: [addressArg, magicSwapV2RouterAddress[421613]],
     enabled: !!address,
   });
   const isApproved = allowance?.gte(amountBN) ?? false;
@@ -71,7 +72,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
         amountBN,
         parseUnits(amountBaseMin, pool.baseToken.decimals),
         parseUnits(amountQuoteMin, pool.quoteToken.decimals),
-        address ?? "0x0",
+        addressArg,
         BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
       ],
       enabled: !!address && isApproved && hasAmount,

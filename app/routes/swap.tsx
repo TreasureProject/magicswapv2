@@ -17,7 +17,7 @@ import {
   SettingsIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAccount, useBalance } from "wagmi";
+import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
@@ -42,6 +42,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
+import { useAccount } from "~/contexts/account";
 import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";

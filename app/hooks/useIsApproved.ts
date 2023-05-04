@@ -1,7 +1,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { useCallback } from "react";
-import { useAccount } from "wagmi";
 
+import { useAccount } from "~/contexts/account";
 import {
   magicSwapV2RouterAddress,
   useErc20Allowance,
@@ -22,10 +22,9 @@ export const useIsApproved = ({
   amount = BigNumber.from(0),
   enabled = true,
 }: Props) => {
-  const { address } = useAccount();
+  const { address, addressArg } = useAccount();
 
   const isEnabled = !!address && enabled;
-  const addressArg = address ?? "0x0";
 
   const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
     address: token.id as AddressString,

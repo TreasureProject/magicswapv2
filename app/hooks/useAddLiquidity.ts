@@ -1,6 +1,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
-import { useAccount, useWaitForTransaction } from "wagmi";
+import { useWaitForTransaction } from "wagmi";
 
+import { useAccount } from "~/contexts/account";
 import { useSettings } from "~/contexts/settings";
 import {
   useMagicSwapV2RouterAddLiquidity,
@@ -30,10 +31,9 @@ export const useAddLiquidity = ({
   nfts,
   enabled = true,
 }: Props) => {
-  const { address } = useAccount();
+  const { address, addressArg } = useAccount();
   const { deadline } = useSettings();
 
-  const addressArg = address ?? "0x0";
   const isEnabled = enabled && !!address;
   const deadlineBN = BigNumber.from(
     Math.floor(Date.now() / 1000) + deadline * 60

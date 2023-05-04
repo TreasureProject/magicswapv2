@@ -4,7 +4,7 @@ sources:
       graphql:
         endpoint: ${MAGICSWAPV2_API_URL}
 documents:
-  - "./app/**/*.graphql"
+  - "./app/graphql/*.{graphql,ts}"
 codegen:
   scalars:
     BigDecimal: string

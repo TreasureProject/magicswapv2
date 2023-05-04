@@ -19,6 +19,7 @@ import { WagmiConfig, createClient } from "wagmi";
 import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 
 import { Layout } from "./components/Layout";
+import { AccountProvider } from "./contexts/account";
 import { SettingsProvider } from "./contexts/settings";
 import nProgressStyles from "./styles/nprogress.css";
 import styles from "./styles/tailwind.css";
@@ -106,9 +107,11 @@ export default function App() {
         <WagmiConfig client={client}>
           <ConnectKitProvider>
             <Layout>
-              <SettingsProvider>
-                <Outlet />
-              </SettingsProvider>
+              <AccountProvider>
+                <SettingsProvider>
+                  <Outlet />
+                </SettingsProvider>
+              </AccountProvider>
             </Layout>
           </ConnectKitProvider>
         </WagmiConfig>
