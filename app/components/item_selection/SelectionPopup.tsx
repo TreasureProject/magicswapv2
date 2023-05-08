@@ -4,11 +4,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckIcon,
   TableIcon as ColumnIcon,
+  Filter,
   SlidersHorizontalIcon as FilterIcon,
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
   SettingsIcon,
   ShoppingCartIcon,
+  X,
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
@@ -26,12 +28,14 @@ import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
 import { MultiSelect } from "../ui/MultiSelect";
 import { NumberSelect } from "../ui/NumberSelect";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { ScrollArea } from "../ui/ScrollArea";
 import Searchbar from "../ui/Searchbar";
 import type { TroveFilters } from "~/api/tokens.server";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { CollectionLoader } from "~/routes/resources.get-collection";
 import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
@@ -69,6 +73,37 @@ const ItemCard = ({
   </div>
 );
 
+const TraitFilterBadge = ({
+  trait,
+  currentSelectedTraits,
+}: {
+  trait: string;
+  currentSelectedTraits: string[];
+}) => {
+  const [key, value] = trait.split(":");
+
+  return (
+    <span
+      key={`${key}:${value}`}
+      className="m-1 inline-flex flex-shrink-0 items-center rounded-full border-transparent bg-secondary py-1.5 pl-3 pr-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+    >
+      <p className="space-x-1 text-xs">
+        <span className="inline-block capitalize">{key}</span>
+        <span className="text-night-300">is</span>
+        <span className="inline-block capitalize">{value}</span>
+      </p>
+      <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
+      <button
+        type="submit"
+        className="ml-1 inline-flex h-4 w-4 flex-shrink-0 rounded-full p-1 text-night-400 hover:bg-night-1000"
+      >
+        <span className="sr-only">Remove filter for {value}</span>
+        <X className="h-2 w-2" />
+      </button>
+    </span>
+  );
+};
+
 export const SelectionPopup = ({
   token,
   type,
@@ -83,10 +118,9 @@ export const SelectionPopup = ({
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     selectedTokens || []
   );
-  const [activeTab, setActiveTab] = useState<string>("items");
-  const fetcher = useFetcher<TroveToken[]>();
+  const fetcher = useFetcher<CollectionLoader>();
   const filterFetcher = useFetcher<TroveFilters>();
-  const { load, Form, submit, submission } = fetcher;
+  const { load, Form, submit, formData, state, data } = fetcher;
   const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
@@ -98,14 +132,14 @@ export const SelectionPopup = ({
 
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
-    if (submission) {
-      const traitsInfo = submission.formData.getAll("traits")[0];
+    if (formData) {
+      const traitsInfo = formData.getAll("traits")[0];
 
       if (typeof traitsInfo === "string") {
         traitInfoRef.current = traitsInfo;
       }
     }
-  }, [submission]);
+  }, [formData]);
 
   const fetchCollection = React.useCallback(() => {
     if (!address || !token?.isNft) {
@@ -161,8 +195,10 @@ export const SelectionPopup = ({
 
   if (!token) return null;
 
+  const selectedTraitCount = data?.traits ? data?.traits.length : 0;
+
   return (
-    <TransparentDialogContent className="h-full grid-areas-nft-modal [grid-template-columns:repeat(4,20%)_1fr] [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl">
+    <TransparentDialogContent className="h-full grid-areas-nft-modal-mobile [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl sm:grid-areas-nft-modal sm:[grid-template-columns:repeat(4,1fr)_25%]">
       <div className="flex items-center gap-2 grid-in-header">
         <p className="text-md text-night-400">Select</p>
         {token.image ? (
@@ -209,192 +245,233 @@ export const SelectionPopup = ({
           initial deposited items are still available
         </div> */}
       </div>
-      <div className="overflow-auto rounded-lg bg-night-1100 p-4 grid-in-nft">
-        {fetcher.state === "loading" || fetcher.state === "submitting" ? (
-          <div className="flex h-full items-center justify-center">
-            <LoaderIcon className="h-8 w-8" />
-          </div>
-        ) : fetcher.state === "idle" && fetcher.data ? (
-          <div className="grid grid-cols-6 gap-3">
-            {fetcher.data.map((item) => (
-              <ItemCard
-                selected={selectedItems.some((i) => i.tokenId === item.tokenId)}
-                key={item.tokenId}
-                item={item}
-                onClick={() => {
-                  selectionHandler({
-                    ...item,
-                    quantity: 1,
-                  });
-                }}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-      <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
-        <MultiSelect
-          tabs={[
-            {
-              id: "filters",
-              name: "Filters",
-              icon: FilterIcon,
-            },
-            {
-              id: "items",
-              name: "Items",
-              icon: ShoppingCartIcon,
-              amount: selectedItems.length,
-            },
-          ]}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-        <ScrollArea className="relative h-full">
-          {activeTab === "filters" ? (
-            <>
+      <div className="flex flex-col overflow-hidden rounded-lg grid-in-nft">
+        <Form
+          onChange={(e) => {
+            const formData = new FormData(e.currentTarget);
+            const traits = formData.getAll("traits");
+            const traitsString = traits.join(",");
+            formData.set("traits", traitsString);
+
+            submit(formData, {
+              replace: true,
+              method: "get",
+              action: "/resources/get-collection",
+            });
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const targetTrait = formData.getAll("deleteTrait")[0];
+
+            const filteredTraits = data?.traits.filter(
+              (t) => t !== targetTrait
+            );
+
+            if (!filteredTraits) return;
+
+            formData.set("traits", filteredTraits.join(","));
+
+            submit(formData, {
+              replace: true,
+              method: "get",
+              action: "/resources/get-collection",
+            });
+          }}
+        >
+          <input type="hidden" name="tokenIds" value={vaultTokenIds} />
+          <input type="hidden" name="type" value={type} />
+          <input type="hidden" name="address" value={address} />
+          <input type="hidden" name="slug" value={token.urlSlug} />
+          <Popover>
+            <div className="flex space-x-2 divide-x divide-night-800 bg-night-1000 px-4 py-2">
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "group flex flex-shrink-0 items-center",
+                    selectedTraitCount === 0 && "text-night-500"
+                  )}
+                >
+                  <Filter className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <span className="mr-1 tabular-nums">
+                    {selectedTraitCount}
+                  </span>
+                  <span>Filter(s)</span>
+                </Button>
+              </PopoverTrigger>
+              <div className="flex w-full items-center overflow-x-auto pl-2">
+                {data &&
+                  data.traits.map((trait) => (
+                    <TraitFilterBadge
+                      currentSelectedTraits={data.traits}
+                      trait={trait}
+                      key={trait}
+                    />
+                  ))}
+              </div>
+            </div>
+            <PopoverContent
+              align="start"
+              className="h-96 overflow-auto sm:min-w-[45rem]"
+            >
               {filterFetcher.state === "loading" ? (
                 <div className="flex h-full items-center justify-center">
                   <LoaderIcon className="h-8 w-8 " />
                 </div>
               ) : filterFetcher.state === "idle" && filterFetcher.data ? (
-                <Form
-                  onChange={(e) => {
-                    const formData = new FormData(e.currentTarget);
-                    const traits = formData.getAll("traits");
-                    const traitsString = traits.join(",");
-                    formData.set("traits", traitsString);
+                <div className="py-2">
+                  {filterFetcher.data ? (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-12 px-4 sm:grid-cols-4">
+                      {filterFetcher.data.map((filter) => {
+                        if (filter.values.length === 0) {
+                          return null;
+                        }
 
-                    submit(formData, {
-                      replace: true,
-                      method: "get",
-                      action: "/resources/get-collection",
+                        return (
+                          <fieldset key={filter.traitName}>
+                            <legend className="text-sm font-medium text-night-100">
+                              {filter.traitName}
+                            </legend>
+                            <div className="space-y-6 pt-4">
+                              {filter.values.map((value) => {
+                                return (
+                                  <div
+                                    key={`${filter.traitName}:${value.valueName}`}
+                                    className="flex items-center"
+                                  >
+                                    <LabeledCheckbox
+                                      id={`${filter.traitName}:${value.valueName}`}
+                                      name="traits"
+                                      defaultChecked={
+                                        data?.traits.includes(
+                                          `${filter.traitName}:${value.valueName}`
+                                        ) || false
+                                      }
+                                      value={`${filter.traitName}:${value.valueName}`}
+                                    >
+                                      <span className="cursor-pointer text-xs capitalize">
+                                        {value.valueName}
+                                      </span>
+                                    </LabeledCheckbox>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </fieldset>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </PopoverContent>
+          </Popover>
+        </Form>
+
+        <div className="relative flex-1 overflow-auto bg-night-1100 p-4">
+          {state === "loading" || state === "submitting" ? (
+            <div className="flex h-full items-center justify-center">
+              <LoaderIcon className="h-8 w-8" />
+            </div>
+          ) : state === "idle" && data ? (
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+              {data.tokens.map((item) => (
+                <ItemCard
+                  selected={selectedItems.some(
+                    (i) => i.tokenId === item.tokenId
+                  )}
+                  key={item.tokenId}
+                  item={item}
+                  onClick={() => {
+                    selectionHandler({
+                      ...item,
+                      quantity: 1,
                     });
                   }}
-                >
-                  <input type="hidden" name="tokenIds" value={vaultTokenIds} />
-                  <input type="hidden" name="type" value={type} />
-                  <input type="hidden" name="address" value={address} />
-                  <input type="hidden" name="slug" value={token.urlSlug} />
-                  <Accordion type="multiple" className="space-y-2">
-                    {filterFetcher.data?.map((filter) => (
-                      <AccordionItem
-                        className="rounded-md border-none bg-night-1000"
-                        value={filter.traitName}
-                        key={filter.traitName}
-                      >
-                        <AccordionTrigger className="p-4 text-night-100">
-                          {filter.traitName}
-                        </AccordionTrigger>
-                        <AccordionContent className="px-4">
-                          <div className="flex flex-col gap-2.5">
-                            {filter.values.map((value) => (
-                              <div
-                                className="flex w-full items-center justify-between"
-                                key={value.valueName}
-                              >
-                                <LabeledCheckbox
-                                  id={value.valueName}
-                                  name="traits"
-                                  value={`${filter.traitName}:${value.valueName}`}
-                                >
-                                  <span className="cursor-pointer capitalize">
-                                    {value.valueName}
-                                  </span>
-                                </LabeledCheckbox>
-
-                                {/* <div className="flex items-center gap-2">
-                                  <p className="font-medium text-night-100">
-                                    7
-                                  </p>
-                                  <p className="text-night-400">(15.22%)</p>
-                                </div> */}
-                              </div>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </Form>
-              ) : null}
-            </>
-          ) : (
-            <div className="flex min-h-full flex-col">
-              <p className="px-3 text-sm leading-[160%] text-night-400">
-                Selected assets
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
+        <ScrollArea className="relative h-full">
+          <div className="flex min-h-full flex-col">
+            <p className="px-3 text-sm leading-[160%] text-night-400">
+              Selected assets
+            </p>
+            {selectedItems.length > 0 ? (
+              <div className="mt-2 flex flex-1 flex-col gap-2">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {selectedItems.map((item) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
+                      key={item.tokenId}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.image ? (
+                          <img
+                            src={item.image.uri}
+                            alt={item.metadata.name}
+                            className="h-10 w-10 rounded-[4px]"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-[4px] bg-night-800" />
+                        )}
+                        <div className="flex flex-col">
+                          <p className="text-sm font-medium text-night-100">
+                            {item.metadata.name}
+                          </p>
+                          <p className="text-sm text-night-400">
+                            {item.tokenId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {item.contractType === "ERC1155" && (
+                          <NumberSelect
+                            onChange={(num) => {
+                              setSelectedItems((prev) =>
+                                prev.map((i) =>
+                                  i.tokenId === item.tokenId
+                                    ? { ...i, quantity: num }
+                                    : i
+                                )
+                              );
+                            }}
+                            value={item.quantity}
+                            max={
+                              type === "inventory"
+                                ? item.queryUserQuantityOwned || 1
+                                : token.reserveItems.find(
+                                    (i) => i.tokenId === item.tokenId
+                                  )?.amount || 1
+                            }
+                          />
+                        )}
+                        <button
+                          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
+                          onClick={() => selectionHandler(item)}
+                        >
+                          <XIcon className="w-4 text-night-400" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <p className="flex grow items-center justify-center text-xs text-night-600">
+                You haven't selected any assets yet.
               </p>
-              {selectedItems.length > 0 ? (
-                <div className="mt-2 flex flex-1 flex-col gap-2">
-                  <AnimatePresence initial={false} mode="popLayout">
-                    {selectedItems.map((item) => (
-                      <motion.div
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
-                        key={item.tokenId}
-                      >
-                        <div className="flex items-center gap-3">
-                          {item.image ? (
-                            <img
-                              src={item.image.uri}
-                              alt={item.metadata.name}
-                              className="h-10 w-10 rounded-[4px]"
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-[4px] bg-night-800" />
-                          )}
-                          <div className="flex flex-col">
-                            <p className="text-sm font-medium text-night-100">
-                              {item.metadata.name}
-                            </p>
-                            <p className="text-sm text-night-400">
-                              {item.tokenId}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {item.contractType === "ERC1155" && (
-                            <NumberSelect
-                              onChange={(num) => {
-                                setSelectedItems((prev) =>
-                                  prev.map((i) =>
-                                    i.tokenId === item.tokenId
-                                      ? { ...i, quantity: num }
-                                      : i
-                                  )
-                                );
-                              }}
-                              value={item.quantity}
-                              max={
-                                type === "inventory"
-                                  ? item.queryUserQuantityOwned || 1
-                                  : token.reserveItems.find(
-                                      (i) => i.tokenId === item.tokenId
-                                    )?.amount || 1
-                              }
-                            />
-                          )}
-                          <button
-                            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
-                            onClick={() => selectionHandler(item)}
-                          >
-                            <XIcon className="w-4 text-night-400" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <p className="flex grow items-center justify-center text-honey-50">
-                  You haven't selected any assets yet.
-                </p>
-              )}
-              <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
-                {/* <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
+            )}
+            <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
+              {/* <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm text-night-500">Total:</p>
                     <div className="h-4 w-4 rounded-full bg-night-700" />
@@ -409,28 +486,27 @@ export const SelectionPopup = ({
                     Clear
                   </button>
                 </div> */}
-                <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="md"
+                  variant="secondary"
+                  onClick={() => setSelectedItems([])}
+                >
+                  Clear
+                </Button>
+                <Close asChild>
                   <Button
                     size="md"
-                    variant="secondary"
-                    onClick={() => setSelectedItems([])}
+                    onClick={() => {
+                      onSubmit(selectedItems);
+                    }}
                   >
-                    Clear
+                    Save selections
                   </Button>
-                  <Close asChild>
-                    <Button
-                      size="md"
-                      onClick={() => {
-                        onSubmit(selectedItems);
-                      }}
-                    >
-                      Save selections
-                    </Button>
-                  </Close>
-                </div>
+                </Close>
               </div>
             </div>
-          )}
+          </div>
         </ScrollArea>
       </div>
     </TransparentDialogContent>

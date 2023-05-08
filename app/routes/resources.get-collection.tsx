@@ -44,10 +44,12 @@ export const loader = async (args: LoaderArgs) => {
       );
     }
 
-    return json(tokens);
+    return json({ tokens, traits: traits ? traits.split(",") : [] });
   } catch (e) {
     throw notFound({
       message: "Collection not found",
     });
   }
 };
+
+export type CollectionLoader = typeof loader;

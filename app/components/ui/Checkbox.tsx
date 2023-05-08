@@ -49,9 +49,7 @@ const LabeledCheckbox = ({
   >
     <Checkbox className={cn(description && "mt-[1px]")} {...props} />
     <div className="grid gap-1.5 leading-none">
-      <Label htmlFor={props.id} className="text-sm">
-        {children}
-      </Label>
+      <Label htmlFor={props.id}>{children}</Label>
       {description && (
         <p className="text-sm leading-[140%] text-muted-foreground">
           {description}

@@ -12,14 +12,21 @@ module.exports = {
       gridTemplateAreas: {
         "nft-modal": [
           "header header header header header",
-          "misc misc misc selection selection",
-          "nft nft nft selection selection",
-          "nft nft nft selection selection",
-          "nft nft nft selection selection",
+          "misc misc misc misc selection",
+          "nft nft nft nft selection",
+          "nft nft nft nft selection",
+          "nft nft nft nft selection",
+        ],
+        "nft-modal-mobile": [
+          "header header header header header",
+          "misc misc misc misc misc",
+          "nft nft nft nft nft",
+          "nft nft nft nft nft",
+          "selection selection selection selection selection",
         ],
       },
       boxShadow: {
-        glow: "0px 0px 120px rgba(31, 45, 69, 0.5)"
+        glow: "0px 0px 120px rgba(31, 45, 69, 0.5)",
       },
       colors: {
         border: "#282F3D",
@@ -27,7 +34,7 @@ module.exports = {
         ring: colors.night[1000],
         background: colors.night[1200],
         backgroundImage: {
-          'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+          "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         },
         foreground: "#ffffff",
         primary: {
