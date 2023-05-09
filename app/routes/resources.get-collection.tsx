@@ -17,6 +17,7 @@ export const loader = async (args: LoaderArgs) => {
   const traits = url.searchParams.get("traits");
   const type = url.searchParams.get("type");
   const tokenIds = url.searchParams.get("tokenIds");
+  const query = url.searchParams.get("query");
 
   invariant(type, "Missing type");
 
@@ -32,7 +33,8 @@ export const loader = async (args: LoaderArgs) => {
       tokens = await fetchIdsFromCollection(
         tokenIds,
         slug.toLowerCase(),
-        traits
+        traits,
+        query
       );
     } else {
       invariant(address, "Missing address");

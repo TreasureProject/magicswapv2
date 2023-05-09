@@ -5,11 +5,10 @@ import {
   CheckIcon,
   TableIcon as ColumnIcon,
   Filter,
-  SlidersHorizontalIcon as FilterIcon,
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
+  SearchIcon,
   SettingsIcon,
-  ShoppingCartIcon,
   X,
   XIcon,
 } from "lucide-react";
@@ -17,20 +16,12 @@ import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
 import { LoaderIcon } from "../Icons";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/Accordion";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
-import { MultiSelect } from "../ui/MultiSelect";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { ScrollArea } from "../ui/ScrollArea";
-import Searchbar from "../ui/Searchbar";
 import type { TroveFilters } from "~/api/tokens.server";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -73,13 +64,7 @@ const ItemCard = ({
   </div>
 );
 
-const TraitFilterBadge = ({
-  trait,
-  currentSelectedTraits,
-}: {
-  trait: string;
-  currentSelectedTraits: string[];
-}) => {
+const TraitFilterBadge = ({ trait }: { trait: string }) => {
   const [key, value] = trait.split(":");
 
   return (
@@ -124,6 +109,7 @@ export const SelectionPopup = ({
   const { load: loadFilters } = filterFetcher;
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
+  const queryFormRef = React.useRef<HTMLFormElement>(null);
 
   const vaultTokenIds = token?.reserveItems
     .map(({ tokenId }) => tokenId)
@@ -197,8 +183,21 @@ export const SelectionPopup = ({
 
   const selectedTraitCount = data?.traits ? data?.traits.length : 0;
 
+  const filterWithValues = (filterFetcher.data || []).filter(
+    (d) => d.values.length > 0
+  );
+
+  const HiddenInputs = (
+    <>
+      <input type="hidden" name="tokenIds" value={vaultTokenIds} />
+      <input type="hidden" name="type" value={type} />
+      <input type="hidden" name="address" value={address} />
+      <input type="hidden" name="slug" value={token.urlSlug} />
+    </>
+  );
+
   return (
-    <TransparentDialogContent className="h-full grid-areas-nft-modal-mobile [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl sm:grid-areas-nft-modal sm:[grid-template-columns:repeat(4,1fr)_25%]">
+    <TransparentDialogContent className="h-full grid-areas-nft-modal-mobile [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]">
       <div className="flex items-center gap-2 grid-in-header">
         <p className="text-md text-night-400">Select</p>
         {token.image ? (
@@ -216,7 +215,31 @@ export const SelectionPopup = ({
       </div>
       <div className="space-y-4 grid-in-misc">
         <div className="flex items-stretch gap-3">
-          <Searchbar placeholder="Search name or token ID" className="w-full" />
+          <Form
+            ref={queryFormRef}
+            className="flex flex-1"
+            onChange={(e) => {
+              const formData = new FormData(e.currentTarget);
+              formData.set("query", formData.get("query") || "");
+
+              submit(formData, {
+                replace: true,
+                method: "get",
+                action: "/resources/get-collection",
+              });
+            }}
+          >
+            {HiddenInputs}
+            <div className="flex w-full items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600">
+              <SearchIcon className="h-4 w-4 " />
+              <input
+                type="text"
+                name="query"
+                className="w-full border-none bg-transparent text-sm outline-none"
+                placeholder="Search name or token ID"
+              />
+            </div>
+          </Form>
           <button className="rounded-md bg-night-1000 px-2 text-night-600 transition-colors hover:bg-night-900 hover:text-night-100">
             <SettingsIcon className="h-4 w-4" />
           </button>
@@ -248,10 +271,13 @@ export const SelectionPopup = ({
       <div className="flex flex-col overflow-hidden rounded-lg grid-in-nft">
         <Form
           onChange={(e) => {
+            // called when user selects a filter
             const formData = new FormData(e.currentTarget);
             const traits = formData.getAll("traits");
             const traitsString = traits.join(",");
             formData.set("traits", traitsString);
+
+            queryFormRef.current?.reset();
 
             submit(formData, {
               replace: true,
@@ -260,6 +286,7 @@ export const SelectionPopup = ({
             });
           }}
           onSubmit={(e) => {
+            // onSubmit is only called when a user removes a filter
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             const targetTrait = formData.getAll("deleteTrait")[0];
@@ -279,10 +306,7 @@ export const SelectionPopup = ({
             });
           }}
         >
-          <input type="hidden" name="tokenIds" value={vaultTokenIds} />
-          <input type="hidden" name="type" value={type} />
-          <input type="hidden" name="address" value={address} />
-          <input type="hidden" name="slug" value={token.urlSlug} />
+          {HiddenInputs}
           <Popover>
             <div className="flex space-x-2 divide-x divide-night-800 bg-night-1000 px-4 py-2">
               <PopoverTrigger asChild>
@@ -303,11 +327,7 @@ export const SelectionPopup = ({
               <div className="flex w-full items-center overflow-x-auto pl-2">
                 {data &&
                   data.traits.map((trait) => (
-                    <TraitFilterBadge
-                      currentSelectedTraits={data.traits}
-                      trait={trait}
-                      key={trait}
-                    />
+                    <TraitFilterBadge trait={trait} key={trait} />
                   ))}
               </div>
             </div>
@@ -321,13 +341,17 @@ export const SelectionPopup = ({
                 </div>
               ) : filterFetcher.state === "idle" && filterFetcher.data ? (
                 <div className="py-2">
-                  {filterFetcher.data ? (
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-12 px-4 sm:grid-cols-4">
-                      {filterFetcher.data.map((filter) => {
-                        if (filter.values.length === 0) {
-                          return null;
+                  {filterWithValues ? (
+                    <div
+                      className={cn(
+                        "grid grid-cols-2 gap-x-4 gap-y-12 px-4 sm:grid-cols-2",
+                        {
+                          "sm:grid-cols-3": filterWithValues.length === 3,
+                          "sm:grid-cols-4": filterWithValues.length > 3,
                         }
-
+                      )}
+                    >
+                      {filterWithValues.map((filter) => {
                         return (
                           <fieldset key={filter.traitName}>
                             <legend className="text-sm font-medium text-night-100">

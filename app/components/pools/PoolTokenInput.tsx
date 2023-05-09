@@ -3,6 +3,7 @@ import { ClientOnly } from "remix-utils";
 
 import { CurrencyInput } from "../CurrencyInput";
 import { LoaderIcon } from "../Icons";
+import { VisibleOnClient } from "../VisibleOnClient";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 
@@ -46,9 +47,7 @@ export const PoolTokenInput = ({
         <p className="flex items-center pl-2 text-sm text-night-400">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
-            <ClientOnly fallback={<LoaderIcon className="h-3.5 w-3.5" />}>
-              {() => <span>{formatBalance(balance)}</span>}
-            </ClientOnly>
+            <VisibleOnClient>{formatBalance(balance)}</VisibleOnClient>
           </span>
         </p>
         <p className="text-xs text-night-400">

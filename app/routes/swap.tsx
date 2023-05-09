@@ -24,6 +24,7 @@ import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
 import { NumberInput } from "~/components/NumberInput";
+import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { Button } from "~/components/ui/Button";
@@ -487,9 +488,11 @@ const SwapTokenInput = ({
             <span className="text-night-400 sm:text-sm">
               {token.isNft ? "Inventory" : "Balance"}:
             </span>
-            <span className="font-semibold text-honey-25 sm:text-sm">
-              {formatBalance(balance)}
-            </span>
+            <VisibleOnClient>
+              <span className="font-semibold text-honey-25 sm:text-sm">
+                {formatBalance(balance)}
+              </span>
+            </VisibleOnClient>
           </div>
           {selectedNfts.length > 0 ? (
             <Dialog>

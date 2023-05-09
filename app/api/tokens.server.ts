@@ -109,7 +109,8 @@ export const fetchCollectionOwnedByAddress = async (
 export const fetchIdsFromCollection = async (
   tokenIds: string,
   slug: string,
-  traits: string | null
+  traits: string | null,
+  query: string | null
 ) => {
   const url = new URL(
     `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`
@@ -119,6 +120,10 @@ export const fetchIdsFromCollection = async (
 
   if (traits) {
     url.searchParams.set("traits", traits);
+  }
+
+  if (query) {
+    url.searchParams.set("query", query);
   }
 
   const response = await fetch(url.toString());
