@@ -69,7 +69,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
               </abbr>
             </th>
             <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
-              Fees
+              LP Fees
             </th>
           </tr>
         </thead>
@@ -95,7 +95,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                 {formatUSD(pool.reserveUSD)}
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                ?
+                {formatUSD(pool.feesUSD)}
               </td>
             </tr>
           ))}
@@ -169,7 +169,7 @@ export default function PoolsListPage() {
             title: (
               <div className="flex items-center justify-center gap-2">
                 Your Positions
-                <Badge>{user?.liquidityPositions.length ?? 0}</Badge>
+                <Badge>{user?.liquidityPositionCount ?? 0}</Badge>
               </div>
             ),
           },
@@ -183,7 +183,7 @@ export default function PoolsListPage() {
           <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
             <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
               <span className="text-xl">
-                {user?.liquidityPositions.length ?? 0}
+                {user?.liquidityPositionCount ?? 0}
               </span>
               <span className="text-sm text-night-300">Open Positions</span>
             </div>
@@ -191,7 +191,7 @@ export default function PoolsListPage() {
               <span className="text-xl">?</span>
               <span className="text-sm text-night-300">Rewards Earned</span>
             </div>
-            {!user?.liquidityPositions.length && (
+            {!user?.liquidityPositionCount && (
               <div className="col-span-2 flex items-center justify-center rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
                 <span>
                   You currently do not have any open positions.{" "}

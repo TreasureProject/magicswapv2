@@ -44,6 +44,7 @@ export const createPoolFromPair = (
     reserve: reserve1,
   };
   const reserveUSD = Number(pair.reserveUSD);
+  const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
   const volume1w = pair.dayData.reduce(
     (total, { volumeUSD }) => total + Number(volumeUSD),
     0
@@ -57,9 +58,11 @@ export const createPoolFromPair = (
     baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
     quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
     reserveUSD,
-    volume24h: Number(pair.dayData[0]?.volumeUSD ?? 0),
+    volume24h,
     volume1w,
     apy: getPoolAPY(volume1w, reserveUSD),
+    feesUSD: Number(pair.volumeUSD) * Number(pair.lpFee),
+    fees24h: volume24h * Number(pair.lpFee),
   };
 };
 

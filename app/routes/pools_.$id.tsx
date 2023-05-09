@@ -204,24 +204,31 @@ export default function PoolDetailsPage() {
                 ))}
               </div>
             </div>
-            {/* <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
-              <p className="text-sm font-medium">Rewards: 0.52%</p>
-              <p className="text-sm font-medium">Fees: 5.67%</p>
+            <div className="flex w-full items-center justify-center gap-4 rounded-lg border border-night-800 p-3 text-night-400">
+              <p className="text-sm font-medium">
+                LP Fees: {formatPercent(pool.lpFee)}
+              </p>
             </div>
             <div className="flex w-full flex-col gap-3 sm:flex-row ">
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Volume (24h)</p>
-                <p className="font-bold text-night-100">$11,249,366</p>
+                <p className="font-bold text-night-100">
+                  {formatUSD(pool.volume24h)}
+                </p>
               </div>
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">APR</p>
-                <p className="font-bold text-night-100">4,21%</p>
+                <p className="font-bold text-night-100">
+                  {formatPercent(pool.apy)}
+                </p>
               </div>
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Fees (24h)</p>
-                <p className="font-bold text-night-100">$11,249,366</p>
+                <p className="font-bold text-night-100">
+                  {formatUSD(pool.fees24h)}
+                </p>
               </div>
-            </div> */}
+            </div>
           </div>
           {/*Here the code splits between the left and right side (atleast on desktop) */}
           <div className="space-y-6 rounded-lg bg-night-1100 p-4">
