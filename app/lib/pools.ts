@@ -1,6 +1,8 @@
 import type { BigNumber } from "@ethersproject/bignumber";
 import { Decimal } from "decimal.js-light";
 
+import type { PoolToken } from "./tokens.server";
+
 export const getAmountOut = (
   amountIn: string,
   reserveIn: number | undefined,
@@ -42,9 +44,7 @@ export const getAmountIn = (
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
     .mul(10000 - totalFee);
-  const value = denominator.gt(0)
-    ? numerator.div(denominator).add(1)
-    : new Decimal(0);
+  const value = denominator.gt(0) ? numerator.div(denominator) : new Decimal(0);
   return value.lt(1)
     ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
     : value
@@ -125,3 +125,17 @@ export const getAmountMaxBN = (amount: BigNumber, slippage: number) =>
 
 export const getAmountMinBN = (amount: BigNumber, slippage: number) =>
   amount.sub(amount.mul(slippage * 1000).div(1000));
+
+export const getPriceImpact = (
+  tokenIn: PoolToken,
+  tokenOut: PoolToken,
+  amountIn: number,
+  amountOut: number,
+  isExactOut: boolean
+) => {
+  if (isExactOut) {
+    return 1 - (amountOut * (tokenIn.reserve / tokenOut.reserve)) / amountIn;
+  }
+
+  return 1 - amountOut / (amountIn * (tokenOut.reserve / tokenIn.reserve));
+};
