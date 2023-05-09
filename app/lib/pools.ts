@@ -7,14 +7,14 @@ export const getAmountOut = (
   amountIn: string,
   reserveIn: number | undefined,
   reserveOut: number | undefined,
-  decimals = "18"
+  decimals = "18",
+  totalFee = 0
 ) => {
   const parsedAmountIn = Number(amountIn);
   if (Number.isNaN(parsedAmountIn) || parsedAmountIn === 0) {
     return "0";
   }
 
-  const totalFee = 0;
   const amountInWithFee = new Decimal(amountIn).mul(10000 - totalFee);
   const numerator = amountInWithFee.mul(reserveOut ?? 0);
   const denominator = new Decimal(reserveIn ?? 0)
@@ -32,14 +32,14 @@ export const getAmountIn = (
   amountOut: string,
   reserveIn: number | undefined,
   reserveOut: number | undefined,
-  decimals = "18"
+  decimals = "18",
+  totalFee = 0
 ) => {
   const parsedAmountOut = Number(amountOut);
   if (Number.isNaN(parsedAmountOut) || parsedAmountOut === 0) {
     return "0";
   }
 
-  const totalFee = 0;
   const numerator = new Decimal(reserveIn ?? 0).mul(amountOut).mul(10000);
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
