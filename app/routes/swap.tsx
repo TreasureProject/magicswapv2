@@ -190,8 +190,6 @@ export default function SwapPage() {
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
-  console.log(amountInMax.toString());
-
   useEffect(() => {
     if (isApproveTokenInSuccess) {
       refetchTokenInApproval();
@@ -288,6 +286,7 @@ export default function SwapPage() {
         <SwapTokenInput
           className="mt-6"
           token={poolTokenIn ?? tokenIn}
+          otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
           balance={tokenInBalance?.formatted}
           amount={amountIn}
@@ -319,6 +318,7 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput
           token={poolTokenOut ?? tokenOut}
+          otherToken={poolTokenIn ?? tokenIn}
           isOut
           balance={tokenOutBalance?.formatted}
           amount={amountOut}
@@ -433,6 +433,7 @@ export default function SwapPage() {
 
 const SwapTokenInput = ({
   token,
+  otherToken,
   isOut,
   balance = "0",
   amount,
@@ -444,6 +445,7 @@ const SwapTokenInput = ({
   className,
 }: {
   token?: PoolToken;
+  otherToken?: PoolToken;
   isOut: boolean;
   balance?: string;
   amount: string;
@@ -466,7 +468,13 @@ const SwapTokenInput = ({
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
         <Dialog key={location.search}>
-          <TokenSelectDialog tokens={tokens} onSelect={onSelect} />
+          <TokenSelectDialog
+            tokens={tokens}
+            disabledTokenIds={
+              [token.id, otherToken?.id].filter((id) => !!id) as string[]
+            }
+            onSelect={onSelect}
+          />
           <DialogTrigger asChild>
             <button className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
@@ -537,7 +545,11 @@ const SwapTokenInput = ({
             )
           ) : (
             <>
-              <CurrencyInput value={amount} onChange={onUpdateAmount} />
+              <CurrencyInput
+                value={amount}
+                onChange={onUpdateAmount}
+                disabled={!!otherToken?.isNft}
+              />
               <span className="block text-sm text-night-400">
                 {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
               </span>
@@ -575,7 +587,11 @@ const SwapTokenInput = ({
     </div>
   ) : (
     <Dialog key={location.search}>
-      <TokenSelectDialog tokens={tokens} onSelect={onSelect} />
+      <TokenSelectDialog
+        tokens={tokens}
+        disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
+        onSelect={onSelect}
+      />
       <DialogTrigger asChild>
         <button
           className={cn(
@@ -595,9 +611,11 @@ const SwapTokenInput = ({
 
 const TokenSelectDialog = ({
   tokens,
+  disabledTokenIds = [],
   onSelect,
 }: {
   tokens: PoolToken[];
+  disabledTokenIds?: string[];
   onSelect: (token: PoolToken) => void;
 }) => {
   const [tab, setTab] = useState<"tokens" | "collections">("collections");
@@ -606,7 +624,9 @@ const TokenSelectDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Select Asset</DialogTitle>
-          <DialogDescription>Select an asset to swap with.</DialogDescription>
+          <DialogDescription>
+            Select an asset to add to the swap.
+          </DialogDescription>
         </DialogHeader>
         <div className="rounded-lg bg-night-1100 p-4">
           <div className="grid grid-cols-2 gap-3">
@@ -639,9 +659,12 @@ const TokenSelectDialog = ({
               .map((token) => (
                 <li
                   key={token.id}
-                  className="relative rounded-lg px-3 py-2 hover:bg-night-900"
+                  className={cn(
+                    "relative rounded-lg px-3 py-2 hover:bg-night-900",
+                    disabledTokenIds.includes(token.id) &&
+                      "pointer-events-none opacity-50"
+                  )}
                 >
-                  {/* <div className="flex w-full items-center justify-between gap-3"> */}
                   <div className="flex items-center gap-3">
                     <PoolTokenImage token={token} className="h-9 w-9" />
                     <div className="text-left text-sm">
@@ -653,7 +676,6 @@ const TokenSelectDialog = ({
                       </span>
                     </div>
                   </div>
-                  {/* </div> */}
                   <button
                     onClick={() => onSelect(token)}
                     className="absolute inset-0"
