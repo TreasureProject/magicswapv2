@@ -16,6 +16,12 @@ export const PAIR_FRAGMENT = gql`
     reserveUSD
     totalSupply
     txCount
+    volumeUSD
+    lpFee
+    protocolFee
+    royaltiesFee
+    royaltiesBeneficiary
+    totalFee
     transactions(orderBy: timestamp, orderDirection: desc) {
       hash
       timestamp

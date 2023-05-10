@@ -1,18 +1,20 @@
 import type { BigNumber } from "@ethersproject/bignumber";
 import { Decimal } from "decimal.js-light";
 
+import type { PoolToken } from "./tokens.server";
+
 export const getAmountOut = (
   amountIn: string,
   reserveIn: number | undefined,
   reserveOut: number | undefined,
-  decimals = "18"
+  decimals = "18",
+  totalFee = 0
 ) => {
   const parsedAmountIn = Number(amountIn);
   if (Number.isNaN(parsedAmountIn) || parsedAmountIn === 0) {
     return "0";
   }
 
-  const totalFee = 0;
   const amountInWithFee = new Decimal(amountIn).mul(10000 - totalFee);
   const numerator = amountInWithFee.mul(reserveOut ?? 0);
   const denominator = new Decimal(reserveIn ?? 0)
@@ -30,21 +32,19 @@ export const getAmountIn = (
   amountOut: string,
   reserveIn: number | undefined,
   reserveOut: number | undefined,
-  decimals = "18"
+  decimals = "18",
+  totalFee = 0
 ) => {
   const parsedAmountOut = Number(amountOut);
   if (Number.isNaN(parsedAmountOut) || parsedAmountOut === 0) {
     return "0";
   }
 
-  const totalFee = 0;
   const numerator = new Decimal(reserveIn ?? 0).mul(amountOut).mul(10000);
   const denominator = new Decimal(reserveOut ?? 0)
     .sub(amountOut)
     .mul(10000 - totalFee);
-  const value = denominator.gt(0)
-    ? numerator.div(denominator).add(1)
-    : new Decimal(0);
+  const value = denominator.gt(0) ? numerator.div(denominator) : new Decimal(0);
   return value.lt(1)
     ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
     : value
@@ -125,3 +125,17 @@ export const getAmountMaxBN = (amount: BigNumber, slippage: number) =>
 
 export const getAmountMinBN = (amount: BigNumber, slippage: number) =>
   amount.sub(amount.mul(slippage * 1000).div(1000));
+
+export const getPriceImpact = (
+  tokenIn: PoolToken,
+  tokenOut: PoolToken,
+  amountIn: number,
+  amountOut: number,
+  isExactOut: boolean
+) => {
+  if (isExactOut) {
+    return 1 - (amountOut * (tokenIn.reserve / tokenOut.reserve)) / amountIn;
+  }
+
+  return 1 - amountOut / (amountIn * (tokenOut.reserve / tokenIn.reserve));
+};

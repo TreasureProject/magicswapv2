@@ -1,5 +1,5 @@
 import { BigNumber } from "@ethersproject/bignumber";
-import { parseUnits } from "@ethersproject/units";
+import { formatUnits, parseUnits } from "@ethersproject/units";
 import {
   Link,
   useLoaderData,
@@ -49,7 +49,8 @@ import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
 import { formatBalance, formatUSD } from "~/lib/currency";
-import { getAmountIn, getAmountOut } from "~/lib/pools";
+import { formatPercent } from "~/lib/number";
+import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
@@ -123,7 +124,8 @@ export default function SwapPage() {
         amount,
         poolTokenIn?.reserve,
         poolTokenOut?.reserve,
-        tokenIn.decimals
+        tokenIn.decimals,
+        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       )
     : amount;
   const amountOut = isExactOut
@@ -132,7 +134,8 @@ export default function SwapPage() {
         amount,
         poolTokenIn?.reserve,
         poolTokenOut?.reserve,
-        tokenOut?.decimals
+        tokenOut?.decimals,
+        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       );
 
   const amountInBN = Number.isNaN(Number(amountIn))
@@ -187,6 +190,8 @@ export default function SwapPage() {
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
+  console.log(amountInMax.toString());
+
   useEffect(() => {
     if (isApproveTokenInSuccess) {
       refetchTokenInApproval();
@@ -225,7 +230,7 @@ export default function SwapPage() {
       <div className="flex items-center justify-between gap-3 text-night-600">
         <div className="flex items-center gap-1.5 text-xl font-bold">
           <SwapIcon className="h-6 w-6" />
-          Swap
+          <h1 className="text-night-100">Swap</h1>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -363,6 +368,64 @@ export default function SwapPage() {
             </ConnectKitButton.Custom>
           )}
         </div>
+        {!!poolTokenIn && !!poolTokenOut && hasAmounts && (
+          <div className="mt-4 text-sm text-night-400">
+            <div className="flex items-center justify-between">
+              Price Impact
+              <span>
+                -
+                {formatPercent(
+                  getPriceImpact(
+                    poolTokenIn,
+                    poolTokenOut,
+                    Number(amountIn),
+                    Number(amountOut),
+                    isExactOut
+                  )
+                )}
+              </span>
+            </div>
+            {!!pool?.lpFee && Number(pool.lpFee) > 0 && (
+              <div className="flex items-center justify-between">
+                Liquidity Provider Fee
+                <span>{formatPercent(pool.lpFee)}</span>
+              </div>
+            )}
+            {!!pool?.protocolFee && Number(pool.protocolFee) > 0 && (
+              <div className="flex items-center justify-between">
+                Protocol Fee
+                <span>{formatPercent(pool.protocolFee)}</span>
+              </div>
+            )}
+            {!!pool?.royaltiesFee && Number(pool.royaltiesFee) > 0 && (
+              <div className="flex items-center justify-between">
+                Royalties Fee
+                <span>{formatPercent(pool.royaltiesFee)}</span>
+              </div>
+            )}
+            {isExactOut ? (
+              <div className="flex items-center justify-between">
+                Maximum spent
+                <span>
+                  {formatBalance(
+                    formatUnits(amountInMax, poolTokenIn.decimals)
+                  )}{" "}
+                  {poolTokenIn.symbol}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                Minimum received
+                <span>
+                  {formatBalance(
+                    formatUnits(amountOutMin, poolTokenOut.decimals)
+                  )}{" "}
+                  {poolTokenOut.symbol}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

@@ -8,6 +8,7 @@ export const getUser = gql`
   ${PAIR_FRAGMENT}
   query getUser($id: ID!) {
     user(id: $id) {
+      liquidityPositionCount
       liquidityPositions {
         pair {
           ...PairFragment
