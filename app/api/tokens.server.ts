@@ -90,14 +90,20 @@ export type TroveFilters = ReturnType<typeof fetchFilters>;
 export const fetchCollectionOwnedByAddress = async (
   address: string,
   slug: string,
-  traits: string | null
+  traits: string | null,
+  query: string | null
 ) => {
   const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
   url.searchParams.set("userAddress", address);
   url.searchParams.set("slugs", slug);
   url.searchParams.set("chains", process.env.TROVE_API_NETWORK);
+
   if (traits) {
     url.searchParams.set("traits", traits);
+  }
+
+  if (query) {
+    url.searchParams.set("query", query);
   }
 
   const response = await fetch(url.toString());

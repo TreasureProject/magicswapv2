@@ -42,7 +42,8 @@ export const loader = async (args: LoaderArgs) => {
       tokens = await fetchCollectionOwnedByAddress(
         address,
         slug.toLowerCase(),
-        traits
+        traits,
+        query
       );
     }
 
