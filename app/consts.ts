@@ -13,3 +13,5 @@ export const media = {
   github: "https://github.com/TreasureProject",
   substack: "https://treasuredao.substack.com/",
 };
+
+export const ITEMS_PER_PAGE = 50;

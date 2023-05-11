@@ -190,8 +190,6 @@ export default function SwapPage() {
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
-  console.log(amountInMax.toString());
-
   useEffect(() => {
     if (isApproveTokenInSuccess) {
       refetchTokenInApproval();

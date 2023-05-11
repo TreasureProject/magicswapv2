@@ -12,7 +12,7 @@ import {
   X,
   XIcon,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
 
 import { LoaderIcon } from "../Icons";
@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { ScrollArea } from "../ui/ScrollArea";
 import type { TroveFilters } from "~/api/tokens.server";
 import { TransparentDialogContent } from "~/components/ui/Dialog";
+import { ITEMS_PER_PAGE } from "~/consts";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.get-collection";
@@ -111,11 +112,9 @@ export const SelectionPopup = ({
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
 
-  const vaultTokenIds = token?.reserveItems
-    .map(({ tokenId }) => tokenId)
-    .join(",");
+  const id = token?.id;
   const fetchFromVault = type === "vault";
-
+  const offsetRef = React.useRef(0);
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
     if (formData) {
@@ -136,9 +135,9 @@ export const SelectionPopup = ({
       slug: token.urlSlug,
     });
 
-    if (fetchFromVault && vaultTokenIds) {
+    if (fetchFromVault && id) {
       params.set("type", "vault");
-      params.set("tokenIds", vaultTokenIds);
+      params.set("id", id);
     } else {
       params.set("type", "inventory");
       params.set("address", address);
@@ -148,14 +147,7 @@ export const SelectionPopup = ({
       params.set("traits", traitInfoRef.current);
     }
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [
-    address,
-    fetchFromVault,
-    load,
-    token?.isNft,
-    token?.urlSlug,
-    vaultTokenIds,
-  ]);
+  }, [address, fetchFromVault, load, token?.isNft, token?.urlSlug, id]);
 
   React.useEffect(() => {
     if (!token?.isNft) {
@@ -189,7 +181,7 @@ export const SelectionPopup = ({
 
   const HiddenInputs = (
     <>
-      <input type="hidden" name="tokenIds" value={vaultTokenIds} />
+      <input type="hidden" name="id" value={id} />
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="address" value={address} />
       <input type="hidden" name="slug" value={token.urlSlug} />
@@ -210,7 +202,7 @@ export const SelectionPopup = ({
           <div className="h-6 w-6 rounded-full bg-night-900" />
         )}
         <p className="text-md font-medium capitalize text-night-100">
-          {token.name}
+          {token.name} from {fetchFromVault ? "Vault" : "Inventory"}
         </p>
       </div>
       <div className="space-y-4 grid-in-misc">
@@ -262,11 +254,6 @@ export const SelectionPopup = ({
             <RefreshIcon className="h-4 w-4 group-hover:animate-rotate-45" />
           </button>
         </div>
-        {/* <div className="flex items-center gap-2 rounded-md bg-honey-800/10 p-2 text-honey-400">
-          <StarIcon className="h-6 w-4" />
-          <span className="font-medium text-night-100">6 of your 7 </span>{" "}
-          initial deposited items are still available
-        </div> */}
       </div>
       <div className="flex flex-col overflow-hidden rounded-lg grid-in-nft">
         <Form
@@ -400,7 +387,7 @@ export const SelectionPopup = ({
             </div>
           ) : state === "idle" && data ? (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {data.tokens.map((item) => (
+              {data.tokens.tokens.map((item) => (
                 <ItemCard
                   selected={selectedItems.some(
                     (i) => i.tokenId === item.tokenId
@@ -417,6 +404,80 @@ export const SelectionPopup = ({
               ))}
             </div>
           ) : null}
+        </div>
+        <div className="flex justify-between bg-night-1000 p-3">
+          <Form
+            action="/resources/get-collection"
+            method="get"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              offsetRef.current -= ITEMS_PER_PAGE;
+              formData.set("offset", offsetRef.current.toString());
+              submit(formData, {
+                replace: true,
+                method: "get",
+                action: "/resources/get-collection",
+              });
+            }}
+          >
+            {HiddenInputs}
+            {data?.traits && data?.traits.length > 0 && (
+              <input
+                type="hidden"
+                name="traits"
+                value={data.traits.join(",")}
+              />
+            )}
+            {data?.query && (
+              <input type="hidden" name="query" value={data.query} />
+            )}
+
+            <Button variant="secondary" disabled={offsetRef.current === 0}>
+              Previous
+            </Button>
+          </Form>
+          <Form
+            action="/resources/get-collection"
+            method="get"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              offsetRef.current += ITEMS_PER_PAGE;
+              formData.set("offset", offsetRef.current.toString());
+              submit(formData, {
+                replace: true,
+                method: "get",
+                action: "/resources/get-collection",
+              });
+            }}
+          >
+            {HiddenInputs}
+            {data?.tokens.nextPageKey && (
+              <input
+                type="hidden"
+                name="nextPageKey"
+                value={data.tokens.nextPageKey}
+              />
+            )}
+            {data?.traits && data?.traits.length > 0 && (
+              <input
+                type="hidden"
+                name="traits"
+                value={data.traits.join(",")}
+              />
+            )}
+            {data?.query && (
+              <input type="hidden" name="query" value={data.query} />
+            )}
+            <Button
+              variant="secondary"
+              type="submit"
+              disabled={!data?.tokens.nextPageKey}
+            >
+              Next
+            </Button>
+          </Form>
         </div>
       </div>
       <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">

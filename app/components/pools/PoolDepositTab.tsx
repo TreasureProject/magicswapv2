@@ -34,7 +34,468 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     quoteNfts: [] as TroveTokenWithQuantity[],
     isExactQuote: false,
   });
-  const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
+  const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>({
+    id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9",
+    name: "Smol Brains",
+    symbol: "SMOL",
+    decimals: "18",
+    derivedMAGIC: "500.6012634662040955768",
+    vaultCollections: [
+      {
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+          type: "ERC721",
+        },
+        tokenIds: null,
+      },
+    ],
+    vaultReserveItems: [
+      {
+        id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9c831f372b4342824eb533c486bf0aafc1cf0521f10000000",
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        },
+        tokenId: "16",
+        amount: 1,
+      },
+      {
+        id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9c831f372b4342824eb533c486bf0aafc1cf0521f3a050000",
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        },
+        tokenId: "1338",
+        amount: 1,
+      },
+      {
+        id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9c831f372b4342824eb533c486bf0aafc1cf0521fb80b0000",
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        },
+        tokenId: "3000",
+        amount: 1,
+      },
+      {
+        id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9c831f372b4342824eb533c486bf0aafc1cf0521fb90b0000",
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        },
+        tokenId: "3001",
+        amount: 1,
+      },
+      {
+        id: "0xffd45937af2ad9f06aa3d8c093c5f68984be6fe9c831f372b4342824eb533c486bf0aafc1cf0521fba0b0000",
+        collection: {
+          id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        },
+        tokenId: "3002",
+        amount: 1,
+      },
+    ],
+    image: "https://djmahssgw62sw.cloudfront.net/0/SmolBrainsV2.png",
+    collections: [
+      {
+        id: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        urlSlug: "smol-brains-ag",
+        name: "Smol Brains",
+        symbol: "Smol",
+        type: "ERC721",
+        image: "https://djmahssgw62sw.cloudfront.net/0/SmolBrainsV2.png",
+      },
+    ],
+    urlSlug: "smol-brains-ag",
+    type: "ERC721",
+    isNft: true,
+    collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+    priceUSD: 3233.173668630466,
+    reserve: 5,
+    reserveItems: [
+      {
+        collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        tokenId: "16",
+        amount: 1,
+        name: "Smol #16",
+        image:
+          "https://d382590x7sfjta.cloudfront.net/general/0x3562d57093fb812192b3a4b9268ecefe1c869d0d484e525d369548dcb450e9c9.svg",
+        attributes: [
+          {
+            value: 0,
+            traitType: "IQ",
+            displayType: "numeric",
+          },
+          {
+            value: 0,
+            traitType: "Head Size",
+            displayType: "numeric",
+          },
+          {
+            value: "purple",
+            traitType: "Background",
+            displayType: null,
+          },
+          {
+            value: "light-orange",
+            traitType: "Body",
+            displayType: null,
+          },
+          {
+            value: "prisoner",
+            traitType: "Clothes",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Glasses",
+            displayType: null,
+          },
+          {
+            value: "cap-black",
+            traitType: "Hat",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hair",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Mouth",
+            displayType: null,
+          },
+          {
+            value: "male",
+            traitType: "Gender",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Staked",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Naked",
+            displayType: null,
+          },
+          {
+            value: "Smol Corpse Bride",
+            traitType: "Skin",
+            displayType: null,
+          },
+          {
+            value: "Pennysmol",
+            traitType: "Skin",
+            displayType: null,
+          },
+          {
+            value: "9",
+            traitType: "Trait Count",
+            displayType: "default",
+          },
+        ],
+      },
+      {
+        collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        tokenId: "1338",
+        amount: 1,
+        name: "Smol #1338",
+        image:
+          "https://d382590x7sfjta.cloudfront.net/general/0xe369c9fcc9dc38b2a3a9aa1472948102a0f80591fd1e6d446eed5b75ce0ea6d5.svg",
+        attributes: [
+          {
+            value: 0,
+            traitType: "IQ",
+            displayType: "numeric",
+          },
+          {
+            value: 0,
+            traitType: "Head Size",
+            displayType: "numeric",
+          },
+          {
+            value: "cyan",
+            traitType: "Background",
+            displayType: null,
+          },
+          {
+            value: "black",
+            traitType: "Body",
+            displayType: null,
+          },
+          {
+            value: "jacket",
+            traitType: "Clothes",
+            displayType: null,
+          },
+          {
+            value: "sunglasses",
+            traitType: "Glasses",
+            displayType: null,
+          },
+          {
+            value: "cap-black",
+            traitType: "Hat",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hair",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Mouth",
+            displayType: null,
+          },
+          {
+            value: "male",
+            traitType: "Gender",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Staked",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Naked",
+            displayType: null,
+          },
+          {
+            value: "10",
+            traitType: "Trait Count",
+            displayType: "default",
+          },
+        ],
+      },
+      {
+        collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        tokenId: "3000",
+        amount: 1,
+        name: "Smol #3000",
+        image:
+          "https://d382590x7sfjta.cloudfront.net/general/0x58dea1e8c383e02e0c7a2cfcc84269bb9d72964ed462f130e1cf0d6dfa54fbcd.svg",
+        attributes: [
+          {
+            value: 2797,
+            traitType: "IQ",
+            displayType: "numeric",
+          },
+          {
+            value: 0,
+            traitType: "Head Size",
+            displayType: "numeric",
+          },
+          {
+            value: "green",
+            traitType: "Background",
+            displayType: null,
+          },
+          {
+            value: "brown",
+            traitType: "Body",
+            displayType: null,
+          },
+          {
+            value: "prisoner",
+            traitType: "Clothes",
+            displayType: null,
+          },
+          {
+            value: "glasses",
+            traitType: "Glasses",
+            displayType: null,
+          },
+          {
+            value: "cap-purple",
+            traitType: "Hat",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hair",
+            displayType: null,
+          },
+          {
+            value: "mask",
+            traitType: "Mouth",
+            displayType: null,
+          },
+          {
+            value: "male",
+            traitType: "Gender",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Staked",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Naked",
+            displayType: null,
+          },
+          {
+            value: "11",
+            traitType: "Trait Count",
+            displayType: "default",
+          },
+        ],
+      },
+      {
+        collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        tokenId: "3001",
+        amount: 1,
+        name: "Smol #3001",
+        image:
+          "https://d382590x7sfjta.cloudfront.net/general/0x6ab14f644cdda5f284514b9240406cf82306a2e9e1a8cfae5bc593a7a037fcfe.svg",
+        attributes: [
+          {
+            value: 2033,
+            traitType: "IQ",
+            displayType: "numeric",
+          },
+          {
+            value: 0,
+            traitType: "Head Size",
+            displayType: "numeric",
+          },
+          {
+            value: "gray",
+            traitType: "Background",
+            displayType: null,
+          },
+          {
+            value: "purple",
+            traitType: "Body",
+            displayType: null,
+          },
+          {
+            value: "suit",
+            traitType: "Clothes",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Glasses",
+            displayType: null,
+          },
+          {
+            value: "cap-blue",
+            traitType: "Hat",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hair",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Mouth",
+            displayType: null,
+          },
+          {
+            value: "male",
+            traitType: "Gender",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Staked",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Naked",
+            displayType: null,
+          },
+          {
+            value: "9",
+            traitType: "Trait Count",
+            displayType: "default",
+          },
+        ],
+      },
+      {
+        collectionId: "0xc831f372b4342824eb533c486bf0aafc1cf0521f",
+        tokenId: "3002",
+        amount: 1,
+        name: "Smol #3002",
+        image:
+          "https://d382590x7sfjta.cloudfront.net/general/0x96b3d7e463b3e87df9e796242f80b1dc75b8af6c8ff8482b3f511e99f2d7a57d.svg",
+        attributes: [
+          {
+            value: 2818,
+            traitType: "IQ",
+            displayType: "numeric",
+          },
+          {
+            value: 0,
+            traitType: "Head Size",
+            displayType: "numeric",
+          },
+          {
+            value: "red",
+            traitType: "Background",
+            displayType: null,
+          },
+          {
+            value: "black",
+            traitType: "Body",
+            displayType: null,
+          },
+          {
+            value: "jacket",
+            traitType: "Clothes",
+            displayType: null,
+          },
+          {
+            value: "glasses",
+            traitType: "Glasses",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hat",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Hair",
+            displayType: null,
+          },
+          {
+            value: "none",
+            traitType: "Mouth",
+            displayType: null,
+          },
+          {
+            value: "male",
+            traitType: "Gender",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Staked",
+            displayType: null,
+          },
+          {
+            value: "false",
+            traitType: "Naked",
+            displayType: null,
+          },
+          {
+            value: "9",
+            traitType: "Trait Count",
+            displayType: "default",
+          },
+        ],
+      },
+    ],
+  });
   const [checkedTerms, setCheckedTerms] = useState(false);
 
   const amountBase = isExactQuote
@@ -151,7 +612,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
 
   return (
     <div className="space-y-4">
-      <Dialog>
+      <Dialog open>
         <SelectionPopup
           type="inventory"
           token={selectingToken}

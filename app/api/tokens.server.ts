@@ -2,12 +2,33 @@ import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
-import type { getTokensQuery } from ".graphclient";
+import type { getTokenQuery, getTokensQuery } from ".graphclient";
+import { getTokenDocument } from ".graphclient";
 import { execute, getTokensDocument } from ".graphclient";
+import { ITEMS_PER_PAGE } from "~/consts";
 import { getTokenCollectionAddresses } from "~/lib/tokens.server";
 import { getTokenReserveItemIds } from "~/lib/tokens.server";
 import { createPoolToken } from "~/lib/tokens.server";
-import type { TraitsResponse, TroveToken, TroveTokenMapping } from "~/types";
+import type {
+  TraitsResponse,
+  TroveApiResponse,
+  TroveToken,
+  TroveTokenMapping,
+} from "~/types";
+
+function filterNullValues(
+  obj: Record<string, unknown>
+): Record<string, unknown> {
+  const filteredObj: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== null) {
+      filteredObj[key] = value;
+    }
+  }
+
+  return filteredObj;
+}
 
 export const fetchTokens = async () => {
   const result = (await execute(
@@ -90,52 +111,85 @@ export type TroveFilters = ReturnType<typeof fetchFilters>;
 export const fetchCollectionOwnedByAddress = async (
   address: string,
   slug: string,
-  traits: string | null,
-  query: string | null
+  traits: string[],
+  query: string | null,
+  pageKey: string | null,
+  offset: number
 ) => {
-  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
-  url.searchParams.set("userAddress", address);
-  url.searchParams.set("slugs", slug);
-  url.searchParams.set("chains", process.env.TROVE_API_NETWORK);
+  try {
+    const response = await fetch(
+      `${process.env.TROVE_API_URL}/tokens-for-user-page-fc`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          filterNullValues({
+            userAddress: address,
+            slugs: [slug],
+            limit: ITEMS_PER_PAGE,
+            chains: [process.env.TROVE_API_NETWORK],
+            query,
+            traits,
+            pageKey,
+            offset,
+          })
+        ),
+      }
+    );
+    const result = (await response.json()) as TroveApiResponse;
 
-  if (traits) {
-    url.searchParams.set("traits", traits);
+    return result;
+  } catch (e) {
+    throw new Error("Error fetching collection");
   }
-
-  if (query) {
-    url.searchParams.set("query", query);
-  }
-
-  const response = await fetch(url.toString());
-  const result = (await response.json()) as TroveToken[];
-
-  return result;
 };
 
 export const fetchIdsFromCollection = async (
-  tokenIds: string,
+  id: string,
   slug: string,
-  traits: string | null,
-  query: string | null
+  traits: string[],
+  query: string | null,
+  pageKey: string | null,
+  offset: number
 ) => {
-  const url = new URL(
-    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`
-  );
+  try {
+    const res = (await execute(getTokenDocument, {
+      id,
+    })) as ExecutionResult<getTokenQuery>;
 
-  url.searchParams.set("ids", tokenIds);
+    const { token } = res.data ?? {};
 
-  if (traits) {
-    url.searchParams.set("traits", traits);
+    if (!token) throw new Error("Token not found");
+
+    const tokenIds = token.vaultReserveItems.map(({ tokenId }) => tokenId);
+
+    const response = await fetch(
+      `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          filterNullValues({
+            ids: tokenIds,
+            limit: ITEMS_PER_PAGE,
+            traits,
+            query,
+            pageKey,
+            offset,
+          })
+        ),
+      }
+    );
+    const result = (await response.json()) as TroveApiResponse;
+
+    return result;
+  } catch (e) {
+    throw new Error("Error fetching collection");
   }
-
-  if (query) {
-    url.searchParams.set("query", query);
-  }
-
-  const response = await fetch(url.toString());
-  const result = (await response.json()).tokens as TroveToken[];
-
-  return result;
 };
 
 export const fetchTroveTokens = async (

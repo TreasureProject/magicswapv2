@@ -74,14 +74,18 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           </tr>
         </thead>
         <tbody>
-          {pools.map((pool: Pool) => (
+          {pools.map((pool) => (
             <tr
               key={pool.id}
               className="cursor-pointer border-b border-b-night-900 transition-colors hover:bg-night-1000"
             >
               <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
-                <Link to={`/pools/${pool.id}`} className="flex items-center">
-                  <PoolImage pool={pool as Pool} />
+                <Link
+                  to={`/pools/${pool.id}`}
+                  prefetch="intent"
+                  className="flex items-center"
+                >
+                  <PoolImage pool={pool} />
                   <span className="-ml-2 sm:ml-0">{pool.name}</span>
                 </Link>
               </td>

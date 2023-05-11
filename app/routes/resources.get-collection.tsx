@@ -7,7 +7,7 @@ import {
   fetchCollectionOwnedByAddress,
   fetchIdsFromCollection,
 } from "~/api/tokens.server";
-import type { TroveToken } from "~/types";
+import type { TroveApiResponse } from "~/types";
 
 export const loader = async (args: LoaderArgs) => {
   const url = new URL(args.request.url);
@@ -16,8 +16,10 @@ export const loader = async (args: LoaderArgs) => {
   const slug = url.searchParams.get("slug");
   const traits = url.searchParams.get("traits");
   const type = url.searchParams.get("type");
-  const tokenIds = url.searchParams.get("tokenIds");
+  const id = url.searchParams.get("id");
   const query = url.searchParams.get("query");
+  const nextPageKey = url.searchParams.get("nextPageKey");
+  const offset = url.searchParams.get("offset");
 
   invariant(type, "Missing type");
 
@@ -25,16 +27,20 @@ export const loader = async (args: LoaderArgs) => {
 
   invariant(slug, "Missing slug");
 
+  const traitsArray = traits ? traits.split(",") : [];
+
   try {
-    let tokens: TroveToken[];
+    let tokens: TroveApiResponse;
 
     if (isVault) {
-      invariant(tokenIds, "Missing tokenIds");
+      invariant(id, "Missing id");
       tokens = await fetchIdsFromCollection(
-        tokenIds,
+        id,
         slug.toLowerCase(),
-        traits,
-        query
+        traitsArray,
+        query,
+        nextPageKey,
+        Number(offset ?? 0)
       );
     } else {
       invariant(address, "Missing address");
@@ -42,12 +48,14 @@ export const loader = async (args: LoaderArgs) => {
       tokens = await fetchCollectionOwnedByAddress(
         address,
         slug.toLowerCase(),
-        traits,
-        query
+        traitsArray,
+        query,
+        nextPageKey,
+        Number(offset ?? 0)
       );
     }
 
-    return json({ tokens, traits: traits ? traits.split(",") : [] });
+    return json({ tokens, traits: traitsArray, query });
   } catch (e) {
     throw notFound({
       message: "Collection not found",
