@@ -202,7 +202,10 @@ export const SelectionPopup = ({
           <div className="h-6 w-6 rounded-full bg-night-900" />
         )}
         <p className="text-md font-medium capitalize text-night-100">
-          {token.name} from {fetchFromVault ? "Vault" : "Inventory"}
+          {token.name}{" "}
+          <span className="normal-case text-night-400">
+            from {fetchFromVault ? "the Vault" : "your Inventory"}
+          </span>
         </p>
       </div>
       <div className="space-y-4 grid-in-misc">
@@ -495,7 +498,7 @@ export const SelectionPopup = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex w-full items-center justify-between rounded-lg bg-night-900 p-2"
+                      className="flex w-full items-center justify-between space-x-2 rounded-lg bg-night-900 p-2"
                       key={item.tokenId}
                     >
                       <div className="flex items-center gap-3">
@@ -508,8 +511,8 @@ export const SelectionPopup = ({
                         ) : (
                           <div className="h-10 w-10 rounded-[4px] bg-night-800" />
                         )}
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium text-night-100">
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <p className="truncate text-sm font-medium text-night-100">
                             {item.metadata.name}
                           </p>
                           <p className="text-sm text-night-400">
@@ -539,12 +542,13 @@ export const SelectionPopup = ({
                             }
                           />
                         )}
-                        <button
-                          className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-night-800"
+                        <Button
+                          variant="ghost"
+                          size="xs"
                           onClick={() => selectionHandler(item)}
                         >
                           <XIcon className="w-4 text-night-400" />
-                        </button>
+                        </Button>
                       </div>
                     </motion.div>
                   ))}
