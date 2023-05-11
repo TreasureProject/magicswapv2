@@ -1,3 +1,5 @@
+import { verboseReporter } from "cachified";
+import { cachified } from "cachified";
 import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
@@ -6,6 +8,7 @@ import type { getTokenQuery, getTokensQuery } from ".graphclient";
 import { getTokenDocument } from ".graphclient";
 import { execute, getTokensDocument } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
+import { cache } from "~/lib/cache.server";
 import { getTokenCollectionAddresses } from "~/lib/tokens.server";
 import { getTokenReserveItemIds } from "~/lib/tokens.server";
 import { createPoolToken } from "~/lib/tokens.server";
@@ -146,6 +149,28 @@ export const fetchCollectionOwnedByAddress = async (
   }
 };
 
+function getTokenIds(id: string) {
+  return cachified({
+    reporter: verboseReporter(),
+    key: `collection-${id}`,
+    cache,
+    async getFreshValue() {
+      const res = (await execute(getTokenDocument, {
+        id,
+      })) as ExecutionResult<getTokenQuery>;
+
+      const { token } = res.data ?? {};
+
+      if (!token) throw new Error("Token not found");
+
+      const tokenIds = token.vaultReserveItems.map(({ tokenId }) => tokenId);
+
+      return tokenIds;
+    },
+    ttl: 1000 * 60, // 1 minutes
+  });
+}
+
 export const fetchIdsFromCollection = async (
   id: string,
   slug: string,
@@ -155,15 +180,7 @@ export const fetchIdsFromCollection = async (
   offset: number
 ) => {
   try {
-    const res = (await execute(getTokenDocument, {
-      id,
-    })) as ExecutionResult<getTokenQuery>;
-
-    const { token } = res.data ?? {};
-
-    if (!token) throw new Error("Token not found");
-
-    const tokenIds = token.vaultReserveItems.map(({ tokenId }) => tokenId);
+    const tokenIds = await getTokenIds(id);
 
     const response = await fetch(
       `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`,
