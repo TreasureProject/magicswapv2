@@ -222,7 +222,10 @@ export const SelectionPopup = ({
                 method: "get",
                 action: "/resources/get-collection",
               });
+
+              offsetRef.current = 0;
             }}
+            onSubmit={(e) => e.preventDefault()}
           >
             {HiddenInputs}
             <div className="flex w-full items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600">
@@ -274,6 +277,8 @@ export const SelectionPopup = ({
               method: "get",
               action: "/resources/get-collection",
             });
+
+            offsetRef.current = 0;
           }}
           onSubmit={(e) => {
             // onSubmit is only called when a user removes a filter
@@ -294,6 +299,8 @@ export const SelectionPopup = ({
               method: "get",
               action: "/resources/get-collection",
             });
+
+            offsetRef.current = 0;
           }}
         >
           {HiddenInputs}
@@ -476,7 +483,11 @@ export const SelectionPopup = ({
             <Button
               variant="secondary"
               type="submit"
-              disabled={!data?.tokens.nextPageKey}
+              disabled={
+                !data?.tokens.nextPageKey ||
+                // sometimes the next page key is there but the next page is empty
+                data.tokens.tokens.length < ITEMS_PER_PAGE
+              }
             >
               Next
             </Button>
@@ -560,21 +571,6 @@ export const SelectionPopup = ({
               </p>
             )}
             <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
-              {/* <div className="flex items-center justify-between rounded-lg bg-night-800 p-4">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm text-night-500">Total:</p>
-                    <div className="h-4 w-4 rounded-full bg-night-700" />
-                    <p className="font-night-100 text-sm font-medium">
-                      {selectedItems.length * 10}.00
-                    </p>
-                  </div>
-                  <button
-                    className="text-sm font-medium text-sapphire-500 transition-colors hover:text-sapphire-300"
-                    onClick={() => setSelectedItems([])}
-                  >
-                    Clear
-                  </button>
-                </div> */}
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   size="md"
