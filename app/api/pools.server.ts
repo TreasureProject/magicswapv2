@@ -9,18 +9,25 @@ import { fetchTroveTokens } from "./tokens.server";
 import {
   getPairCollectionAddresses,
   getPairReserveItemAddresses,
+  getPairTransactionItemAddresses,
 } from "~/lib/pairs.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import type { Pair } from "~/types";
+
+const fetchPairsTroveTokens = (pairs: Pair[]) =>
+  fetchTroveTokens([
+    ...new Set([
+      ...pairs.flatMap((pair) => getPairReserveItemAddresses(pair)),
+      ...pairs.flatMap((pair) => getPairTransactionItemAddresses(pair)),
+    ]),
+  ]);
 
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
   const [collections, tokens, magicUSD] = await Promise.all([
     fetchTroveCollections([
       ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
     ]),
-    fetchTroveTokens([
-      ...new Set(pairs.flatMap((pair) => getPairReserveItemAddresses(pair))),
-    ]),
+    fetchPairsTroveTokens(pairs),
     fetchMagicUSD(),
   ]);
   return pairs.map((pair) =>
@@ -48,7 +55,7 @@ export const fetchPool = async (id: string) => {
 
   const [collections, tokens, magicUSD] = await Promise.all([
     fetchTroveCollections(getPairCollectionAddresses(pair)),
-    fetchTroveTokens(getPairReserveItemAddresses(pair)),
+    fetchPairsTroveTokens([pair]),
     fetchMagicUSD(),
   ]);
   return createPoolFromPair(pair, collections, tokens, magicUSD);

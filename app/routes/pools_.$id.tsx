@@ -23,6 +23,7 @@ import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
+import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
 import { MultiSelect } from "~/components/ui/MultiSelect";
@@ -492,9 +493,9 @@ const PoolActivityTable = ({
                       <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
                         <div className="flex items-center gap-4 text-sm text-night-400">
                           <div className="flex items-center gap-2.5">
-                            <PoolTokenImage
-                              className="h-9 w-9"
+                            <PoolTransactionImage
                               token={baseToken}
+                              items={tx.baseItems}
                             />
                             <span>
                               <span className="text-honey-25">
@@ -509,9 +510,9 @@ const PoolActivityTable = ({
                             <PlusIcon className="h-6 w-6" />
                           )}
                           <div className="flex items-center gap-2.5">
-                            <PoolTokenImage
-                              className="h-9 w-9"
+                            <PoolTransactionImage
                               token={quoteToken}
+                              items={tx.quoteItems}
                             />
                             <span>
                               <span className="text-honey-25">

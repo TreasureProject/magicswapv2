@@ -1,10 +1,33 @@
 import { createPoolTokenCollection } from "./collections.server";
 import type { Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
-// TODO: Move to a token list JSON per chain
-export const NORMALIZED_TOKEN_MAPPING: Record<string, string> = {
-  "0x88f9efb3a7f728fdb2b8872fe994c84b1d148f65":
-    "0x539bde0d7dbd336b79148aa742883198bbf60342",
+type Item = {
+  collection: {
+    id: string;
+  };
+  tokenId: string;
+  amount: number;
+};
+
+export const itemToTroveTokenItem = (
+  { collection: { id: collectionId }, tokenId, amount }: Item,
+  tokens: TroveTokenMapping
+) => {
+  const tokenDetails = tokens[collectionId]?.[tokenId];
+  return {
+    collectionId,
+    tokenId,
+    amount,
+    name: tokenDetails?.metadata.name ?? "",
+    image: tokenDetails?.image.uri ?? "",
+    attributes: (tokenDetails?.metadata?.attributes || []).map(
+      ({ value, trait_type: traitType, display_type: displayType = null }) => ({
+        value,
+        traitType,
+        displayType,
+      })
+    ),
+  };
 };
 
 export const isTokenNft = (token: Token) => token.vaultCollections.length > 0;
@@ -77,28 +100,8 @@ export const createPoolToken = (
     collectionId: tokenCollections[0]?.id ?? "",
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
-    reserveItems: token.vaultReserveItems.map(
-      ({ collection, tokenId, amount }) => {
-        const tokenDetails = tokens[collection.id]?.[tokenId];
-        return {
-          collectionId: collection.id,
-          tokenId,
-          amount,
-          name: tokenDetails?.metadata.name ?? "",
-          image: tokenDetails?.image.uri ?? "",
-          attributes: (tokenDetails?.metadata?.attributes || []).map(
-            ({
-              value,
-              trait_type: traitType,
-              display_type: displayType = null,
-            }) => ({
-              value,
-              traitType,
-              displayType,
-            })
-          ),
-        };
-      }
+    reserveItems: token.vaultReserveItems.map((item) =>
+      itemToTroveTokenItem(item, tokens)
     ),
   };
 };

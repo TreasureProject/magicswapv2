@@ -23,3 +23,16 @@ export const getPairReserveItemAddresses = (pair: Pair) => [
     ...getTokenReserveItemIds(pair.token1),
   ]),
 ];
+
+export const getPairTransactionItemAddresses = (pair: Pair) => [
+  ...new Set(
+    pair.transactions.flatMap(({ items0, items1 }) => [
+      ...(items0?.map(
+        ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+      ) ?? []),
+      ...(items1?.map(
+        ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+      ) ?? []),
+    ])
+  ),
+];

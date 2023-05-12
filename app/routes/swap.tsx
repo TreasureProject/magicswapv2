@@ -289,7 +289,7 @@ export default function SwapPage() {
           otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
           balance={tokenInBalance?.formatted}
-          amount={amountIn}
+          amount={isExactOut ? formatBalance(amountIn) : amountIn}
           selectedNfts={nftsIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
@@ -321,7 +321,7 @@ export default function SwapPage() {
           otherToken={poolTokenIn ?? tokenIn}
           isOut
           balance={tokenOutBalance?.formatted}
-          amount={amountOut}
+          amount={isExactOut ? amountOut : formatBalance(amountOut)}
           selectedNfts={nftsOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}

@@ -1,6 +1,6 @@
 import { formatEther } from "@ethersproject/units";
 
-import { createPoolToken } from "./tokens.server";
+import { createPoolToken, itemToTroveTokenItem } from "./tokens.server";
 import type { PoolToken } from "./tokens.server";
 import type { Pair, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
@@ -43,6 +43,10 @@ export const createPoolFromPair = (
     priceUSD: token1PriceUSD,
     reserve: reserve1,
   };
+  const baseToken =
+    !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0;
+  const quoteToken =
+    !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1;
   const reserveUSD = Number(pair.reserveUSD);
   const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
   const volume1w = pair.dayData.reduce(
@@ -55,9 +59,22 @@ export const createPoolFromPair = (
     token0: poolToken0,
     token1: poolToken1,
     totalSupply: Number(formatEther(pair.totalSupply)),
-    baseToken: !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0,
-    quoteToken: !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1,
+    baseToken,
+    quoteToken,
     reserveUSD,
+    transactions: pair.transactions.map(
+      ({ items0, items1, ...transaction }) => ({
+        ...transaction,
+        baseItems:
+          (baseToken.id === poolToken0.id ? items0 : items1)?.map((item) =>
+            itemToTroveTokenItem(item, tokens)
+          ) ?? [],
+        quoteItems:
+          (quoteToken.id === poolToken0.id ? items0 : items1)?.map((item) =>
+            itemToTroveTokenItem(item, tokens)
+          ) ?? [],
+      })
+    ),
     volume24h,
     volume1w,
     apy: getPoolAPY(volume1w, reserveUSD),

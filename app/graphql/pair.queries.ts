@@ -2,6 +2,17 @@ import gql from "graphql-tag";
 
 import { TOKEN_FRAGMENT } from "./token.queries";
 
+const TRANSACTION_ITEM_FRAGMENT = gql`
+  fragment TransactionItemFragment on TransactionItem {
+    id
+    collection {
+      id
+    }
+    tokenId
+    amount
+  }
+`;
+
 export const PAIR_FRAGMENT = gql`
   fragment PairFragment on Pair {
     id
@@ -33,6 +44,12 @@ export const PAIR_FRAGMENT = gql`
       amount1
       amountUSD
       isAmount1Out
+      items0 {
+        ...TransactionItemFragment
+      }
+      items1 {
+        ...TransactionItemFragment
+      }
     }
     dayData(first: 7, orderBy: date, orderDirection: desc) {
       reserveUSD
@@ -44,6 +61,7 @@ export const PAIR_FRAGMENT = gql`
 
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
+  ${TRANSACTION_ITEM_FRAGMENT}
   ${PAIR_FRAGMENT}
   query getPairs {
     pairs {
@@ -54,6 +72,7 @@ export const getPairs = gql`
 
 export const getPair = gql`
   ${TOKEN_FRAGMENT}
+  ${TRANSACTION_ITEM_FRAGMENT}
   ${PAIR_FRAGMENT}
   query getPair($id: ID!) {
     pair(id: $id) {
