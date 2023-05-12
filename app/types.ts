@@ -73,6 +73,11 @@ export type TroveTokenWithQuantity = TroveToken & {
 
 export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;
 
+export type TroveApiResponse = {
+  tokens: TroveToken[];
+  nextPageKey: string | null;
+};
+
 type BaseTraitMetadata = {
   traitCount: number;
   valuesMap: Record<

@@ -79,8 +79,18 @@ module.exports = {
             transform: "rotate(180deg)",
           },
         },
+        enter: {
+          "0%": { transform: "scale(0.9)", opacity: 0 },
+          "100%": { transform: "scale(1)", opacity: 1 },
+        },
+        leave: {
+          "0%": { transform: "scale(1)", opacity: 1 },
+          "100%": { transform: "scale(0.9)", opacity: 0 },
+        },
       },
       animation: {
+        enter: "enter 200ms ease-out",
+        leave: "leave 150ms ease-in forwards",
         "accordion-down": "accordion-down 0.5s ease-out",
         "accordion-up": "accordion-up 0.5s ease-out",
         "rotate-45": "rotate-45 0.5s ease-out",

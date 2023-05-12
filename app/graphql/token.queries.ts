@@ -25,6 +25,16 @@ export const TOKEN_FRAGMENT = gql`
   }
 `;
 
+export const getToken = gql`
+  query getToken($id: ID!) {
+    token(id: $id) {
+      vaultReserveItems {
+        tokenId
+      }
+    }
+  }
+`;
+
 export const getTokens = gql`
   ${TOKEN_FRAGMENT}
   query getTokens {

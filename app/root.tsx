@@ -12,15 +12,19 @@ import {
   useTransition,
 } from "@remix-run/react";
 import { ConnectKitProvider, getDefaultClient } from "connectkit";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
-import { Toaster } from "sonner";
+import { Toaster, resolveValue, toast } from "react-hot-toast";
 import { WagmiConfig, createClient } from "wagmi";
 import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 
+import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
+import { Button } from "./components/ui/Button";
 import { AccountProvider } from "./contexts/account";
 import { SettingsProvider } from "./contexts/settings";
+import { cn } from "./lib/utils";
 import nProgressStyles from "./styles/nprogress.css";
 import styles from "./styles/tailwind.css";
 import type { Env } from "./types";
@@ -115,7 +119,46 @@ export default function App() {
             </Layout>
           </ConnectKitProvider>
         </WagmiConfig>
-        <Toaster richColors />
+        <Toaster position="top-right" reverseOrder={false} gutter={18}>
+          {(t) => {
+            return (
+              <div
+                className={cn(
+                  "relative box-border w-[356px] rounded-lg border border-night-1000 bg-night-1100 shadow-lg",
+                  t.visible ? "animate-enter" : "animate-leave"
+                )}
+              >
+                <div className="relative p-4">
+                  <div className="text-sm text-white">
+                    {resolveValue(t.message, t)}
+                  </div>
+                  <div className="absolute right-4 top-4 flex-shrink-0">
+                    {(() => {
+                      switch (t.type) {
+                        case "success":
+                          return (
+                            <CheckCircle className="h-4 w-4 text-success-300" />
+                          );
+                        case "error":
+                          return (
+                            <AlertCircle className="h-4 w-4 text-ruby-900" />
+                          );
+                        case "loading":
+                          return (
+                            <LoaderIcon className="h-4 w-4 animate-spin text-sapphire-500" />
+                          );
+                        default:
+                          return (
+                            <CheckCircle className="h-4 w-4 text-yellow-500" />
+                          );
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+            );
+          }}
+        </Toaster>
         <Scripts />
         <ScrollRestoration />
         <LiveReload />
