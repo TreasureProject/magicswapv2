@@ -1,4 +1,5 @@
 import { GlobeIcon } from "lucide-react";
+import { ClientOnly } from "remix-utils";
 
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -28,16 +29,20 @@ export const PoolTokenInfo = ({ token, className }: Props) => {
           {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
             <>| {token.name}</>
           )}
-          <a
-            href={`${blockExplorer.url}/address/${
-              token.collections?.[0]?.id ?? token.id
-            }`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-colors hover:text-white"
-          >
-            <GlobeIcon className="h-4 w-4" />
-          </a>
+          <ClientOnly>
+            {() => (
+              <a
+                href={`${blockExplorer.url}/address/${
+                  token.collections?.[0]?.id ?? token.id
+                }`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-white"
+              >
+                <GlobeIcon className="h-4 w-4" />
+              </a>
+            )}
+          </ClientOnly>
         </span>
       </div>
     </div>

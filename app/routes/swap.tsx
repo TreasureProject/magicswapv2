@@ -17,6 +17,7 @@ import {
   SettingsIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ClientOnly } from "remix-utils";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
@@ -343,30 +344,39 @@ export default function SwapPage() {
           }
         />
         <div className="mt-4 space-y-1.5">
-          {isConnected ? (
-            <>
-              {!isTokenInApproved && hasAmounts && (
-                <Button className="w-full" onClick={() => approveTokenIn()}>
-                  Approve {tokenIn.name}
-                </Button>
-              )}
-              <Button
-                className="w-full"
-                disabled={!isTokenInApproved || !hasAmounts}
-                onClick={() => swap()}
-              >
-                Swap Items
-              </Button>
-            </>
-          ) : (
-            <ConnectKitButton.Custom>
-              {({ show }) => (
-                <Button className="w-full" onClick={show}>
-                  Connect Wallet
-                </Button>
-              )}
-            </ConnectKitButton.Custom>
-          )}
+          <ClientOnly>
+            {() => (
+              <>
+                {isConnected ? (
+                  <>
+                    {!isTokenInApproved && hasAmounts && (
+                      <Button
+                        className="w-full"
+                        onClick={() => approveTokenIn()}
+                      >
+                        Approve {tokenIn.name}
+                      </Button>
+                    )}
+                    <Button
+                      className="w-full"
+                      disabled={!isTokenInApproved || !hasAmounts}
+                      onClick={() => swap()}
+                    >
+                      Swap Items
+                    </Button>
+                  </>
+                ) : (
+                  <ConnectKitButton.Custom>
+                    {({ show }) => (
+                      <Button className="w-full" onClick={show}>
+                        Connect Wallet
+                      </Button>
+                    )}
+                  </ConnectKitButton.Custom>
+                )}
+              </>
+            )}
+          </ClientOnly>
         </div>
         {!!poolTokenIn && !!poolTokenOut && hasAmounts && (
           <div className="mt-4 text-sm text-night-400">
@@ -653,7 +663,7 @@ const TokenSelectDialog = ({
               Collections
             </button>
           </div>
-          <ul className="mt-4 border-t border-night-900 pt-4">
+          <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
             {tokens
               .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
               .map((token) => (
