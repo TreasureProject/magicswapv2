@@ -1,4 +1,5 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import { formatUnits } from "@ethersproject/units";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -15,6 +16,7 @@ import {
   usePrepareMagicSwapV2RouterSwapTokensForExactTokens,
   usePrepareMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
+import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
 import { getAmountMaxBN, getAmountMinBN } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
@@ -107,6 +109,12 @@ export const useSwap = ({
     useWaitForTransaction(swapTokensForExactTokensData);
 
   // ERC20-NFT
+  console.log({
+    collectionsOut,
+    tokenIdsOut,
+    quantitiesOut,
+    amountInMax: formatUnits(amountInMax),
+  });
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
       args: [
@@ -120,10 +128,27 @@ export const useSwap = ({
       ],
       enabled: isEnabled && !tokenIn.isNft && tokenOut.isNft,
     });
-  const { data: swapTokensForNftData, write: swapTokensForNft } =
-    useMagicSwapV2RouterSwapTokensForNft(swapTokensForNftConfig);
-  const { isSuccess: isSwapTokensForNftSuccess } =
-    useWaitForTransaction(swapTokensForNftData);
+  const {
+    data: swapTokensForNftData,
+    write: swapTokensForNft,
+    status: swapTokensForNftStatus,
+  } = useMagicSwapV2RouterSwapTokensForNft(swapTokensForNftConfig);
+  const { isSuccess: isSwapTokensForNftSuccess } = useWaitForT(
+    swapTokensForNftData,
+    swapTokensForNftStatus,
+    {
+      loading: (
+        <>
+          Swapping {parseFloat(formatUnits(amountInMax)).toFixed(3)}{" "}
+          {tokenIn?.symbol} <span className="text-night-600">for</span>{" "}
+          {quantitiesOut.length} {tokenOut?.symbol}
+          {quantitiesOut.length > 1 ? "S" : ""}
+        </>
+      ),
+      success: "Success!",
+      error: "Error!",
+    }
+  );
 
   // NFT-ERC20
   const { config: swapNftForTokensConfig } =

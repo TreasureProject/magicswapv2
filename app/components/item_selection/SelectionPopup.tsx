@@ -12,7 +12,7 @@ import {
   X,
   XIcon,
 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
 import { LoaderIcon } from "../Icons";
