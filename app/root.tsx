@@ -111,33 +111,6 @@ export default function App() {
         <WagmiConfig client={client}>
           <ConnectKitProvider>
             <Layout>
-              <Button
-                onClick={() => {
-                  toast.success(
-                    "success success success successsuccess success success"
-                  );
-                }}
-              >
-                Render
-              </Button>
-              <Button
-                onClick={() => {
-                  toast.error(
-                    "success success success successsuccess success success"
-                  );
-                }}
-              >
-                Render
-              </Button>
-              <Button
-                onClick={() => {
-                  toast.loading(
-                    "success success success successsuccess success success"
-                  );
-                }}
-              >
-                Render
-              </Button>
               <AccountProvider>
                 <SettingsProvider>
                   <Outlet />
