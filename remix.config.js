@@ -1,18 +1,16 @@
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
   ignoredRouteFiles: ["**/.*"],
+  tailwind: true,
   future: {
-    unstable_tailwind: true,
+    v2_errorBoundary: true,
+    v2_meta: true,
+    v2_normalizeFormMethod: true,
     v2_routeConvention: true,
   },
   serverDependenciesToBundle: [
-    "@rainbow-me/rainbowkit",
-    "@rainbow-me/rainbowkit/wallets",
     "connectkit",
     /^@?wagmi.*/,
   ],
-  // appDirectory: "app",
-  // assetsBuildDirectory: "public/build",
-  // serverBuildPath: "build/index.js",
-  // publicPath: "/build/",
+  serverModuleFormat: "cjs"
 };

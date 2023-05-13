@@ -1,8 +1,6 @@
 import Decimal from "decimal.js-light";
-import { ClientOnly } from "remix-utils";
 
 import { CurrencyInput } from "../CurrencyInput";
-import { LoaderIcon } from "../Icons";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";

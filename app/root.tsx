@@ -1,5 +1,6 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import {
   Links,
   LiveReload,
@@ -34,11 +35,11 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: nProgressStyles },
 ];
 
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "MagicSwap",
-  viewport: "width=device-width,initial-scale=1",
-});
+export const meta: V2_MetaFunction = () => [
+  { title: "MagicSwap" },
+  { charSet: "utf-8" },
+  { name: "viewport", content: "width=device-width,initial-scale=1" },
+];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const strictEntries = <T extends Record<string, any>>(
