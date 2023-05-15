@@ -12,7 +12,7 @@ import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString } from "~/types";
 
 type Props = {
-  token: PoolToken;
+  token: PoolToken | string;
   amount?: BigNumber;
   enabled?: boolean;
 };
@@ -24,30 +24,37 @@ export const useIsApproved = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
 
+  const isFullToken = typeof token !== "string";
+  const tokenAddress = (isFullToken ? token.id : token) as AddressString;
+  const collectionAddress = isFullToken
+    ? (token.collectionId as AddressString)
+    : undefined;
+  const isERC721 = isFullToken && token.type === "ERC721";
+  const isERC1155 = isFullToken && token.type === "ERC1155";
   const isEnabled = !!address && enabled;
 
   const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
-    address: token.id as AddressString,
+    address: tokenAddress,
     args: [addressArg, magicSwapV2RouterAddress[421613]],
-    enabled: isEnabled && !token.isNft,
+    enabled: isEnabled && !isERC721 && !isERC1155,
   });
 
   const {
     data: erc721IsApprovedForAll,
     refetch: refetchERC721IsApprovedForAll,
   } = useErc721IsApprovedForAll({
-    address: token.collectionId as AddressString,
+    address: collectionAddress,
     args: [addressArg, magicSwapV2RouterAddress[421613]],
-    enabled: isEnabled && !!token.collectionId && token.type === "ERC721",
+    enabled: isEnabled && !!collectionAddress && isERC721,
   });
 
   const {
     data: erc1155IsApprovedForAll,
     refetch: refetchERC1155IsApprovedForAll,
   } = useErc1155IsApprovedForAll({
-    address: token.collectionId as AddressString,
+    address: collectionAddress,
     args: [addressArg, magicSwapV2RouterAddress[421613]],
-    enabled: isEnabled && !!token.collectionId && token.type === "ERC1155",
+    enabled: isEnabled && !!collectionAddress && isERC1155,
   });
 
   const refetch = useCallback(() => {

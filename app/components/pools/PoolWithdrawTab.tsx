@@ -1,26 +1,18 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { parseEther, parseUnits } from "@ethersproject/units";
 import Decimal from "decimal.js-light";
 import { useEffect, useState } from "react";
-import { useWaitForTransaction } from "wagmi";
 
 import { Button } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { useAccount } from "~/contexts/account";
 import { useSettings } from "~/contexts/settings";
-import {
-  magicSwapV2RouterAddress,
-  useErc20Allowance,
-  useErc20Approve,
-  useMagicSwapV2RouterRemoveLiquidity,
-  usePrepareErc20Approve,
-  usePrepareMagicSwapV2RouterRemoveLiquidity,
-} from "~/generated";
+import { useApprove } from "~/hooks/useApprove";
+import { useIsApproved } from "~/hooks/useIsApproved";
+import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import { getAmountMin, getTokenCountForLp } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { AddressString } from "~/types";
 
 type Props = {
   pool: Pool;
@@ -29,8 +21,8 @@ type Props = {
 };
 
 export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
-  const { address, addressArg } = useAccount();
-  const { slippage, deadline } = useSettings();
+  const { address } = useAccount();
+  const { slippage } = useSettings();
   const [amount, setAmount] = useState("0");
 
   const amountBN = parseEther(amount);
@@ -49,44 +41,32 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const amountBaseMin = getAmountMin(amountBase, slippage).toString();
   const amountQuoteMin = getAmountMin(amountQuote, slippage).toString();
 
-  const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
-    address: pool.id as AddressString,
-    args: [addressArg, magicSwapV2RouterAddress[421613]],
-    enabled: !!address,
+  const { isApproved, refetch: refetchApproval } = useIsApproved({
+    token: pool.id,
+    amount: amountBN,
+    enabled: hasAmount,
   });
-  const isApproved = allowance?.gte(amountBN) ?? false;
-
-  const { config: approveConfig } = usePrepareErc20Approve({
-    address: pool.id as AddressString,
-    args: [magicSwapV2RouterAddress[421613], amountBN],
+  const { approve, isSuccess: isApproveSuccess } = useApprove({
+    token: pool.id,
+    amount: amountBN,
     enabled: !isApproved && hasAmount,
   });
-  const { data: approveData, write: approve } = useErc20Approve(approveConfig);
-  const { isSuccess: isApproveSuccess } = useWaitForTransaction(approveData);
 
-  const { config: removeLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidity({
-      args: [
-        pool.baseToken.id as AddressString,
-        pool.quoteToken.id as AddressString,
-        amountBN,
-        parseUnits(amountBaseMin, pool.baseToken.decimals),
-        parseUnits(amountQuoteMin, pool.quoteToken.decimals),
-        addressArg,
-        BigNumber.from(Math.floor(Date.now() / 1000) + deadline * 60),
-      ],
+  const { removeLiquidity, isSuccess: isRemoveLiquiditySuccess } =
+    useRemoveLiquidity({
+      pool,
+      amountLP: amountBN,
+      amountBaseMin: parseUnits(amountBaseMin, pool.baseToken.decimals),
+      amountQuoteMin: parseUnits(amountQuoteMin, pool.quoteToken.decimals),
+      nfts: [],
       enabled: !!address && isApproved && hasAmount,
     });
-  const { data: removeLiquidityData, write: removeLiquidity } =
-    useMagicSwapV2RouterRemoveLiquidity(removeLiquidityConfig);
-  const { isSuccess: isRemoveLiquiditySuccess } =
-    useWaitForTransaction(removeLiquidityData);
 
   useEffect(() => {
     if (isApproveSuccess) {
-      refetchAllowance();
+      refetchApproval();
     }
-  }, [isApproveSuccess, refetchAllowance]);
+  }, [isApproveSuccess, refetchApproval]);
 
   useEffect(() => {
     if (isRemoveLiquiditySuccess) {
