@@ -9,11 +9,13 @@ export const PoolTokenInput = ({
   token,
   balance = "0",
   amount,
+  disabled = false,
   onUpdateAmount,
 }: {
   token: PoolToken;
   balance?: string;
   amount: string;
+  disabled?: boolean;
   onUpdateAmount: (amount: string) => void;
 }) => {
   return (
@@ -31,7 +33,11 @@ export const PoolTokenInput = ({
           </div>
         </div>
         <div className="space-y-1 text-right">
-          <CurrencyInput value={amount} onChange={onUpdateAmount} />
+          <CurrencyInput
+            value={amount}
+            disabled={disabled}
+            onChange={onUpdateAmount}
+          />
           <span className="block text-sm text-night-400">
             {formatUSD(
               new Decimal(amount === "0" ? 1 : amount)

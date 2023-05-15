@@ -179,7 +179,8 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           <PoolTokenInput
             token={pool.baseToken}
             balance={baseTokenBalance?.formatted}
-            amount={amountBase}
+            amount={isExactQuote ? formatBalance(amountBase) : amountBase}
+            disabled={pool.quoteToken.isNft}
             onUpdateAmount={(amount) =>
               setTrade({
                 amount,
@@ -201,7 +202,8 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           <PoolTokenInput
             token={pool.quoteToken}
             balance={quoteTokenBalance?.formatted}
-            amount={amountQuote}
+            amount={isExactQuote ? amountQuote : formatBalance(amountQuote)}
+            disabled={pool.baseToken.isNft}
             onUpdateAmount={(amount) =>
               setTrade({
                 amount,
