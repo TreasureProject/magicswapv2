@@ -11,7 +11,7 @@ import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { formatBalance, formatUSD } from "~/lib/currency";
-import { getAmountMin, getTokenCountForLp } from "~/lib/pools";
+import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 
 type Props = {
@@ -28,18 +28,33 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const amountBN = parseEther(amount);
   const hasAmount = amountBN.gt(0);
 
-  const amountBase = getTokenCountForLp(
+  const rawAmountBase = getTokenCountForLp(
     amount,
     pool.baseToken.reserve,
     pool.totalSupply
   );
-  const amountQuote = getTokenCountForLp(
+  const rawAmountQuote = getTokenCountForLp(
     amount,
     pool.quoteToken.reserve,
     pool.totalSupply
   );
-  const amountBaseMin = getAmountMin(amountBase, slippage).toString();
-  const amountQuoteMin = getAmountMin(amountQuote, slippage).toString();
+  const amountBase = pool.baseToken.isNft
+    ? Math.floor(Number(rawAmountBase)).toString()
+    : rawAmountBase;
+  const amountQuote = pool.quoteToken.isNft
+    ? Math.floor(Number(rawAmountQuote)).toString()
+    : rawAmountQuote;
+  const amountBaseMin = pool.baseToken.isNft
+    ? amountBase
+    : getAmountMin(amountBase, slippage).toString();
+  const amountQuoteMin = pool.quoteToken.isNft
+    ? amountQuote
+    : getAmountMin(amountQuote, slippage).toString();
+  const amountLeftover = pool.baseToken.isNft
+    ? Number(rawAmountBase) - Number(amountBase)
+    : pool.quoteToken.isNft
+    ? Number(rawAmountQuote) - Number(amountQuote)
+    : 0;
 
   const { isApproved, refetch: refetchApproval } = useIsApproved({
     token: pool.id,
@@ -83,7 +98,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
         amount={amount}
         onUpdateAmount={setAmount}
       />
-      {amount !== "0" && (
+      {hasAmount && (
         <div className="space-y-1.5 rounded-md border border-night-800 p-3 text-night-400">
           <p>You'll receive at least:</p>
           <div className="flex items-center justify-between gap-3">
@@ -95,7 +110,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
               {pool.baseToken.symbol}
             </div>
             {formatUSD(
-              new Decimal(amountBaseMin === "0" ? 1 : amountBaseMin)
+              new Decimal(amountBaseMin)
                 .mul(pool.baseToken.priceUSD)
                 .toFixed(2, Decimal.ROUND_DOWN)
             )}
@@ -109,11 +124,68 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
               {pool.quoteToken.symbol}
             </div>
             {formatUSD(
-              new Decimal(amountQuoteMin === "0" ? 1 : amountQuoteMin)
+              new Decimal(amountQuoteMin)
                 .mul(pool.quoteToken.priceUSD)
                 .toFixed(2, Decimal.ROUND_DOWN)
             )}
           </div>
+          {amountLeftover > 0 && (
+            <>
+              <p>And swap leftover NFTs:</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <PoolTokenImage
+                      className="h-6 w-6"
+                      token={
+                        pool.baseToken.isNft ? pool.baseToken : pool.quoteToken
+                      }
+                    />
+                    <span className="text-honey-25">
+                      {formatBalance(amountLeftover)}
+                    </span>
+                    {pool.baseToken.isNft
+                      ? pool.baseToken.symbol
+                      : pool.quoteToken.symbol}
+                  </div>
+                  to
+                  <div className="flex items-center gap-1">
+                    <PoolTokenImage
+                      className="h-6 w-6"
+                      token={
+                        pool.baseToken.isNft ? pool.quoteToken : pool.baseToken
+                      }
+                    />
+                    <span className="text-honey-25">
+                      {formatBalance(
+                        quote(
+                          amountLeftover.toString(),
+                          pool.baseToken.isNft
+                            ? pool.baseToken.reserve
+                            : pool.quoteToken.reserve,
+                          pool.baseToken.isNft
+                            ? pool.quoteToken.reserve
+                            : pool.baseToken.reserve
+                        )
+                      )}
+                    </span>
+                    {pool.baseToken.isNft
+                      ? pool.quoteToken.symbol
+                      : pool.baseToken.symbol}
+                  </div>
+                </div>
+                {formatUSD(
+                  new Decimal(amountLeftover)
+                    .mul(
+                      pool.baseToken.isNft
+                        ? pool.baseToken.priceUSD
+                        : pool.quoteToken.priceUSD
+                    )
+                    .toFixed(2, Decimal.ROUND_DOWN)
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
       {!isApproved && (
