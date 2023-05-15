@@ -7,11 +7,13 @@ import type { TroveTokenWithQuantity } from "~/types";
 
 export const PoolNftTokenInput = ({
   token,
-  balance = "0",
+  amount,
+  balance,
   selectedNfts,
   onOpenSelect,
 }: {
   token: PoolToken;
+  amount?: number;
   balance?: string;
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
@@ -74,26 +76,39 @@ export const PoolNftTokenInput = ({
               size="md"
               onClick={() => onOpenSelect(token)}
             >
-              Select Items
+              {amount
+                ? amount === 1
+                  ? "Select Item"
+                  : `Select ${amount} Items`
+                : "Select Items"}
             </Button>
           </DialogTrigger>
         )}
       </div>
-      <div className="flex h-12 items-center justify-between bg-night-1000 p-2 pr-4">
-        <p className="pl-2 text-sm text-night-400">
-          Inventory:
-          <span className="pl-1 font-medium text-night-100">
-            {formatBalance(balance)}
-          </span>
-        </p>
-        {selectedNfts.length > 0 ? (
-          <DialogTrigger asChild>
-            <Button variant="ghost" onClick={() => onOpenSelect(token)}>
-              Edit Selection
-            </Button>
-          </DialogTrigger>
-        ) : null}
-      </div>
+      {balance !== undefined || selectedNfts.length > 0 ? (
+        <div
+          className={cn(
+            "flex h-12 items-center bg-night-1000 p-2 pr-4",
+            balance !== undefined ? "justify-between" : "justify-end"
+          )}
+        >
+          {balance !== undefined ? (
+            <p className="pl-2 text-sm text-night-400">
+              Inventory:
+              <span className="pl-1 font-medium text-night-100">
+                {formatBalance(balance)}
+              </span>
+            </p>
+          ) : null}
+          {selectedNfts.length > 0 ? (
+            <DialogTrigger asChild>
+              <Button variant="ghost" onClick={() => onOpenSelect(token)}>
+                Edit Selection
+              </Button>
+            </DialogTrigger>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 };
