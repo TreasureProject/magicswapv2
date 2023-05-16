@@ -35,7 +35,7 @@ export const NumberSelect = ({
           !(number === 0) &&
             "opacity-100 hover:bg-night-1000 hover:text-night-200"
         )}
-        disabled={number === 0}
+        disabled={number === 1}
         onClick={() => updateNumber("sub")}
       >
         <MinusIcon className="w-4" />

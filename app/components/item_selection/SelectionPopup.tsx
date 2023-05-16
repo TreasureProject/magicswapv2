@@ -34,36 +34,48 @@ const ItemCard = ({
   selected,
   item,
   onClick,
+  disabled,
 }: {
   selected: boolean;
   item: TroveToken;
   onClick: () => void;
-}) => (
-  <div
-    className={cn(
-      "group relative flex-col overflow-hidden rounded-lg bg-night-900",
-      selected && "ring-2 ring-night-100"
-    )}
-  >
-    {selected && (
-      <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
-        <CheckIcon className="w-3" />
+  disabled: boolean;
+}) => {
+  const disableUnselected = !selected && disabled;
+  return (
+    <div
+      className={cn(
+        "group relative flex-col overflow-hidden rounded-lg bg-night-900",
+        selected && "ring-2 ring-night-100",
+        disableUnselected && "cursor-not-allowed opacity-30"
+      )}
+    >
+      {selected && (
+        <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
+          <CheckIcon className="w-3" />
+        </div>
+      )}
+      <img
+        src={item.image.uri}
+        alt={item.tokenId}
+        className="w-full group-hover:opacity-75"
+      />
+      <div className="p-3">
+        <p className="text-sm font-medium text-night-100">
+          {item.metadata.name}
+        </p>
+        <p className="text-night-400">{item.tokenId}</p>
       </div>
-    )}
-    <img
-      src={item.image.uri}
-      alt={item.tokenId}
-      className="w-full group-hover:opacity-75"
-    />
-    <div className="p-3">
-      <p className="text-sm font-medium text-night-100">{item.metadata.name}</p>
-      <p className="text-night-400">{item.tokenId}</p>
+      <button
+        className="absolute inset-0"
+        onClick={onClick}
+        disabled={disableUnselected}
+      >
+        <span className="sr-only">Select {item.metadata.name}</span>
+      </button>
     </div>
-    <button className="absolute inset-0" onClick={onClick}>
-      <span className="sr-only">Select {item.metadata.name}</span>
-    </button>
-  </div>
-);
+  );
+};
 
 const TraitFilterBadge = ({ trait }: { trait: string }) => {
   const [key, value] = trait.split(":");
@@ -95,11 +107,13 @@ export const SelectionPopup = ({
   type,
   onSubmit,
   selectedTokens,
+  limit,
 }: {
   token?: PoolToken;
   type: "vault" | "inventory";
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
   selectedTokens?: TroveTokenWithQuantity[];
+  limit?: number;
 }) => {
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     selectedTokens || []
@@ -115,6 +129,15 @@ export const SelectionPopup = ({
   const id = token?.id;
   const fetchFromVault = type === "vault";
   const offsetRef = React.useRef(0);
+
+  const totalQuantity = selectedItems.reduce(
+    (acc, curr) => (acc += curr.quantity),
+    0
+  );
+
+  const selectionDisabled = limit ? totalQuantity >= limit : false;
+  const buttonDisabled = limit ? totalQuantity > limit : false;
+
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
     if (formData) {
@@ -238,9 +261,6 @@ export const SelectionPopup = ({
               />
             </div>
           </Form>
-          <button className="rounded-md bg-night-1000 px-2 text-night-600 transition-colors hover:bg-night-900 hover:text-night-100">
-            <SettingsIcon className="h-4 w-4" />
-          </button>
           <IconToggle
             icons={[
               {
@@ -399,6 +419,7 @@ export const SelectionPopup = ({
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
               {data.tokens.tokens.map((item) => (
                 <ItemCard
+                  disabled={selectionDisabled}
                   selected={selectedItems.some(
                     (i) => i.tokenId === item.tokenId
                   )}
@@ -581,12 +602,17 @@ export const SelectionPopup = ({
                 </Button>
                 <Close asChild>
                   <Button
+                    disabled={buttonDisabled}
                     size="md"
                     onClick={() => {
                       onSubmit(selectedItems);
                     }}
                   >
-                    Save selections
+                    {limit && buttonDisabled
+                      ? `Remove ${totalQuantity - limit} Item${
+                          totalQuantity - limit > 1 ? "s" : ""
+                        }`
+                      : "Save selections"}
                   </Button>
                 </Close>
               </div>

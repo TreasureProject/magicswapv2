@@ -467,7 +467,7 @@ const SwapTokenInput = ({
   className?: string;
 }) => {
   const location = useLocation();
-
+  const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
   const amountPriceUSD =
     Number.isNaN(parsedAmount) || parsedAmount === 0
@@ -539,19 +539,28 @@ const SwapTokenInput = ({
                 </div>
               </div>
             ) : (
-              <Dialog>
-                <SelectionPopup
-                  type={isOut ? "vault" : "inventory"}
-                  token={token}
-                  selectedTokens={selectedNfts}
-                  onSubmit={onSelectNfts}
-                />
-                <DialogTrigger asChild>
-                  <Button variant="dark" size="md">
-                    Select Items
-                  </Button>
-                </DialogTrigger>
-              </Dialog>
+              <>
+                <Dialog
+                  open={openSelectionModal}
+                  onOpenChange={setOpenSelectionModal}
+                >
+                  {openSelectionModal && (
+                    <SelectionPopup
+                      type={isOut ? "vault" : "inventory"}
+                      token={token}
+                      selectedTokens={selectedNfts}
+                      onSubmit={onSelectNfts}
+                    />
+                  )}
+                </Dialog>
+                <Button
+                  variant="dark"
+                  size="md"
+                  onClick={() => setOpenSelectionModal(true)}
+                >
+                  Select Items
+                </Button>
+              </>
             )
           ) : (
             <>

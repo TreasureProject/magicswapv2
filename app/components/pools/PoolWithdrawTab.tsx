@@ -104,6 +104,10 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
     }
   }, [isRemoveLiquiditySuccess, onSuccess]);
 
+  const limitAmount = pool.baseToken.isNft
+    ? Number(amountBaseMin)
+    : Number(amountQuoteMin);
+
   return (
     <div className="space-y-4">
       <PoolInput
@@ -215,6 +219,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
             <Dialog>
               <SelectionPopup
                 type="vault"
+                limit={limitAmount}
                 token={selectingToken}
                 selectedTokens={nfts}
                 onSubmit={(nfts) =>
@@ -226,11 +231,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
               />
               <PoolNftTokenInput
                 token={pool.baseToken.isNft ? pool.baseToken : pool.quoteToken}
-                amount={
-                  pool.baseToken.isNft
-                    ? Number(amountBaseMin)
-                    : Number(amountQuoteMin)
-                }
+                amount={limitAmount}
                 selectedNfts={nfts}
                 onOpenSelect={setSelectingToken}
               />
