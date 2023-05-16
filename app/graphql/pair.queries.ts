@@ -34,6 +34,7 @@ export const PAIR_FRAGMENT = gql`
     royaltiesBeneficiary
     totalFee
     transactions(orderBy: timestamp, orderDirection: desc) {
+      id
       hash
       timestamp
       type

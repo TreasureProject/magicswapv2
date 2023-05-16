@@ -7,7 +7,7 @@ import { cn } from "~/lib/utils";
 interface TableItem {
   label: string;
   icon?: string | { token0: string | undefined; token1: string | undefined };
-  value: string | number;
+  value: React.ReactNode;
 }
 
 interface TableProps {

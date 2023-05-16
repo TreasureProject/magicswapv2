@@ -1,7 +1,9 @@
+import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
+import { useIsMounted } from "connectkit";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -18,7 +20,9 @@ import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
+import { LoaderIcon } from "~/components/Icons";
 import Table, { CopyTable } from "~/components/Table";
+import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
@@ -96,17 +100,21 @@ export default function PoolDetailsPage() {
                     TVL
                   </abbr>
                   :{" "}
-                  <span className="font-medium">
-                    {formatUSD(Number(pool.reserveUSD) * lpShare)}
-                  </span>
+                  <VisibleOnClient>
+                    <span className="font-medium">
+                      {formatUSD(Number(pool.reserveUSD) * lpShare)}
+                    </span>
+                  </VisibleOnClient>
                 </span>
               </div>
               <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
                   <PoolImage pool={pool} className="h-10 w-10" />
-                  <p className="text-base-100 text-3xl font-medium">
-                    {formatBalance(rawLpBalance?.formatted ?? 0)}
-                  </p>
+                  <VisibleOnClient>
+                    <p className="text-base-100 text-3xl font-medium">
+                      {formatBalance(rawLpBalance?.formatted ?? 0)}
+                    </p>
+                  </VisibleOnClient>
                 </div>
                 <p className="text-sm text-night-400">
                   Current LP Token Balance
@@ -130,13 +138,17 @@ export default function PoolDetailsPage() {
                     <div>
                       <div className="flex items-center gap-3">
                         <PoolTokenImage className="h-7 w-7" token={token} />
-                        <p className="text-3xl font-medium">
-                          {formatBalance(token.reserve * lpShare)}
-                        </p>
+                        <VisibleOnClient>
+                          <p className="text-3xl font-medium">
+                            {formatBalance(token.reserve * lpShare)}
+                          </p>
+                        </VisibleOnClient>
                       </div>
-                      <p className="text-night-500">
-                        {formatUSD(token.reserve * lpShare * token.priceUSD)}
-                      </p>
+                      <VisibleOnClient>
+                        <p className="text-night-500">
+                          {formatUSD(token.reserve * lpShare * token.priceUSD)}
+                        </p>
+                      </VisibleOnClient>
                     </div>
                   </div>
                 ))}
@@ -147,7 +159,11 @@ export default function PoolDetailsPage() {
                   // { label: "Rewards Earned", value: 0.0 },
                   {
                     label: "Current Share of Pool",
-                    value: formatPercent(lpShare),
+                    value: (
+                      <VisibleOnClient>
+                        {formatPercent(lpShare)}
+                      </VisibleOnClient>
+                    ),
                   },
                 ]}
               />
@@ -251,7 +267,7 @@ export default function PoolDetailsPage() {
               <PoolWithdrawTab pool={pool} balance={lpBalance} />
             )}
             {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
-            {activeTab === "summary" && (
+            {/* {activeTab === "summary" && (
               <>
                 <div className="flex w-full flex-col items-center gap-1 pt-6">
                   <div className="flex items-center gap-1">
@@ -345,7 +361,7 @@ export default function PoolDetailsPage() {
                 </div>
                 <Button onClick={() => setActiveTab("deposit")}>Confirm</Button>
               </>
-            )}
+            )} */}
           </div>
         </div>
         {/*Here the pool & inventory start */}
@@ -431,6 +447,15 @@ const PoolActivityTable = ({
     ({ type }) => !filter || type === filter
   );
 
+  const isMounted = useIsMounted();
+
+  if (!isMounted)
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <LoaderIcon className="h-10 w-10" />
+      </div>
+    );
+
   return (
     <div>
       <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
@@ -488,7 +513,7 @@ const PoolActivityTable = ({
                 }
 
                 return (
-                  <Fragment key={tx.hash}>
+                  <Fragment key={tx.id}>
                     <tr className="border-b border-b-night-900 transition-colors">
                       <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
                         <div className="flex items-center gap-4 text-sm text-night-400">

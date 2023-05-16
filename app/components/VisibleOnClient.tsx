@@ -7,7 +7,11 @@ export const VisibleOnClient = ({
   children: React.ReactNode;
 }) => {
   return (
-    <ClientOnly fallback={<LoaderIcon className="h-3.5 w-3.5" />}>
+    <ClientOnly
+      fallback={
+        <LoaderIcon className="inline-block h-3.5 w-3.5 animate-spin" />
+      }
+    >
       {() => children}
     </ClientOnly>
   );
