@@ -30,8 +30,6 @@ export const itemToTroveTokenItem = (
   };
 };
 
-export const isTokenNft = (token: Token) => token.vaultCollections.length > 0;
-
 export const getTokenCollectionAddresses = (token: Token) =>
   token.vaultCollections.map(({ collection }) => collection.id) ?? [];
 
@@ -44,7 +42,7 @@ export const createTokenName = (
   token: Token,
   collections: TroveCollectionMapping
 ) => {
-  if (isTokenNft(token)) {
+  if (token.isNFT) {
     const addresses = getTokenCollectionAddresses(token);
     return addresses
       .map((address) => collections[address]?.displayName ?? address)
@@ -59,7 +57,7 @@ export const createTokenSymbol = (
   token: Token,
   collections: TroveCollectionMapping
 ) => {
-  if (isTokenNft(token)) {
+  if (token.isNFT) {
     const addresses = getTokenCollectionAddresses(token);
     return addresses
       .map(
@@ -84,19 +82,16 @@ export const createPoolToken = (
       createPoolTokenCollection(collection, collections)
     ) ?? [];
   const symbol = createTokenSymbol(token, collections);
-  const isNft = isTokenNft(token);
-
   return {
     ...token,
     name: createTokenName(token, collections),
     symbol,
     image:
       tokenCollections[0]?.image ??
-      (isNft ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
+      (token.isNFT ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
-    type: tokenCollections[0]?.type ?? "ERC721",
-    isNft,
+    type: tokenCollections[0]?.type,
     collectionId: tokenCollections[0]?.id ?? "",
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,

@@ -149,7 +149,7 @@ export const SelectionPopup = ({
   }, [formData]);
 
   const fetchCollection = React.useCallback(() => {
-    if (!address || !token?.isNft) {
+    if (!address || !token?.isNFT) {
       return;
     }
 
@@ -169,15 +169,15 @@ export const SelectionPopup = ({
       params.set("traits", traitInfoRef.current);
     }
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, fetchFromVault, load, token?.isNft, token?.urlSlug, id]);
+  }, [address, fetchFromVault, load, token?.isNFT, token?.urlSlug, id]);
 
   React.useEffect(() => {
-    if (!token?.isNft) {
+    if (!token?.isNFT) {
       return;
     }
     fetchCollection();
     loadFilters(`/resources/get-filters/${token.urlSlug}`);
-  }, [token?.isNft, token?.urlSlug, loadFilters, fetchCollection]);
+  }, [token?.isNFT, token?.urlSlug, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {

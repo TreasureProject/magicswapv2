@@ -64,7 +64,6 @@ export const useApprove = ({
   return {
     approve: () => {
       if (isERC721) {
-        console.log("here");
         erc721Approve?.();
       } else if (isERC1155) {
         erc1155Approve?.();

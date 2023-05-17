@@ -73,7 +73,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && !tokenOut.isNft && !isExactOut,
+      enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
     });
   const {
     data: swapExactTokensForTokensData,
@@ -94,7 +94,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && !tokenOut.isNft && isExactOut,
+      enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
     });
   const {
     data: swapTokensForExactTokensData,
@@ -105,13 +105,6 @@ export const useSwap = ({
   const { isSuccess: isSwapTokensForExactTokensSuccess } =
     useWaitForTransaction(swapTokensForExactTokensData);
 
-  // ERC20-NFT
-  console.log({
-    collectionsOut,
-    tokenIdsOut,
-    quantitiesOut,
-    amountInMax: formatUnits(amountInMax),
-  });
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
       args: [
@@ -123,7 +116,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && tokenOut.isNft,
+      enabled: isEnabled && !tokenIn.isNFT && tokenOut.isNFT,
     });
   const {
     data: swapTokensForNftData,
@@ -159,7 +152,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && tokenIn.isNft && !tokenOut.isNft,
+      enabled: isEnabled && tokenIn.isNFT && !tokenOut.isNFT,
     });
   const { data: swapNftForTokensData, write: swapNftForTokens } =
     useMagicSwapV2RouterSwapNftForTokens(swapNftForTokensConfig);
@@ -180,7 +173,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && tokenIn.isNft && tokenOut.isNft,
+      enabled: isEnabled && tokenIn.isNFT && tokenOut.isNFT,
     });
   const { data: swapNftForNftData, write: swapNftForNft } =
     useMagicSwapV2RouterSwapNftForNft(swapNftForNftConfig);
@@ -195,11 +188,11 @@ export const useSwap = ({
         return;
       }
 
-      if (tokenIn.isNft && tokenOut.isNft) {
+      if (tokenIn.isNFT && tokenOut.isNFT) {
         swapNftForNft?.();
-      } else if (tokenIn.isNft) {
+      } else if (tokenIn.isNFT) {
         swapNftForTokens?.();
-      } else if (tokenOut.isNft) {
+      } else if (tokenOut.isNFT) {
         swapTokensForNft?.();
       } else if (isExactOut) {
         swapTokensForExactTokens?.();

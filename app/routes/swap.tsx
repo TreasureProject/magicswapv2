@@ -52,7 +52,11 @@ import { formatPercent } from "~/lib/number";
 import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import type {
+  AddressString,
+  NumberString,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
   const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
@@ -118,48 +122,44 @@ export default function SwapPage() {
   const poolTokenOut =
     pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
-  const amountIn = (
-    isExactOut
-      ? getAmountIn(
-          amount,
-          poolTokenIn?.reserve,
-          poolTokenOut?.reserve,
-          tokenIn.decimals,
-          pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-        )
-      : amount
-  ) as `${number}`;
-  const amountOut = (
-    isExactOut
-      ? amount
-      : getAmountOut(
-          amount,
-          poolTokenIn?.reserve,
-          poolTokenOut?.reserve,
-          tokenOut?.decimals,
-          pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-        )
-  ) as `${number}`;
+  const amountIn = isExactOut
+    ? getAmountIn(
+        amount,
+        poolTokenIn?.reserve,
+        poolTokenOut?.reserve,
+        tokenIn.decimals,
+        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
+      )
+    : amount;
+  const amountOut = isExactOut
+    ? amount
+    : getAmountOut(
+        amount,
+        poolTokenIn?.reserve,
+        poolTokenOut?.reserve,
+        tokenOut?.decimals,
+        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
+      );
 
   const amountInBN = Number.isNaN(Number(amountIn))
     ? BigInt(0)
-    : parseUnits(amountIn, Number(tokenIn.decimals));
+    : parseUnits(amountIn as NumberString, Number(tokenIn.decimals));
   const amountOutBN = Number.isNaN(Number(amountOut))
     ? BigInt(0)
-    : parseUnits(amountOut, Number(tokenOut?.decimals));
+    : parseUnits(amountOut as NumberString, Number(tokenOut?.decimals));
 
   const hasAmounts = amountInBN > 0 && amountOutBN > 0;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
     token: tokenIn.id as AddressString,
-    enabled: isConnected && !tokenIn.isNft,
+    enabled: isConnected && !tokenIn.isNFT,
   });
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
     {
       address,
       token: tokenOut?.id as AddressString,
-      enabled: isConnected && !!tokenOut && !tokenOut.isNft,
+      enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
     }
   );
 
@@ -490,7 +490,7 @@ const SwapTokenInput = ({
           </DialogTrigger>
         </Dialog>
         <div className="space-y-1 text-right">
-          {token.isNft ? (
+          {token.isNFT ? (
             selectedNfts.length > 0 ? (
               <div className="flex items-center space-x-2">
                 {selectedNfts.length > 5 ? (
@@ -557,7 +557,7 @@ const SwapTokenInput = ({
               <CurrencyInput
                 value={amount}
                 onChange={onUpdateAmount}
-                disabled={!!otherToken?.isNft}
+                disabled={!!otherToken?.isNFT}
               />
               <span className="block text-sm text-night-400">
                 {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
@@ -570,7 +570,7 @@ const SwapTokenInput = ({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-night-400 sm:text-sm">
-              {token.isNft ? "Inventory" : "Balance"}:
+              {token.isNFT ? "Inventory" : "Balance"}:
             </span>
             <VisibleOnClient>
               <span className="font-semibold text-honey-25 sm:text-sm">
@@ -664,7 +664,7 @@ const TokenSelectDialog = ({
           </div>
           <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
             {tokens
-              .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
+              .filter(({ isNFT }) => (tab === "collections" ? isNFT : !isNFT))
               .map((token) => (
                 <li
                   key={token.id}

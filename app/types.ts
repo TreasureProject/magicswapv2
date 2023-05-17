@@ -16,6 +16,7 @@ export type Env = {
 export type Optional<T> = T | undefined;
 
 export type AddressString = `0x${string}`;
+export type NumberString = `${number}`;
 
 /** Data Transfer Objects */
 // Subgraph

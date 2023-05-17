@@ -35,7 +35,7 @@ export const useAddLiquidity = ({
 
   const isEnabled = enabled && !!address;
   const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
-  const isNft = pool.baseToken.isNft || pool.quoteToken.isNft;
+  const isNFT = pool.baseToken.isNFT || pool.quoteToken.isNFT;
 
   const { config: tokenAddLiquidityConfig } =
     usePrepareMagicSwapV2RouterAddLiquidity({
@@ -49,7 +49,7 @@ export const useAddLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !isNft,
+      enabled: isEnabled && !isNFT,
     });
   const { data: tokenAddLiquidityData, write: tokenAddLiquidity } =
     useMagicSwapV2RouterAddLiquidity(tokenAddLiquidityConfig);
@@ -70,21 +70,21 @@ export const useAddLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && isNft,
+      enabled: isEnabled && isNFT,
     });
   const { data: nftAddLiquidityData, write: nftAddLiquidity } =
     useMagicSwapV2RouterAddLiquidityNft(nftAddLiquidityConfig);
-  const { isSuccess: isNftAddLiquiditySuccess } =
+  const { isSuccess: isNFTAddLiquiditySuccess } =
     useWaitForTransaction(nftAddLiquidityData);
 
   return {
     addLiquidity: () => {
-      if (isNft) {
+      if (isNFT) {
         nftAddLiquidity?.();
       } else {
         tokenAddLiquidity?.();
       }
     },
-    isSuccess: isTokenAddLiquiditySuccess || isNftAddLiquiditySuccess,
+    isSuccess: isTokenAddLiquiditySuccess || isNFTAddLiquiditySuccess,
   };
 };

@@ -18,7 +18,12 @@ import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
-import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
+import type {
+  AddressString,
+  NumberString,
+  Optional,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 type Props = {
   pool: Pool;
@@ -37,20 +42,19 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
 
-  const amountBase = (
-    isExactQuote
-      ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
-      : amount
-  ) as `${number}`;
-  const amountQuote = (
-    isExactQuote
-      ? amount
-      : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve)
-  ) as `${number}`;
+  const amountBase = isExactQuote
+    ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
+    : amount;
+  const amountQuote = isExactQuote
+    ? amount
+    : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve);
 
-  const amountBaseBN = parseUnits(amountBase, Number(pool.baseToken.decimals));
+  const amountBaseBN = parseUnits(
+    amountBase as NumberString,
+    Number(pool.baseToken.decimals)
+  );
   const amountQuoteBN = parseUnits(
-    amountQuote,
+    amountQuote as NumberString,
     Number(pool.quoteToken.decimals)
   );
 
@@ -60,13 +64,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     useBalance({
       address,
       token: pool.baseToken.id as AddressString,
-      enabled: !!address && !pool.baseToken.isNft,
+      enabled: !!address && !pool.baseToken.isNFT,
     });
   const { data: quoteTokenBalance, refetch: refetchQuoteTokenBalance } =
     useBalance({
       address,
       token: pool.quoteToken.id as AddressString,
-      enabled: !!address && !pool.quoteToken.isNft,
+      enabled: !!address && !pool.quoteToken.isNFT,
     });
 
   const { isApproved: isBaseTokenApproved, refetch: refetchBaseTokenApproval } =
@@ -103,14 +107,14 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     amountQuote: amountQuoteBN,
     amountBaseMin: isExactQuote
       ? parseUnits(
-          getAmountMin(amountBase, slippage).toString() as `${number}`,
+          getAmountMin(amountBase, slippage).toString() as NumberString,
           Number(pool.baseToken.decimals)
         )
       : amountBaseBN,
     amountQuoteMin: isExactQuote
       ? amountQuoteBN
       : parseUnits(
-          getAmountMin(amountQuote, slippage).toString() as `${number}`,
+          getAmountMin(amountQuote, slippage).toString() as NumberString,
           Number(pool.quoteToken.decimals)
         ),
     nfts: baseNfts,
@@ -123,7 +127,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     pool.totalSupply
   );
 
-  const requiresTerms = pool.baseToken.isNft || pool.quoteToken.isNft;
+  const requiresTerms = pool.baseToken.isNFT || pool.quoteToken.isNFT;
 
   useEffect(() => {
     if (isApproveBaseTokenSuccess) {
@@ -175,7 +179,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             })
           }
         />
-        {pool.baseToken.isNft ? (
+        {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
             balance="0"
@@ -187,7 +191,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             token={pool.baseToken}
             balance={baseTokenBalance?.formatted}
             amount={isExactQuote ? formatBalance(amountBase) : amountBase}
-            disabled={pool.quoteToken.isNft}
+            disabled={pool.quoteToken.isNFT}
             onUpdateAmount={(amount) =>
               setTrade({
                 amount,
@@ -198,7 +202,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             }
           />
         )}
-        {pool.quoteToken.isNft ? (
+        {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
             balance="0"
@@ -210,7 +214,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             token={pool.quoteToken}
             balance={quoteTokenBalance?.formatted}
             amount={isExactQuote ? amountQuote : formatBalance(amountQuote)}
-            disabled={pool.baseToken.isNft}
+            disabled={pool.baseToken.isNFT}
             onUpdateAmount={(amount) =>
               setTrade({
                 amount,
@@ -256,29 +260,31 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           Accept terms and conditions
         </LabeledCheckbox>
       )}
-      {!isBaseTokenApproved && (
-        <Button className="w-full" onClick={() => approveBaseToken?.()}>
-          Approve {pool.baseToken.name}
+      <div className="space-y-1.5">
+        {hasAmount && !isBaseTokenApproved && (
+          <Button className="w-full" onClick={() => approveBaseToken?.()}>
+            Approve {pool.baseToken.name}
+          </Button>
+        )}
+        {hasAmount && !isQuoteTokenApproved && (
+          <Button className="w-full" onClick={() => approveQuoteToken?.()}>
+            Approve {pool.quoteToken.name}
+          </Button>
+        )}
+        <Button
+          className="w-full"
+          disabled={
+            !address ||
+            !hasAmount ||
+            !isBaseTokenApproved ||
+            !isQuoteTokenApproved ||
+            (requiresTerms && !checkedTerms)
+          }
+          onClick={() => addLiquidity?.()}
+        >
+          Add Liquidity
         </Button>
-      )}
-      {!isQuoteTokenApproved && (
-        <Button className="w-full" onClick={() => approveQuoteToken?.()}>
-          Approve {pool.quoteToken.name}
-        </Button>
-      )}
-      <Button
-        className="w-full"
-        disabled={
-          !address ||
-          !hasAmount ||
-          !isBaseTokenApproved ||
-          !isQuoteTokenApproved ||
-          (requiresTerms && !checkedTerms)
-        }
-        onClick={() => addLiquidity?.()}
-      >
-        Add Liquidity
-      </Button>
+      </div>
     </div>
   );
 };

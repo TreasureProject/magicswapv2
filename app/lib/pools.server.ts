@@ -5,7 +5,7 @@ import type { PoolToken } from "./tokens.server";
 import type { Pair, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
-  if (token1.isNft && !token0.isNft) {
+  if (token1.isNFT && !token0.isNFT) {
     return `${token1.symbol} / ${token0.symbol}`;
   }
 
@@ -44,9 +44,9 @@ export const createPoolFromPair = (
     reserve: reserve1,
   };
   const baseToken =
-    !poolToken0.isNft && poolToken1.isNft ? poolToken1 : poolToken0;
+    !poolToken0.isNFT && poolToken1.isNFT ? poolToken1 : poolToken0;
   const quoteToken =
-    !poolToken0.isNft && poolToken1.isNft ? poolToken0 : poolToken1;
+    !poolToken0.isNFT && poolToken1.isNFT ? poolToken0 : poolToken1;
   const reserveUSD = Number(pair.reserveUSD);
   const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
   const volume1w = pair.dayData.reduce(

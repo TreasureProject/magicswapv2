@@ -399,16 +399,16 @@ export default function PoolDetailsPage() {
           </div>
         </div>
         <PoolActivityTable pool={pool} filter={poolActivityFilter} />
-        {pool.baseToken.isNft || pool.quoteToken.isNft ? (
+        {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
           <>
             <h3 className="flex items-center gap-3 font-medium">
               <ArrowLeftRightIcon className="h-4 w-4" />
               Pool Inventory
             </h3>
-            {pool.baseToken.isNft && (
+            {pool.baseToken.isNFT && (
               <PoolTokenCollectionInventory token={pool.baseToken} />
             )}
-            {pool.quoteToken.isNft && (
+            {pool.quoteToken.isNFT && (
               <PoolTokenCollectionInventory token={pool.quoteToken} />
             )}
           </>
@@ -588,7 +588,7 @@ const PoolActivityTable = ({
                         exit={{ height: "0px", opacity: 0 }}
                         className={cn("grid w-full bg-night-1100 px-3 py-6")}
                       >
-                        {token0.isNft &&
+                        {token0.isNFT &&
                           token0.reserveItems.map(
                             ({ tokenId, name, image, amount }) => (
                               <div

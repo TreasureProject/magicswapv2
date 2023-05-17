@@ -7,6 +7,7 @@ export const TOKEN_FRAGMENT = gql`
     symbol
     decimals
     derivedMAGIC
+    isNFT
     vaultCollections {
       collection {
         id
