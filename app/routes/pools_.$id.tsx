@@ -1,4 +1,3 @@
-import { formatEther } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
@@ -29,8 +28,8 @@ import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
-import { formatBalance, formatUSD } from "~/lib/currency";
-import { formatNumber, formatPercent } from "~/lib/number";
+import { formatBalance, formatBigInt, formatUSD } from "~/lib/currency";
+import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool, PoolTransactionType } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -63,8 +62,9 @@ export default function PoolDetailsPage() {
     enabled: !!address,
   });
 
-  const lpBalance = formatEther(rawLpBalance?.value ?? "0");
-  const lpShare = Number(lpBalance) / pool.totalSupply;
+  const lpBalance = rawLpBalance?.value ?? BigInt(0);
+  const lpShare =
+    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
   return (
     <main className="container">
@@ -81,8 +81,8 @@ export default function PoolDetailsPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div className="w-full space-y-6 md:flex-row">
             <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center">
-              <PoolTokenInfo token={pool.baseToken} />
-              <PoolTokenInfo token={pool.quoteToken} />
+              <PoolTokenInfo token={pool.baseToken as PoolToken} />
+              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
             </div>
             <div className="h-[1px] bg-night-900" />
             <div className="space-y-4 rounded-md bg-night-1100 p-4">
@@ -98,17 +98,17 @@ export default function PoolDetailsPage() {
                   :{" "}
                   <VisibleOnClient>
                     <span className="font-medium">
-                      {formatUSD(Number(pool.reserveUSD) * lpShare)}
+                      {formatUSD(lpShare * pool.reserveUSD)}
                     </span>
                   </VisibleOnClient>
                 </span>
               </div>
               <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
-                  <PoolImage pool={pool} className="h-10 w-10" />
+                  <PoolImage pool={pool as Pool} className="h-10 w-10" />
                   <VisibleOnClient>
                     <p className="text-base-100 text-3xl font-medium">
-                      {formatBalance(rawLpBalance?.formatted ?? 0)}
+                      {formatBigInt(lpBalance, 18, 5)}
                     </p>
                   </VisibleOnClient>
                 </div>
@@ -133,16 +133,19 @@ export default function PoolDetailsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-3">
-                        <PoolTokenImage className="h-7 w-7" token={token} />
+                        <PoolTokenImage
+                          className="h-7 w-7"
+                          token={token as PoolToken}
+                        />
                         <VisibleOnClient>
                           <p className="text-3xl font-medium">
-                            {formatBalance(token.reserve * lpShare)}
+                            {formatUSD(lpShare * token.reserve)}
                           </p>
                         </VisibleOnClient>
                       </div>
                       <VisibleOnClient>
                         <p className="text-night-500">
-                          {formatUSD(token.reserve * lpShare * token.priceUSD)}
+                          {formatUSD(lpShare * token.reserve * token.priceUSD)}
                         </p>
                       </VisibleOnClient>
                     </div>
@@ -202,7 +205,10 @@ export default function PoolDetailsPage() {
                     className="flex items-center justify-between gap-3 rounded-md bg-night-1200 p-3"
                   >
                     <div className="flex items-center gap-2 font-semibold">
-                      <PoolTokenImage className="h-6 w-6" token={token} />
+                      <PoolTokenImage
+                        className="h-6 w-6"
+                        token={token as PoolToken}
+                      />
                       {token.symbol}
                     </div>
                     <div className="space-y-0.5 text-right font-medium">
@@ -260,9 +266,9 @@ export default function PoolDetailsPage() {
               setActiveTab={setActiveTab}
             />
             {activeTab === "withdraw" && (
-              <PoolWithdrawTab pool={pool} balance={lpBalance} />
+              <PoolWithdrawTab pool={pool as Pool} balance={lpBalance} />
             )}
-            {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
+            {activeTab === "deposit" && <PoolDepositTab pool={pool as Pool} />}
             {/* {activeTab === "summary" && (
               <>
                 <div className="flex w-full flex-col items-center gap-1 pt-6">
@@ -398,7 +404,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
+        <PoolActivityTable pool={pool as Pool} filter={poolActivityFilter} />
         {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
           <>
             <h3 className="flex items-center gap-3 font-medium">
@@ -406,10 +412,14 @@ export default function PoolDetailsPage() {
               Pool Inventory
             </h3>
             {pool.baseToken.isNFT && (
-              <PoolTokenCollectionInventory token={pool.baseToken} />
+              <PoolTokenCollectionInventory
+                token={pool.baseToken as PoolToken}
+              />
             )}
             {pool.quoteToken.isNFT && (
-              <PoolTokenCollectionInventory token={pool.quoteToken} />
+              <PoolTokenCollectionInventory
+                token={pool.quoteToken as PoolToken}
+              />
             )}
           </>
         ) : null}

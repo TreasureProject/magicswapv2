@@ -181,7 +181,7 @@ export default function PoolsListPage() {
         activeTab={tab}
         onChange={setTab}
       />
-      {tab === "all" && <PoolsTable pools={pools} />}
+      {tab === "all" && <PoolsTable pools={pools as Pool[]} />}
       {tab === "user" && (
         <>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">

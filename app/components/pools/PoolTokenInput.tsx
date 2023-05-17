@@ -1,5 +1,3 @@
-import Decimal from "decimal.js-light";
-
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { formatBalance, formatUSD } from "~/lib/currency";
@@ -40,9 +38,9 @@ export const PoolTokenInput = ({
           />
           <span className="block text-sm text-night-400">
             {formatUSD(
-              new Decimal(amount === "0" ? 1 : amount)
-                .mul(token.priceUSD)
-                .toFixed(2, Decimal.ROUND_DOWN)
+              amount === "0"
+                ? 1
+                : Number(amount.replace(/,/g, "")) * token.priceUSD
             )}
           </span>
         </div>

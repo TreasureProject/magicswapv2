@@ -1,6 +1,5 @@
-import Decimal from "decimal.js-light";
 import { useEffect, useState } from "react";
-import { parseEther, parseUnits } from "viem";
+import { parseEther } from "viem";
 
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button } from "../ui/Button";
@@ -13,7 +12,8 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
-import { formatBalance, formatUSD } from "~/lib/currency";
+import { formatBigInt, formatUSD } from "~/lib/currency";
+import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -21,78 +21,72 @@ import type { NumberString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   pool: Pool;
-  balance?: string;
+  balance: bigint;
   onSuccess?: () => void;
 };
 
-export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
+export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const { address } = useAccount();
   const { slippage } = useSettings();
-  const [{ amount, nfts }, setTrade] = useState({
+  const [{ amount: rawAmount, nfts }, setTransaction] = useState({
     amount: "0",
     nfts: [] as TroveTokenWithQuantity[],
   });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
 
-  const amountBN = parseEther(amount as NumberString);
-  const hasAmount = amountBN > 0;
+  const amount = parseEther(rawAmount as NumberString);
+  const hasAmount = amount > 0;
 
   const rawAmountBase = getTokenCountForLp(
     amount,
-    pool.baseToken.reserve,
-    pool.totalSupply
+    BigInt(pool.baseToken.reserveBI),
+    BigInt(pool.totalSupply)
   );
   const rawAmountQuote = getTokenCountForLp(
     amount,
-    pool.quoteToken.reserve,
-    pool.totalSupply
+    BigInt(pool.quoteToken.reserveBI),
+    BigInt(pool.totalSupply)
   );
   const amountBase = pool.baseToken.isNFT
-    ? Math.floor(Number(rawAmountBase)).toString()
+    ? floorBigInt(rawAmountBase)
     : rawAmountBase;
   const amountQuote = pool.quoteToken.isNFT
-    ? Math.floor(Number(rawAmountQuote)).toString()
+    ? floorBigInt(rawAmountQuote)
     : rawAmountQuote;
   const amountBaseMin = pool.baseToken.isNFT
     ? amountBase
-    : getAmountMin(amountBase, slippage).toString();
+    : getAmountMin(amountBase, slippage);
   const amountQuoteMin = pool.quoteToken.isNFT
     ? amountQuote
-    : getAmountMin(amountQuote, slippage).toString();
+    : getAmountMin(amountQuote, slippage);
   const amountNFTs = pool.baseToken.isNFT
     ? amountBaseMin
     : pool.quoteToken.isNFT
     ? amountQuoteMin
     : "0";
   const amountLeftover = pool.baseToken.isNFT
-    ? Number(rawAmountBase) - Number(amountBase)
+    ? rawAmountBase - amountBase
     : pool.quoteToken.isNFT
-    ? Number(rawAmountQuote) - Number(amountQuote)
-    : 0;
+    ? rawAmountQuote - amountQuote
+    : BigInt(0);
 
   const { isApproved, refetch: refetchApproval } = useIsApproved({
     token: pool.id,
-    amount: amountBN,
+    amount,
     enabled: hasAmount,
   });
   const { approve, isSuccess: isApproveSuccess } = useApprove({
     token: pool.id,
-    amount: amountBN,
+    amount,
     enabled: !isApproved && hasAmount,
   });
 
   const { removeLiquidity, isSuccess: isRemoveLiquiditySuccess } =
     useRemoveLiquidity({
       pool,
-      amountLP: amountBN,
-      amountBaseMin: parseUnits(
-        amountBaseMin as NumberString,
-        Number(pool.baseToken.decimals)
-      ),
-      amountQuoteMin: parseUnits(
-        amountQuoteMin as NumberString,
-        Number(pool.quoteToken.decimals)
-      ),
+      amountLP: amount,
+      amountBaseMin,
+      amountQuoteMin,
       nfts,
       enabled: !!address && isApproved && hasAmount,
     });
@@ -105,7 +99,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
 
   useEffect(() => {
     if (isRemoveLiquiditySuccess) {
-      setTrade({ amount: "0", nfts: [] });
+      setTransaction({ amount: "0", nfts: [] });
       onSuccess?.();
     }
   }, [isRemoveLiquiditySuccess, onSuccess]);
@@ -119,9 +113,9 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
       <PoolInput
         pool={pool}
         balance={balance}
-        amount={amount}
+        amount={rawAmount}
         onUpdateAmount={(amount) =>
-          setTrade({
+          setTransaction({
             amount,
             nfts: [],
           })
@@ -135,28 +129,26 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.baseToken} />
                 <span className="text-honey-25">
-                  {formatBalance(amountBaseMin)}
+                  {formatBigInt(amountBaseMin)}
                 </span>
                 {pool.baseToken.symbol}
               </div>
               {formatUSD(
-                new Decimal(amountBaseMin)
-                  .mul(pool.baseToken.priceUSD)
-                  .toFixed(2, Decimal.ROUND_DOWN)
+                bigIntToNumber(amountBaseMin, pool.baseToken.decimals) *
+                  pool.baseToken.priceUSD
               )}
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.quoteToken} />
                 <span className="text-honey-25">
-                  {formatBalance(amountQuoteMin)}
+                  {formatBigInt(amountQuoteMin)}
                 </span>
                 {pool.quoteToken.symbol}
               </div>
               {formatUSD(
-                new Decimal(amountQuoteMin)
-                  .mul(pool.quoteToken.priceUSD)
-                  .toFixed(2, Decimal.ROUND_DOWN)
+                bigIntToNumber(amountQuoteMin, pool.quoteToken.decimals) *
+                  pool.quoteToken.priceUSD
               )}
             </div>
             {amountLeftover > 0 && (
@@ -174,7 +166,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
                         }
                       />
                       <span className="text-honey-25">
-                        {formatBalance(amountLeftover)}
+                        {formatBigInt(amountLeftover)}
                       </span>
                       {pool.baseToken.isNFT
                         ? pool.baseToken.symbol
@@ -191,15 +183,15 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
                         }
                       />
                       <span className="text-honey-25">
-                        {formatBalance(
+                        {formatBigInt(
                           quote(
-                            amountLeftover.toString(),
+                            amountLeftover,
                             pool.baseToken.isNFT
-                              ? pool.baseToken.reserve
-                              : pool.quoteToken.reserve,
+                              ? BigInt(pool.baseToken.reserveBI)
+                              : BigInt(pool.quoteToken.reserveBI),
                             pool.baseToken.isNFT
-                              ? pool.quoteToken.reserve
-                              : pool.baseToken.reserve
+                              ? BigInt(pool.quoteToken.reserveBI)
+                              : BigInt(pool.baseToken.reserveBI)
                           )
                         )}
                       </span>
@@ -209,13 +201,15 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
                     </div>
                   </div>
                   {formatUSD(
-                    new Decimal(amountLeftover)
-                      .mul(
-                        pool.baseToken.isNFT
-                          ? pool.baseToken.priceUSD
-                          : pool.quoteToken.priceUSD
-                      )
-                      .toFixed(2, Decimal.ROUND_DOWN)
+                    bigIntToNumber(
+                      amountLeftover,
+                      pool.baseToken.isNFT
+                        ? pool.baseToken.decimals
+                        : pool.quoteToken.decimals
+                    ) *
+                      (pool.baseToken.isNFT
+                        ? pool.baseToken.priceUSD
+                        : pool.quoteToken.priceUSD)
                   )}
                 </div>
               </>
@@ -229,8 +223,8 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
                 token={selectingToken}
                 selectedTokens={nfts}
                 onSubmit={(nfts) =>
-                  setTrade((trade) => ({
-                    ...trade,
+                  setTransaction((transaction) => ({
+                    ...transaction,
                     nfts,
                   }))
                 }

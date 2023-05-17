@@ -47,8 +47,8 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
-import { formatBalance, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { formatBalance, formatBigInt, formatUSD } from "~/lib/currency";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -105,18 +105,23 @@ export default function SwapPage() {
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
-  const [{ amount, isExactOut, nftsIn, nftsOut }, setTrade] = useState({
-    amount: "0",
-    nftsIn: [] as TroveTokenWithQuantity[],
-    nftsOut: [] as TroveTokenWithQuantity[],
-    isExactOut: false,
-  });
+  const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
+    useState({
+      amount: "0",
+      nftsIn: [] as TroveTokenWithQuantity[],
+      nftsOut: [] as TroveTokenWithQuantity[],
+      isExactOut: false,
+    });
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     setSearchParams(searchParams);
   };
 
+  const amount = parseUnits(
+    rawAmount as NumberString,
+    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
+  );
   const poolTokenIn =
     pool?.token0.id === tokenIn.id ? pool?.token0 : pool?.token1;
   const poolTokenOut =
@@ -125,9 +130,8 @@ export default function SwapPage() {
   const amountIn = isExactOut
     ? getAmountIn(
         amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenIn.decimals,
+        BigInt(poolTokenIn?.reserveBI ?? "0"),
+        BigInt(poolTokenOut?.reserveBI ?? "0"),
         pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       )
     : amount;
@@ -135,20 +139,12 @@ export default function SwapPage() {
     ? amount
     : getAmountOut(
         amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenOut?.decimals,
+        BigInt(poolTokenIn?.reserveBI ?? "0"),
+        BigInt(poolTokenOut?.reserveBI ?? "0"),
         pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       );
 
-  const amountInBN = Number.isNaN(Number(amountIn))
-    ? BigInt(0)
-    : parseUnits(amountIn as NumberString, Number(tokenIn.decimals));
-  const amountOutBN = Number.isNaN(Number(amountOut))
-    ? BigInt(0)
-    : parseUnits(amountOut as NumberString, Number(tokenOut?.decimals));
-
-  const hasAmounts = amountInBN > 0 && amountOutBN > 0;
+  const hasAmounts = amountIn > 0 && amountOut > 0;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -165,15 +161,15 @@ export default function SwapPage() {
 
   const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
     useIsApproved({
-      token: tokenIn,
-      amount: amountInBN,
+      token: tokenIn as PoolToken,
+      amount: amountIn,
       enabled: isConnected && hasAmounts,
     });
 
   const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
     useApprove({
-      token: tokenIn,
-      amount: amountInBN,
+      token: tokenIn as PoolToken,
+      amount: amountIn,
       enabled: !isTokenInApproved,
     });
 
@@ -183,10 +179,10 @@ export default function SwapPage() {
     swap,
     isSuccess: isSwapSuccess,
   } = useSwap({
-    tokenIn,
-    tokenOut,
-    amountIn: amountInBN,
-    amountOut: amountOutBN,
+    tokenIn: tokenIn as PoolToken,
+    tokenOut: tokenOut as PoolToken,
+    amountIn,
+    amountOut,
     isExactOut,
     nftsIn,
     nftsOut,
@@ -288,13 +284,17 @@ export default function SwapPage() {
       <div>
         <SwapTokenInput
           className="mt-6"
-          token={poolTokenIn ?? tokenIn}
-          otherToken={poolTokenOut ?? tokenOut}
+          token={(poolTokenIn ?? tokenIn) as PoolToken}
+          otherToken={(poolTokenOut ?? tokenOut) as PoolToken}
           isOut={false}
           balance={tokenInBalance?.formatted}
-          amount={isExactOut ? formatBalance(amountIn) : amountIn}
+          amount={
+            isExactOut
+              ? formatBigInt(amountIn, tokenIn.decimals)
+              : formatUnits(amountIn, tokenIn.decimals)
+          }
           selectedNfts={nftsIn}
-          tokens={tokens}
+          tokens={tokens as PoolToken[]}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -320,13 +320,17 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={poolTokenOut ?? tokenOut}
-          otherToken={poolTokenIn ?? tokenIn}
+          token={(poolTokenOut ?? tokenOut) as PoolToken}
+          otherToken={(poolTokenIn ?? tokenIn) as PoolToken}
           isOut
           balance={tokenOutBalance?.formatted}
-          amount={isExactOut ? amountOut : formatBalance(amountOut)}
+          amount={
+            isExactOut
+              ? formatUnits(amountOut, tokenOut?.decimals ?? 18)
+              : formatBigInt(amountOut, tokenOut?.decimals ?? 18)
+          }
           selectedNfts={nftsOut}
-          tokens={tokens}
+          tokens={tokens as PoolToken[]}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -376,10 +380,10 @@ export default function SwapPage() {
                 -
                 {formatPercent(
                   getPriceImpact(
-                    poolTokenIn,
-                    poolTokenOut,
-                    Number(amountIn),
-                    Number(amountOut),
+                    poolTokenIn as PoolToken,
+                    poolTokenOut as PoolToken,
+                    bigIntToNumber(amountIn, tokenIn.decimals),
+                    bigIntToNumber(amountOut, tokenOut?.decimals ?? 18),
                     isExactOut
                   )
                 )}

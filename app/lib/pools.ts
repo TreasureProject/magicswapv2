@@ -1,128 +1,47 @@
-import { Decimal } from "decimal.js-light";
-
 import type { PoolToken } from "./tokens.server";
 
 export const getAmountOut = (
-  amountIn: string,
-  reserveIn: number | undefined,
-  reserveOut: number | undefined,
-  decimals = "18",
+  amountIn: bigint,
+  reserveIn: bigint,
+  reserveOut: bigint,
   totalFee = 0
 ) => {
-  const parsedAmountIn = Number(amountIn);
-  if (Number.isNaN(parsedAmountIn) || parsedAmountIn === 0) {
-    return "0";
-  }
-
-  const amountInWithFee = new Decimal(amountIn).mul(10000 - totalFee);
-  const numerator = amountInWithFee.mul(reserveOut ?? 0);
-  const denominator = new Decimal(reserveIn ?? 0)
-    .mul(10000)
-    .add(amountInWithFee);
-  const value = denominator.gt(0) ? numerator.div(denominator) : new Decimal(0);
-  return value.lt(1)
-    ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
-    : value
-        .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
-        .toString();
+  const amountInWithFee = amountIn * BigInt(10000 - totalFee);
+  const numerator = amountInWithFee * reserveOut;
+  const denominator = reserveIn * BigInt(10000) + amountInWithFee;
+  return denominator > 0 ? numerator / denominator : BigInt(0);
 };
 
 export const getAmountIn = (
-  amountOut: string,
-  reserveIn: number | undefined,
-  reserveOut: number | undefined,
-  decimals = "18",
+  amountOut: bigint,
+  reserveIn: bigint,
+  reserveOut: bigint,
   totalFee = 0
 ) => {
-  const parsedAmountOut = Number(amountOut);
-  if (Number.isNaN(parsedAmountOut) || parsedAmountOut === 0) {
-    return "0";
-  }
-
-  const numerator = new Decimal(reserveIn ?? 0).mul(amountOut).mul(10000);
-  const denominator = new Decimal(reserveOut ?? 0)
-    .sub(amountOut)
-    .mul(10000 - totalFee);
-  const value = denominator.gt(0) ? numerator.div(denominator) : new Decimal(0);
-  return value.lt(1)
-    ? value.toDecimalPlaces(Number(decimals), Decimal.ROUND_DOWN).toString()
-    : value
-        .toSignificantDigits(Number(decimals), Decimal.ROUND_DOWN)
-        .toString();
+  const numerator = reserveIn * amountOut * BigInt(10000);
+  const denominator = (reserveOut - amountOut) * BigInt(10000 - totalFee);
+  return denominator > 0 ? numerator / denominator + BigInt(1) : BigInt(0);
 };
 
-export const quote = (
-  amountBase: string,
-  reserveBase: number | undefined,
-  reserveQuote: number | undefined
-) => {
-  if (Number.isNaN(Number(amountBase))) {
-    return "0";
-  }
-
-  const denominator = new Decimal(reserveBase ?? 0);
-  return denominator.gt(0)
-    ? new Decimal(amountBase)
-        .mul(reserveQuote ?? 0)
-        .div(denominator)
-        .toString()
-    : "0";
-};
+export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
+  reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);
 
 export const getLpCountForTokens = (
-  amount: string,
-  reserve: number | undefined,
-  totalSupply: number
-) => {
-  if (Number.isNaN(Number(amount))) {
-    return "0";
-  }
-
-  const denominator = new Decimal(reserve ?? 0);
-  return denominator.gt(0)
-    ? new Decimal(amount).mul(totalSupply).div(denominator).toString()
-    : "0";
-};
+  amount: bigint,
+  reserve: bigint,
+  totalSupply: bigint
+) => (reserve > 0 ? (amount * totalSupply) / reserve : BigInt(0));
 
 export const getTokenCountForLp = (
-  amount: string,
-  reserve: number | undefined,
-  totalSupply: number
-) => {
-  if (Number.isNaN(Number(amount))) {
-    return "0";
-  }
+  amount: bigint,
+  reserve: bigint,
+  totalSupply: bigint
+) => (totalSupply > 0 ? (amount * reserve) / totalSupply : BigInt(0));
 
-  return totalSupply > 0
-    ? new Decimal(amount)
-        .mul(reserve ?? 0)
-        .div(totalSupply)
-        .toString()
-    : "0";
-};
-
-export const getAmountMax = (amount: string, slippage: number) => {
-  const parsedAmount = Number(amount);
-  if (Number.isNaN(parsedAmount)) {
-    return 0;
-  }
-
-  return parsedAmount + (parsedAmount * slippage * 1000) / 1000;
-};
-
-export const getAmountMin = (amount: string, slippage: number) => {
-  const parsedAmount = Number(amount);
-  if (Number.isNaN(parsedAmount)) {
-    return 0;
-  }
-
-  return parsedAmount - (parsedAmount * slippage * 1000) / 1000;
-};
-
-export const getAmountMaxBN = (amount: bigint, slippage: number) =>
+export const getAmountMax = (amount: bigint, slippage: number) =>
   amount + (amount * BigInt(slippage * 1000)) / BigInt(1000);
 
-export const getAmountMinBN = (amount: bigint, slippage: number) =>
+export const getAmountMin = (amount: bigint, slippage: number) =>
   amount - (amount * BigInt(slippage * 1000)) / BigInt(1000);
 
 export const getPriceImpact = (

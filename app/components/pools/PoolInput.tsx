@@ -1,19 +1,17 @@
-import Decimal from "decimal.js-light";
-
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
 import { formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 
 export const PoolInput = ({
   pool,
-  balance = "0",
+  balance,
   amount,
   onUpdateAmount,
 }: {
   pool: Pool;
-  balance?: string;
+  balance: bigint;
   amount: string;
   onUpdateAmount: (amount: string) => void;
 }) => {
@@ -28,10 +26,10 @@ export const PoolInput = ({
           <CurrencyInput value={amount} onChange={onUpdateAmount} />
           <span className="block text-sm text-night-400">
             {formatUSD(
-              new Decimal(amount === "0" ? 1 : amount)
-                .mul(pool.reserveUSD)
-                .div(pool.totalSupply)
-                .toFixed(2, Decimal.ROUND_DOWN)
+              amount === "0"
+                ? 1
+                : Number(amount.replace(/,/g, "")) *
+                    (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply)))
             )}
           </span>
         </div>
@@ -42,7 +40,7 @@ export const PoolInput = ({
             key={percent}
             className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
             onClick={() =>
-              onUpdateAmount(new Decimal(balance).mul(percent).toString())
+              onUpdateAmount((bigIntToNumber(balance) * percent).toString())
             }
           >
             {formatPercent(percent)}

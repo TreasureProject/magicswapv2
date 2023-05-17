@@ -1,8 +1,13 @@
-import { formatEther } from "@ethersproject/units";
+import { parseUnits } from "viem";
 
 import { createPoolToken, itemToTroveTokenItem } from "./tokens.server";
 import type { PoolToken } from "./tokens.server";
-import type { Pair, TroveCollectionMapping, TroveTokenMapping } from "~/types";
+import type {
+  NumberString,
+  Pair,
+  TroveCollectionMapping,
+  TroveTokenMapping,
+} from "~/types";
 
 export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
   if (token1.isNFT && !token0.isNFT) {
@@ -37,11 +42,19 @@ export const createPoolFromPair = (
     ...token0,
     priceUSD: token0PriceUSD,
     reserve: reserve0,
+    reserveBI: parseUnits(
+      pair.reserve0 as NumberString,
+      token0.decimals
+    ).toString(),
   };
   const poolToken1 = {
     ...token1,
     priceUSD: token1PriceUSD,
     reserve: reserve1,
+    reserveBI: parseUnits(
+      pair.reserve1 as NumberString,
+      token1.decimals
+    ).toString(),
   };
   const baseToken =
     !poolToken0.isNFT && poolToken1.isNFT ? poolToken1 : poolToken0;
@@ -58,7 +71,6 @@ export const createPoolFromPair = (
     name: createPoolName(token0, token1),
     token0: poolToken0,
     token1: poolToken1,
-    totalSupply: Number(formatEther(pair.totalSupply)),
     baseToken,
     quoteToken,
     reserveUSD,

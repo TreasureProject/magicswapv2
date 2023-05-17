@@ -16,7 +16,7 @@ import {
   usePrepareMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
 import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
-import { getAmountMaxBN, getAmountMinBN } from "~/lib/pools";
+import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
@@ -45,12 +45,10 @@ export const useSwap = ({
   const { slippage, deadline } = useSettings();
 
   const isEnabled = enabled && !!address && !!tokenOut;
-  const amountInMax = isExactOut
-    ? getAmountMaxBN(amountIn, slippage)
-    : amountIn;
+  const amountInMax = isExactOut ? getAmountMax(amountIn, slippage) : amountIn;
   const amountOutMin = isExactOut
     ? amountOut
-    : getAmountMinBN(amountOut, slippage);
+    : getAmountMin(amountOut, slippage);
   const collectionsIn = nftsIn.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
