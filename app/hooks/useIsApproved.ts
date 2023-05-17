@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { useCallback } from "react";
 
 import { useAccount } from "~/contexts/account";
@@ -13,13 +12,13 @@ import type { AddressString } from "~/types";
 
 type Props = {
   token: PoolToken | string;
-  amount?: BigNumber;
+  amount?: bigint;
   enabled?: boolean;
 };
 
 export const useIsApproved = ({
   token,
-  amount = BigNumber.from(0),
+  amount = BigInt(0),
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
@@ -71,7 +70,7 @@ export const useIsApproved = ({
     isApproved:
       !!erc721IsApprovedForAll ||
       !!erc1155IsApprovedForAll ||
-      (!!allowance && allowance.gte(amount)),
+      (!!allowance && allowance >= amount),
     refetch,
   };
 };

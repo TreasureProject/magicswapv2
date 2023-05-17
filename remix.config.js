@@ -9,8 +9,9 @@ module.exports = {
     v2_routeConvention: true,
   },
   serverDependenciesToBundle: [
-    "connectkit",
+    "@rainbow-me/rainbowkit",
+    "@rainbow-me/rainbowkit/wallets",
     /^@?wagmi.*/,
   ],
-  serverModuleFormat: "cjs"
+  serverModuleFormat: "cjs",
 };

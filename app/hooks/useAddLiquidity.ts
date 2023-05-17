@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -14,10 +13,10 @@ import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   pool: Pool;
-  amountBase: BigNumber;
-  amountQuote: BigNumber;
-  amountBaseMin: BigNumber;
-  amountQuoteMin: BigNumber;
+  amountBase: bigint;
+  amountQuote: bigint;
+  amountBaseMin: bigint;
+  amountQuoteMin: bigint;
   nfts: TroveTokenWithQuantity[];
   enabled?: boolean;
 };
@@ -35,9 +34,7 @@ export const useAddLiquidity = ({
   const { deadline } = useSettings();
 
   const isEnabled = enabled && !!address;
-  const deadlineBN = BigNumber.from(
-    Math.floor(Date.now() / 1000) + deadline * 60
-  );
+  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
   const isNft = pool.baseToken.isNft || pool.quoteToken.isNft;
 
   const { config: tokenAddLiquidityConfig } =
@@ -64,8 +61,8 @@ export const useAddLiquidity = ({
     usePrepareMagicSwapV2RouterAddLiquidityNft({
       args: [
         nfts.map(({ collectionAddr }) => collectionAddr as AddressString),
-        nfts.map(({ tokenId }) => BigNumber.from(tokenId)),
-        nfts.map(({ quantity }) => BigNumber.from(quantity)),
+        nfts.map(({ tokenId }) => BigInt(tokenId)),
+        nfts.map(({ quantity }) => BigInt(quantity)),
         pool.baseToken.id as AddressString,
         pool.quoteToken.id as AddressString,
         amountQuote,

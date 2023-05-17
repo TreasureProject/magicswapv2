@@ -1,6 +1,6 @@
-import { parseEther, parseUnits } from "@ethersproject/units";
 import Decimal from "decimal.js-light";
 import { useEffect, useState } from "react";
+import { parseEther, parseUnits } from "viem";
 
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button } from "../ui/Button";
@@ -29,13 +29,13 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const { address } = useAccount();
   const { slippage } = useSettings();
   const [{ amount, nfts }, setTrade] = useState({
-    amount: "0",
+    amount: "0" as `${number}`,
     nfts: [] as TroveTokenWithQuantity[],
   });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
 
   const amountBN = parseEther(amount);
-  const hasAmount = amountBN.gt(0);
+  const hasAmount = amountBN > 0;
 
   const rawAmountBase = getTokenCountForLp(
     amount,
@@ -53,12 +53,16 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
   const amountQuote = pool.quoteToken.isNft
     ? Math.floor(Number(rawAmountQuote)).toString()
     : rawAmountQuote;
-  const amountBaseMin = pool.baseToken.isNft
-    ? amountBase
-    : getAmountMin(amountBase, slippage).toString();
-  const amountQuoteMin = pool.quoteToken.isNft
-    ? amountQuote
-    : getAmountMin(amountQuote, slippage).toString();
+  const amountBaseMin = (
+    pool.baseToken.isNft
+      ? amountBase
+      : getAmountMin(amountBase, slippage).toString()
+  ) as `${number}`;
+  const amountQuoteMin = (
+    pool.quoteToken.isNft
+      ? amountQuote
+      : getAmountMin(amountQuote, slippage).toString()
+  ) as `${number}`;
   const amountNFTs = pool.baseToken.isNft
     ? amountBaseMin
     : pool.quoteToken.isNft
@@ -85,8 +89,11 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
     useRemoveLiquidity({
       pool,
       amountLP: amountBN,
-      amountBaseMin: parseUnits(amountBaseMin, pool.baseToken.decimals),
-      amountQuoteMin: parseUnits(amountQuoteMin, pool.quoteToken.decimals),
+      amountBaseMin: parseUnits(amountBaseMin, Number(pool.baseToken.decimals)),
+      amountQuoteMin: parseUnits(
+        amountQuoteMin,
+        Number(pool.quoteToken.decimals)
+      ),
       nfts,
       enabled: !!address && isApproved && hasAmount,
     });
@@ -116,7 +123,7 @@ export const PoolWithdrawTab = ({ pool, balance = "0", onSuccess }: Props) => {
         amount={amount}
         onUpdateAmount={(amount) =>
           setTrade({
-            amount,
+            amount: amount as `${number}`,
             nfts: [],
           })
         }

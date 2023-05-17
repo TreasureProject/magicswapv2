@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { formatUnits } from "@ethersproject/units";
 import { useWaitForTransaction } from "wagmi";
 
@@ -24,8 +23,8 @@ import type { AddressString, TroveTokenWithQuantity } from "~/types";
 type Props = {
   tokenIn: PoolToken;
   tokenOut?: PoolToken;
-  amountIn: BigNumber;
-  amountOut: BigNumber;
+  amountIn: bigint;
+  amountOut: bigint;
   nftsIn: TroveTokenWithQuantity[];
   nftsOut: TroveTokenWithQuantity[];
   isExactOut: boolean;
@@ -55,16 +54,14 @@ export const useSwap = ({
   const collectionsIn = nftsIn.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
-  const tokenIdsIn = nftsIn.map(({ tokenId }) => BigNumber.from(tokenId));
-  const quantitiesIn = nftsIn.map(({ quantity }) => BigNumber.from(quantity));
+  const tokenIdsIn = nftsIn.map(({ tokenId }) => BigInt(tokenId));
+  const quantitiesIn = nftsIn.map(({ quantity }) => BigInt(quantity));
   const collectionsOut = nftsOut.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
-  const tokenIdsOut = nftsOut.map(({ tokenId }) => BigNumber.from(tokenId));
-  const quantitiesOut = nftsOut.map(({ quantity }) => BigNumber.from(quantity));
-  const deadlineBN = BigNumber.from(
-    Math.floor(Date.now() / 1000) + deadline * 60
-  );
+  const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
+  const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
+  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
 
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =

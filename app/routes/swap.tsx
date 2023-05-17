@@ -1,5 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
-import { formatUnits, parseUnits } from "@ethersproject/units";
 import {
   Link,
   useLoaderData,
@@ -8,7 +6,6 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { ConnectKitButton } from "connectkit";
 import { Decimal } from "decimal.js-light";
 import {
   ArrowDownIcon,
@@ -18,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
+import { formatUnits, parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
@@ -28,7 +26,7 @@ import { NumberInput } from "~/components/NumberInput";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { Button } from "~/components/ui/Button";
+import { Button, TransactionButton } from "~/components/ui/Button";
 import {
   Dialog,
   DialogContent,
@@ -120,33 +118,37 @@ export default function SwapPage() {
   const poolTokenOut =
     pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
-  const amountIn = isExactOut
-    ? getAmountIn(
-        amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenIn.decimals,
-        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-      )
-    : amount;
-  const amountOut = isExactOut
-    ? amount
-    : getAmountOut(
-        amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenOut?.decimals,
-        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-      );
+  const amountIn = (
+    isExactOut
+      ? getAmountIn(
+          amount,
+          poolTokenIn?.reserve,
+          poolTokenOut?.reserve,
+          tokenIn.decimals,
+          pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
+        )
+      : amount
+  ) as `${number}`;
+  const amountOut = (
+    isExactOut
+      ? amount
+      : getAmountOut(
+          amount,
+          poolTokenIn?.reserve,
+          poolTokenOut?.reserve,
+          tokenOut?.decimals,
+          pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
+        )
+  ) as `${number}`;
 
   const amountInBN = Number.isNaN(Number(amountIn))
-    ? BigNumber.from(0)
-    : parseUnits(amountIn, tokenIn.decimals);
+    ? BigInt(0)
+    : parseUnits(amountIn, Number(tokenIn.decimals));
   const amountOutBN = Number.isNaN(Number(amountOut))
-    ? BigNumber.from(0)
-    : parseUnits(amountOut, tokenOut?.decimals);
+    ? BigInt(0)
+    : parseUnits(amountOut, Number(tokenOut?.decimals));
 
-  const hasAmounts = amountInBN.gt(0) && amountOutBN.gt(0);
+  const hasAmounts = amountInBN > 0 && amountOutBN > 0;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -347,33 +349,21 @@ export default function SwapPage() {
           <ClientOnly>
             {() => (
               <>
-                {isConnected ? (
-                  <>
-                    {!isTokenInApproved && hasAmounts && (
-                      <Button
-                        className="w-full"
-                        onClick={() => approveTokenIn()}
-                      >
-                        Approve {tokenIn.name}
-                      </Button>
-                    )}
-                    <Button
-                      className="w-full"
-                      disabled={!isTokenInApproved || !hasAmounts}
-                      onClick={() => swap()}
-                    >
-                      Swap Items
-                    </Button>
-                  </>
-                ) : (
-                  <ConnectKitButton.Custom>
-                    {({ show }) => (
-                      <Button className="w-full" onClick={show}>
-                        Connect Wallet
-                      </Button>
-                    )}
-                  </ConnectKitButton.Custom>
+                {!isTokenInApproved && hasAmounts && (
+                  <TransactionButton
+                    className="w-full"
+                    onClick={() => approveTokenIn()}
+                  >
+                    Approve {tokenIn.name}
+                  </TransactionButton>
                 )}
+                <TransactionButton
+                  className="w-full"
+                  disabled={!isTokenInApproved || !hasAmounts}
+                  onClick={() => swap()}
+                >
+                  Swap Items
+                </TransactionButton>
               </>
             )}
           </ClientOnly>
@@ -418,7 +408,7 @@ export default function SwapPage() {
                 Maximum spent
                 <span>
                   {formatBalance(
-                    formatUnits(amountInMax, poolTokenIn.decimals)
+                    formatUnits(amountInMax, Number(poolTokenIn.decimals))
                   )}{" "}
                   {poolTokenIn.symbol}
                 </span>
@@ -428,7 +418,7 @@ export default function SwapPage() {
                 Minimum received
                 <span>
                   {formatBalance(
-                    formatUnits(amountOutMin, poolTokenOut.decimals)
+                    formatUnits(amountOutMin, Number(poolTokenOut.decimals))
                   )}{" "}
                   {poolTokenOut.symbol}
                 </span>

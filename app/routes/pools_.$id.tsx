@@ -1,15 +1,11 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { useIsMounted } from "connectkit";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
   ArrowRightIcon,
-  CheckIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExternalLinkIcon,
@@ -29,9 +25,9 @@ import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
-import { Button } from "~/components/ui/Button";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
+import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import { formatNumber, formatPercent } from "~/lib/number";

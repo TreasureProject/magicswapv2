@@ -8,7 +8,6 @@ import {
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
-  SettingsIcon,
   X,
   XIcon,
 } from "lucide-react";

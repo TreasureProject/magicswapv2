@@ -1,4 +1,3 @@
-import type { BigNumber } from "@ethersproject/bignumber";
 import { Decimal } from "decimal.js-light";
 
 import type { PoolToken } from "./tokens.server";
@@ -120,11 +119,11 @@ export const getAmountMin = (amount: string, slippage: number) => {
   return parsedAmount - (parsedAmount * slippage * 1000) / 1000;
 };
 
-export const getAmountMaxBN = (amount: BigNumber, slippage: number) =>
-  amount.add(amount.mul(slippage * 1000).div(1000));
+export const getAmountMaxBN = (amount: bigint, slippage: number) =>
+  amount + (amount * BigInt(slippage * 1000)) / BigInt(1000);
 
-export const getAmountMinBN = (amount: BigNumber, slippage: number) =>
-  amount.sub(amount.mul(slippage * 1000).div(1000));
+export const getAmountMinBN = (amount: bigint, slippage: number) =>
+  amount - (amount * BigInt(slippage * 1000)) / BigInt(1000);
 
 export const getPriceImpact = (
   tokenIn: PoolToken,

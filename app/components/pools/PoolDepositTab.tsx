@@ -1,5 +1,5 @@
-import { parseUnits } from "@ethersproject/units";
 import { useEffect, useState } from "react";
+import { parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
@@ -37,17 +37,24 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
 
-  const amountBase = isExactQuote
-    ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
-    : amount;
-  const amountQuote = isExactQuote
-    ? amount
-    : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve);
+  const amountBase = (
+    isExactQuote
+      ? quote(amount, pool.quoteToken.reserve, pool.baseToken.reserve)
+      : amount
+  ) as `${number}`;
+  const amountQuote = (
+    isExactQuote
+      ? amount
+      : quote(amount, pool.baseToken.reserve, pool.quoteToken.reserve)
+  ) as `${number}`;
 
-  const amountBaseBN = parseUnits(amountBase, pool.baseToken.decimals);
-  const amountQuoteBN = parseUnits(amountQuote, pool.quoteToken.decimals);
+  const amountBaseBN = parseUnits(amountBase, Number(pool.baseToken.decimals));
+  const amountQuoteBN = parseUnits(
+    amountQuote,
+    Number(pool.quoteToken.decimals)
+  );
 
-  const hasAmount = amountBaseBN.gt(0);
+  const hasAmount = amountBaseBN > 0;
 
   const { data: baseTokenBalance, refetch: refetchBaseTokenBalance } =
     useBalance({
@@ -96,15 +103,15 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
     amountQuote: amountQuoteBN,
     amountBaseMin: isExactQuote
       ? parseUnits(
-          getAmountMin(amountBase, slippage).toString(),
-          pool.baseToken.decimals
+          getAmountMin(amountBase, slippage).toString() as `${number}`,
+          Number(pool.baseToken.decimals)
         )
       : amountBaseBN,
     amountQuoteMin: isExactQuote
       ? amountQuoteBN
       : parseUnits(
-          getAmountMin(amountQuote, slippage).toString(),
-          pool.quoteToken.decimals
+          getAmountMin(amountQuote, slippage).toString() as `${number}`,
+          Number(pool.quoteToken.decimals)
         ),
     nfts: baseNfts,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
