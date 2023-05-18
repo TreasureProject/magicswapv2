@@ -19,7 +19,7 @@ export const PoolNftTokenInput = ({
   onOpenSelect: (token: PoolToken) => void;
 }) => {
   return (
-    <div className="overflow-hidden rounded-lg border border-night-900">
+    <div className="overflow-hidden rounded-lg border border-night-1000">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-4">
           <div className="h-10 w-10 overflow-hidden rounded-full bg-night-1000">
@@ -88,7 +88,7 @@ export const PoolNftTokenInput = ({
       {balance !== undefined || selectedNfts.length > 0 ? (
         <div
           className={cn(
-            "flex h-12 items-center bg-night-1000 p-2 pr-4",
+            "flex h-12 items-center bg-night-1100 p-2 pr-4",
             balance !== undefined ? "justify-between" : "justify-end"
           )}
         >

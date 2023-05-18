@@ -10,17 +10,21 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 export const PoolImage = ({ pool, className, ...divProps }: Props) => {
   return (
-    <div className="flex items-center ">
+    <div className="flex items-center -space-x-6">
       <PoolTokenImage
         token={pool.baseToken}
-        className={cn("border-2 border-night-1100", className)}
+        className={cn(
+          "border-2 border-night-1100",
+          pool.baseToken.isNFT ? "rounded-lg" : "rounded-full",
+          className
+        )}
         {...divProps}
       />
       <PoolTokenImage
         token={pool.quoteToken}
         className={cn(
-          "-translate-x-1/3",
-          "border-2 border-night-1100 ",
+          "border-2 border-night-1100",
+          pool.quoteToken.isNFT ? "rounded-lg" : "rounded-full",
           className
         )}
         {...divProps}

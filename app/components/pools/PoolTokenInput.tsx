@@ -45,7 +45,7 @@ export const PoolTokenInput = ({
           </span>
         </div>
       </div>
-      <div className="flex h-12 items-center justify-between bg-night-1000 p-2 pr-4">
+      <div className="flex h-12 items-center justify-between bg-night-1100 p-2 pr-4">
         <p className="flex items-center pl-2 text-sm text-night-400">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">

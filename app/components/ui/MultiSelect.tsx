@@ -19,7 +19,7 @@ export const MultiSelect = ({
   tabs: Tab[];
 }) => {
   return (
-    <div className="flex h-max w-full items-center  justify-between rounded-full bg-night-1200 p-1">
+    <div className="flex h-max w-full items-center justify-between rounded-full bg-night-1100 p-1">
       {tabs.map((tab) => (
         <button
           key={tab.id}

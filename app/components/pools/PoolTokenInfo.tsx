@@ -23,8 +23,8 @@ export const PoolTokenInfo = ({ token, className }: Props) => {
         <img src={token.image} alt="" />
       </div>
       <div>
-        <span className="text-lg font-bold uppercase">{token.symbol}</span>
-        <span className="flex items-center gap-1.5 text-sm font-medium text-night-400">
+        <span className="text-lg font-medium uppercase">{token.symbol}</span>
+        <span className="flex items-center gap-1.5 text-sm text-night-400">
           {token.isNFT ? "NFT " : "Token "}
           {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
             <>| {token.name}</>
