@@ -84,6 +84,11 @@ export const createPoolToken = (
   const symbol = createTokenSymbol(token, collections);
   return {
     ...token,
+    ...(tokenCollections[0]?.type
+      ? {
+          type: tokenCollections[0]?.type,
+        }
+      : {}),
     name: createTokenName(token, collections),
     symbol,
     image:
@@ -92,7 +97,6 @@ export const createPoolToken = (
     decimals: Number(token.decimals),
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
-    type: tokenCollections[0]?.type ?? "ERC721",
     collectionId: tokenCollections[0]?.id ?? "",
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
