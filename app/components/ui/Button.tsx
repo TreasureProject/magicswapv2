@@ -1,5 +1,7 @@
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
 import * as React from "react";
 
@@ -55,6 +57,7 @@ const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant, size, ...props }, ref) => {
     return (
       <button
+        ref={ref}
         className="flex h-7 w-7 items-center justify-center rounded-full bg-night-900 text-night-600 transition-colors hover:bg-ruby-800 hover:text-night-100"
         {...props}
       >
@@ -65,5 +68,60 @@ const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 CloseButton.displayName = "CloseButton";
+
+export const TransactionButton = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>(({ variant, size, children, disabled, onClick, ...props }, ref) => {
+  return (
+    <ConnectButton.Custom>
+      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
+        const unsupported = chain?.unsupported ?? true;
+
+        const isConnectButton = !account || unsupported;
+        const isDisabled = disabled && !isConnectButton;
+
+        const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+          if (isConnectButton) {
+            if (unsupported) {
+              openChainModal?.();
+            } else {
+              openConnectModal?.();
+            }
+          } else {
+            onClick?.(e);
+          }
+        };
+
+        return (
+          <AnimatePresence>
+            {mounted && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Button
+                  ref={ref}
+                  disabled={isDisabled}
+                  onClick={handleClick}
+                  {...props}
+                >
+                  {isConnectButton
+                    ? unsupported
+                      ? "Wrong Network"
+                      : "Connect Wallet"
+                    : children}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
+});
+
+TransactionButton.displayName = "TransactionButton";
 
 export { Button, buttonVariants, CloseButton };

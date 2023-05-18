@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -14,9 +13,9 @@ import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   pool: Pool;
-  amountLP: BigNumber;
-  amountBaseMin: BigNumber;
-  amountQuoteMin: BigNumber;
+  amountLP: bigint;
+  amountBaseMin: bigint;
+  amountQuoteMin: bigint;
   nfts: TroveTokenWithQuantity[];
   enabled?: boolean;
 };
@@ -33,10 +32,8 @@ export const useRemoveLiquidity = ({
   const { deadline } = useSettings();
 
   const isEnabled = enabled && !!address;
-  const deadlineBN = BigNumber.from(
-    Math.floor(Date.now() / 1000) + deadline * 60
-  );
-  const isNft = pool.baseToken.isNft || pool.quoteToken.isNft;
+  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
+  const isNFT = pool.baseToken.isNFT || pool.quoteToken.isNFT;
 
   const { config: tokenRemoveLiquidityConfig } =
     usePrepareMagicSwapV2RouterRemoveLiquidity({
@@ -49,7 +46,7 @@ export const useRemoveLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !isNft,
+      enabled: isEnabled && !isNFT,
     });
   const { data: tokenRemoveLiquidityData, write: tokenRemoveLiquidity } =
     useMagicSwapV2RouterRemoveLiquidity(tokenRemoveLiquidityConfig);
@@ -61,8 +58,8 @@ export const useRemoveLiquidity = ({
     usePrepareMagicSwapV2RouterRemoveLiquidityNft({
       args: [
         nfts.map(({ collectionAddr }) => collectionAddr as AddressString),
-        nfts.map(({ tokenId }) => BigNumber.from(tokenId)),
-        nfts.map(({ quantity }) => BigNumber.from(quantity)),
+        nfts.map(({ tokenId }) => BigInt(tokenId)),
+        nfts.map(({ quantity }) => BigInt(quantity)),
         pool.baseToken.id as AddressString,
         pool.quoteToken.id as AddressString,
         amountLP,
@@ -72,22 +69,22 @@ export const useRemoveLiquidity = ({
         deadlineBN,
         true, // swapLeftover
       ],
-      enabled: isEnabled && isNft,
+      enabled: isEnabled && isNFT,
     });
   const { data: nftRemoveLiquidityData, write: nftRemoveLiquidity } =
     useMagicSwapV2RouterRemoveLiquidityNft(nftRemoveLiquidityConfig);
-  const { isSuccess: isNftRemoveLiquiditySuccess } = useWaitForTransaction(
+  const { isSuccess: isNFTRemoveLiquiditySuccess } = useWaitForTransaction(
     nftRemoveLiquidityData
   );
 
   return {
     removeLiquidity: () => {
-      if (isNft) {
+      if (isNFT) {
         nftRemoveLiquidity?.();
       } else {
         tokenRemoveLiquidity?.();
       }
     },
-    isSuccess: isTokenRemoveLiquiditySuccess || isNftRemoveLiquiditySuccess,
+    isSuccess: isTokenRemoveLiquiditySuccess || isNFTRemoveLiquiditySuccess,
   };
 };

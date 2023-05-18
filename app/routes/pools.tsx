@@ -209,7 +209,7 @@ export default function PoolsListPage() {
               </div>
             )}
           </div>
-          <PoolsTable pools={(user?.pools ?? []) as Pool[]} />
+          <PoolsTable pools={user?.pools ?? []} />
         </>
       )}
     </main>

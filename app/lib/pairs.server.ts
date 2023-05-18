@@ -1,7 +1,6 @@
 import {
   getTokenCollectionAddresses,
   getTokenReserveItemIds,
-  isTokenNft,
 } from "./tokens.server";
 import type { Pair } from "~/types";
 
@@ -13,8 +12,8 @@ export const getPairCollectionAddresses = (pair: Pair) => [
 ];
 
 export const getPairERC20Addresses = (pair: Pair) => [
-  ...(isTokenNft(pair.token0) ? [] : [pair.token0.id]),
-  ...(isTokenNft(pair.token1) ? [] : [pair.token1.id]),
+  ...(pair.token0.isNFT ? [] : [pair.token0.id]),
+  ...(pair.token1.isNFT ? [] : [pair.token1.id]),
 ];
 
 export const getPairReserveItemAddresses = (pair: Pair) => [

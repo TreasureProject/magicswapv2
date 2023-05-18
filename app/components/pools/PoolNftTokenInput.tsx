@@ -1,6 +1,7 @@
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
-import { formatBalance } from "~/lib/currency";
+import { PoolTokenImage } from "./PoolTokenImage";
+import { formatBigInt } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { TroveTokenWithQuantity } from "~/types";
@@ -8,23 +9,21 @@ import type { TroveTokenWithQuantity } from "~/types";
 export const PoolNftTokenInput = ({
   token,
   amount,
-  balance,
+  balance = BigInt(0),
   selectedNfts,
   onOpenSelect,
 }: {
   token: PoolToken;
   amount?: number;
-  balance?: string;
+  balance?: bigint;
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
 }) => {
   return (
-    <div className="overflow-hidden rounded-lg border border-night-900">
+    <div className="overflow-hidden rounded-lg border border-night-1000">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-night-1000">
-            {token.image ? <img src={token.image} alt="" /> : null}
-          </div>
+          <PoolTokenImage className="h-10 w-10" token={token} />
           <div className="space-y-1">
             <p className="text-xl font-medium">{token.name}</p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
@@ -88,7 +87,7 @@ export const PoolNftTokenInput = ({
       {balance !== undefined || selectedNfts.length > 0 ? (
         <div
           className={cn(
-            "flex h-12 items-center bg-night-1000 p-2 pr-4",
+            "flex h-12 items-center bg-night-1100 p-2 pr-4",
             balance !== undefined ? "justify-between" : "justify-end"
           )}
         >
@@ -96,7 +95,7 @@ export const PoolNftTokenInput = ({
             <p className="pl-2 text-sm text-night-400">
               Inventory:
               <span className="pl-1 font-medium text-night-100">
-                {formatBalance(balance)}
+                {formatBigInt(balance, token.decimals)}
               </span>
             </p>
           ) : null}

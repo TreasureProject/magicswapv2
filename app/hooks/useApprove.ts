@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { useWaitForTransaction } from "wagmi";
 
 import {
@@ -15,13 +14,13 @@ import type { AddressString } from "~/types";
 
 type Props = {
   token: PoolToken | string;
-  amount?: BigNumber;
+  amount?: bigint;
   enabled?: boolean;
 };
 
 export const useApprove = ({
   token,
-  amount = BigNumber.from(0),
+  amount = BigInt(0),
   enabled = true,
 }: Props) => {
   const isFullToken = typeof token !== "string";

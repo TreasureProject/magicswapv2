@@ -1,3 +1,7 @@
+import { formatUnits, parseUnits } from "viem";
+
+import type { NumberString } from "~/types";
+
 export const formatNumber = (
   value: number | string,
   options?: Intl.NumberFormatOptions
@@ -19,3 +23,12 @@ export const formatPercent = (percentage: string | number, rounded = false) => {
     }) + "%"
   );
 };
+
+export const floorBigInt = (value: bigint, decimals = 18) =>
+  parseUnits(
+    Math.floor(Number(formatUnits(value, decimals))).toString() as NumberString,
+    decimals
+  );
+
+export const bigIntToNumber = (value: bigint, decimals = 18) =>
+  Number(formatUnits(value, decimals));

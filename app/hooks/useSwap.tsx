@@ -1,5 +1,4 @@
-import { BigNumber } from "@ethersproject/bignumber";
-import { formatUnits } from "@ethersproject/units";
+import { formatUnits } from "viem";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -17,15 +16,15 @@ import {
   usePrepareMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
 import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
-import { getAmountMaxBN, getAmountMinBN } from "~/lib/pools";
+import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   tokenIn: PoolToken;
   tokenOut?: PoolToken;
-  amountIn: BigNumber;
-  amountOut: BigNumber;
+  amountIn: bigint;
+  amountOut: bigint;
   nftsIn: TroveTokenWithQuantity[];
   nftsOut: TroveTokenWithQuantity[];
   isExactOut: boolean;
@@ -46,25 +45,21 @@ export const useSwap = ({
   const { slippage, deadline } = useSettings();
 
   const isEnabled = enabled && !!address && !!tokenOut;
-  const amountInMax = isExactOut
-    ? getAmountMaxBN(amountIn, slippage)
-    : amountIn;
+  const amountInMax = isExactOut ? getAmountMax(amountIn, slippage) : amountIn;
   const amountOutMin = isExactOut
     ? amountOut
-    : getAmountMinBN(amountOut, slippage);
+    : getAmountMin(amountOut, slippage);
   const collectionsIn = nftsIn.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
-  const tokenIdsIn = nftsIn.map(({ tokenId }) => BigNumber.from(tokenId));
-  const quantitiesIn = nftsIn.map(({ quantity }) => BigNumber.from(quantity));
+  const tokenIdsIn = nftsIn.map(({ tokenId }) => BigInt(tokenId));
+  const quantitiesIn = nftsIn.map(({ quantity }) => BigInt(quantity));
   const collectionsOut = nftsOut.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
-  const tokenIdsOut = nftsOut.map(({ tokenId }) => BigNumber.from(tokenId));
-  const quantitiesOut = nftsOut.map(({ quantity }) => BigNumber.from(quantity));
-  const deadlineBN = BigNumber.from(
-    Math.floor(Date.now() / 1000) + deadline * 60
-  );
+  const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
+  const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
+  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
 
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =
@@ -76,7 +71,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && !tokenOut.isNft && !isExactOut,
+      enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
     });
   const {
     data: swapExactTokensForTokensData,
@@ -97,7 +92,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && !tokenOut.isNft && isExactOut,
+      enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
     });
   const {
     data: swapTokensForExactTokensData,
@@ -108,13 +103,6 @@ export const useSwap = ({
   const { isSuccess: isSwapTokensForExactTokensSuccess } =
     useWaitForTransaction(swapTokensForExactTokensData);
 
-  // ERC20-NFT
-  console.log({
-    collectionsOut,
-    tokenIdsOut,
-    quantitiesOut,
-    amountInMax: formatUnits(amountInMax),
-  });
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
       args: [
@@ -126,7 +114,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !tokenIn.isNft && tokenOut.isNft,
+      enabled: isEnabled && !tokenIn.isNFT && tokenOut.isNFT,
     });
   const {
     data: swapTokensForNftData,
@@ -139,7 +127,7 @@ export const useSwap = ({
     {
       loading: (
         <>
-          Swapping {parseFloat(formatUnits(amountInMax)).toFixed(3)}{" "}
+          Swapping {parseFloat(formatUnits(amountInMax, 18)).toFixed(3)}{" "}
           {tokenIn?.symbol} <span className="text-night-600">for</span>{" "}
           {quantitiesOut.length} {tokenOut?.symbol}
           {quantitiesOut.length > 1 ? "S" : ""}
@@ -162,7 +150,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && tokenIn.isNft && !tokenOut.isNft,
+      enabled: isEnabled && tokenIn.isNFT && !tokenOut.isNFT,
     });
   const { data: swapNftForTokensData, write: swapNftForTokens } =
     useMagicSwapV2RouterSwapNftForTokens(swapNftForTokensConfig);
@@ -183,7 +171,7 @@ export const useSwap = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && tokenIn.isNft && tokenOut.isNft,
+      enabled: isEnabled && tokenIn.isNFT && tokenOut.isNFT,
     });
   const { data: swapNftForNftData, write: swapNftForNft } =
     useMagicSwapV2RouterSwapNftForNft(swapNftForNftConfig);
@@ -198,11 +186,11 @@ export const useSwap = ({
         return;
       }
 
-      if (tokenIn.isNft && tokenOut.isNft) {
+      if (tokenIn.isNFT && tokenOut.isNFT) {
         swapNftForNft?.();
-      } else if (tokenIn.isNft) {
+      } else if (tokenIn.isNFT) {
         swapNftForTokens?.();
-      } else if (tokenOut.isNft) {
+      } else if (tokenOut.isNFT) {
         swapTokensForNft?.();
       } else if (isExactOut) {
         swapTokensForExactTokens?.();

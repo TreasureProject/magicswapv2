@@ -1,3 +1,11 @@
+import {
+  RainbowKitProvider,
+  connectorsForWallets,
+  darkTheme,
+  getDefaultWallets,
+} from "@rainbow-me/rainbowkit";
+import rainbowStyles from "@rainbow-me/rainbowkit/styles.css";
+import { ledgerWallet, trustWallet } from "@rainbow-me/rainbowkit/wallets";
 import type { LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
@@ -12,17 +20,17 @@ import {
   useLoaderData,
   useTransition,
 } from "@remix-run/react";
-import { ConnectKitProvider, getDefaultClient } from "connectkit";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
-import { Toaster, resolveValue, toast } from "react-hot-toast";
-import { WagmiConfig, createClient } from "wagmi";
+import { Toaster, resolveValue } from "react-hot-toast";
+import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { arbitrum, arbitrumGoerli } from "wagmi/chains";
+import { alchemyProvider } from "wagmi/providers/alchemy";
+import { publicProvider } from "wagmi/providers/public";
 
 import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
-import { Button } from "./components/ui/Button";
 import { AccountProvider } from "./contexts/account";
 import { SettingsProvider } from "./contexts/settings";
 import { cn } from "./lib/utils";
@@ -33,6 +41,7 @@ import type { Env } from "./types";
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
   { rel: "stylesheet", href: nProgressStyles },
+  { rel: "stylesheet", href: rainbowStyles },
 ];
 
 export const meta: V2_MetaFunction = () => [
@@ -67,18 +76,37 @@ export const loader = async () => {
 export default function App() {
   const { ENV } = useLoaderData<typeof loader>();
 
-  const [client] = useState(() =>
-    createClient(
-      getDefaultClient({
-        appName: "MagicSwap",
-        alchemyId: ENV.PUBLIC_ALCHEMY_KEY,
-        chains: [
-          arbitrum,
-          ...(ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : []),
-        ],
-      })
-    )
-  );
+  const [{ client, chains }] = useState(() => {
+    const testChains =
+      ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : [];
+
+    const { chains, publicClient } = configureChains(
+      // Configure this to chains you want
+      [arbitrum, ...testChains],
+      [alchemyProvider({ apiKey: ENV.PUBLIC_ALCHEMY_KEY }), publicProvider()]
+    );
+
+    const { wallets } = getDefaultWallets({
+      appName: "Template App",
+      chains,
+    });
+
+    const connectors = connectorsForWallets([
+      ...wallets,
+      {
+        groupName: "Others",
+        wallets: [trustWallet({ chains }), ledgerWallet({ chains })],
+      },
+    ]);
+
+    const client = createConfig({
+      autoConnect: true,
+      connectors,
+      publicClient,
+    });
+
+    return { client, chains };
+  });
 
   const transition = useTransition();
 
@@ -109,8 +137,18 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full antialiased">
-        <WagmiConfig client={client}>
-          <ConnectKitProvider>
+        <WagmiConfig config={client}>
+          <RainbowKitProvider
+            appInfo={{
+              appName: "MagicSwapv2",
+            }}
+            chains={chains}
+            theme={darkTheme({
+              fontStack: "system",
+              accentColor: "#DC2626",
+              borderRadius: "large",
+            })}
+          >
             <Layout>
               <AccountProvider>
                 <SettingsProvider>
@@ -118,7 +156,7 @@ export default function App() {
                 </SettingsProvider>
               </AccountProvider>
             </Layout>
-          </ConnectKitProvider>
+          </RainbowKitProvider>
         </WagmiConfig>
         <Toaster position="top-right" reverseOrder={false} gutter={18}>
           {(t) => {

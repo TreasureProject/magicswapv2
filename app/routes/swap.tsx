@@ -1,5 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
-import { formatUnits, parseUnits } from "@ethersproject/units";
 import {
   Link,
   useLoaderData,
@@ -8,8 +6,6 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { ConnectKitButton } from "connectkit";
-import { Decimal } from "decimal.js-light";
 import {
   ArrowDownIcon,
   ChevronDownIcon,
@@ -18,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
+import { formatUnits, parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
@@ -28,7 +25,7 @@ import { NumberInput } from "~/components/NumberInput";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { Button } from "~/components/ui/Button";
+import { Button, TransactionButton } from "~/components/ui/Button";
 import {
   Dialog,
   DialogContent,
@@ -49,12 +46,16 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
-import { formatBalance, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { formatBigInt, formatUSD } from "~/lib/currency";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import type {
+  AddressString,
+  NumberString,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
   const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
@@ -103,18 +104,23 @@ export default function SwapPage() {
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
-  const [{ amount, isExactOut, nftsIn, nftsOut }, setTrade] = useState({
-    amount: "0",
-    nftsIn: [] as TroveTokenWithQuantity[],
-    nftsOut: [] as TroveTokenWithQuantity[],
-    isExactOut: false,
-  });
+  const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
+    useState({
+      amount: "0",
+      nftsIn: [] as TroveTokenWithQuantity[],
+      nftsOut: [] as TroveTokenWithQuantity[],
+      isExactOut: false,
+    });
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     setSearchParams(searchParams);
   };
 
+  const amount = parseUnits(
+    rawAmount as NumberString,
+    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
+  );
   const poolTokenIn =
     pool?.token0.id === tokenIn.id ? pool?.token0 : pool?.token1;
   const poolTokenOut =
@@ -123,9 +129,8 @@ export default function SwapPage() {
   const amountIn = isExactOut
     ? getAmountIn(
         amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenIn.decimals,
+        BigInt(poolTokenIn?.reserveBI ?? "0"),
+        BigInt(poolTokenOut?.reserveBI ?? "0"),
         pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       )
     : amount;
@@ -133,45 +138,37 @@ export default function SwapPage() {
     ? amount
     : getAmountOut(
         amount,
-        poolTokenIn?.reserve,
-        poolTokenOut?.reserve,
-        tokenOut?.decimals,
+        BigInt(poolTokenIn?.reserveBI ?? "0"),
+        BigInt(poolTokenOut?.reserveBI ?? "0"),
         pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
       );
 
-  const amountInBN = Number.isNaN(Number(amountIn))
-    ? BigNumber.from(0)
-    : parseUnits(amountIn, tokenIn.decimals);
-  const amountOutBN = Number.isNaN(Number(amountOut))
-    ? BigNumber.from(0)
-    : parseUnits(amountOut, tokenOut?.decimals);
-
-  const hasAmounts = amountInBN.gt(0) && amountOutBN.gt(0);
+  const hasAmounts = amountIn > 0 && amountOut > 0;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
     token: tokenIn.id as AddressString,
-    enabled: isConnected && !tokenIn.isNft,
+    enabled: isConnected && !tokenIn.isNFT,
   });
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
     {
       address,
       token: tokenOut?.id as AddressString,
-      enabled: isConnected && !!tokenOut && !tokenOut.isNft,
+      enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
     }
   );
 
   const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
     useIsApproved({
       token: tokenIn,
-      amount: amountInBN,
+      amount: amountIn,
       enabled: isConnected && hasAmounts,
     });
 
   const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
     useApprove({
       token: tokenIn,
-      amount: amountInBN,
+      amount: amountIn,
       enabled: !isTokenInApproved,
     });
 
@@ -181,10 +178,10 @@ export default function SwapPage() {
     swap,
     isSuccess: isSwapSuccess,
   } = useSwap({
-    tokenIn,
-    tokenOut,
-    amountIn: amountInBN,
-    amountOut: amountOutBN,
+    tokenIn: tokenIn,
+    tokenOut: tokenOut,
+    amountIn,
+    amountOut,
     isExactOut,
     nftsIn,
     nftsOut,
@@ -289,8 +286,12 @@ export default function SwapPage() {
           token={poolTokenIn ?? tokenIn}
           otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
-          balance={tokenInBalance?.formatted}
-          amount={isExactOut ? formatBalance(amountIn) : amountIn}
+          balance={tokenInBalance?.value}
+          amount={
+            isExactOut
+              ? formatBigInt(amountIn, tokenIn.decimals)
+              : formatUnits(amountIn, tokenIn.decimals)
+          }
           selectedNfts={nftsIn}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
@@ -321,8 +322,12 @@ export default function SwapPage() {
           token={poolTokenOut ?? tokenOut}
           otherToken={poolTokenIn ?? tokenIn}
           isOut
-          balance={tokenOutBalance?.formatted}
-          amount={isExactOut ? amountOut : formatBalance(amountOut)}
+          balance={tokenOutBalance?.value}
+          amount={
+            isExactOut
+              ? formatUnits(amountOut, tokenOut?.decimals ?? 18)
+              : formatBigInt(amountOut, tokenOut?.decimals ?? 18)
+          }
           selectedNfts={nftsOut}
           tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
@@ -347,33 +352,21 @@ export default function SwapPage() {
           <ClientOnly>
             {() => (
               <>
-                {isConnected ? (
-                  <>
-                    {!isTokenInApproved && hasAmounts && (
-                      <Button
-                        className="w-full"
-                        onClick={() => approveTokenIn()}
-                      >
-                        Approve {tokenIn.name}
-                      </Button>
-                    )}
-                    <Button
-                      className="w-full"
-                      disabled={!isTokenInApproved || !hasAmounts}
-                      onClick={() => swap()}
-                    >
-                      Swap Items
-                    </Button>
-                  </>
-                ) : (
-                  <ConnectKitButton.Custom>
-                    {({ show }) => (
-                      <Button className="w-full" onClick={show}>
-                        Connect Wallet
-                      </Button>
-                    )}
-                  </ConnectKitButton.Custom>
+                {!isTokenInApproved && hasAmounts && (
+                  <TransactionButton
+                    className="w-full"
+                    onClick={() => approveTokenIn()}
+                  >
+                    Approve {tokenIn.name}
+                  </TransactionButton>
                 )}
+                <TransactionButton
+                  className="w-full"
+                  disabled={!isTokenInApproved || !hasAmounts}
+                  onClick={() => swap()}
+                >
+                  Swap Items
+                </TransactionButton>
               </>
             )}
           </ClientOnly>
@@ -388,8 +381,8 @@ export default function SwapPage() {
                   getPriceImpact(
                     poolTokenIn,
                     poolTokenOut,
-                    Number(amountIn),
-                    Number(amountOut),
+                    bigIntToNumber(amountIn, tokenIn.decimals),
+                    bigIntToNumber(amountOut, tokenOut?.decimals ?? 18),
                     isExactOut
                   )
                 )}
@@ -417,9 +410,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Maximum spent
                 <span>
-                  {formatBalance(
-                    formatUnits(amountInMax, poolTokenIn.decimals)
-                  )}{" "}
+                  {formatBigInt(amountInMax, poolTokenIn.decimals)}{" "}
                   {poolTokenIn.symbol}
                 </span>
               </div>
@@ -427,9 +418,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Minimum received
                 <span>
-                  {formatBalance(
-                    formatUnits(amountOutMin, poolTokenOut.decimals)
-                  )}{" "}
+                  {formatBigInt(amountOutMin, poolTokenOut.decimals)}{" "}
                   {poolTokenOut.symbol}
                 </span>
               </div>
@@ -445,7 +434,7 @@ const SwapTokenInput = ({
   token,
   otherToken,
   isOut,
-  balance = "0",
+  balance = BigInt(0),
   amount,
   selectedNfts,
   tokens,
@@ -457,7 +446,7 @@ const SwapTokenInput = ({
   token?: PoolToken;
   otherToken?: PoolToken;
   isOut: boolean;
-  balance?: string;
+  balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
   tokens: PoolToken[];
@@ -470,9 +459,8 @@ const SwapTokenInput = ({
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
   const amountPriceUSD =
-    Number.isNaN(parsedAmount) || parsedAmount === 0
-      ? new Decimal(token?.priceUSD ?? 0)
-      : new Decimal(token?.priceUSD ?? 0).mul(amount);
+    (token?.priceUSD ?? 0) *
+    (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -500,7 +488,7 @@ const SwapTokenInput = ({
           </DialogTrigger>
         </Dialog>
         <div className="space-y-1 text-right">
-          {token.isNft ? (
+          {token.isNFT ? (
             selectedNfts.length > 0 ? (
               <div className="flex items-center space-x-2">
                 {selectedNfts.length > 5 ? (
@@ -567,10 +555,10 @@ const SwapTokenInput = ({
               <CurrencyInput
                 value={amount}
                 onChange={onUpdateAmount}
-                disabled={!!otherToken?.isNft}
+                disabled={!!otherToken?.isNFT}
               />
               <span className="block text-sm text-night-400">
-                {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
+                {formatUSD(amountPriceUSD)}
               </span>
             </>
           )}
@@ -580,11 +568,11 @@ const SwapTokenInput = ({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-night-400 sm:text-sm">
-              {token.isNft ? "Inventory" : "Balance"}:
+              {token.isNFT ? "Inventory" : "Balance"}:
             </span>
             <VisibleOnClient>
               <span className="font-semibold text-honey-25 sm:text-sm">
-                {formatBalance(balance)}
+                {formatBigInt(balance, token.decimals)}
               </span>
             </VisibleOnClient>
           </div>
@@ -674,7 +662,7 @@ const TokenSelectDialog = ({
           </div>
           <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
             {tokens
-              .filter(({ isNft }) => (tab === "collections" ? isNft : !isNft))
+              .filter(({ isNFT }) => (tab === "collections" ? isNFT : !isNFT))
               .map((token) => (
                 <li
                   key={token.id}

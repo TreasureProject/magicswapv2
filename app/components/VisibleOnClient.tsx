@@ -1,5 +1,6 @@
-import { LoaderIcon } from "lucide-react";
 import { ClientOnly } from "remix-utils";
+
+import { LoaderIcon } from "./Icons";
 
 export const VisibleOnClient = ({
   children,
@@ -7,11 +8,7 @@ export const VisibleOnClient = ({
   children: React.ReactNode;
 }) => {
   return (
-    <ClientOnly
-      fallback={
-        <LoaderIcon className="inline-block h-3.5 w-3.5 animate-spin" />
-      }
-    >
+    <ClientOnly fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}>
       {() => children}
     </ClientOnly>
   );

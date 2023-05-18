@@ -17,15 +17,15 @@ export const PoolTokenInfo = ({ token, className }: Props) => {
       <div
         className={cn(
           "overflow-hidden",
-          token.isNft ? "h-20 w-20 rounded" : "h-14 w-14 rounded-full"
+          token.isNFT ? "h-20 w-20 rounded" : "h-14 w-14 rounded-full"
         )}
       >
         <img src={token.image} alt="" />
       </div>
       <div>
-        <span className="text-lg font-bold uppercase">{token.symbol}</span>
-        <span className="flex items-center gap-1.5 text-sm font-medium text-night-400">
-          {token.isNft ? "NFT " : "Token "}
+        <span className="text-lg font-medium uppercase">{token.symbol}</span>
+        <span className="flex items-center gap-1.5 text-sm text-night-400">
+          {token.isNFT ? "NFT " : "Token "}
           {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
             <>| {token.name}</>
           )}

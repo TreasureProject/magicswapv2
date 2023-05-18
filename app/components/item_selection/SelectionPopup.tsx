@@ -8,7 +8,6 @@ import {
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
-  SettingsIcon,
   X,
   XIcon,
 } from "lucide-react";
@@ -16,6 +15,7 @@ import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
 import { LoaderIcon } from "../Icons";
+import { PoolTokenImage } from "../pools/PoolTokenImage";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
@@ -150,7 +150,7 @@ export const SelectionPopup = ({
   }, [formData]);
 
   const fetchCollection = React.useCallback(() => {
-    if (!address || !token?.isNft) {
+    if (!address || !token?.isNFT) {
       return;
     }
 
@@ -170,15 +170,15 @@ export const SelectionPopup = ({
       params.set("traits", traitInfoRef.current);
     }
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, fetchFromVault, load, token?.isNft, token?.urlSlug, id]);
+  }, [address, fetchFromVault, load, token?.isNFT, token?.urlSlug, id]);
 
   React.useEffect(() => {
-    if (!token?.isNft) {
+    if (!token?.isNFT) {
       return;
     }
     fetchCollection();
     loadFilters(`/resources/get-filters/${token.urlSlug}`);
-  }, [token?.isNft, token?.urlSlug, loadFilters, fetchCollection]);
+  }, [token?.isNFT, token?.urlSlug, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
@@ -215,15 +215,7 @@ export const SelectionPopup = ({
     <TransparentDialogContent className="h-full grid-areas-nft-modal-mobile [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]">
       <div className="flex items-center gap-2 grid-in-header">
         <p className="text-md text-night-400">Select</p>
-        {token.image ? (
-          <img
-            className="h-6 w-6 rounded-full"
-            src={token.image}
-            alt={token.name}
-          />
-        ) : (
-          <div className="h-6 w-6 rounded-full bg-night-900" />
-        )}
+        <PoolTokenImage className="h-6 w-6" token={token} />
         <p className="text-md font-medium capitalize text-night-100">
           {token.name}{" "}
           <span className="normal-case text-night-400">

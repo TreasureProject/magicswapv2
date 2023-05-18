@@ -10,7 +10,8 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 export const PoolTokenImage = ({ token, className, ...divProps }: Props) => (
   <div
     className={cn(
-      "h-9 w-9 overflow-hidden rounded-full border border-night-1000 bg-night-1000",
+      "h-9 w-9 overflow-hidden border border-night-1000 bg-night-1000",
+      token.isNFT ? "rounded-lg" : "rounded-full",
       className
     )}
     {...divProps}
