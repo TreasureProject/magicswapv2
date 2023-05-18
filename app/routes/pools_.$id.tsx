@@ -27,7 +27,7 @@ import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
-import { formatBigInt, formatUSD } from "~/lib/currency";
+import { formatBigInt, formatCurrencyString, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool, PoolTransactionType } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -420,7 +420,7 @@ const PoolActivityTable = ({
                   <Fragment key={tx.id}>
                     <tr className="border-b border-b-night-900 transition-colors">
                       <td className="px-4 py-4 text-left uppercase sm:px-5">
-                        <div className="flex items-center gap-4 text-sm text-night-400">
+                        <div className="flex items-center gap-3 text-sm text-night-400">
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
                               token={baseToken}
@@ -428,7 +428,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {baseAmount}
+                                {formatCurrencyString(baseAmount, 5)}
                               </span>{" "}
                               {baseToken.symbol}
                             </span>
@@ -445,7 +445,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {quoteAmount}
+                                {formatCurrencyString(quoteAmount, 5)}
                               </span>{" "}
                               {quoteToken.symbol}
                             </span>
@@ -458,10 +458,10 @@ const PoolActivityTable = ({
                       <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                         {formatUSD(tx.amountUSD)}
                       </td>
-                      <td className="px-4 py-4 text-center sm:px-5">
+                      <td className="px-4 py-4 text-center text-sm text-night-400 sm:px-5">
                         {truncateEthAddress(tx.user.id)}
                       </td>
-                      <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+                      <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
                         {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
                       </td>
                       <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">

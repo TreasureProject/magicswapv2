@@ -6,12 +6,8 @@ export const formatUSD = (value: number | string) =>
     maximumFractionDigits: 2,
   })}`;
 
-export const formatBigInt = (
-  value: bigint,
-  decimals = 18,
-  significantDigits = 8
-) => {
-  let formatted = formatUnits(value, decimals);
+export const formatCurrencyString = (value: string, significantDigits = 8) => {
+  let formatted = value;
   const truncateAmount = formatted.startsWith("0.")
     ? significantDigits + 2
     : significantDigits + 1;
@@ -26,3 +22,9 @@ export const formatBigInt = (
     maximumFractionDigits: significantDigits,
   });
 };
+
+export const formatBigInt = (
+  value: bigint,
+  decimals = 18,
+  significantDigits = 8
+) => formatCurrencyString(formatUnits(value, decimals), significantDigits);
