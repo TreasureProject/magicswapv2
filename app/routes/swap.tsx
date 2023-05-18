@@ -6,7 +6,6 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { Decimal } from "decimal.js-light";
 import {
   ArrowDownIcon,
   ChevronDownIcon,
@@ -47,7 +46,7 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
-import { formatBalance, formatBigInt, formatUSD } from "~/lib/currency";
+import { formatBigInt, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -287,7 +286,7 @@ export default function SwapPage() {
           token={poolTokenIn ?? tokenIn}
           otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
-          balance={tokenInBalance?.formatted}
+          balance={tokenInBalance?.value}
           amount={
             isExactOut
               ? formatBigInt(amountIn, tokenIn.decimals)
@@ -323,7 +322,7 @@ export default function SwapPage() {
           token={poolTokenOut ?? tokenOut}
           otherToken={poolTokenIn ?? tokenIn}
           isOut
-          balance={tokenOutBalance?.formatted}
+          balance={tokenOutBalance?.value}
           amount={
             isExactOut
               ? formatUnits(amountOut, tokenOut?.decimals ?? 18)
@@ -411,9 +410,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Maximum spent
                 <span>
-                  {formatBalance(
-                    formatUnits(amountInMax, Number(poolTokenIn.decimals))
-                  )}{" "}
+                  {formatBigInt(amountInMax, poolTokenIn.decimals)}{" "}
                   {poolTokenIn.symbol}
                 </span>
               </div>
@@ -421,9 +418,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Minimum received
                 <span>
-                  {formatBalance(
-                    formatUnits(amountOutMin, Number(poolTokenOut.decimals))
-                  )}{" "}
+                  {formatBigInt(amountOutMin, poolTokenOut.decimals)}{" "}
                   {poolTokenOut.symbol}
                 </span>
               </div>
@@ -439,7 +434,7 @@ const SwapTokenInput = ({
   token,
   otherToken,
   isOut,
-  balance = "0",
+  balance = BigInt(0),
   amount,
   selectedNfts,
   tokens,
@@ -451,7 +446,7 @@ const SwapTokenInput = ({
   token?: PoolToken;
   otherToken?: PoolToken;
   isOut: boolean;
-  balance?: string;
+  balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
   tokens: PoolToken[];
@@ -464,9 +459,8 @@ const SwapTokenInput = ({
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
   const amountPriceUSD =
-    Number.isNaN(parsedAmount) || parsedAmount === 0
-      ? new Decimal(token?.priceUSD ?? 0)
-      : new Decimal(token?.priceUSD ?? 0).mul(amount);
+    (token?.priceUSD ?? 0) *
+    (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -564,7 +558,7 @@ const SwapTokenInput = ({
                 disabled={!!otherToken?.isNFT}
               />
               <span className="block text-sm text-night-400">
-                {formatUSD(amountPriceUSD.toFixed(2, Decimal.ROUND_DOWN))}
+                {formatUSD(amountPriceUSD)}
               </span>
             </>
           )}
@@ -578,7 +572,7 @@ const SwapTokenInput = ({
             </span>
             <VisibleOnClient>
               <span className="font-semibold text-honey-25 sm:text-sm">
-                {formatBalance(balance)}
+                {formatBigInt(balance, token.decimals)}
               </span>
             </VisibleOnClient>
           </div>

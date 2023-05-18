@@ -27,7 +27,7 @@ import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
-import { formatBalance, formatBigInt, formatUSD } from "~/lib/currency";
+import { formatBigInt, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool, PoolTransactionType } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -185,8 +185,10 @@ export default function PoolDetailsPage() {
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
-                    {formatBalance(
-                      pool.quoteToken.reserve / pool.baseToken.reserve
+                    {formatBigInt(
+                      BigInt(pool.quoteToken.reserveBI) /
+                        BigInt(pool.baseToken.reserveBI),
+                      18
                     )}
                   </span>{" "}
                   {pool.quoteToken.symbol}
@@ -206,7 +208,10 @@ export default function PoolDetailsPage() {
                       </div>
                       <div className="space-y-0.5 text-right">
                         <p className="text-night-100">
-                          {formatBalance(token.reserve)}
+                          {formatBigInt(
+                            BigInt(token.reserveBI),
+                            token.decimals
+                          )}
                         </p>
                         <p className="text-xs text-night-400">
                           {formatUSD(token.reserve * token.priceUSD)}
@@ -423,7 +428,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatBalance(baseAmount)}
+                                {baseAmount}
                               </span>{" "}
                               {baseToken.symbol}
                             </span>
@@ -440,7 +445,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatBalance(quoteAmount)}
+                                {quoteAmount}
                               </span>{" "}
                               {quoteToken.symbol}
                             </span>

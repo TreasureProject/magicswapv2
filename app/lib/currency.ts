@@ -1,4 +1,3 @@
-import Decimal from "decimal.js-light";
 import { formatUnits } from "viem";
 
 export const formatUSD = (value: number | string) =>
@@ -6,12 +5,6 @@ export const formatUSD = (value: number | string) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
-
-export const formatBalance = (value: number | string) =>
-  new Decimal(value)
-    .toSignificantDigits(8, Decimal.ROUND_DOWN)
-    .toNumber()
-    .toLocaleString("en-US");
 
 export const formatBigInt = (
   value: bigint,

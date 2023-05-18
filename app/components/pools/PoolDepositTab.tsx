@@ -173,14 +173,14 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
-            balance="0"
+            balance={BigInt(0)}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
           />
         ) : (
           <PoolTokenInput
             token={pool.baseToken}
-            balance={baseTokenBalance?.formatted}
+            balance={baseTokenBalance?.value}
             amount={
               isExactB
                 ? formatBigInt(amountA, pool.baseToken.decimals)
@@ -203,14 +203,14 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
-            balance="0"
+            balance={BigInt(0)}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
           />
         ) : (
           <PoolTokenInput
             token={pool.quoteToken}
-            balance={quoteTokenBalance?.formatted}
+            balance={quoteTokenBalance?.value}
             amount={
               isExactB
                 ? formatUnits(amountB, pool.quoteToken.decimals)

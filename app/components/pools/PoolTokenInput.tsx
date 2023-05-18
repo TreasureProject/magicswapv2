@@ -1,18 +1,18 @@
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatBalance, formatUSD } from "~/lib/currency";
+import { formatBigInt, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 
 export const PoolTokenInput = ({
   token,
-  balance = "0",
+  balance = BigInt(0),
   amount,
   disabled = false,
   onUpdateAmount,
 }: {
   token: PoolToken;
-  balance?: string;
+  balance?: bigint;
   amount: string;
   disabled?: boolean;
   onUpdateAmount: (amount: string) => void;
@@ -48,7 +48,9 @@ export const PoolTokenInput = ({
         <p className="flex items-center pl-2 text-sm text-night-400">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
-            <VisibleOnClient>{formatBalance(balance)}</VisibleOnClient>
+            <VisibleOnClient>
+              {formatBigInt(balance, token.decimals)}
+            </VisibleOnClient>
           </span>
         </p>
         <p className="text-xs text-night-400">
