@@ -81,8 +81,8 @@ export default function PoolDetailsPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div className="w-full space-y-6 md:flex-row">
             <div className="flex flex-col justify-between gap-6 sm:flex-row md:items-center">
-              <PoolTokenInfo token={pool.baseToken as PoolToken} />
-              <PoolTokenInfo token={pool.quoteToken as PoolToken} />
+              <PoolTokenInfo token={pool.baseToken} />
+              <PoolTokenInfo token={pool.quoteToken} />
             </div>
             <div className="h-[1px] bg-night-900" />
             <div className="space-y-4 rounded-md bg-night-1100 p-4">
@@ -105,7 +105,7 @@ export default function PoolDetailsPage() {
               </div>
               <div className="flex flex-col px-2 py-6">
                 <div className="flex items-center">
-                  <PoolImage pool={pool as Pool} className="h-10 w-10" />
+                  <PoolImage pool={pool} className="h-10 w-10" />
                   <VisibleOnClient>
                     <p className="text-base-100 text-3xl font-medium">
                       {formatBigInt(lpBalance, 18, 5)}
@@ -133,10 +133,7 @@ export default function PoolDetailsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-3">
-                        <PoolTokenImage
-                          className="h-7 w-7"
-                          token={token as PoolToken}
-                        />
+                        <PoolTokenImage className="h-7 w-7" token={token} />
                         <VisibleOnClient>
                           <p className="text-3xl font-medium">
                             {formatUSD(lpShare * token.reserve)}
@@ -205,10 +202,7 @@ export default function PoolDetailsPage() {
                     className="flex items-center justify-between gap-3 rounded-md bg-night-1200 p-3"
                   >
                     <div className="flex items-center gap-2 font-semibold">
-                      <PoolTokenImage
-                        className="h-6 w-6"
-                        token={token as PoolToken}
-                      />
+                      <PoolTokenImage className="h-6 w-6" token={token} />
                       {token.symbol}
                     </div>
                     <div className="space-y-0.5 text-right font-medium">
@@ -266,9 +260,9 @@ export default function PoolDetailsPage() {
               setActiveTab={setActiveTab}
             />
             {activeTab === "withdraw" && (
-              <PoolWithdrawTab pool={pool as Pool} balance={lpBalance} />
+              <PoolWithdrawTab pool={pool} balance={lpBalance} />
             )}
-            {activeTab === "deposit" && <PoolDepositTab pool={pool as Pool} />}
+            {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
             {/* {activeTab === "summary" && (
               <>
                 <div className="flex w-full flex-col items-center gap-1 pt-6">
@@ -373,24 +367,26 @@ export default function PoolDetailsPage() {
             Pool Activity
           </h3>
           <div className="flex items-center gap-3">
-            {[
-              {
-                label: "All",
-                value: undefined,
-              },
-              {
-                label: "Swaps",
-                value: "Swap" as PoolTransactionType,
-              },
-              {
-                label: "Deposits",
-                value: "Deposit" as PoolTransactionType,
-              },
-              {
-                label: "Withdrawals",
-                value: "Withdrawal" as PoolTransactionType,
-              },
-            ].map(({ label, value }) => (
+            {(
+              [
+                {
+                  label: "All",
+                  value: undefined,
+                },
+                {
+                  label: "Swaps",
+                  value: "Swap",
+                },
+                {
+                  label: "Deposits",
+                  value: "Deposit",
+                },
+                {
+                  label: "Withdrawals",
+                  value: "Withdrawal",
+                },
+              ] as const
+            ).map(({ label, value }) => (
               <button
                 key={label}
                 className={cn(
@@ -404,7 +400,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable pool={pool as Pool} filter={poolActivityFilter} />
+        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
         {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
           <>
             <h3 className="flex items-center gap-3 font-medium">
@@ -412,14 +408,10 @@ export default function PoolDetailsPage() {
               Pool Inventory
             </h3>
             {pool.baseToken.isNFT && (
-              <PoolTokenCollectionInventory
-                token={pool.baseToken as PoolToken}
-              />
+              <PoolTokenCollectionInventory token={pool.baseToken} />
             )}
             {pool.quoteToken.isNFT && (
-              <PoolTokenCollectionInventory
-                token={pool.quoteToken as PoolToken}
-              />
+              <PoolTokenCollectionInventory token={pool.quoteToken} />
             )}
           </>
         ) : null}

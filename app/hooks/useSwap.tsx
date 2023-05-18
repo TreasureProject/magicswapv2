@@ -1,4 +1,4 @@
-import { formatUnits } from "@ethersproject/units";
+import { formatUnits } from "viem";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -127,7 +127,7 @@ export const useSwap = ({
     {
       loading: (
         <>
-          Swapping {parseFloat(formatUnits(amountInMax)).toFixed(3)}{" "}
+          Swapping {parseFloat(formatUnits(amountInMax, 18)).toFixed(3)}{" "}
           {tokenIn?.symbol} <span className="text-night-600">for</span>{" "}
           {quantitiesOut.length} {tokenOut?.symbol}
           {quantitiesOut.length > 1 ? "S" : ""}

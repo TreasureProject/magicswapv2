@@ -161,14 +161,14 @@ export default function SwapPage() {
 
   const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
     useIsApproved({
-      token: tokenIn as PoolToken,
+      token: tokenIn,
       amount: amountIn,
       enabled: isConnected && hasAmounts,
     });
 
   const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
     useApprove({
-      token: tokenIn as PoolToken,
+      token: tokenIn,
       amount: amountIn,
       enabled: !isTokenInApproved,
     });
@@ -179,8 +179,8 @@ export default function SwapPage() {
     swap,
     isSuccess: isSwapSuccess,
   } = useSwap({
-    tokenIn: tokenIn as PoolToken,
-    tokenOut: tokenOut as PoolToken,
+    tokenIn: tokenIn,
+    tokenOut: tokenOut,
     amountIn,
     amountOut,
     isExactOut,
@@ -284,8 +284,8 @@ export default function SwapPage() {
       <div>
         <SwapTokenInput
           className="mt-6"
-          token={(poolTokenIn ?? tokenIn) as PoolToken}
-          otherToken={(poolTokenOut ?? tokenOut) as PoolToken}
+          token={poolTokenIn ?? tokenIn}
+          otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
           balance={tokenInBalance?.formatted}
           amount={
@@ -294,7 +294,7 @@ export default function SwapPage() {
               : formatUnits(amountIn, tokenIn.decimals)
           }
           selectedNfts={nftsIn}
-          tokens={tokens as PoolToken[]}
+          tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -320,8 +320,8 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={(poolTokenOut ?? tokenOut) as PoolToken}
-          otherToken={(poolTokenIn ?? tokenIn) as PoolToken}
+          token={poolTokenOut ?? tokenOut}
+          otherToken={poolTokenIn ?? tokenIn}
           isOut
           balance={tokenOutBalance?.formatted}
           amount={
@@ -330,7 +330,7 @@ export default function SwapPage() {
               : formatBigInt(amountOut, tokenOut?.decimals ?? 18)
           }
           selectedNfts={nftsOut}
-          tokens={tokens as PoolToken[]}
+          tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -380,8 +380,8 @@ export default function SwapPage() {
                 -
                 {formatPercent(
                   getPriceImpact(
-                    poolTokenIn as PoolToken,
-                    poolTokenOut as PoolToken,
+                    poolTokenIn,
+                    poolTokenOut,
                     bigIntToNumber(amountIn, tokenIn.decimals),
                     bigIntToNumber(amountOut, tokenOut?.decimals ?? 18),
                     isExactOut
