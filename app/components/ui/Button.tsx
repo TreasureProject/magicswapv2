@@ -1,7 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import type { MotionProps } from "framer-motion";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
 import * as React from "react";

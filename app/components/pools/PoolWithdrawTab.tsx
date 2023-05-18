@@ -105,8 +105,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   }, [isRemoveLiquiditySuccess, onSuccess]);
 
   const limitAmount = pool.baseToken.isNFT
-    ? Number(amountBaseMin)
-    : Number(amountQuoteMin);
+    ? bigIntToNumber(amountBaseMin, pool.baseToken.decimals)
+    : bigIntToNumber(amountQuoteMin, pool.quoteToken.decimals);
 
   return (
     <div className="space-y-4">

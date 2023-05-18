@@ -7,6 +7,7 @@ import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
+import { PoolImage } from "./PoolImage";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
 import { useSettings } from "~/contexts/settings";
@@ -234,11 +235,12 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         items={[
           {
             label: "Estimated LP Tokens",
-            icon: {
-              token0: pool.baseToken.image,
-              token1: pool.quoteToken.image,
-            },
-            value: formatBigInt(estimatedLp),
+            value: (
+              <div className="flex items-center -space-x-1">
+                <PoolImage className="h-5 w-5" pool={pool} />
+                <span>{formatBigInt(estimatedLp)}</span>
+              </div>
+            ),
           },
           {
             label: "Share of Pool",

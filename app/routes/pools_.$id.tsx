@@ -16,12 +16,11 @@ import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
-import Table, { CopyTable } from "~/components/Table";
+import Table from "~/components/Table";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
-import { PoolTokenInfo } from "~/components/pools/PoolTokenInfo";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { MultiSelect } from "~/components/ui/MultiSelect";
@@ -68,13 +67,17 @@ export default function PoolDetailsPage() {
 
   return (
     <main className="container">
-      <Link to="/pools" className="text-night-400 hover:text-night-100">
+      <Link
+        to="/pools"
+        className="flex items-center text-xs text-night-400 transition-colors hover:text-night-100"
+      >
         <ChevronLeftIcon className="h-4" />
+        All Pools
       </Link>
       <div className="mt-6">
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center -space-x-2">
               <PoolImage pool={pool} className="h-auto w-14" />
               <div className="flex flex-col text-2xl">
                 <span>{pool.name}</span>
@@ -101,7 +104,7 @@ export default function PoolDetailsPage() {
                 </span>
               </div>
               <div className="flex flex-col space-y-2 px-2 py-4">
-                <div className="flex items-center">
+                <div className="flex items-center -space-x-1">
                   <PoolImage pool={pool} className="h-10 w-10" />
                   <VisibleOnClient>
                     <p className="text-3xl text-night-100">
@@ -129,7 +132,7 @@ export default function PoolDetailsPage() {
                       ) : null}
                     </div>
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
                         <PoolTokenImage className="h-6 w-6" token={token} />
                         <VisibleOnClient>
                           <p className="text-night-100">
@@ -188,7 +191,6 @@ export default function PoolDetailsPage() {
                   </span>{" "}
                   {pool.quoteToken.symbol}
                 </p>
-                {/* <div className="col-span-3 flex flex-col gap-2 sm:flex-row"> */}
                 {[pool.baseToken, null, pool.quoteToken].map((token) => {
                   if (!token) {
                     return <div key="empty" />;
@@ -213,7 +215,6 @@ export default function PoolDetailsPage() {
                     </div>
                   );
                 })}
-                {/* </div> */}
               </div>
             </div>
 

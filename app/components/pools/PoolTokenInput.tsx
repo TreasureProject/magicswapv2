@@ -1,5 +1,6 @@
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
+import { PoolTokenImage } from "./PoolTokenImage";
 import { formatBalance, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 
@@ -20,9 +21,7 @@ export const PoolTokenInput = ({
     <div className="overflow-hidden rounded-lg border border-night-900">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-night-1000">
-            {token.image ? <img src={token.image} alt="" /> : null}
-          </div>
+          <PoolTokenImage className="h-10 w-10" token={token} />
           <div className="space-y-1">
             <p className="text-xl font-medium">{token.name}</p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
