@@ -18,11 +18,15 @@ import { fetchPool } from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
 import Table from "~/components/Table";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
+import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
+import { Button } from "~/components/ui/Button";
+import { DialogTrigger } from "~/components/ui/Dialog";
+import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
@@ -549,41 +553,53 @@ const PoolActivityTable = ({
   );
 };
 
-const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => (
-  <>
-    {token.collections.map(({ id, name, symbol }) => (
-      <div key={id} className="rounded-lg bg-night-1100">
-        <div className="space-y-5 p-6">
-          <div className="flex items-center gap-3">
-            <span className="font-medium">{name}</span>
-            <span className="h-3 w-[1px] bg-night-400" />
-            <span className="uppercase text-night-400">{symbol}</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {token.reserveItems
-              .filter(({ collectionId }) => collectionId === id)
-              .map(({ tokenId, name, image, amount }) => (
-                <div
-                  key={tokenId}
-                  className="relative h-24 w-24 overflow-hidden rounded"
-                >
-                  <img src={image} alt={name} title={name} />
-                  {token.type === "ERC1155" && (
-                    <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-medium text-night-900">
-                      {amount}x
-                    </span>
-                  )}
+const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => {
+  return (
+    <>
+      {token.collections.map(({ id, name, symbol }) => {
+        const reserveItems = token.reserveItems.filter(
+          ({ collectionId }) => collectionId === id
+        );
+
+        return (
+          <div key={id} className="rounded-lg bg-night-1100">
+            <Dialog>
+              <div className="space-y-5 p-6">
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{name}</span>
+                  <span className="h-3 w-[1px] bg-night-400" />
+                  <span className="uppercase text-night-400">{symbol}</span>
                 </div>
-              ))}
+                <div className="flex flex-wrap items-center gap-2">
+                  {reserveItems.map(({ tokenId, name, image, amount }) => (
+                    <div
+                      key={tokenId}
+                      className="relative h-24 w-24 overflow-hidden rounded"
+                    >
+                      <img src={image} alt={name} title={name} />
+                      {token.type === "ERC1155" && (
+                        <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-medium text-night-900">
+                          {amount}x
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="h-[1px] bg-night-800" />
+              <div className="flex items-center justify-between px-6 py-3">
+                <span className="text-sm text-night-400">
+                  Showing {token.reserveItems.length} of {token.reserve}
+                </span>
+                <DialogTrigger asChild>
+                  <Button variant="ghost">View All</Button>
+                </DialogTrigger>
+              </div>
+              <SelectionPopup type="vault" viewOnly token={token} />
+            </Dialog>
           </div>
-        </div>
-        <div className="h-[1px] bg-night-800" />
-        <div className="px-6 py-3">
-          <span className="text-sm text-night-400">
-            Showing {token.reserveItems.length} of {token.reserve}
-          </span>
-        </div>
-      </div>
-    ))}
-  </>
-);
+        );
+      })}
+    </>
+  );
+};

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckIcon,
   TableIcon as ColumnIcon,
+  ExternalLink,
   Filter,
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
@@ -12,7 +13,8 @@ import {
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
+import { arbitrum } from "wagmi/chains";
 
 import { LoaderIcon } from "../Icons";
 import { PoolTokenImage } from "../pools/PoolTokenImage";
@@ -35,44 +37,66 @@ const ItemCard = ({
   item,
   onClick,
   disabled,
+  viewOnly,
 }: {
   selected: boolean;
   item: TroveToken;
   onClick: () => void;
   disabled: boolean;
+  viewOnly: boolean;
 }) => {
+  const chainId = useChainId();
   const disableUnselected = !selected && disabled;
   return (
     <div
       className={cn(
         "group relative flex-col overflow-hidden rounded-lg bg-night-900",
-        selected && "ring-2 ring-night-100",
-        disableUnselected && "cursor-not-allowed opacity-30"
+        selected && "ring-2 ring-night-100"
       )}
     >
-      {selected && (
-        <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
-          <CheckIcon className="w-3" />
+      <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
+        {selected && (
+          <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
+            <CheckIcon className="w-3" />
+          </div>
+        )}
+        <img
+          src={item.image.uri}
+          alt={item.tokenId}
+          className={cn("w-full", !viewOnly && "group-hover:opacity-75")}
+        />
+        <div className="p-3">
+          <p className="text-sm font-medium text-night-100">
+            {item.metadata.name}
+          </p>
+          <p className="text-night-400">{item.tokenId}</p>
         </div>
-      )}
-      <img
-        src={item.image.uri}
-        alt={item.tokenId}
-        className="w-full group-hover:opacity-75"
-      />
-      <div className="p-3">
-        <p className="text-sm font-medium text-night-100">
-          {item.metadata.name}
-        </p>
-        <p className="text-night-400">{item.tokenId}</p>
+        {!viewOnly && (
+          <button
+            className="absolute inset-0"
+            onClick={onClick}
+            disabled={disableUnselected}
+          >
+            <span className="sr-only">Select {item.metadata.name}</span>
+          </button>
+        )}
       </div>
-      <button
-        className="absolute inset-0"
-        onClick={onClick}
-        disabled={disableUnselected}
+      <a
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`View ${item.collectionUrlSlug} ${item.tokenId} on Trove`}
+        className="text-night-400 transition-colors hover:text-night-100"
+        href={`${
+          chainId === arbitrum.id
+            ? "https://trove.treasure.lol/"
+            : "https://trove-testnet.treasure.lol/"
+        }collection/${item.collectionUrlSlug}/${item.tokenId}`}
       >
-        <span className="sr-only">Select {item.metadata.name}</span>
-      </button>
+        <ExternalLink className="absolute bottom-3 right-3 h-auto w-4" />
+        <span className="sr-only">
+          View {item.collectionUrlSlug} {item.tokenId} on Trove
+        </span>
+      </a>
     </div>
   );
 };
@@ -102,21 +126,27 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
   );
 };
 
-export const SelectionPopup = ({
-  token,
-  type,
-  onSubmit,
-  selectedTokens,
-  limit,
-}: {
+type BaseProps = {
   token?: PoolToken;
   type: "vault" | "inventory";
-  onSubmit: (items: TroveTokenWithQuantity[]) => void;
+};
+
+type ViewOnlyProps = BaseProps & {
+  viewOnly: true;
+};
+
+type EditableProps = BaseProps & {
+  viewOnly?: false;
   selectedTokens?: TroveTokenWithQuantity[];
   limit?: number;
-}) => {
+  onSubmit: (items: TroveTokenWithQuantity[]) => void;
+};
+
+type Props = ViewOnlyProps | EditableProps;
+
+export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
-    selectedTokens || []
+    !props.viewOnly ? props.selectedTokens ?? [] : []
   );
   const fetcher = useFetcher<CollectionLoader>();
   const filterFetcher = useFetcher<TroveFilters>();
@@ -135,8 +165,10 @@ export const SelectionPopup = ({
     0
   );
 
-  const selectionDisabled = limit ? totalQuantity >= limit : false;
-  const buttonDisabled = limit ? totalQuantity > limit : false;
+  const selectionDisabled =
+    !props.viewOnly && props.limit ? totalQuantity >= props.limit : false;
+  const buttonDisabled =
+    !props.viewOnly && props.limit ? totalQuantity > props.limit : false;
 
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
@@ -212,7 +244,14 @@ export const SelectionPopup = ({
   );
 
   return (
-    <TransparentDialogContent className="h-full grid-areas-nft-modal-mobile [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]">
+    <TransparentDialogContent
+      className={cn(
+        "h-full [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl",
+        !props.viewOnly
+          ? "grid-areas-nft-modal-mobile lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]"
+          : "grid-areas-nft-modal-viewonly"
+      )}
+    >
       <div className="flex items-center gap-2 grid-in-header">
         <p className="text-md text-night-400">Select</p>
         <PoolTokenImage className="h-6 w-6" token={token} />
@@ -417,6 +456,7 @@ export const SelectionPopup = ({
                   )}
                   key={item.tokenId}
                   item={item}
+                  viewOnly={props.viewOnly || false}
                   onClick={() => {
                     selectionHandler({
                       ...item,
@@ -507,111 +547,111 @@ export const SelectionPopup = ({
           </Form>
         </div>
       </div>
-      <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
-        <ScrollArea className="relative h-full">
-          <div className="flex min-h-full flex-col">
-            <p className="px-3 text-sm leading-[160%] text-night-400">
-              Selected assets
-            </p>
-            {selectedItems.length > 0 ? (
-              <div className="mt-2 flex flex-1 flex-col gap-2">
-                <AnimatePresence initial={false} mode="popLayout">
-                  {selectedItems.map((item) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex w-full items-center justify-between space-x-2 rounded-lg bg-night-900 p-2"
-                      key={item.tokenId}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={item.image.uri}
-                            alt={item.metadata.name}
-                            className="h-10 w-10 rounded-[4px]"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-[4px] bg-night-800" />
-                        )}
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <p className="truncate text-sm font-medium text-night-100">
-                            {item.metadata.name}
-                          </p>
-                          <p className="text-sm text-night-400">
-                            {item.tokenId}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {item.contractType === "ERC1155" && (
-                          <NumberSelect
-                            onChange={(num) => {
-                              setSelectedItems((prev) =>
-                                prev.map((i) =>
-                                  i.tokenId === item.tokenId
-                                    ? { ...i, quantity: num }
-                                    : i
-                                )
-                              );
-                            }}
-                            value={item.quantity}
-                            max={
-                              type === "inventory"
-                                ? item.queryUserQuantityOwned || 1
-                                : token.reserveItems.find(
-                                    (i) => i.tokenId === item.tokenId
-                                  )?.amount || 1
-                            }
-                          />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => selectionHandler(item)}
-                        >
-                          <XIcon className="w-4 text-night-400" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <p className="flex grow items-center justify-center text-xs text-night-600">
-                You haven't selected any assets yet.
+      {!props.viewOnly && (
+        <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
+          <ScrollArea className="relative h-full">
+            <div className="flex min-h-full flex-col">
+              <p className="px-3 text-sm leading-[160%] text-night-400">
+                Selected assets
               </p>
-            )}
-            <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="md"
-                  variant="secondary"
-                  onClick={() => setSelectedItems([])}
-                >
-                  Clear
-                </Button>
-                <Close asChild>
+              {selectedItems.length > 0 ? (
+                <div className="mt-2 flex flex-1 flex-col gap-2">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {selectedItems.map((item) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex w-full items-center justify-between space-x-2 rounded-lg bg-night-900 p-2"
+                        key={item.tokenId}
+                      >
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={item.image.uri}
+                              alt={item.metadata.name}
+                              className="h-10 w-10 rounded-[4px]"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-[4px] bg-night-800" />
+                          )}
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <p className="truncate text-sm font-medium text-night-100">
+                              {item.metadata.name}
+                            </p>
+                            <p className="text-sm text-night-400">
+                              {item.tokenId}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {item.contractType === "ERC1155" && (
+                            <NumberSelect
+                              onChange={(num) => {
+                                setSelectedItems((prev) =>
+                                  prev.map((i) =>
+                                    i.tokenId === item.tokenId
+                                      ? { ...i, quantity: num }
+                                      : i
+                                  )
+                                );
+                              }}
+                              value={item.quantity}
+                              max={
+                                type === "inventory"
+                                  ? item.queryUserQuantityOwned || 1
+                                  : token.reserveItems.find(
+                                      (i) => i.tokenId === item.tokenId
+                                    )?.amount || 1
+                              }
+                            />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={() => selectionHandler(item)}
+                          >
+                            <XIcon className="w-4 text-night-400" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <p className="flex grow items-center justify-center text-xs text-night-600">
+                  You haven't selected any assets yet.
+                </p>
+              )}
+              <div className="sticky bottom-0 space-y-3 bg-night-1100/50 backdrop-blur-sm">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
-                    disabled={buttonDisabled}
                     size="md"
-                    onClick={() => {
-                      onSubmit(selectedItems);
-                    }}
+                    variant="secondary"
+                    onClick={() => setSelectedItems([])}
                   >
-                    {limit && buttonDisabled
-                      ? `Remove ${totalQuantity - limit} Item${
-                          totalQuantity - limit > 1 ? "s" : ""
-                        }`
-                      : "Save selections"}
+                    Clear
                   </Button>
-                </Close>
+                  <Close asChild>
+                    <Button
+                      disabled={buttonDisabled}
+                      size="md"
+                      onClick={() => props.onSubmit(selectedItems)}
+                    >
+                      {props.limit && buttonDisabled
+                        ? `Remove ${totalQuantity - props.limit} Item${
+                            totalQuantity - props.limit > 1 ? "s" : ""
+                          }`
+                        : "Save selections"}
+                    </Button>
+                  </Close>
+                </div>
               </div>
             </div>
-          </div>
-        </ScrollArea>
-      </div>
+          </ScrollArea>
+        </div>
+      )}
     </TransparentDialogContent>
   );
 };

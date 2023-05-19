@@ -17,6 +17,13 @@ module.exports = {
           "nft nft nft nft selection",
           "nft nft nft nft selection",
         ],
+        "nft-modal-viewonly": [
+          "header header header header header",
+          "misc misc misc misc misc",
+          "nft nft nft nft nft",
+          "nft nft nft nft nft",
+          "nft nft nft nft nft",
+        ],
         "nft-modal-mobile": [
           "header header header header header",
           "misc misc misc misc misc",

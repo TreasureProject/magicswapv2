@@ -44,6 +44,7 @@ export type TroveCollectionMapping = Record<string, TroveCollection>;
 type BasicTroveToken = {
   collectionAddr: string;
   tokenId: string;
+  collectionUrlSlug: string;
   image: {
     uri: string;
   };
