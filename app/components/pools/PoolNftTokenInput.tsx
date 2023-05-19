@@ -1,7 +1,7 @@
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatBigInt } from "~/lib/currency";
+import { formatTokenAmount } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { TroveTokenWithQuantity } from "~/types";
@@ -95,7 +95,7 @@ export const PoolNftTokenInput = ({
             <p className="pl-2 text-sm text-night-400">
               Inventory:
               <span className="pl-1 font-medium text-night-100">
-                {formatBigInt(balance, token.decimals)}
+                {formatTokenAmount(balance, token.decimals)}
               </span>
             </p>
           ) : null}

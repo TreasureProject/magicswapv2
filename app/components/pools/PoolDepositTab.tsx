@@ -14,7 +14,7 @@ import { useSettings } from "~/contexts/settings";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
-import { formatBigInt } from "~/lib/currency";
+import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -183,7 +183,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             balance={baseTokenBalance?.value}
             amount={
               isExactB
-                ? formatBigInt(amountA, pool.baseToken.decimals)
+                ? formatTokenAmount(amountA, pool.baseToken.decimals)
                 : formatUnits(amountA, pool.baseToken.decimals)
             }
             disabled={pool.quoteToken.isNFT}
@@ -214,7 +214,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             amount={
               isExactB
                 ? formatUnits(amountB, pool.quoteToken.decimals)
-                : formatBigInt(amountB, pool.quoteToken.decimals)
+                : formatTokenAmount(amountB, pool.quoteToken.decimals)
             }
             disabled={pool.baseToken.isNFT}
             onUpdateAmount={(amount) =>
@@ -238,7 +238,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             value: (
               <div className="flex items-center -space-x-1">
                 <PoolImage className="h-5 w-5" pool={pool} />
-                <span>{formatBigInt(estimatedLp)}</span>
+                <span>{formatTokenAmount(estimatedLp)}</span>
               </div>
             ),
           },

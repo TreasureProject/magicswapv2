@@ -46,7 +46,7 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
-import { formatBigInt, formatUSD } from "~/lib/currency";
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -289,7 +289,7 @@ export default function SwapPage() {
           balance={tokenInBalance?.value}
           amount={
             isExactOut
-              ? formatBigInt(amountIn, tokenIn.decimals)
+              ? formatTokenAmount(amountIn, tokenIn.decimals)
               : formatUnits(amountIn, tokenIn.decimals)
           }
           selectedNfts={nftsIn}
@@ -326,7 +326,7 @@ export default function SwapPage() {
           amount={
             isExactOut
               ? formatUnits(amountOut, tokenOut?.decimals ?? 18)
-              : formatBigInt(amountOut, tokenOut?.decimals ?? 18)
+              : formatTokenAmount(amountOut, tokenOut?.decimals ?? 18)
           }
           selectedNfts={nftsOut}
           tokens={tokens}
@@ -410,7 +410,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Maximum spent
                 <span>
-                  {formatBigInt(amountInMax, poolTokenIn.decimals)}{" "}
+                  {formatTokenAmount(amountInMax, poolTokenIn.decimals)}{" "}
                   {poolTokenIn.symbol}
                 </span>
               </div>
@@ -418,7 +418,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-between">
                 Minimum received
                 <span>
-                  {formatBigInt(amountOutMin, poolTokenOut.decimals)}{" "}
+                  {formatTokenAmount(amountOutMin, poolTokenOut.decimals)}{" "}
                   {poolTokenOut.symbol}
                 </span>
               </div>
@@ -572,7 +572,7 @@ const SwapTokenInput = ({
             </span>
             <VisibleOnClient>
               <span className="font-semibold text-honey-25 sm:text-sm">
-                {formatBigInt(balance, token.decimals)}
+                {formatTokenAmount(balance, token.decimals)}
               </span>
             </VisibleOnClient>
           </div>

@@ -27,7 +27,7 @@ import { MultiSelect } from "~/components/ui/MultiSelect";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
-import { formatBigInt, formatCurrencyString, formatUSD } from "~/lib/currency";
+import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool, PoolTransactionType } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -108,7 +108,7 @@ export default function PoolDetailsPage() {
                   <PoolImage pool={pool} className="h-10 w-10" />
                   <VisibleOnClient>
                     <p className="text-3xl text-night-100">
-                      {formatBigInt(lpBalance, 18, 5)}
+                      {formatTokenAmount(lpBalance)}
                     </p>
                   </VisibleOnClient>
                 </div>
@@ -185,7 +185,7 @@ export default function PoolDetailsPage() {
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
-                    {formatBigInt(
+                    {formatTokenAmount(
                       BigInt(pool.quoteToken.reserveBI) /
                         BigInt(pool.baseToken.reserveBI),
                       18
@@ -208,7 +208,7 @@ export default function PoolDetailsPage() {
                       </div>
                       <div className="space-y-0.5 text-right">
                         <p className="text-night-100">
-                          {formatBigInt(
+                          {formatTokenAmount(
                             BigInt(token.reserveBI),
                             token.decimals
                           )}
@@ -428,7 +428,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatCurrencyString(baseAmount, 5)}
+                                {formatAmount(baseAmount)}
                               </span>{" "}
                               {baseToken.symbol}
                             </span>
@@ -445,7 +445,7 @@ const PoolActivityTable = ({
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatCurrencyString(quoteAmount, 5)}
+                                {formatAmount(quoteAmount)}
                               </span>{" "}
                               {quoteToken.symbol}
                             </span>

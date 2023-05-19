@@ -1,7 +1,7 @@
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatBigInt, formatUSD } from "~/lib/currency";
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 
 export const PoolTokenInput = ({
@@ -49,7 +49,7 @@ export const PoolTokenInput = ({
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
             <VisibleOnClient>
-              {formatBigInt(balance, token.decimals)}
+              {formatTokenAmount(balance, token.decimals)}
             </VisibleOnClient>
           </span>
         </p>

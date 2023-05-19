@@ -1,13 +1,26 @@
 import { expect, test } from "vitest";
 
-import { formatBigInt } from "./currency";
+import { formatAmount, formatTokenAmount } from "./currency";
 
-test("formats big integers", () => {
-  expect(formatBigInt(BigInt("1000000000000000000"))).toBe("1");
-  expect(formatBigInt(BigInt("123456000000000000000"))).toBe("123.456");
-  expect(formatBigInt(BigInt("123456789000000000000"))).toBe("123.45678");
-  expect(formatBigInt(BigInt("123456789000000000000000000"))).toBe(
-    "123,456,789"
+test("formats amounts", () => {
+  expect(formatAmount("123456789.9999")).toBe("123,456,789.99");
+  expect(formatAmount("123456.9999")).toBe("123,456.99");
+  expect(formatAmount("12345.9999")).toBe("12,345.99");
+  expect(formatAmount("1234.9999")).toBe("1,234.99");
+  expect(formatAmount("123.9999")).toBe("123.99");
+  expect(formatAmount("12.9999")).toBe("12.999");
+  expect(formatAmount("1.9999")).toBe("1.999");
+  expect(formatAmount("1")).toBe("1");
+  expect(formatAmount("0.9999")).toBe("0.9999");
+  expect(formatAmount("0.000999")).toBe("0.000999");
+  expect(formatAmount("0.00000999")).toBe("0.000009");
+});
+
+test("formats token amounts", () => {
+  expect(formatTokenAmount(BigInt("123456789990000000000000000"))).toBe(
+    "123,456,789.99"
   );
-  expect(formatBigInt(BigInt("123456780000000"))).toBe("0.00012345");
+  expect(formatTokenAmount(BigInt("123456000000000000000"))).toBe("123.45");
+  expect(formatTokenAmount(BigInt("1000000000000000000"))).toBe("1");
+  expect(formatTokenAmount(BigInt("123456780000000"))).toBe("0.000123");
 });

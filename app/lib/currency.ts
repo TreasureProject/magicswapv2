@@ -1,3 +1,4 @@
+import Decimal from "decimal.js-light";
 import { formatUnits } from "viem";
 
 export const formatUSD = (value: number | string) =>
@@ -6,25 +7,24 @@ export const formatUSD = (value: number | string) =>
     maximumFractionDigits: 2,
   })}`;
 
-export const formatCurrencyString = (value: string, significantDigits = 8) => {
-  let formatted = value;
-  const truncateAmount = formatted.startsWith("0.")
-    ? significantDigits + 2
-    : significantDigits + 1;
-  if (formatted.includes(".") && formatted.length > truncateAmount) {
-    formatted = formatted.slice(0, truncateAmount);
-    if (formatted.endsWith(".")) {
-      formatted = formatted.slice(0, -1);
-    }
+export const formatAmount = (value: string) => {
+  const decimal = new Decimal(value);
+  let decimalPlaces: number;
+  if (decimal.lt(1e-3)) {
+    decimalPlaces = 6;
+  } else if (decimal.lt(1)) {
+    decimalPlaces = 4;
+  } else if (decimal.lt(100)) {
+    decimalPlaces = 3;
+  } else {
+    decimalPlaces = 2;
   }
 
-  return Number(formatted).toLocaleString("en-US", {
-    maximumFractionDigits: significantDigits,
-  });
+  return decimal
+    .toDecimalPlaces(decimalPlaces, Decimal.ROUND_DOWN)
+    .toNumber()
+    .toLocaleString("en-US", { maximumFractionDigits: decimalPlaces });
 };
 
-export const formatBigInt = (
-  value: bigint,
-  decimals = 18,
-  significantDigits = 8
-) => formatCurrencyString(formatUnits(value, decimals), significantDigits);
+export const formatTokenAmount = (value: bigint, decimals = 18) =>
+  formatAmount(formatUnits(value, decimals));

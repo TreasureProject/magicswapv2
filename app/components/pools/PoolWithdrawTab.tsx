@@ -12,7 +12,7 @@ import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
-import { formatBigInt, formatUSD } from "~/lib/currency";
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -129,7 +129,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.baseToken} />
                 <span className="text-honey-25">
-                  {formatBigInt(amountBaseMin)}
+                  {formatTokenAmount(amountBaseMin)}
                 </span>
                 {pool.baseToken.symbol}
               </div>
@@ -142,7 +142,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.quoteToken} />
                 <span className="text-honey-25">
-                  {formatBigInt(amountQuoteMin)}
+                  {formatTokenAmount(amountQuoteMin)}
                 </span>
                 {pool.quoteToken.symbol}
               </div>
@@ -166,7 +166,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                         }
                       />
                       <span className="text-honey-25">
-                        {formatBigInt(amountLeftover)}
+                        {formatTokenAmount(amountLeftover)}
                       </span>
                       {pool.baseToken.isNFT
                         ? pool.baseToken.symbol
@@ -183,7 +183,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                         }
                       />
                       <span className="text-honey-25">
-                        {formatBigInt(
+                        {formatTokenAmount(
                           quote(
                             amountLeftover,
                             pool.baseToken.isNFT
