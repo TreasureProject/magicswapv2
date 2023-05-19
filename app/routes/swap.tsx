@@ -290,7 +290,7 @@ export default function SwapPage() {
           amount={
             isExactOut
               ? formatTokenAmount(amountIn, tokenIn.decimals)
-              : formatUnits(amountIn, tokenIn.decimals)
+              : rawAmount
           }
           selectedNfts={nftsIn}
           tokens={tokens}
@@ -325,7 +325,7 @@ export default function SwapPage() {
           balance={tokenOutBalance?.value}
           amount={
             isExactOut
-              ? formatUnits(amountOut, tokenOut?.decimals ?? 18)
+              ? rawAmount
               : formatTokenAmount(amountOut, tokenOut?.decimals ?? 18)
           }
           selectedNfts={nftsOut}

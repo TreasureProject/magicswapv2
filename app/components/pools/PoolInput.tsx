@@ -1,6 +1,6 @@
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
-import { formatUSD } from "~/lib/currency";
+import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 
@@ -15,6 +15,7 @@ export const PoolInput = ({
   amount: string;
   onUpdateAmount: (amount: string) => void;
 }) => {
+  const parsedAmount = Number(amount);
   return (
     <div className="overflow-hidden rounded-lg border border-night-900">
       <div className="flex items-center justify-between gap-3 p-4">
@@ -26,10 +27,10 @@ export const PoolInput = ({
           <CurrencyInput value={amount} onChange={onUpdateAmount} />
           <span className="block text-sm text-night-400">
             {formatUSD(
-              amount === "0"
-                ? 1
-                : Number(amount.replace(/,/g, "")) *
-                    (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply)))
+              (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply))) *
+                (Number.isNaN(parsedAmount) || parsedAmount === 0
+                  ? 1
+                  : Number(amount.replace(/,/g, "")))
             )}
           </span>
         </div>
@@ -40,7 +41,11 @@ export const PoolInput = ({
             key={percent}
             className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
             onClick={() =>
-              onUpdateAmount((bigIntToNumber(balance) * percent).toString())
+              onUpdateAmount(
+                percent === 1
+                  ? bigIntToNumber(balance).toString()
+                  : formatAmount((bigIntToNumber(balance) * percent).toString())
+              )
             }
           >
             {formatPercent(percent)}

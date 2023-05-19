@@ -34,15 +34,20 @@ type Props = {
 export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   const { address } = useAccount();
   const { slippage } = useSettings();
-  const [{ amount, nftsA, nftsB, isExactB }, setTransaction] = useState({
-    amount: BigInt(0),
-    nftsA: [] as TroveTokenWithQuantity[],
-    nftsB: [] as TroveTokenWithQuantity[],
-    isExactB: false,
-  });
+  const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
+    useState({
+      amount: "0",
+      nftsA: [] as TroveTokenWithQuantity[],
+      nftsB: [] as TroveTokenWithQuantity[],
+      isExactB: false,
+    });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
 
+  const amount = parseUnits(
+    rawAmount as NumberString,
+    isExactB ? pool.quoteToken.decimals : pool.baseToken.decimals
+  );
   const amountA = isExactB
     ? quote(
         amount,
@@ -133,7 +138,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
   useEffect(() => {
     if (isAddLiquiditySuccess) {
       setTransaction({
-        amount: BigInt(0),
+        amount: "0",
         nftsA: [],
         nftsB: [],
         isExactB: false,
@@ -160,10 +165,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           }
           onSubmit={(tokens) =>
             setTransaction({
-              amount: parseUnits(
-                `${tokens.length}`,
-                selectingToken?.decimals ?? 18
-              ),
+              amount: tokens.length.toString(),
               nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
               nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
               isExactB: false,
@@ -184,15 +186,12 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             amount={
               isExactB
                 ? formatTokenAmount(amountA, pool.baseToken.decimals)
-                : formatUnits(amountA, pool.baseToken.decimals)
+                : rawAmount
             }
             disabled={pool.quoteToken.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
-                amount: parseUnits(
-                  amount as NumberString,
-                  pool.baseToken.decimals
-                ),
+                amount,
                 nftsA: [],
                 nftsB: [],
                 isExactB: false,
@@ -213,16 +212,13 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             balance={quoteTokenBalance?.value}
             amount={
               isExactB
-                ? formatUnits(amountB, pool.quoteToken.decimals)
+                ? rawAmount
                 : formatTokenAmount(amountB, pool.quoteToken.decimals)
             }
             disabled={pool.baseToken.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
-                amount: parseUnits(
-                  amount as NumberString,
-                  pool.quoteToken.decimals
-                ),
+                amount,
                 nftsA: [],
                 nftsB: [],
                 isExactB: true,

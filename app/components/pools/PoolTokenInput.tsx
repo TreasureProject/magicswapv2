@@ -17,6 +17,7 @@ export const PoolTokenInput = ({
   disabled?: boolean;
   onUpdateAmount: (amount: string) => void;
 }) => {
+  const parsedAmount = Number(amount);
   return (
     <div className="overflow-hidden rounded-lg border border-night-900">
       <div className="flex items-center justify-between gap-3 p-4">
@@ -37,9 +38,10 @@ export const PoolTokenInput = ({
           />
           <span className="block text-sm text-night-400">
             {formatUSD(
-              amount === "0"
-                ? 1
-                : Number(amount.replace(/,/g, "")) * token.priceUSD
+              token.priceUSD *
+                (Number.isNaN(parsedAmount) || parsedAmount === 0
+                  ? 1
+                  : Number(amount.replace(/,/g, "")))
             )}
           </span>
         </div>
