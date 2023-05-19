@@ -77,14 +77,8 @@ export const createPoolFromPair = (
     transactions: pair.transactions.map(
       ({ items0, items1, ...transaction }) => ({
         ...transaction,
-        baseItems:
-          (baseToken.id === poolToken0.id ? items0 : items1)?.map((item) =>
-            itemToTroveTokenItem(item, tokens)
-          ) ?? [],
-        quoteItems:
-          (quoteToken.id === poolToken0.id ? items0 : items1)?.map((item) =>
-            itemToTroveTokenItem(item, tokens)
-          ) ?? [],
+        items0: items0?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
+        items1: items1?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
       })
     ),
     volume24h,
@@ -98,3 +92,6 @@ export const createPoolFromPair = (
 export type Pool = ReturnType<typeof createPoolFromPair>;
 
 export type PoolTransactionType = Pool["transactions"][number]["type"];
+
+export type PoolTransactionItem =
+  Pool["transactions"][number]["items0"][number];

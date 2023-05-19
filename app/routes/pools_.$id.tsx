@@ -33,7 +33,11 @@ import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
-import type { Pool, PoolTransactionType } from "~/lib/pools.server";
+import type {
+  Pool,
+  PoolTransactionItem,
+  PoolTransactionType,
+} from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { AddressString, Optional } from "~/types";
@@ -395,32 +399,42 @@ const PoolActivityTable = ({
           <tbody className="transition-all">
             <>
               {transactions.map((tx) => {
-                let baseToken: PoolToken;
-                let baseAmount: string;
-                let quoteToken: PoolToken;
-                let quoteAmount: string;
+                let tokenA: PoolToken;
+                let amountA: string;
+                let itemsA: PoolTransactionItem[];
+                let tokenB: PoolToken;
+                let amountB: string;
+                let itemsB: PoolTransactionItem[];
                 const isSwap = tx.type === "Swap";
                 if (isSwap) {
                   if (tx.isAmount1Out) {
-                    baseToken = pool.token0;
-                    baseAmount = tx.amount0;
-                    quoteToken = pool.token1;
-                    quoteAmount = tx.amount1;
+                    tokenA = pool.token0;
+                    amountA = tx.amount0;
+                    itemsA = tx.items0;
+                    tokenB = pool.token1;
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
                   } else {
-                    baseToken = pool.token1;
-                    baseAmount = tx.amount1;
-                    quoteToken = pool.token0;
-                    quoteAmount = tx.amount0;
+                    tokenA = pool.token1;
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    tokenB = pool.token0;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
                   }
                 } else {
-                  baseToken = pool.baseToken;
-                  quoteToken = pool.quoteToken;
-                  if (baseToken.id === pool.token0.id) {
-                    baseAmount = tx.amount0;
-                    quoteAmount = tx.amount1;
+                  tokenA = pool.baseToken;
+                  tokenB = pool.quoteToken;
+                  if (tokenA.id === pool.token0.id) {
+                    amountA = tx.amount0;
+                    itemsA = tx.items0;
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
                   } else {
-                    baseAmount = tx.amount1;
-                    quoteAmount = tx.amount0;
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
                   }
                 }
 
@@ -431,14 +445,14 @@ const PoolActivityTable = ({
                         <div className="flex items-center gap-3 text-sm text-night-400">
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
-                              token={baseToken}
-                              items={tx.baseItems}
+                              token={tokenA}
+                              items={itemsA}
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatAmount(baseAmount)}
+                                {formatAmount(amountA)}
                               </span>{" "}
-                              {baseToken.symbol}
+                              {tokenA.symbol}
                             </span>
                           </div>
                           {isSwap ? (
@@ -448,14 +462,14 @@ const PoolActivityTable = ({
                           )}
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
-                              token={quoteToken}
-                              items={tx.quoteItems}
+                              token={tokenB}
+                              items={itemsB}
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatAmount(quoteAmount)}
+                                {formatAmount(amountB)}
                               </span>{" "}
-                              {quoteToken.symbol}
+                              {tokenB.symbol}
                             </span>
                           </div>
                         </div>
