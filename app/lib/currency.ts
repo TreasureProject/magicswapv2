@@ -7,7 +7,7 @@ export const formatUSD = (value: number | string) =>
     maximumFractionDigits: 2,
   })}`;
 
-export const formatAmount = (value: string) => {
+export const formatAmount = (value: string | number) => {
   const decimal = new Decimal(value);
   let decimalPlaces: number;
   if (decimal.lt(1e-3)) {

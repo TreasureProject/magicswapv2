@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { parseEther } from "viem";
 
 import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { Button } from "../ui/Button";
+import { Button, TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { PoolInput } from "./PoolInput";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
@@ -245,7 +245,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             Approve LP Token
           </Button>
         )}
-        <Button
+        <TransactionButton
           className="w-full"
           disabled={
             !address ||
@@ -256,7 +256,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
           onClick={() => removeLiquidity?.()}
         >
           Remove Liquidity
-        </Button>
+        </TransactionButton>
       </div>
     </div>
   );
