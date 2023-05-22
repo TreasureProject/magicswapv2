@@ -21,7 +21,7 @@ export const PoolInput = ({
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center">
           <PoolImage pool={pool} />
-          <p className="text-xl font-medium">{pool.name}</p>
+          <p className="text-sm font-medium sm:text-xl">{pool.name}</p>
         </div>
         <div className="space-y-1 text-right">
           <CurrencyInput value={amount} onChange={onUpdateAmount} />

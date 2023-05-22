@@ -246,14 +246,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   return (
     <TransparentDialogContent
       className={cn(
-        "h-full [grid-template-rows:auto_auto_1fr_1fr_1fr] sm:max-w-8xl",
+        "h-full [grid-template-rows:auto_auto_1fr_1fr_25%] sm:max-w-8xl",
         !props.viewOnly
           ? "grid-areas-nft-modal-mobile lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]"
           : "grid-areas-nft-modal-viewonly"
       )}
     >
       <div className="flex items-center gap-2 grid-in-header">
-        <p className="text-md text-night-400">Select</p>
+        <p className="text-md text-night-400">
+          {props.viewOnly ? "View" : "Select"}
+        </p>
         <PoolTokenImage className="h-6 w-6" token={token} />
         <p className="text-md font-medium capitalize text-night-100">
           {token.name}{" "}

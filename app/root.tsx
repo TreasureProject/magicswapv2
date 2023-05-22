@@ -164,7 +164,7 @@ export default function App() {
               <div
                 className={cn(
                   "relative box-border w-[356px] rounded-lg border border-night-1000 bg-night-1100 shadow-lg",
-                  t.visible ? "animate-enter" : "animate-leave"
+                  t.visible ? "animate-toast-enter" : "animate-toast-leave"
                 )}
               >
                 <div className="relative p-4">

@@ -24,9 +24,11 @@ export const PoolTokenInput = ({
         <div className="flex items-center gap-4">
           <PoolTokenImage className="h-10 w-10" token={token} />
           <div className="space-y-1">
-            <p className="text-xl font-medium">{token.name}</p>
+            <p className="text-sm font-medium sm:text-xl">{token.name}</p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
-              <p className="text-sm text-night-400">{token.symbol}</p>
+              <p className="text-xs text-night-400 sm:text-sm">
+                {token.symbol}
+              </p>
             )}
           </div>
         </div>

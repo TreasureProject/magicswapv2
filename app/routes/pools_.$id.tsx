@@ -28,6 +28,14 @@ import { Button } from "~/components/ui/Button";
 import { DialogTrigger } from "~/components/ui/Dialog";
 import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "~/components/ui/Sheet";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
@@ -68,6 +76,29 @@ export default function PoolDetailsPage() {
   const lpBalance = rawLpBalance?.value ?? BigInt(0);
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+
+  const Manage = (
+    <>
+      <MultiSelect
+        tabs={[
+          {
+            id: "deposit",
+            name: "Deposit",
+          },
+          {
+            id: "withdraw",
+            name: "Withdraw",
+          },
+        ]}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+      {activeTab === "withdraw" && (
+        <PoolWithdrawTab pool={pool} balance={lpBalance} />
+      )}
+      {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
+    </>
+  );
 
   return (
     <main className="container">
@@ -249,25 +280,8 @@ export default function PoolDetailsPage() {
             </div>
           </div>
           {/*Here the code splits between the left and right side (atleast on desktop) */}
-          <div className="sticky top-4 space-y-6 p-4 lg:col-span-3">
-            <MultiSelect
-              tabs={[
-                {
-                  id: "deposit",
-                  name: "Deposit",
-                },
-                {
-                  id: "withdraw",
-                  name: "Withdraw",
-                },
-              ]}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
-            {activeTab === "withdraw" && (
-              <PoolWithdrawTab pool={pool} balance={lpBalance} />
-            )}
-            {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
+          <div className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block">
+            {Manage}
           </div>
         </div>
         {/*Here the pool & inventory start */}
@@ -326,6 +340,18 @@ export default function PoolDetailsPage() {
           </div>
         ) : null}
       </div>
+      <Sheet>
+        <SheetTrigger asChild>
+          <div className="fixed bottom-12 left-0 right-0 flex justify-center lg:hidden">
+            <Button size="lg" className="rounded-full">
+              My Positions
+            </Button>
+          </div>
+        </SheetTrigger>
+        <SheetContent position="right" size="xl">
+          <div className="mt-4 space-y-6">{Manage}</div>
+        </SheetContent>
+      </Sheet>
     </main>
   );
 }
