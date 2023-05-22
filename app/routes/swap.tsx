@@ -6,12 +6,7 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import {
-  ArrowDownIcon,
-  ChevronDownIcon,
-  LayersIcon,
-  SettingsIcon,
-} from "lucide-react";
+import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import { parseUnits } from "viem";
@@ -21,7 +16,7 @@ import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { SwapIcon, TokenIcon } from "~/components/Icons";
-import { NumberInput } from "~/components/NumberInput";
+import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
@@ -35,14 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "~/components/ui/Dropdown";
 import { useAccount } from "~/contexts/account";
-import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
@@ -103,7 +91,6 @@ export default function SwapPage() {
   } = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState({
       amount: "0",
@@ -228,57 +215,7 @@ export default function SwapPage() {
           <SwapIcon className="h-6 w-6" />
           <h1 className="text-night-100">Swap</h1>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button>
-              <SettingsIcon className="h-6 w-6" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-56 bg-night-900 p-3 text-sm text-honey-100"
-            align="end"
-          >
-            <h3 className="text-base font-medium">Transaction Settings</h3>
-            <DropdownMenuGroup className="mt-2 space-y-1">
-              <label htmlFor="settingsSlippage">Slippage tolerance</label>
-              <NumberInput
-                id="settingsSlippage"
-                className="px-2 py-1.5"
-                value={slippage}
-                onChange={updateSlippage}
-                minValue={0.001}
-                maxValue={0.49}
-                placeholder="0.5%"
-                formatOptions={{
-                  style: "percent",
-                  minimumFractionDigits: 1,
-                  maximumFractionDigits: 2,
-                }}
-                errorMessage="Slippage must be between 0.1% and 49%"
-                errorCondition={(value) => value > 49}
-                autoFocus
-              />
-            </DropdownMenuGroup>
-            <DropdownMenuGroup className="mt-4 space-y-1">
-              <label htmlFor="settingsDeadline">Transaction Deadline</label>
-              <NumberInput
-                id="settingsDeadline"
-                className="px-2 py-1.5"
-                value={deadline}
-                onChange={updateDeadline}
-                minValue={1}
-                maxValue={60}
-                placeholder="20"
-                errorMessage="Deadline must be between 1 and 60"
-                errorCondition={(value) => value > 60}
-              >
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-sm text-night-400">Minutes</span>
-                </div>
-              </NumberInput>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SettingsDropdownMenu />
       </div>
       <div>
         <SwapTokenInput

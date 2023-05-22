@@ -19,7 +19,6 @@ export const PoolNftTokenInput = ({
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
 }) => {
-  console.log(balance);
   return (
     <div className="overflow-hidden rounded-lg border border-night-1000">
       <div className="flex items-center justify-between gap-3 p-4">

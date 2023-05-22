@@ -16,6 +16,7 @@ import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
+import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
@@ -28,14 +29,7 @@ import { Button } from "~/components/ui/Button";
 import { DialogTrigger } from "~/components/ui/Dialog";
 import { Dialog } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "~/components/ui/Sheet";
+import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
@@ -66,7 +60,6 @@ export async function loader({ params }: LoaderArgs) {
 export default function PoolDetailsPage() {
   const { pool } = useLoaderData<typeof loader>();
   const { address } = useAccount();
-  const [activeTab, setActiveTab] = useState<string>("deposit");
 
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
@@ -80,29 +73,6 @@ export default function PoolDetailsPage() {
   const lpBalance = rawLpBalance?.value ?? BigInt(0);
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
-
-  const Manage = (
-    <>
-      <MultiSelect
-        tabs={[
-          {
-            id: "deposit",
-            name: "Deposit",
-          },
-          {
-            id: "withdraw",
-            name: "Withdraw",
-          },
-        ]}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      {activeTab === "withdraw" && (
-        <PoolWithdrawTab pool={pool} balance={lpBalance} />
-      )}
-      {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
-    </>
-  );
 
   return (
     <main className="container">
@@ -287,10 +257,11 @@ export default function PoolDetailsPage() {
               </div>
             </div>
           </div>
-          {/*Here the code splits between the left and right side (atleast on desktop) */}
-          <div className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block">
-            {Manage}
-          </div>
+          <PoolManagementView
+            className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
+            pool={pool}
+            lpBalance={lpBalance}
+          />
         </div>
         {/*Here the pool & inventory start */}
         <div className="mt-12 flex w-full items-center justify-between">
@@ -357,12 +328,53 @@ export default function PoolDetailsPage() {
           </div>
         </SheetTrigger>
         <SheetContent position="right" size="xl">
-          <div className="mt-4 space-y-6">{Manage}</div>
+          <PoolManagementView
+            className="mt-4 space-y-6"
+            pool={pool}
+            lpBalance={lpBalance}
+          />
         </SheetContent>
       </Sheet>
     </main>
   );
 }
+
+const PoolManagementView = ({
+  pool,
+  lpBalance,
+  className,
+}: {
+  pool: Pool;
+  lpBalance: bigint;
+  className?: string;
+}) => {
+  const [activeTab, setActiveTab] = useState<string>("deposit");
+  return (
+    <div className={className}>
+      <div className="flex items-center gap-3">
+        <MultiSelect
+          tabs={[
+            {
+              id: "deposit",
+              name: "Deposit",
+            },
+            {
+              id: "withdraw",
+              name: "Withdraw",
+            },
+          ]}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+        <SettingsDropdownMenu />
+      </div>
+      {activeTab === "withdraw" && (
+        <PoolWithdrawTab pool={pool} balance={lpBalance} />
+      )}
+      {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
+    </div>
+  );
+};
 
 const PoolActivityTable = ({
   pool,
