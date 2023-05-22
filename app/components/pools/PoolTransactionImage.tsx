@@ -1,10 +1,10 @@
 import { PoolTokenImage } from "./PoolTokenImage";
-import type { Pool } from "~/lib/pools.server";
+import type { PoolTransactionItem } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 
 type Props = {
   token: PoolToken;
-  items: Pool["transactions"][number]["baseItems"];
+  items: PoolTransactionItem[];
 };
 
 export const PoolTransactionImage = ({ token, items }: Props) => {

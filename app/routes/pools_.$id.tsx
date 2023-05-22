@@ -41,7 +41,11 @@ import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
-import type { Pool, PoolTransactionType } from "~/lib/pools.server";
+import type {
+  Pool,
+  PoolTransactionItem,
+  PoolTransactionType,
+} from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { AddressString, Optional } from "~/types";
@@ -122,83 +126,89 @@ export default function PoolDetailsPage() {
               </div>
             </div>
             <div className="h-[1px] bg-night-900" />
-            <div className="space-y-4 rounded-md bg-night-1100 p-4">
-              <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                <h3 className="font-medium">Your Positions</h3>
-                <span className="text-night-200">
-                  <abbr
-                    title="Total Value Locked"
-                    className="text-night-600 no-underline"
-                  >
-                    TVL
-                  </abbr>
-                  :{" "}
-                  <VisibleOnClient>
-                    {formatUSD(lpShare * pool.reserveUSD)}
-                  </VisibleOnClient>
-                </span>
-              </div>
-              <div className="flex flex-col space-y-2 px-2 py-4">
-                <div className="flex items-center -space-x-1">
-                  <PoolImage pool={pool} className="h-10 w-10" />
-                  <VisibleOnClient>
-                    <p className="text-3xl text-night-100">
-                      {formatTokenAmount(lpBalance)}
-                    </p>
-                  </VisibleOnClient>
+            {address ? (
+              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
+                  <h3 className="font-medium">Your Positions</h3>
+                  <span className="text-night-200">
+                    <abbr
+                      title="Total Value Locked"
+                      className="text-night-600 no-underline"
+                    >
+                      TVL
+                    </abbr>
+                    :{" "}
+                    <VisibleOnClient>
+                      {formatUSD(lpShare * pool.reserveUSD)}
+                    </VisibleOnClient>
+                  </span>
                 </div>
-                <p className="text-sm text-night-400">
-                  Current LP Token Balance
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {[pool.baseToken, pool.quoteToken].map((token) => (
-                  <div key={token.id} className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <p className="font-medium text-night-100">{token.name}</p>
-                      {token.name.toUpperCase() !==
-                      token.symbol.toUpperCase() ? (
-                        <>
-                          <div className="h-3 w-[1px] bg-night-400" />
-                          <p className="font-regular uppercase text-night-300">
-                            {token.symbol}
-                          </p>
-                        </>
-                      ) : null}
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <PoolTokenImage className="h-6 w-6" token={token} />
+                <div className="flex flex-col space-y-2 px-2 py-4">
+                  <div className="flex items-center -space-x-1">
+                    <PoolImage pool={pool} className="h-10 w-10" />
+                    <VisibleOnClient>
+                      <p className="text-3xl text-night-100">
+                        {formatTokenAmount(lpBalance)}
+                      </p>
+                    </VisibleOnClient>
+                  </div>
+                  <p className="text-sm text-night-400">
+                    Current LP Token Balance
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {[pool.baseToken, pool.quoteToken].map((token) => (
+                    <div key={token.id} className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <p className="font-medium text-night-100">
+                          {token.name}
+                        </p>
+                        {token.name.toUpperCase() !==
+                        token.symbol.toUpperCase() ? (
+                          <>
+                            <div className="h-3 w-[1px] bg-night-400" />
+                            <p className="font-regular uppercase text-night-300">
+                              {token.symbol}
+                            </p>
+                          </>
+                        ) : null}
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <PoolTokenImage className="h-6 w-6" token={token} />
+                          <VisibleOnClient>
+                            <p className="text-night-100">
+                              {formatUSD(lpShare * token.reserve)}
+                            </p>
+                          </VisibleOnClient>
+                        </div>
                         <VisibleOnClient>
-                          <p className="text-night-100">
-                            {formatUSD(lpShare * token.reserve)}
+                          <p className="text-xs text-night-500">
+                            {formatUSD(
+                              lpShare * token.reserve * token.priceUSD
+                            )}
                           </p>
                         </VisibleOnClient>
                       </div>
-                      <VisibleOnClient>
-                        <p className="text-xs text-night-500">
-                          {formatUSD(lpShare * token.reserve * token.priceUSD)}
-                        </p>
-                      </VisibleOnClient>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <Table
+                  items={[
+                    // { label: "Initial LP Tokens", value: 0.0 },
+                    // { label: "Rewards Earned", value: 0.0 },
+                    {
+                      label: "Current Share of Pool",
+                      value: (
+                        <VisibleOnClient>
+                          {formatPercent(lpShare)}
+                        </VisibleOnClient>
+                      ),
+                    },
+                  ]}
+                />
               </div>
-              <Table
-                items={[
-                  // { label: "Initial LP Tokens", value: 0.0 },
-                  // { label: "Rewards Earned", value: 0.0 },
-                  {
-                    label: "Current Share of Pool",
-                    value: (
-                      <VisibleOnClient>
-                        {formatPercent(lpShare)}
-                      </VisibleOnClient>
-                    ),
-                  },
-                ]}
-              />
-            </div>
+            ) : null}
             <div className="rounded-md bg-night-1100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>
@@ -220,10 +230,8 @@ export default function PoolDetailsPage() {
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
-                    {formatTokenAmount(
-                      BigInt(pool.quoteToken.reserveBI) /
-                        BigInt(pool.baseToken.reserveBI),
-                      18
+                    {formatAmount(
+                      pool.quoteToken.reserve / pool.baseToken.reserve
                     )}
                   </span>{" "}
                   {pool.quoteToken.symbol}
@@ -417,32 +425,42 @@ const PoolActivityTable = ({
           <tbody className="transition-all">
             <>
               {transactions.map((tx) => {
-                let baseToken: PoolToken;
-                let baseAmount: string;
-                let quoteToken: PoolToken;
-                let quoteAmount: string;
+                let tokenA: PoolToken;
+                let amountA: string;
+                let itemsA: PoolTransactionItem[];
+                let tokenB: PoolToken;
+                let amountB: string;
+                let itemsB: PoolTransactionItem[];
                 const isSwap = tx.type === "Swap";
                 if (isSwap) {
                   if (tx.isAmount1Out) {
-                    baseToken = pool.token0;
-                    baseAmount = tx.amount0;
-                    quoteToken = pool.token1;
-                    quoteAmount = tx.amount1;
+                    tokenA = pool.token0;
+                    amountA = tx.amount0;
+                    itemsA = tx.items0;
+                    tokenB = pool.token1;
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
                   } else {
-                    baseToken = pool.token1;
-                    baseAmount = tx.amount1;
-                    quoteToken = pool.token0;
-                    quoteAmount = tx.amount0;
+                    tokenA = pool.token1;
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    tokenB = pool.token0;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
                   }
                 } else {
-                  baseToken = pool.baseToken;
-                  quoteToken = pool.quoteToken;
-                  if (baseToken.id === pool.token0.id) {
-                    baseAmount = tx.amount0;
-                    quoteAmount = tx.amount1;
+                  tokenA = pool.baseToken;
+                  tokenB = pool.quoteToken;
+                  if (tokenA.id === pool.token0.id) {
+                    amountA = tx.amount0;
+                    itemsA = tx.items0;
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
                   } else {
-                    baseAmount = tx.amount1;
-                    quoteAmount = tx.amount0;
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
                   }
                 }
 
@@ -453,14 +471,14 @@ const PoolActivityTable = ({
                         <div className="flex items-center gap-3 text-sm text-night-400">
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
-                              token={baseToken}
-                              items={tx.baseItems}
+                              token={tokenA}
+                              items={itemsA}
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatAmount(baseAmount)}
+                                {formatAmount(amountA)}
                               </span>{" "}
-                              {baseToken.symbol}
+                              {tokenA.symbol}
                             </span>
                           </div>
                           {isSwap ? (
@@ -470,14 +488,14 @@ const PoolActivityTable = ({
                           )}
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
-                              token={quoteToken}
-                              items={tx.quoteItems}
+                              token={tokenB}
+                              items={itemsB}
                             />
                             <span>
                               <span className="text-honey-25">
-                                {formatAmount(quoteAmount)}
+                                {formatAmount(amountB)}
                               </span>{" "}
-                              {quoteToken.symbol}
+                              {tokenB.symbol}
                             </span>
                           </div>
                         </div>
@@ -615,7 +633,8 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => {
               <div className="h-[1px] bg-night-800" />
               <div className="flex items-center justify-between px-6 py-3">
                 <span className="text-sm text-night-400">
-                  Showing {token.reserveItems.length} of {token.reserve}
+                  Showing {token.reserveItems.length} of{" "}
+                  {formatNumber(token.reserve)}
                 </span>
                 <DialogTrigger asChild>
                   <Button variant="ghost">View All</Button>

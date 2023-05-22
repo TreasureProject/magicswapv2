@@ -1,6 +1,6 @@
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
-import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 

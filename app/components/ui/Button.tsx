@@ -76,20 +76,19 @@ export const TransactionButton = React.forwardRef<
   return (
     <ConnectButton.Custom>
       {({ account, chain, openChainModal, openConnectModal, mounted }) => {
+        const isConnected = !!account;
         const unsupported = chain?.unsupported ?? true;
-
-        const isConnectButton = !account || unsupported;
-        const isDisabled = disabled && !isConnectButton;
+        const isDisabled = disabled && isConnected && !unsupported;
 
         const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-          if (isConnectButton) {
+          if (isConnected) {
             if (unsupported) {
               openChainModal?.();
             } else {
-              openConnectModal?.();
+              onClick?.(e);
             }
           } else {
-            onClick?.(e);
+            openConnectModal?.();
           }
         };
 
@@ -107,11 +106,11 @@ export const TransactionButton = React.forwardRef<
                   onClick={handleClick}
                   {...props}
                 >
-                  {isConnectButton
+                  {isConnected
                     ? unsupported
                       ? "Wrong Network"
-                      : "Connect Wallet"
-                    : children}
+                      : children
+                    : "Connect Wallet"}
                 </Button>
               </motion.div>
             )}

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { Button } from "../ui/Button";
+import { Button, TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { PoolImage } from "./PoolImage";
@@ -272,7 +272,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             Approve {pool.quoteToken.name}
           </Button>
         )}
-        <Button
+        <TransactionButton
           className="w-full"
           disabled={
             !address ||
@@ -284,7 +284,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
           onClick={() => addLiquidity?.()}
         >
           Add Liquidity
-        </Button>
+        </TransactionButton>
       </div>
     </div>
   );

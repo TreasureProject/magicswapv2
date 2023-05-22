@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
