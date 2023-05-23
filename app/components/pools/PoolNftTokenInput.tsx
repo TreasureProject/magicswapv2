@@ -27,19 +27,13 @@ export const PoolNftTokenInput = ({
   const nfts = inventory?.[token.id] ?? 0;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-night-1000">
+    <div className="relative rounded-lg border border-night-1000">
+      <p className="absolute -top-3.5 left-1.5 flex items-center bg-background px-2.5 py-1 text-sm sm:-top-5 sm:text-lg">
+        {token.name}
+      </p>
       <div className="flex items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-4">
-          <PoolTokenImage className="h-10 w-10" token={token} />
-          <div className="space-y-1">
-            <p className="text-sm font-medium sm:text-xl">{token.name}</p>
-            {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
-              <p className="text-xs text-night-400 sm:text-sm">
-                {token.symbol}
-              </p>
-            )}
-          </div>
-        </div>
+        <PoolTokenImage className="h-10 w-10" token={token} />
+
         {selectedNfts.length > 0 ? (
           <div className="flex items-center space-x-2">
             {selectedNfts.length > 5 ? (

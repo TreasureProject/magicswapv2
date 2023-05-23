@@ -239,12 +239,12 @@ export default function PoolDetailsPage() {
                 </p>
                 {[pool.baseToken, null, pool.quoteToken].map((token) => {
                   if (!token) {
-                    return <div key="empty" />;
+                    return <div className="hidden sm:block" key="empty" />;
                   }
                   return (
                     <div
                       key={token.id}
-                      className="flex flex-1 items-center justify-between gap-3 rounded-md bg-night-1200 p-3"
+                      className="col-span-3 flex flex-1 items-center justify-between gap-3 rounded-md bg-night-1200 p-3 sm:col-span-1"
                     >
                       <div className="flex items-center gap-2 font-medium">
                         <PoolTokenImage className="h-6 w-6" token={token} />
@@ -511,7 +511,7 @@ const PoolActivityTable = ({
                   <Fragment key={tx.id}>
                     <tr className="border-b border-b-night-900 transition-colors">
                       <td className="px-4 py-4 text-left uppercase sm:px-5">
-                        <div className="flex items-center gap-3 text-sm text-night-400">
+                        <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
                               token={tokenA}
@@ -549,7 +549,7 @@ const PoolActivityTable = ({
                       <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                         {formatUSD(tx.amountUSD)}
                       </td>
-                      <td className="px-4 py-4 text-center text-sm text-night-400 sm:px-5">
+                      <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
                         {truncateEthAddress(tx.user.id)}
                       </td>
                       <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
@@ -657,11 +657,11 @@ const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => {
                   <span className="h-3 w-[1px] bg-night-400" />
                   <span className="uppercase text-night-400">{symbol}</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
                   {reserveItems.map(({ tokenId, name, image, amount }) => (
                     <div
                       key={tokenId}
-                      className="relative h-24 w-24 overflow-hidden rounded"
+                      className="relative overflow-hidden rounded"
                     >
                       <img src={image} alt={name} title={name} />
                       {token.type === "ERC1155" && (
