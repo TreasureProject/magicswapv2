@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node";
+import { defer } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { AnimatePresence } from "framer-motion";
@@ -61,28 +61,30 @@ export async function loader({ params, request }: LoaderArgs) {
   }
 
   if (!address || (!pool.baseToken.isNFT && !pool.quoteToken.isNFT)) {
-    return json({
+    return defer({
       pool,
       inventory: null,
     });
   }
 
-  return json({
+  const promises = [
+    pool.baseToken.isNFT
+      ? fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
+      : null,
+    pool.quoteToken.isNFT
+      ? fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
+      : null,
+  ];
+
+  return defer({
     pool,
-    /* TODO: convert this to defer. for some reason was getting this error:
-    - This Suspense boundary received an update before it finished hydrating. This caused the boundary to switch to client rendering. The usual way to fix this is to wrap the original update in startTransition.
-      might have to do with this: https://github.com/remix-run/remix/issues/5153
-    */
-
-    inventory: {
-      [pool.baseToken.id]: pool.baseToken.isNFT
-        ? await fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
-        : null,
-
-      [pool.quoteToken.id]: pool.quoteToken.isNFT
-        ? await fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
-        : null,
-    },
+    // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
+    inventory: Promise.all(promises).then((res) => {
+      return {
+        [pool.baseToken.id]: res[0],
+        [pool.quoteToken.id]: res[1],
+      };
+    }),
   });
 }
 

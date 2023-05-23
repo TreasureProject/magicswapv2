@@ -1,6 +1,8 @@
-import { useRouteLoaderData } from "@remix-run/react";
+import { Await, useRouteLoaderData } from "@remix-run/react";
 import type { SerializeFrom } from "@remix-run/server-runtime";
+import { Suspense } from "react";
 
+import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
@@ -23,8 +25,6 @@ export const PoolNftTokenInput = ({
   const { inventory } = useRouteLoaderData(
     "routes/pools_.$id"
   ) as SerializeFrom<typeof loader>;
-
-  const nfts = inventory?.[token.id] ?? 0;
 
   return (
     <div className="relative rounded-lg border border-night-1000">
@@ -90,7 +90,15 @@ export const PoolNftTokenInput = ({
       <div className="flex h-12 items-center justify-between bg-night-1100 p-2 pr-4">
         <p className="pl-2 text-sm text-night-400">
           Inventory:
-          <span className="pl-1 font-medium text-night-100">{nfts}</span>
+          <span className="pl-1 font-medium text-night-100">
+            <Suspense
+              fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
+            >
+              <Await resolve={inventory}>
+                {(inventory) => inventory?.[token.id] ?? 0}
+              </Await>
+            </Suspense>
+          </span>
         </p>
         {selectedNfts.length > 0 ? (
           <DialogTrigger asChild>
