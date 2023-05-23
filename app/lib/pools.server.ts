@@ -1,21 +1,12 @@
 import { parseUnits } from "viem";
 
 import { createPoolToken, itemToTroveTokenItem } from "./tokens.server";
-import type { PoolToken } from "./tokens.server";
 import type {
   NumberString,
   Pair,
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
-
-export const createPoolName = (token0: PoolToken, token1: PoolToken) => {
-  if (token1.isNFT && !token0.isNFT) {
-    return `${token1.symbol} / ${token0.symbol}`;
-  }
-
-  return `${token0.symbol} / ${token1.symbol}`;
-};
 
 const getPoolAPY = (volume1w: number, reserveUSD: number) => {
   const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
@@ -56,10 +47,10 @@ export const createPoolFromPair = (
       token1.decimals
     ).toString(),
   };
-  const baseToken =
-    !poolToken0.isNFT && poolToken1.isNFT ? poolToken1 : poolToken0;
-  const quoteToken =
-    !poolToken0.isNFT && poolToken1.isNFT ? poolToken0 : poolToken1;
+  const switchTokens =
+    (!poolToken0.isNFT && poolToken1.isNFT) || poolToken0.isMAGIC;
+  const baseToken = switchTokens ? poolToken1 : poolToken0;
+  const quoteToken = switchTokens ? poolToken0 : poolToken1;
   const reserveUSD = Number(pair.reserveUSD);
   const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
   const volume1w = pair.dayData.reduce(
@@ -68,7 +59,7 @@ export const createPoolFromPair = (
   );
   return {
     ...pair,
-    name: createPoolName(token0, token1),
+    name: `${baseToken.symbol} / ${quoteToken.symbol}`,
     token0: poolToken0,
     token1: poolToken1,
     baseToken,

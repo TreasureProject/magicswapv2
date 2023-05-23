@@ -95,6 +95,7 @@ export const createPoolToken = (
       tokenCollections[0]?.image ??
       (token.isNFT ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
     decimals: Number(token.decimals),
+    isMAGIC: symbol.toLowerCase() === "magic",
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
     collectionId: tokenCollections[0]?.id ?? "",

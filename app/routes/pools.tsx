@@ -1,7 +1,6 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
@@ -35,22 +34,10 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 const PoolsTable = ({ pools }: { pools: Pool[] }) => {
-  const showPerPage = 12;
-  const [activePage, setActivePage] = useState<number>(0);
-
-  const handlePagination = (direction: "next" | "prev") => {
-    if (direction === "next" && activePage < pools.length / showPerPage - 1) {
-      setActivePage(activePage + 1);
-    }
-    if (direction === "prev" && activePage > 0) {
-      setActivePage(activePage - 1);
-    }
-  };
-
   return (
     <div>
       <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
-        <thead className="border-b border-b-night-900">
+        <thead>
           <tr>
             <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
               Name
@@ -77,7 +64,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           {pools.map((pool) => (
             <tr
               key={pool.id}
-              className="cursor-pointer border-b border-b-night-900 transition-colors hover:bg-night-1000"
+              className="cursor-pointer border-t border-night-900 transition-colors hover:bg-night-1000"
             >
               <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
                 <Link
@@ -105,7 +92,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           ))}
         </tbody>
       </table>
-      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
+      {/* <nav className="flex w-full items-center justify-between bg-night-1100 px-3 py-2">
         <Button variant="ghost" onClick={() => handlePagination("prev")}>
           <ChevronLeftIcon className="w-6" />
           <p className="text-sm font-medium">Previous</p>
@@ -130,7 +117,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           <p className="text-sm font-medium">Next</p>
           <ChevronRightIcon className="w-6" />
         </Button>
-      </nav>
+      </nav> */}
     </div>
   );
 };
@@ -149,12 +136,9 @@ export default function PoolsListPage() {
             liquidity.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2.5">
-          <Button size="md">New Position</Button>
-          <Button variant="dark" size="md">
-            Learn More
-          </Button>
-        </div>
+        <Button variant="dark" size="md">
+          Learn More
+        </Button>
       </div>
       <Tabs
         className="mt-6 grid w-full grid-cols-2 border-b border-b-night-900 sm:mt-8 sm:flex"
@@ -185,7 +169,7 @@ export default function PoolsListPage() {
       {tab === "user" && (
         <>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
-            <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
+            {/* <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
               <span className="text-xl">
                 {user?.liquidityPositionCount ?? 0}
               </span>
@@ -194,18 +178,13 @@ export default function PoolsListPage() {
             <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
               <span className="text-xl">?</span>
               <span className="text-sm text-night-300">Rewards Earned</span>
-            </div>
+            </div> */}
             {!user?.liquidityPositionCount && (
-              <div className="col-span-2 flex items-center justify-center rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
-                <span>
-                  You currently do not have any open positions.{" "}
-                  <Link
-                    to=""
-                    className="text-ruby-900 transition-colors hover:text-ruby-800"
-                  >
-                    Create a new position
-                  </Link>
-                </span>
+              <div className="col-span-2 flex flex-col items-center justify-center gap-1.5 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
+                <p>You currently do not have any open positions.</p>
+                <Button onClick={() => setTab("all")}>
+                  Create a new position
+                </Button>
               </div>
             )}
           </div>

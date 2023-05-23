@@ -65,7 +65,7 @@ export const getPairs = gql`
   ${TRANSACTION_ITEM_FRAGMENT}
   ${PAIR_FRAGMENT}
   query getPairs {
-    pairs {
+    pairs(orderBy: volumeUSD, orderDirection: desc) {
       ...PairFragment
     }
   }
