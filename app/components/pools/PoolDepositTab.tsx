@@ -1,3 +1,4 @@
+import type { SerializeFrom } from "@remix-run/server-runtime";
 import { useEffect, useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
@@ -19,6 +20,7 @@ import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
+import type { loader } from "~/routes/pools_.$id";
 import type {
   AddressString,
   NumberString,
@@ -175,7 +177,6 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
-            balance={BigInt(0)}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
           />
@@ -202,7 +203,6 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
         {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
-            balance={BigInt(0)}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
           />

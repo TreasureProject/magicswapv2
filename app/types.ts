@@ -33,6 +33,7 @@ export type TroveCollection = {
   displayName: string;
   thumbnailUri: string;
   urlSlug: string;
+  numTokensOwnedByUser: number;
   tokenDisplayName: {
     singular: string;
     plural: string;

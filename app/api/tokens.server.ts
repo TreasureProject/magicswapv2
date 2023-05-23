@@ -15,6 +15,7 @@ import { createPoolToken } from "~/lib/tokens.server";
 import type {
   TraitsResponse,
   TroveApiResponse,
+  TroveCollection,
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
@@ -228,4 +229,19 @@ export const fetchTroveTokens = async (
     collection[token.tokenId] = token;
     return next;
   }, {} as TroveTokenMapping);
+};
+
+export const fetchTotalInventoryForUser = async (
+  slug: string,
+  address: string
+) => {
+  const url = new URL(`${process.env.TROVE_API_URL}/collections-for-user`);
+  url.searchParams.set("userAddress", address);
+  url.searchParams.set("slugs", slug);
+
+  const res = await fetch(url.toString());
+
+  const result = (await res.json()) as TroveCollection[];
+
+  return result[0]?.numTokensOwnedByUser ?? 0;
 };

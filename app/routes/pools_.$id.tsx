@@ -1,6 +1,6 @@
+import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
-import { json } from "@remix-run/server-runtime";
 import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -11,14 +11,15 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { Fragment, useState } from "react";
+import { ClientOnly } from "remix-utils";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
+import { fetchTotalInventoryForUser } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
-import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
@@ -42,10 +43,15 @@ import type {
 } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import { getSession } from "~/sessions";
 import type { AddressString, Optional } from "~/types";
 
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params, request }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
+
+  const session = await getSession(request.headers.get("Cookie"));
+
+  const address = session.get("address");
 
   const pool = await fetchPool(params.id);
   if (!pool) {
@@ -54,7 +60,30 @@ export async function loader({ params }: LoaderArgs) {
     });
   }
 
-  return json({ pool });
+  if (!address || (!pool.baseToken.isNFT && !pool.quoteToken.isNFT)) {
+    return json({
+      pool,
+      inventory: null,
+    });
+  }
+
+  return json({
+    pool,
+    /* TODO: convert this to defer. for some reason was getting this error:
+    - This Suspense boundary received an update before it finished hydrating. This caused the boundary to switch to client rendering. The usual way to fix this is to wrap the original update in startTransition.
+      might have to do with this: https://github.com/remix-run/remix/issues/5153
+    */
+
+    inventory: {
+      [pool.baseToken.id]: pool.baseToken.isNFT
+        ? await fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
+        : null,
+
+      [pool.quoteToken.id]: pool.quoteToken.isNFT
+        ? await fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
+        : null,
+    },
+  });
 }
 
 export default function PoolDetailsPage() {
@@ -96,89 +125,91 @@ export default function PoolDetailsPage() {
               </div>
             </div>
             <div className="h-[1px] bg-night-900" />
-            {address ? (
-              <div className="space-y-4 rounded-md bg-night-1100 p-4">
-                <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                  <h3 className="font-medium">Your Positions</h3>
-                  <span className="text-night-200">
-                    <abbr
-                      title="Total Value Locked"
-                      className="text-night-600 no-underline"
-                    >
-                      TVL
-                    </abbr>
-                    :{" "}
-                    <VisibleOnClient>
-                      {formatUSD(lpShare * pool.reserveUSD)}
-                    </VisibleOnClient>
-                  </span>
+            <ClientOnly
+              fallback={
+                <div className="flex h-52 items-center justify-center">
+                  <LoaderIcon className="h-10 w-10" />
                 </div>
-                <div className="flex flex-col space-y-2 px-2 py-4">
-                  <div className="flex items-center -space-x-1">
-                    <PoolImage pool={pool} className="h-10 w-10" />
-                    <VisibleOnClient>
-                      <p className="text-3xl text-night-100">
-                        {formatTokenAmount(lpBalance)}
-                      </p>
-                    </VisibleOnClient>
-                  </div>
-                  <p className="text-sm text-night-400">
-                    Current LP Token Balance
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {[pool.baseToken, pool.quoteToken].map((token) => (
-                    <div key={token.id} className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <p className="font-medium text-night-100">
-                          {token.name}
-                        </p>
-                        {token.name.toUpperCase() !==
-                        token.symbol.toUpperCase() ? (
-                          <>
-                            <div className="h-3 w-[1px] bg-night-400" />
-                            <p className="font-regular uppercase text-night-300">
-                              {token.symbol}
-                            </p>
-                          </>
-                        ) : null}
+              }
+            >
+              {() => (
+                <>
+                  {address ? (
+                    <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                      <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
+                        <h3 className="font-medium">Your Positions</h3>
+                        <span className="text-night-200">
+                          <abbr
+                            title="Total Value Locked"
+                            className="text-night-600 no-underline"
+                          >
+                            TVL
+                          </abbr>
+                          : {formatUSD(lpShare * pool.reserveUSD)}
+                        </span>
                       </div>
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <PoolTokenImage className="h-6 w-6" token={token} />
-                          <VisibleOnClient>
-                            <p className="text-night-100">
-                              {formatUSD(lpShare * token.reserve)}
-                            </p>
-                          </VisibleOnClient>
-                        </div>
-                        <VisibleOnClient>
-                          <p className="text-xs text-night-500">
-                            {formatUSD(
-                              lpShare * token.reserve * token.priceUSD
-                            )}
+                      <div className="flex flex-col space-y-2 px-2 py-4">
+                        <div className="flex items-center -space-x-1">
+                          <PoolImage pool={pool} className="h-10 w-10" />
+                          <p className="text-3xl text-night-100">
+                            {formatTokenAmount(lpBalance)}
                           </p>
-                        </VisibleOnClient>
+                        </div>
+                        <p className="text-sm text-night-400">
+                          Current LP Token Balance
+                        </p>
                       </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {[pool.baseToken, pool.quoteToken].map((token) => (
+                          <div key={token.id} className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <p className="font-medium text-night-100">
+                                {token.name}
+                              </p>
+                              {token.name.toUpperCase() !==
+                              token.symbol.toUpperCase() ? (
+                                <>
+                                  <div className="h-3 w-[1px] bg-night-400" />
+                                  <p className="font-regular uppercase text-night-300">
+                                    {token.symbol}
+                                  </p>
+                                </>
+                              ) : null}
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <PoolTokenImage
+                                  className="h-6 w-6"
+                                  token={token}
+                                />
+                                <p className="text-night-100">
+                                  {formatUSD(lpShare * token.reserve)}
+                                </p>
+                              </div>
+                              <p className="text-xs text-night-500">
+                                {formatUSD(
+                                  lpShare * token.reserve * token.priceUSD
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <Table
+                        items={[
+                          // { label: "Initial LP Tokens", value: 0.0 },
+                          // { label: "Rewards Earned", value: 0.0 },
+                          {
+                            label: "Current Share of Pool",
+                            value: formatPercent(lpShare),
+                          },
+                        ]}
+                      />
                     </div>
-                  ))}
-                </div>
-                <Table
-                  items={[
-                    // { label: "Initial LP Tokens", value: 0.0 },
-                    // { label: "Rewards Earned", value: 0.0 },
-                    {
-                      label: "Current Share of Pool",
-                      value: (
-                        <VisibleOnClient>
-                          {formatPercent(lpShare)}
-                        </VisibleOnClient>
-                      ),
-                    },
-                  ]}
-                />
-              </div>
-            ) : null}
+                  ) : null}
+                </>
+              )}
+            </ClientOnly>
             <div className="rounded-md bg-night-1100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>
