@@ -28,6 +28,7 @@ type Props = {
   nftsIn: TroveTokenWithQuantity[];
   nftsOut: TroveTokenWithQuantity[];
   isExactOut: boolean;
+  path: AddressString[];
   enabled?: boolean;
 };
 
@@ -36,9 +37,10 @@ export const useSwap = ({
   tokenOut,
   amountIn,
   amountOut,
-  isExactOut,
   nftsIn,
   nftsOut,
+  isExactOut,
+  path,
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
@@ -64,13 +66,7 @@ export const useSwap = ({
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =
     usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
-      args: [
-        amountIn,
-        amountOutMin,
-        [tokenIn.id as AddressString, tokenOut?.id as AddressString],
-        addressArg,
-        deadlineBN,
-      ],
+      args: [amountIn, amountOutMin, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
     });
   const {
@@ -85,13 +81,7 @@ export const useSwap = ({
   // ERC20-ERC20, exact out
   const { config: swapTokensForExactTokensConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForExactTokens({
-      args: [
-        amountOut,
-        amountInMax,
-        [tokenIn.id as AddressString, tokenOut?.id as AddressString],
-        addressArg,
-        deadlineBN,
-      ],
+      args: [amountOut, amountInMax, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
     });
   const {
@@ -110,7 +100,7 @@ export const useSwap = ({
         tokenIdsOut,
         quantitiesOut,
         amountInMax,
-        [tokenIn.id as AddressString, tokenOut?.id as AddressString],
+        path,
         addressArg,
         deadlineBN,
       ],
@@ -146,7 +136,7 @@ export const useSwap = ({
         tokenIdsIn,
         quantitiesIn,
         amountOutMin,
-        [tokenIn.id as AddressString, tokenOut?.id as AddressString],
+        path,
         addressArg,
         deadlineBN,
       ],
@@ -167,7 +157,7 @@ export const useSwap = ({
         collectionsOut,
         tokenIdsOut,
         quantitiesOut,
-        [tokenIn.id as AddressString, tokenOut?.id as AddressString],
+        path,
         addressArg,
         deadlineBN,
       ],

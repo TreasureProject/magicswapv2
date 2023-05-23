@@ -1,3 +1,4 @@
+import { BigNumber } from "@ethersproject/bignumber";
 import {
   Link,
   useLoaderData,
@@ -34,9 +35,11 @@ import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useSwap } from "~/hooks/useSwap";
+import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
-import { bigIntToNumber, formatPercent } from "~/lib/number";
-import { getAmountIn, getAmountOut, getPriceImpact } from "~/lib/pools";
+import { formatPercent } from "~/lib/number";
+import { createSwapRoute } from "~/lib/pools";
+import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type {
@@ -66,29 +69,16 @@ export async function loader({ request }: LoaderArgs) {
     ? tokens.find(({ id }) => id === outputAddress)
     : undefined;
 
-  // TODO: update routing logic to path through multiple pools
-  const pool = pools.find(
-    ({ token0, token1 }) =>
-      (token0.id === tokenIn?.id || token1.id === tokenIn?.id) &&
-      (token0.id === tokenOut?.id || token1.id === tokenOut?.id)
-  );
-  const path = pool ? [pool] : [];
-
   return json({
+    pools,
     tokens,
     tokenIn,
     tokenOut,
-    path,
   });
 }
 
 export default function SwapPage() {
-  const {
-    tokens,
-    tokenIn,
-    tokenOut,
-    path: [pool],
-  } = useLoaderData<typeof loader>();
+  const { pools, tokens, tokenIn, tokenOut } = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
@@ -108,27 +98,45 @@ export default function SwapPage() {
     rawAmount as NumberString,
     isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
   );
-  const poolTokenIn =
-    pool?.token0.id === tokenIn.id ? pool?.token0 : pool?.token1;
-  const poolTokenOut =
-    pool?.token0.id === tokenOut?.id ? pool?.token0 : pool?.token1;
 
-  const amountIn = isExactOut
-    ? getAmountIn(
-        amount,
-        BigInt(poolTokenIn?.reserveBI ?? "0"),
-        BigInt(poolTokenOut?.reserveBI ?? "0"),
-        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-      )
-    : amount;
-  const amountOut = isExactOut
-    ? amount
-    : getAmountOut(
-        amount,
-        BigInt(poolTokenIn?.reserveBI ?? "0"),
-        BigInt(poolTokenOut?.reserveBI ?? "0"),
-        pool?.totalFee ? Number(pool.totalFee) * 10000 : 0
-      );
+  const {
+    amountInBN = BigNumber.from(0),
+    amountOutBN = BigNumber.from(0),
+    legs = [],
+    priceImpact = 0,
+  } = createSwapRoute(tokenIn, tokenOut, pools, amount, isExactOut) ?? {};
+
+  const amountIn = BigInt(amountInBN.toString());
+  const amountOut = BigInt(amountOutBN.toString());
+
+  const tokenInPoolId = legs.find(
+    ({ tokenFrom }) => tokenFrom.address === tokenIn.id
+  )?.poolAddress;
+  const tokenOutPoolId = tokenOut
+    ? legs.find(({ tokenTo }) => tokenTo.address === tokenOut.id)?.poolAddress
+    : undefined;
+  const tokenInPool = pools.find(({ id }) => id === tokenInPoolId);
+  const tokenOutPool = tokenOutPoolId
+    ? pools.find(({ id }) => id === tokenOutPoolId)
+    : undefined;
+  const poolTokenIn =
+    tokenIn.id === tokenInPool?.token0.id
+      ? tokenInPool.token0
+      : tokenInPool?.token1;
+  const poolTokenOut =
+    tokenOut && tokenOut.id === tokenOutPool?.token0.id
+      ? tokenOutPool.token0
+      : tokenOutPool?.token1;
+  const legPools = legs
+    .map(({ poolAddress }) => pools.find(({ id }) => id === poolAddress))
+    .filter((pool) => !!pool) as Pool[];
+  const lpFee = sumArray(legPools.map(({ lpFee }) => Number(lpFee ?? 0)));
+  const protocolFee = sumArray(
+    legPools.map(({ protocolFee }) => Number(protocolFee ?? 0))
+  );
+  const royaltiesFee = sumArray(
+    legPools.map(({ royaltiesFee }) => Number(royaltiesFee ?? 0))
+  );
 
   const hasAmounts = amountIn > 0 && amountOut > 0;
 
@@ -151,7 +159,6 @@ export default function SwapPage() {
       amount: amountIn,
       enabled: isConnected && hasAmounts,
     });
-
   const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
     useApprove({
       token: tokenIn,
@@ -172,6 +179,11 @@ export default function SwapPage() {
     isExactOut,
     nftsIn,
     nftsOut,
+    path: legs.flatMap(({ tokenFrom, tokenTo }, i) =>
+      i === legs.length - 1
+        ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
+        : (tokenFrom.address as AddressString)
+    ),
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
@@ -311,35 +323,24 @@ export default function SwapPage() {
           <div className="mt-4 text-sm text-night-400">
             <div className="flex items-center justify-between">
               Price Impact
-              <span>
-                -
-                {formatPercent(
-                  getPriceImpact(
-                    poolTokenIn,
-                    poolTokenOut,
-                    bigIntToNumber(amountIn, tokenIn.decimals),
-                    bigIntToNumber(amountOut, tokenOut?.decimals ?? 18),
-                    isExactOut
-                  )
-                )}
-              </span>
+              <span>-{formatPercent(priceImpact)}</span>
             </div>
-            {!!pool?.lpFee && Number(pool.lpFee) > 0 && (
+            {lpFee > 0 && (
               <div className="flex items-center justify-between">
                 Liquidity Provider Fee
-                <span>{formatPercent(pool.lpFee)}</span>
+                <span>{formatPercent(lpFee)}</span>
               </div>
             )}
-            {!!pool?.protocolFee && Number(pool.protocolFee) > 0 && (
+            {protocolFee > 0 && (
               <div className="flex items-center justify-between">
                 Protocol Fee
-                <span>{formatPercent(pool.protocolFee)}</span>
+                <span>{formatPercent(protocolFee)}</span>
               </div>
             )}
-            {!!pool?.royaltiesFee && Number(pool.royaltiesFee) > 0 && (
+            {royaltiesFee > 0 && (
               <div className="flex items-center justify-between">
                 Royalties Fee
-                <span>{formatPercent(pool.royaltiesFee)}</span>
+                <span>{formatPercent(royaltiesFee)}</span>
               </div>
             )}
             {isExactOut ? (

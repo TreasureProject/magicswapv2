@@ -1,27 +1,14 @@
+import { BigNumber } from "@ethersproject/bignumber";
+import {
+  ConstantProductRPool,
+  findMultiRouteExactIn,
+  findMultiRouteExactOut,
+} from "@sushiswap/tines";
+import { parseUnits } from "viem";
+
+import type { Pool } from "./pools.server";
 import type { PoolToken } from "./tokens.server";
-
-export const getAmountOut = (
-  amountIn: bigint,
-  reserveIn: bigint,
-  reserveOut: bigint,
-  totalFee = 0
-) => {
-  const amountInWithFee = amountIn * BigInt(10000 - totalFee);
-  const numerator = amountInWithFee * reserveOut;
-  const denominator = reserveIn * BigInt(10000) + amountInWithFee;
-  return denominator > 0 ? numerator / denominator : BigInt(0);
-};
-
-export const getAmountIn = (
-  amountOut: bigint,
-  reserveIn: bigint,
-  reserveOut: bigint,
-  totalFee = 0
-) => {
-  const numerator = reserveIn * amountOut * BigInt(10000);
-  const denominator = (reserveOut - amountOut) * BigInt(10000 - totalFee);
-  return denominator > 0 ? numerator / denominator + BigInt(1) : BigInt(0);
-};
+import type { NumberString, Optional } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);
@@ -44,16 +31,69 @@ export const getAmountMax = (amount: bigint, slippage: number) =>
 export const getAmountMin = (amount: bigint, slippage: number) =>
   amount - (amount * BigInt(slippage * 1000)) / BigInt(1000);
 
-export const getPriceImpact = (
+export const createSwapRoute = (
   tokenIn: PoolToken,
-  tokenOut: PoolToken,
-  amountIn: number,
-  amountOut: number,
+  tokenOut: Optional<PoolToken>,
+  pools: Pool[],
+  amount: bigint,
   isExactOut: boolean
 ) => {
-  if (isExactOut) {
-    return 1 - (amountOut * (tokenIn.reserve / tokenOut.reserve)) / amountIn;
+  if (!tokenOut) {
+    return undefined;
   }
 
-  return 1 - amountOut / (amountIn * (tokenOut.reserve / tokenIn.reserve));
+  const rTokenIn = {
+    name: tokenIn.name,
+    symbol: tokenIn.symbol,
+    address: tokenIn.id,
+  };
+  const rTokenOut = {
+    name: tokenOut.name,
+    symbol: tokenOut.symbol,
+    address: tokenOut.id,
+  };
+  const rPools = pools.map(
+    ({ id, token0, token1, reserve0, reserve1, totalFee }) => {
+      return new ConstantProductRPool(
+        id,
+        {
+          name: token0.name,
+          symbol: token0.symbol,
+          address: token0.id,
+        },
+        {
+          name: token1.name,
+          symbol: token1.symbol,
+          address: token1.id,
+        },
+        Number(totalFee ?? 0),
+        BigNumber.from(parseUnits(reserve0 as NumberString, token0.decimals)),
+        BigNumber.from(parseUnits(reserve1 as NumberString, token0.decimals))
+      );
+    }
+  );
+  const networks = [
+    {
+      baseToken: {
+        name: "ETH",
+        symbol: "ETH",
+        address: "0x0",
+      },
+      gasPrice: 0,
+    },
+  ];
+
+  const amountBN = BigNumber.from(amount.toString());
+
+  if (isExactOut) {
+    return findMultiRouteExactOut(
+      rTokenIn,
+      rTokenOut,
+      amountBN,
+      rPools,
+      networks
+    );
+  }
+
+  return findMultiRouteExactIn(rTokenIn, rTokenOut, amountBN, rPools, networks);
 };

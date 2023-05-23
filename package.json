@@ -17,6 +17,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@ethersproject/bignumber": "^5.7.0",
     "@radix-ui/react-accordion": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.0.3",
     "@radix-ui/react-dialog": "^1.0.3",
@@ -31,6 +32,7 @@
     "@remix-run/node": "^1.14.0",
     "@remix-run/react": "^1.14.0",
     "@remix-run/serve": "^1.14.0",
+    "@sushiswap/tines": "^1.0.3",
     "@treasure-project/branding": "^1.1.0",
     "buffer-polyfill": "npm:buffer@^6.0.3",
     "cachified": "^3.4.1",
