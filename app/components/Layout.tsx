@@ -106,6 +106,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               smallScreen: false,
               largeScreen: false,
             }}
+            chainStatus={{
+              smallScreen: "none",
+              largeScreen: "full",
+            }}
           />
         </div>
       </header>

@@ -1,5 +1,6 @@
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Link } from "react-router-dom";
+import Balancer from "react-wrap-balancer";
 
 import { DiscordIcon, TwitterIcon } from "~/components/Icons";
 import { media } from "~/consts";
@@ -88,7 +89,7 @@ export const Footer = () => {
     <div className="container bg-night-1200">
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-night-800 to-transparent" />
       <div className="flex items-center justify-between py-6">
-        <MagicSwapLogoFull className="h-6" />
+        <MagicSwapLogoFull className="h-6 w-auto" />
         {/* <div className="flex items-center gap-1">
           <MagicIcon className="h-4 text-ruby-900" />
           <p className="font-medium">
@@ -100,10 +101,12 @@ export const Footer = () => {
         <div className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
           <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
             <div className="flex items-center gap-6">
-              <MagicSwapLogo className="h-14" />
-              <h1 className="max-w-[274px] text-2xl font-bold text-night-500">
-                The gateway to the cross-game{" "}
-                <span className="text-night-100">economy</span>
+              <MagicSwapLogo className="h-6 w-auto sm:h-14" />
+              <h1 className="max-w-xs text-lg font-bold text-night-500 sm:text-2xl">
+                <Balancer>
+                  The gateway to the cross-game{" "}
+                  <span className="text-night-100">economy</span>
+                </Balancer>
               </h1>
             </div>
             <div className="flex max-w-min items-center divide-x-[1px] divide-night-700 overflow-hidden rounded-lg border border-night-700 text-night-600">

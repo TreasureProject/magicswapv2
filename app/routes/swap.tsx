@@ -209,7 +209,7 @@ export default function SwapPage() {
   }, [tokenOut?.id]);
 
   return (
-    <main className="mx-auto max-w-xl py-6 sm:py-10">
+    <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">
         <div className="flex items-center gap-1.5 text-xl font-bold">
           <SwapIcon className="h-6 w-6" />
@@ -217,9 +217,8 @@ export default function SwapPage() {
         </div>
         <SettingsDropdownMenu />
       </div>
-      <div>
+      <div className="mt-3">
         <SwapTokenInput
-          className="mt-6"
           token={poolTokenIn ?? tokenIn}
           otherToken={poolTokenOut ?? tokenOut}
           isOut={false}
