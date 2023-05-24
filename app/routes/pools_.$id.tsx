@@ -1,6 +1,6 @@
 import { defer } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
-import type { LoaderArgs } from "@remix-run/server-runtime";
+import { Link, useLoaderData, useRouteLoaderData } from "@remix-run/react";
+import type { LoaderArgs, SerializeFrom } from "@remix-run/server-runtime";
 import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -16,7 +16,6 @@ import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
 import { fetchPool } from "~/api/pools.server";
-import { fetchTotalInventoryForUser } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -42,6 +41,7 @@ import type {
   PoolTransactionType,
 } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
+import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import { getSession } from "~/sessions";
 import type { AddressString, Optional } from "~/types";
@@ -67,24 +67,10 @@ export async function loader({ params, request }: LoaderArgs) {
     });
   }
 
-  const promises = [
-    pool.baseToken.isNFT
-      ? fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
-      : null,
-    pool.quoteToken.isNFT
-      ? fetchTotalInventoryForUser(pool.baseToken.urlSlug, address)
-      : null,
-  ];
-
   return defer({
     pool,
     // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
-    inventory: Promise.all(promises).then((res) => {
-      return {
-        [pool.baseToken.id]: res[0],
-        [pool.quoteToken.id]: res[1],
-      };
-    }),
+    inventory: findInventories(address, pool.baseToken, pool.quoteToken),
   });
 }
 
@@ -382,6 +368,10 @@ const PoolManagementView = ({
   className?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<string>("deposit");
+  const { inventory } = useRouteLoaderData(
+    "routes/pools_.$id"
+  ) as SerializeFrom<typeof loader>;
+
   return (
     <div className={className}>
       <div className="flex items-center gap-3">
@@ -402,9 +392,15 @@ const PoolManagementView = ({
         <SettingsDropdownMenu />
       </div>
       {activeTab === "withdraw" && (
-        <PoolWithdrawTab pool={pool} balance={lpBalance} />
+        <PoolWithdrawTab
+          pool={pool}
+          balance={lpBalance}
+          inventory={inventory}
+        />
       )}
-      {activeTab === "deposit" && <PoolDepositTab pool={pool} />}
+      {activeTab === "deposit" && (
+        <PoolDepositTab pool={pool} inventory={inventory} />
+      )}
     </div>
   );
 };

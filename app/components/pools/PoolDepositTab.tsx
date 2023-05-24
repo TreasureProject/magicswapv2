@@ -1,5 +1,3 @@
-import { useRouteLoaderData } from "@remix-run/react";
-import { SerializeFrom } from "@remix-run/server-runtime";
 import { useEffect, useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
@@ -20,8 +18,7 @@ import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { PoolToken } from "~/lib/tokens.server";
-import { loader } from "~/routes/pools_.$id";
+import type { InventoryList, PoolToken } from "~/lib/tokens.server";
 import type {
   AddressString,
   NumberString,
@@ -32,9 +29,10 @@ import type {
 type Props = {
   pool: Pool;
   onSuccess?: () => void;
+  inventory: InventoryList | null;
 };
 
-export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
+export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
   const { address } = useAccount();
   const { slippage } = useSettings();
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
@@ -180,6 +178,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             token={pool.baseToken}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
+            inventory={inventory}
           />
         ) : (
           <PoolTokenInput
@@ -206,6 +205,7 @@ export const PoolDepositTab = ({ pool, onSuccess }: Props) => {
             token={pool.quoteToken}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
+            inventory={inventory}
           />
         ) : (
           <PoolTokenInput

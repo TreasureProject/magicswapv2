@@ -1,14 +1,15 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import {
+  Await,
   Link,
   useLoaderData,
   useLocation,
   useSearchParams,
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
-import { json } from "@remix-run/server-runtime";
+import { defer } from "@remix-run/server-runtime";
 import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
@@ -16,7 +17,7 @@ import { useBalance } from "wagmi";
 import { fetchPools } from "~/api/pools.server";
 import { fetchTokens } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
-import { SwapIcon, TokenIcon } from "~/components/Icons";
+import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
@@ -41,7 +42,9 @@ import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
+import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import { getSession } from "~/sessions";
 import type {
   AddressString,
   NumberString,
@@ -50,6 +53,9 @@ import type {
 
 export async function loader({ request }: LoaderArgs) {
   const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
+  const session = await getSession(request.headers.get("Cookie"));
+
+  const address = session.get("address");
 
   const url = new URL(request.url);
   const inputAddress = url.searchParams.get("in");
@@ -69,11 +75,22 @@ export async function loader({ request }: LoaderArgs) {
     ? tokens.find(({ id }) => id === outputAddress)
     : undefined;
 
-  return json({
+  if (!address || (!tokenIn.isNFT && !tokenOut?.isNFT)) {
+    return defer({
+      pools,
+      tokens,
+      tokenIn,
+      tokenOut,
+      inventory: null,
+    });
+  }
+
+  return defer({
     pools,
     tokens,
     tokenIn,
     tokenOut,
+    inventory: findInventories(address, tokenIn, tokenOut),
   });
 }
 
@@ -398,6 +415,7 @@ const SwapTokenInput = ({
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
+  const { inventory } = useLoaderData<typeof loader>();
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -503,15 +521,25 @@ const SwapTokenInput = ({
       </div>
       <div className="bg-night-800 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <span className="text-night-400 sm:text-sm">
               {token.isNFT ? "Inventory" : "Balance"}:
             </span>
-            <VisibleOnClient>
-              <span className="font-semibold text-honey-25 sm:text-sm">
-                {formatTokenAmount(balance, token.decimals)}
-              </span>
-            </VisibleOnClient>
+            {token.isNFT ? (
+              <Suspense
+                fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
+              >
+                <Await resolve={inventory}>
+                  {(inventory) => inventory?.[token.id] ?? 0}
+                </Await>
+              </Suspense>
+            ) : (
+              <VisibleOnClient>
+                <span className="font-semibold text-honey-25 sm:text-sm">
+                  {formatTokenAmount(balance, token.decimals)}
+                </span>
+              </VisibleOnClient>
+            )}
           </div>
           {selectedNfts.length > 0 ? (
             <Dialog>

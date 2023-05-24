@@ -16,16 +16,22 @@ import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { InventoryList, PoolToken } from "~/lib/tokens.server";
 import type { NumberString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   pool: Pool;
   balance: bigint;
   onSuccess?: () => void;
+  inventory: InventoryList | null;
 };
 
-export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
+export const PoolWithdrawTab = ({
+  pool,
+  balance,
+  onSuccess,
+  inventory,
+}: Props) => {
   const { address } = useAccount();
   const { slippage } = useSettings();
   const [{ amount: rawAmount, nfts }, setTransaction] = useState({
@@ -234,6 +240,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                 amount={limitAmount}
                 selectedNfts={nfts}
                 onOpenSelect={setSelectingToken}
+                inventory={inventory}
               />
             </Dialog>
           )}

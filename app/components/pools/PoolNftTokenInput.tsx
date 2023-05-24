@@ -1,14 +1,12 @@
-import { Await, useRouteLoaderData } from "@remix-run/react";
-import type { SerializeFrom } from "@remix-run/server-runtime";
+import { Await } from "@remix-run/react";
 import { Suspense } from "react";
 
 import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { InventoryList, PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { loader } from "~/routes/pools_.$id";
 import type { TroveTokenWithQuantity } from "~/types";
 
 export const PoolNftTokenInput = ({
@@ -16,16 +14,14 @@ export const PoolNftTokenInput = ({
   amount,
   selectedNfts,
   onOpenSelect,
+  inventory,
 }: {
   token: PoolToken;
   amount?: number;
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
+  inventory: InventoryList | null;
 }) => {
-  const { inventory } = useRouteLoaderData(
-    "routes/pools_.$id"
-  ) as SerializeFrom<typeof loader>;
-
   return (
     <div className="relative rounded-lg border border-night-1000">
       <p className="absolute -top-3.5 left-1.5 flex items-center bg-background px-2.5 py-1 text-sm sm:-top-5 sm:text-lg">

@@ -9,6 +9,7 @@ import { ledgerWallet, trustWallet } from "@rainbow-me/rainbowkit/wallets";
 import type { LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
+import { useNavigation } from "@remix-run/react";
 import {
   Links,
   LiveReload,
@@ -18,7 +19,6 @@ import {
   ScrollRestoration,
   useFetchers,
   useLoaderData,
-  useTransition,
 } from "@remix-run/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import NProgress from "nprogress";
@@ -108,7 +108,7 @@ export default function App() {
     return { client, chains };
   });
 
-  const transition = useTransition();
+  const transition = useNavigation();
 
   const fetchers = useFetchers();
 
