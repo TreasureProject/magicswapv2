@@ -168,8 +168,9 @@ export default function PoolsListPage() {
       {tab === "all" && <PoolsTable pools={pools} />}
       {tab === "user" && (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
-            {/* <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
+          {!user?.liquidityPositionCount && (
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
+              {/* <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
               <span className="text-xl">
                 {user?.liquidityPositionCount ?? 0}
               </span>
@@ -179,15 +180,14 @@ export default function PoolsListPage() {
               <span className="text-xl">?</span>
               <span className="text-sm text-night-300">Rewards Earned</span>
             </div> */}
-            {!user?.liquidityPositionCount && (
               <div className="col-span-2 flex flex-col items-center justify-center gap-1.5 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
                 <p>You currently do not have any open positions.</p>
                 <Button onClick={() => setTab("all")}>
                   Create a new position
                 </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <PoolsTable pools={user?.pools ?? []} />
         </>
       )}
