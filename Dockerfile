@@ -1,8 +1,9 @@
 # base node image
 FROM node:18-bullseye-slim as base
 
-# Install pnpm for dependent Node modules
+# Install pnpm and curl for dependencies in @sushiswap/chains
 RUN npm install -g pnpm
+RUN apt-get -y update && apt-get -y install curl
 
 # Install all node_modules, including dev dependencies
 FROM base as deps

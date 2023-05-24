@@ -13,6 +13,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+      # Install pnpm for dependency in @sushiswap/chains
       - name: Set up pnpm
         uses: pnpm/action-setup@v2
         with:
