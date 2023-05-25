@@ -15,7 +15,7 @@ import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
-import { fetchTokens } from "~/api/tokens.server";
+import { fetchTokens, fetchTotalInventoryForUser } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -75,7 +75,7 @@ export async function loader({ request }: LoaderArgs) {
     ? tokens.find(({ id }) => id === outputAddress)
     : undefined;
 
-  if (!address || (!tokenIn.isNFT && !tokenOut?.isNFT)) {
+  if (!address || !tokenIn.isNFT) {
     return defer({
       pools,
       tokens,
@@ -90,7 +90,7 @@ export async function loader({ request }: LoaderArgs) {
     tokens,
     tokenIn,
     tokenOut,
-    inventory: findInventories(address, tokenIn, tokenOut),
+    inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
   });
 }
 
@@ -523,16 +523,29 @@ const SwapTokenInput = ({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
             <span className="text-night-400 sm:text-sm">
-              {token.isNFT ? "Inventory" : "Balance"}:
+              {token.isNFT && isOut
+                ? "Vault"
+                : token.isNFT
+                ? "Inventory"
+                : "Balance"}
+              :
             </span>
             {token.isNFT ? (
-              <Suspense
-                fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
-              >
-                <Await resolve={inventory}>
-                  {(inventory) => inventory?.[token.id] ?? 0}
-                </Await>
-              </Suspense>
+              <>
+                {isOut ? (
+                  token.vaultReserveItems.length
+                ) : (
+                  <Suspense
+                    fallback={
+                      <LoaderIcon className="inline-block h-3.5 w-3.5" />
+                    }
+                  >
+                    <Await resolve={inventory}>
+                      {(inventory) => inventory ?? 0}
+                    </Await>
+                  </Suspense>
+                )}
+              </>
             ) : (
               <VisibleOnClient>
                 <span className="font-semibold text-honey-25 sm:text-sm">
