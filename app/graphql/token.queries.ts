@@ -27,11 +27,10 @@ export const TOKEN_FRAGMENT = gql`
 `;
 
 export const getToken = gql`
+  ${TOKEN_FRAGMENT}
   query getToken($id: ID!) {
     token(id: $id) {
-      vaultReserveItems {
-        tokenId
-      }
+      ...TokenFragment
     }
   }
 `;

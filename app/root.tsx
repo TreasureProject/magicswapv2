@@ -80,38 +80,6 @@ export default function App() {
     )
   );
 
-  // const [{ client, chains }] = useState(() => {
-  //   const testChains =
-  //     ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : [];
-
-  //   const { chains, publicClient } = configureChains(
-  //     // Configure this to chains you want
-  //     [arbitrum, ...testChains],
-  //     [alchemyProvider({ apiKey: ENV.PUBLIC_ALCHEMY_KEY }), publicProvider()]
-  //   );
-
-  //   const { wallets } = getDefaultWallets({
-  //     appName: "Template App",
-  //     chains,
-  //   });
-
-  //   const connectors = connectorsForWallets([
-  //     ...wallets,
-  //     {
-  //       groupName: "Others",
-  //       wallets: [trustWallet({ chains }), ledgerWallet({ chains })],
-  //     },
-  //   ]);
-
-  //   const client = createConfig({
-  //     autoConnect: true,
-  //     connectors,
-  //     publicClient,
-  //   });
-
-  //   return { client, chains };
-  // });
-
   const transition = useNavigation();
 
   const fetchers = useFetchers();

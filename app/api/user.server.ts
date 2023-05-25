@@ -3,6 +3,7 @@ import type { ExecutionResult } from "graphql";
 import { createPoolsFromPairs } from "./pools.server";
 import type { getUserQuery } from ".graphclient";
 import { execute, getUserDocument } from ".graphclient";
+import type { AccountDomains, AddressString } from "~/types";
 
 export const fetchUser = async (address: string) => {
   const result = (await execute(getUserDocument, {
@@ -19,4 +20,16 @@ export const fetchUser = async (address: string) => {
       user.liquidityPositions.map(({ pair }) => pair)
     ),
   };
+};
+
+export const fetchDomain = async (address: string) => {
+  const res = await fetch(`${process.env.TROVE_API_URL}/domain/${address}`);
+
+  if (!res.ok) {
+    throw new Error(`Error fetching domain: ${res.statusText}`);
+  }
+
+  const result = (await res.json()) as AccountDomains;
+
+  return result;
 };
