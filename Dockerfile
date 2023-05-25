@@ -1,8 +1,9 @@
 # base node image
 FROM node:18-bullseye-slim as base
 
-# Install openssl for Prisma
-RUN apt-get update && apt-get install -y openssl
+# Install pnpm and curl for dependencies in @sushiswap/chains
+RUN npm install -g pnpm
+RUN apt-get -y update && apt-get -y install curl
 
 # Install all node_modules, including dev dependencies
 FROM base as deps
