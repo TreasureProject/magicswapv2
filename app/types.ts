@@ -7,7 +7,8 @@ export type EnvVar =
   | "PUBLIC_ENABLE_TESTNETS"
   | "MAGICSWAPV2_API_URL"
   | "TROVE_API_URL"
-  | "TROVE_API_NETWORK";
+  | "TROVE_API_NETWORK"
+  | "PUBLIC_WALLET_CONNECT_KEY";
 
 export type Env = {
   [key in EnvVar]: string;

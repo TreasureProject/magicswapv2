@@ -1,6 +1,6 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import { ConnectKitButton, useIsMounted, useModal } from "connectkit";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
 import * as React from "react";
@@ -73,28 +73,29 @@ export const TransactionButton = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
 >(({ variant, size, children, disabled, onClick, ...props }, ref) => {
+  const isMounted = useIsMounted();
+  const { openSwitchNetworks } = useModal();
   return (
-    <ConnectButton.Custom>
-      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
-        const isConnected = !!account;
+    <ConnectKitButton.Custom>
+      {({ isConnected, chain, show }) => {
         const unsupported = chain?.unsupported ?? true;
         const isDisabled = disabled && isConnected && !unsupported;
 
         const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
           if (isConnected) {
             if (unsupported) {
-              openChainModal?.();
+              openSwitchNetworks();
             } else {
               onClick?.(e);
             }
           } else {
-            openConnectModal?.();
+            show?.();
           }
         };
 
         return (
           <AnimatePresence>
-            {mounted && (
+            {isMounted && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -117,7 +118,7 @@ export const TransactionButton = React.forwardRef<
           </AnimatePresence>
         );
       }}
-    </ConnectButton.Custom>
+    </ConnectKitButton.Custom>
   );
 });
 
