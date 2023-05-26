@@ -57,6 +57,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="hidden items-center lg:flex">
             {Pages.map((page) => (
               <NavLink
+                prefetch="intent"
                 className={({ isActive }) =>
                   cn(
                     "cursor-pointer rounded-md px-5 py-2 font-medium text-night-400 transition-colors hover:bg-night-1000",
@@ -134,6 +135,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 // TODO: fallback to truncate addy if it errors out
 const ConnectedButton = ({ address }: { address: AddressString }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
+
   const { openProfile } = useModal();
   useEffect(() => {
     const params = new URLSearchParams({
@@ -165,7 +167,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
 
   return (
     <div className="relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
-      {state === "loading" ? (
+      {!data && state === "loading" ? (
         <div className="px-2">
           <LoaderIcon className="h-5 w-5" />
         </div>
