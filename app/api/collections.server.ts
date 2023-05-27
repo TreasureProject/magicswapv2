@@ -1,18 +1,24 @@
 import type { TroveCollection, TroveCollectionMapping } from "~/types";
 
-export const fetchTroveCollection = async (
-  address: string
-): Promise<TroveCollection> => {
-  const response = await fetch(
-    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${address}`
+const getTroveCollections = async (
+  addresses: string[]
+): Promise<TroveCollection[]> => {
+  const url = new URL(`${process.env.TROVE_API_URL}/batch-collections`);
+
+  url.searchParams.set(
+    "slugs",
+    addresses
+      .map((address) => `${process.env.TROVE_API_NETWORK}/${address}`)
+      .join(",")
   );
+
+  const response = await fetch(url.toString());
   return response.json();
 };
 
 export const fetchTroveCollections = async (addresses: string[]) => {
-  const collections = await Promise.all(
-    addresses.map((address) => fetchTroveCollection(address))
-  );
+  const collections = await getTroveCollections(addresses);
+
   return collections.reduce(
     (acc, collection) => ({
       ...acc,
