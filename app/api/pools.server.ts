@@ -11,6 +11,7 @@ import { execute, getPairsDocument } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
+import { cachified } from "~/lib/cache.server";
 import {
   getPairCollectionAddresses,
   getPairTransactionItemAddresses,
@@ -66,27 +67,35 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
   return pairs.map((pair) => createPoolFromPair(pair, collections, magicUSD));
 };
 
-export const fetchPools = async () => {
-  const result = (await execute(
-    getPairsDocument,
-    {}
-  )) as ExecutionResult<getPairsQuery>;
-  const { pairs = [] } = result.data ?? {};
-  return createPoolsFromPairs(pairs);
-};
+export const fetchPools = async () =>
+  cachified({
+    key: "pools",
+    async getFreshValue() {
+      const result = (await execute(
+        getPairsDocument,
+        {}
+      )) as ExecutionResult<getPairsQuery>;
+      const { pairs = [] } = result.data ?? {};
+      return createPoolsFromPairs(pairs);
+    },
+  });
 
-export const fetchPool = async (id: string) => {
-  const result = (await execute(getPairDocument, {
-    id,
-  })) as ExecutionResult<getPairQuery>;
-  const pair = result.data?.pair;
-  if (!pair) {
-    return undefined;
-  }
+export const fetchPool = async (id: string) =>
+  cachified({
+    key: `pool-${id}`,
+    async getFreshValue() {
+      const result = (await execute(getPairDocument, {
+        id,
+      })) as ExecutionResult<getPairQuery>;
+      const pair = result.data?.pair;
+      if (!pair) {
+        return undefined;
+      }
 
-  const [collections, magicUSD] = await Promise.all([
-    fetchTroveCollections(getPairCollectionAddresses(pair)),
-    fetchMagicUSD(),
-  ]);
-  return createPoolFromPair(pair, collections, magicUSD);
-};
+      const [collections, magicUSD] = await Promise.all([
+        fetchTroveCollections(getPairCollectionAddresses(pair)),
+        fetchMagicUSD(),
+      ]);
+      return createPoolFromPair(pair, collections, magicUSD);
+    },
+  });
