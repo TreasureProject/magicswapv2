@@ -62,13 +62,15 @@ export const meta: V2_MetaFunction<
     .requestInfo;
   const pool = data?.pool;
 
+  const url = getUrl(requestInfo);
+
   return getSocialMetas({
-    url: getUrl(requestInfo),
+    url,
     title: generateTitle(
       `${pool?.baseToken.symbol} - ${pool?.quoteToken.symbol} Liquidity Pool`
     ),
     description: `Provide liquidity for ${pool?.baseToken.symbol}-${pool?.quoteToken.symbol} on Magicswap`,
-    image: `${requestInfo?.origin}${requestInfo?.path}.png`,
+    image: `${url}.png`,
   });
 };
 
