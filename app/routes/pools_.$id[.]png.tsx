@@ -40,11 +40,11 @@ export const loader = async ({ request, params }: LoaderArgs) => {
             }
             height={132}
             width={132}
-            tw="rounded-full"
+            tw={baseToken?.isNFT ? "rounded-lg" : "rounded-full"}
             alt="banner"
           />
           <div
-            tw="rounded-full flex items-center justify-center -ml-4 relative"
+            tw="rounded-full flex items-center justify-center -ml-10 relative"
             style={{
               width: 136,
               height: 136,
@@ -59,7 +59,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
               }
               height={124}
               width={124}
-              tw="rounded-full"
+              tw={quoteToken?.isNFT ? "rounded-lg" : "rounded-full"}
               alt="banner"
             />
           </div>
