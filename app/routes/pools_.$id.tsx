@@ -1,6 +1,10 @@
 import { defer } from "@remix-run/node";
+import type {
+  LoaderArgs,
+  SerializeFrom,
+  V2_MetaFunction,
+} from "@remix-run/node";
 import { Link, useLoaderData, useRouteLoaderData } from "@remix-run/react";
-import type { LoaderArgs, SerializeFrom } from "@remix-run/server-runtime";
 import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -40,11 +44,33 @@ import type {
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/lib/pools.server";
+import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import type { AddressString, Optional } from "~/types";
+
+export const meta: V2_MetaFunction<
+  typeof loader,
+  {
+    root: RootLoader;
+  }
+> = ({ data, matches }) => {
+  const requestInfo = matches.find((match) => match.id === "root")?.data
+    .requestInfo;
+  const pool = data?.pool;
+
+  return getSocialMetas({
+    url: getUrl(requestInfo),
+    title: generateTitle(
+      `${pool?.baseToken.symbol} - ${pool?.quoteToken.symbol} Liquidity Pool`
+    ),
+    description: `Provide liquidity for ${pool?.baseToken.symbol}-${pool?.quoteToken.symbol} on Magicswap`,
+    image: `${requestInfo?.origin}${requestInfo?.path}.png`,
+  });
+};
 
 export async function loader({ params, request }: LoaderArgs) {
   invariant(params.id, "Pool ID required");

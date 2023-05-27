@@ -1,4 +1,4 @@
-# MagicSwap
+# Magicswap
 
 Automated market maker with universal token compatibility
 

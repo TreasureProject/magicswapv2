@@ -1,19 +1,31 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderArgs, MetaFunction } from "@remix-run/node";
 import { badRequest, image } from "remix-utils";
+import invariant from "tiny-invariant";
 
+import { fetchPool } from "~/api/pools.server";
+import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatPercent } from "~/lib/number";
 import {
   MagicSwapLogoFull,
   NIGHT_100,
   NIGHT_400,
-  PILL_BG,
   generateOgImage,
 } from "~/lib/og.server";
 
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 600;
 
+const PILL_BG = "rgba(64, 70, 82, 0.6)";
+
 export const loader = async ({ request, params }: LoaderArgs) => {
   const { origin } = new URL(request.url);
+
+  invariant(params.id, "Missing pool id");
+
+  const pool = await fetchPool(params.id);
+
+  const baseToken = pool?.baseToken;
+  const quoteToken = pool?.quoteToken;
 
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
@@ -21,7 +33,11 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         <MagicSwapLogoFull />
         <div tw="flex">
           <img
-            src="https://placekitten.com/200/300"
+            src={
+              baseToken?.isNFT
+                ? baseToken?.image
+                : `${origin}${baseToken?.image}`
+            }
             height={132}
             width={132}
             tw="rounded-full"
@@ -36,7 +52,11 @@ export const loader = async ({ request, params }: LoaderArgs) => {
             }}
           >
             <img
-              src="https://placekitten.com/200/300"
+              src={
+                quoteToken?.isNFT
+                  ? quoteToken?.image
+                  : `${origin}${quoteToken?.image}`
+              }
               height={124}
               width={124}
               tw="rounded-full"
@@ -51,9 +71,9 @@ export const loader = async ({ request, params }: LoaderArgs) => {
               color: NIGHT_100,
             }}
           >
-            <div tw="flex">SMOL</div>
+            <div tw="flex">{baseToken?.symbol}</div>
             <div tw="flex mx-2">/</div>
-            <div tw="flex">MAGIC</div>
+            <div tw="flex">{quoteToken?.symbol}</div>
           </div>
           <div tw="flex mt-6">
             <div tw="flex flex-col">
@@ -63,7 +83,10 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                563.54K
+                {formatTokenAmount(
+                  BigInt(baseToken?.reserveBI || 0),
+                  baseToken?.decimals
+                )}
               </div>
               <div
                 style={{
@@ -71,7 +94,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
                 tw="text-lg"
               >
-                MAGIC
+                {baseToken?.symbol}
               </div>
             </div>
             <div tw="flex ml-12 flex-col">
@@ -81,7 +104,10 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                563.54K
+                {formatTokenAmount(
+                  BigInt(quoteToken?.reserveBI || 0),
+                  quoteToken?.decimals
+                )}
               </div>
               <div
                 style={{
@@ -89,7 +115,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
                 tw="text-lg"
               >
-                MAGIC
+                {quoteToken?.symbol}
               </div>
             </div>
             <div tw="flex ml-12 flex-col">
@@ -99,7 +125,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                563.54K
+                {formatUSD(pool?.reserveUSD || 0)}
               </div>
               <div
                 style={{
@@ -107,7 +133,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
                 tw="text-lg"
               >
-                MAGIC
+                TVL
               </div>
             </div>
             <div tw="flex ml-12 flex-col">
@@ -117,7 +143,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                563.54K
+                {formatPercent(pool?.apy || 0)}
               </div>
               <div
                 style={{
@@ -125,7 +151,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
                 tw="text-lg"
               >
-                MAGIC
+                APY
               </div>
             </div>
           </div>
@@ -150,7 +176,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
               color: NIGHT_400,
             }}
           >
-            SMOL
+            {baseToken?.symbol}
           </span>
         </div>
         <svg
@@ -173,14 +199,18 @@ export const loader = async ({ request, params }: LoaderArgs) => {
             color: NIGHT_100,
           }}
         >
-          <span>2,675</span>
+          <span>
+            {formatAmount(
+              (quoteToken?.reserve || 0) / (baseToken?.reserve || 0)
+            )}
+          </span>
           <span
             tw="ml-2"
             style={{
               color: NIGHT_400,
             }}
           >
-            MAGIC
+            {quoteToken?.symbol}
           </span>
         </div>
       </div>
@@ -196,7 +226,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
       "cache-control":
         process.env.NODE_ENV === "development"
           ? "no-cache, no-store"
-          : "public, immutable, no-transform, max-age=31536000",
+          : "public, immutable, no-transform, max-age=86400",
     },
   });
 };

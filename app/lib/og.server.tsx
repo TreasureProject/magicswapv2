@@ -4,8 +4,16 @@ import satori from "satori";
 
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "~/routes/resources.og";
 
-const fontSans = (baseUrl: string, name: string) =>
-  fetch(new URL(`${baseUrl}/fonts/${name}`)).then((res) => res.arrayBuffer());
+const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
+  fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
+    async (res) =>
+      ({
+        name: "ABCWhyte",
+        weight,
+        data: await res.arrayBuffer(),
+        style: "normal",
+      } as const)
+  );
 
 export const MagicSwapLogoFull = () => (
   <svg
@@ -81,41 +89,20 @@ export const NIGHT_200 = "#CFD1D4";
 
 export const NIGHT_400 = "#9FA3A9";
 
-export const PILL_BG = "rgba(64, 70, 82, 0.6)";
-
 export const generateOgImage = async (
   content: React.ReactNode,
   origin: string
 ) => {
-  const fontSansData = await Promise.all([
-    fontSans(origin, "ABCWhyteVariable.woff"),
-    fontSans(origin, "ABCWhyte-Bold.otf"),
-    fontSans(origin, "ABCWhyte-Black.otf"),
+  const fontData = await Promise.all([
+    loadFont(origin, "ABCWhyteVariable.woff", 500),
+    loadFont(origin, "ABCWhyte-Bold.otf", 600),
+    loadFont(origin, "ABCWhyte-Black.otf", 700),
   ]).then((fonts) => fonts.flat());
 
   const options: SatoriOptions = {
     width: OG_IMAGE_WIDTH,
     height: OG_IMAGE_HEIGHT,
-    fonts: [
-      {
-        name: "ABCWhyte",
-        data: fontSansData[0]!,
-        style: "normal",
-        weight: 500,
-      },
-      {
-        name: "ABCWhyte",
-        data: fontSansData[1]!,
-        style: "normal",
-        weight: 600,
-      },
-      {
-        name: "ABCWhyte",
-        data: fontSansData[2]!,
-        style: "normal",
-        weight: 700,
-      },
-    ],
+    fonts: fontData,
   };
 
   const svg = await satori(

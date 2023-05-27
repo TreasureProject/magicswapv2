@@ -156,7 +156,7 @@ export const Footer = () => {
       <div className="w-full border-t border-t-night-800">
         <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
           <p className="base-500 text-center text-sm text-night-500 md:text-start">
-            Copyright &copy; {new Date().getFullYear()} MagicSwap. All rights
+            Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
             reserved.
           </p>
           <div className="flex gap-5 text-night-500">

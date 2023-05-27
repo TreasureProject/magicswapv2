@@ -1,4 +1,4 @@
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { useNavigation } from "@remix-run/react";
@@ -24,6 +24,7 @@ import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
 import { SettingsProvider } from "./contexts/settings";
+import { getDomainUrl } from "./lib/seo";
 import { cn } from "./lib/utils";
 import nProgressStyles from "./styles/nprogress.css";
 import styles from "./styles/tailwind.css";
@@ -35,7 +36,7 @@ export const links: LinksFunction = () => [
 ];
 
 export const meta: V2_MetaFunction = () => [
-  { title: "MagicSwap" },
+  { title: "Magicswap" },
   { charSet: "utf-8" },
   { name: "viewport", content: "width=device-width,initial-scale=1" },
 ];
@@ -57,11 +58,17 @@ function getPublicKeys(env: Env): Env {
   return publicKeys;
 }
 
-export const loader = async () => {
+export const loader = async ({ request }: LoaderArgs) => {
   return json({
     ENV: getPublicKeys(process.env),
+    requestInfo: {
+      origin: getDomainUrl(request),
+      path: new URL(request.url).pathname,
+    },
   });
 };
+
+export type RootLoader = typeof loader;
 
 export default function App() {
   const { ENV } = useLoaderData<typeof loader>();
@@ -69,7 +76,7 @@ export default function App() {
   const [client] = useState(() =>
     createConfig(
       getDefaultConfig({
-        appName: "MagicSwap",
+        appName: "Magicswap",
         alchemyId: ENV.PUBLIC_ALCHEMY_KEY,
         walletConnectProjectId: ENV.PUBLIC_WALLET_CONNECT_KEY,
         chains: [
