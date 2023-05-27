@@ -42,7 +42,6 @@ import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
-import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import { getSession } from "~/sessions";
 import type {

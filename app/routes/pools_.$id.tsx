@@ -4,7 +4,12 @@ import type {
   SerializeFrom,
   V2_MetaFunction,
 } from "@remix-run/node";
-import { Link, useLoaderData, useRouteLoaderData } from "@remix-run/react";
+import {
+  Await,
+  Link,
+  useLoaderData,
+  useRouteLoaderData,
+} from "@remix-run/react";
 import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
@@ -14,12 +19,18 @@ import {
   ExternalLinkIcon,
   PlusIcon,
 } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, Suspense, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
-import { fetchPool } from "~/api/pools.server";
+import { Token } from ".graphclient";
+import type {
+  PoolTransactionItem,
+  PoolTransactionType,
+} from "~/api/pools.server";
+import { fetchPool, fetchPoolTroveTokens } from "~/api/pools.server";
+import { fetchTransactions } from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -39,13 +50,10 @@ import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
-import type {
-  Pool,
-  PoolTransactionItem,
-  PoolTransactionType,
-} from "~/lib/pools.server";
+import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { PoolToken, TroveTokenItem } from "~/lib/tokens.server";
+import { itemToTroveTokenItem } from "~/lib/tokens.server";
 import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
@@ -92,6 +100,8 @@ export async function loader({ params, request }: LoaderArgs) {
     return defer({
       pool,
       inventory: null,
+      vaultItems: null,
+      transactions: fetchTransactions(pool),
     });
   }
 
@@ -99,11 +109,22 @@ export async function loader({ params, request }: LoaderArgs) {
     pool,
     // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
     inventory: findInventories(address, pool.baseToken, pool.quoteToken),
+    vaultItems: fetchPoolTroveTokens([pool]).then((tokens) => {
+      return {
+        baseToken: pool.baseToken.vaultReserveItems.map((item) =>
+          itemToTroveTokenItem(item, tokens)
+        ),
+        quoteToken: pool.quoteToken.vaultReserveItems.map((item) =>
+          itemToTroveTokenItem(item, tokens)
+        ),
+      };
+    }),
+    transactions: fetchTransactions(pool),
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool } = useLoaderData<typeof loader>();
+  const { pool, vaultItems, transactions } = useLoaderData<typeof loader>();
   const { address } = useAccount();
 
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -351,6 +372,13 @@ export default function PoolDetailsPage() {
           </div>
         </div>
         <PoolActivityTable pool={pool} filter={poolActivityFilter} />
+        <Suspense fallback={<div className="h-96" />}>
+          <Await resolve={transactions}>
+            {(transactions) => (
+              <PoolActivityTable pool={pool} filter={poolActivityFilter} />
+            )}
+          </Await>
+        </Suspense>
         {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
           <div className="mt-6 space-y-3.5">
             <h3 className="flex items-center gap-3">
@@ -358,10 +386,34 @@ export default function PoolDetailsPage() {
               Pool Inventory
             </h3>
             {pool.baseToken.isNFT && (
-              <PoolTokenCollectionInventory token={pool.baseToken} />
+              <Suspense fallback={<div className="h-96" />}>
+                <Await resolve={vaultItems}>
+                  {(vaultItems) => {
+                    const targetVault = vaultItems?.baseToken;
+                    return (
+                      <PoolTokenCollectionInventory
+                        token={pool.baseToken}
+                        vaultItems={targetVault}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
             )}
             {pool.quoteToken.isNFT && (
-              <PoolTokenCollectionInventory token={pool.quoteToken} />
+              <Suspense fallback={<div className="h-96" />}>
+                <Await resolve={vaultItems}>
+                  {(vaultItems) => {
+                    const targetVault = vaultItems?.quoteToken;
+                    return (
+                      <PoolTokenCollectionInventory
+                        token={pool.baseToken}
+                        vaultItems={targetVault}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
             )}
           </div>
         ) : null}
@@ -440,6 +492,7 @@ const PoolActivityTable = ({
   pool: Pool;
   filter?: PoolTransactionType;
 }) => {
+  const { transactions } = useLoaderData<typeof loader>();
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const showPerPage = 12;
   const [activePage, setActivePage] = useState<number>(0);
@@ -454,10 +507,6 @@ const PoolActivityTable = ({
     }
   };
 
-  const transactions = pool.transactions.filter(
-    ({ type }) => !filter || type === filter
-  );
-
   const isMounted = useIsMounted();
 
   if (!isMounted)
@@ -468,130 +517,137 @@ const PoolActivityTable = ({
     );
 
   return (
-    <div>
-      <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
-        <thead className="border-b border-b-night-900">
-          <tr className="text-sm text-night-200">
-            <th className="px-4 py-2.5 text-left font-normal sm:px-5">
-              Tokens
-            </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
-              Action
-            </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
-              Value
-            </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
-              User
-            </th>
-            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
-              Date
-            </th>
-            <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
-          </tr>
-        </thead>
-        <AnimatePresence>
-          <tbody className="transition-all">
-            <>
-              {transactions.map((tx) => {
-                let tokenA: PoolToken;
-                let amountA: string;
-                let itemsA: PoolTransactionItem[];
-                let tokenB: PoolToken;
-                let amountB: string;
-                let itemsB: PoolTransactionItem[];
-                const isSwap = tx.type === "Swap";
-                if (isSwap) {
-                  if (tx.isAmount1Out) {
-                    tokenA = pool.token0;
-                    amountA = tx.amount0;
-                    itemsA = tx.items0;
-                    tokenB = pool.token1;
-                    amountB = tx.amount1;
-                    itemsB = tx.items1;
-                  } else {
-                    tokenA = pool.token1;
-                    amountA = tx.amount1;
-                    itemsA = tx.items1;
-                    tokenB = pool.token0;
-                    amountB = tx.amount0;
-                    itemsB = tx.items0;
-                  }
-                } else {
-                  tokenA = pool.baseToken;
-                  tokenB = pool.quoteToken;
-                  if (tokenA.id === pool.token0.id) {
-                    amountA = tx.amount0;
-                    itemsA = tx.items0;
-                    amountB = tx.amount1;
-                    itemsB = tx.items1;
-                  } else {
-                    amountA = tx.amount1;
-                    itemsA = tx.items1;
-                    amountB = tx.amount0;
-                    itemsB = tx.items0;
-                  }
-                }
+    <Suspense fallback={<div className="h-96" />}>
+      <Await resolve={transactions}>
+        {(transactions) => (
+          <div>
+            <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
+              <thead className="border-b border-b-night-900">
+                <tr className="text-sm text-night-200">
+                  <th className="px-4 py-2.5 text-left font-normal sm:px-5">
+                    Tokens
+                  </th>
+                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
+                    Action
+                  </th>
+                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+                    Value
+                  </th>
+                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+                    User
+                  </th>
+                  <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
+                    Date
+                  </th>
+                  <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
+                </tr>
+              </thead>
+              <AnimatePresence>
+                <tbody className="transition-all">
+                  <>
+                    {transactions
+                      .filter(({ type }) => !filter || type === filter)
+                      .map((tx) => {
+                        let tokenA: PoolToken;
+                        let amountA: string;
+                        let itemsA: PoolTransactionItem[];
+                        let tokenB: PoolToken;
+                        let amountB: string;
+                        let itemsB: PoolTransactionItem[];
+                        const isSwap = tx.type === "Swap";
+                        if (isSwap) {
+                          if (tx.isAmount1Out) {
+                            tokenA = pool.token0;
+                            amountA = tx.amount0;
+                            itemsA = tx.items0;
+                            tokenB = pool.token1;
+                            amountB = tx.amount1;
+                            itemsB = tx.items1;
+                          } else {
+                            tokenA = pool.token1;
+                            amountA = tx.amount1;
+                            itemsA = tx.items1;
+                            tokenB = pool.token0;
+                            amountB = tx.amount0;
+                            itemsB = tx.items0;
+                          }
+                        } else {
+                          tokenA = pool.baseToken;
+                          tokenB = pool.quoteToken;
+                          if (tokenA.id === pool.token0.id) {
+                            amountA = tx.amount0;
+                            itemsA = tx.items0;
+                            amountB = tx.amount1;
+                            itemsB = tx.items1;
+                          } else {
+                            amountA = tx.amount1;
+                            itemsA = tx.items1;
+                            amountB = tx.amount0;
+                            itemsB = tx.items0;
+                          }
+                        }
 
-                return (
-                  <Fragment key={tx.id}>
-                    <tr className="border-b border-b-night-900 transition-colors">
-                      <td className="px-4 py-4 text-left uppercase sm:px-5">
-                        <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
-                          <div className="flex items-center gap-2.5">
-                            <PoolTransactionImage
-                              token={tokenA}
-                              items={itemsA}
-                            />
-                            <span>
-                              <span className="text-honey-25">
-                                {formatAmount(amountA)}
-                              </span>{" "}
-                              {tokenA.symbol}
-                            </span>
-                          </div>
-                          {isSwap ? (
-                            <ArrowRightIcon className="h-6 w-6" />
-                          ) : (
-                            <PlusIcon className="h-6 w-6" />
-                          )}
-                          <div className="flex items-center gap-2.5">
-                            <PoolTransactionImage
-                              token={tokenB}
-                              items={itemsB}
-                            />
-                            <span>
-                              <span className="text-honey-25">
-                                {formatAmount(amountB)}
-                              </span>{" "}
-                              {tokenB.symbol}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                        {tx.type}
-                      </td>
-                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                        {formatUSD(tx.amountUSD)}
-                      </td>
-                      <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
-                        {truncateEthAddress(tx.user.id)}
-                      </td>
-                      <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
-                        {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
-                      </td>
-                      <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
-                        <a
-                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
-                          href={`${blockExplorer.url}/tx/${tx.hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title={`View on ${blockExplorer.name}`}
-                        >
-                          <ExternalLinkIcon className="h-4 w-4" />
-                        </a>
-                        {/* <button
+                        return (
+                          <Fragment key={tx.id}>
+                            <tr className="border-b border-b-night-900 transition-colors">
+                              <td className="px-4 py-4 text-left uppercase sm:px-5">
+                                <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
+                                  <div className="flex items-center gap-2.5">
+                                    <PoolTransactionImage
+                                      token={tokenA}
+                                      items={itemsA}
+                                    />
+                                    <span>
+                                      <span className="text-honey-25">
+                                        {formatAmount(amountA)}
+                                      </span>{" "}
+                                      {tokenA.symbol}
+                                    </span>
+                                  </div>
+                                  {isSwap ? (
+                                    <ArrowRightIcon className="h-6 w-6" />
+                                  ) : (
+                                    <PlusIcon className="h-6 w-6" />
+                                  )}
+                                  <div className="flex items-center gap-2.5">
+                                    <PoolTransactionImage
+                                      token={tokenB}
+                                      items={itemsB}
+                                    />
+                                    <span>
+                                      <span className="text-honey-25">
+                                        {formatAmount(amountB)}
+                                      </span>{" "}
+                                      {tokenB.symbol}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                                {tx.type}
+                              </td>
+                              <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                                {formatUSD(tx.amountUSD)}
+                              </td>
+                              <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
+                                {truncateEthAddress(tx.user.id)}
+                              </td>
+                              <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
+                                {new Date(
+                                  Number(tx.timestamp) * 1000
+                                ).toLocaleString()}
+                              </td>
+                              <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                                <a
+                                  className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                                  href={`${blockExplorer.url}/tx/${tx.hash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={`View on ${blockExplorer.name}`}
+                                >
+                                  <ExternalLinkIcon className="h-4 w-4" />
+                                </a>
+                                {/* <button
                           className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
                           onClick={() =>
                             setExpandedRow(expandedRow === 0 ? null : 0)
@@ -604,9 +660,9 @@ const PoolActivityTable = ({
                             )}
                           />
                         </button> */}
-                      </td>
-                    </tr>
-                    {/* {expandedRow === 0 && (
+                              </td>
+                            </tr>
+                            {/* {expandedRow === 0 && (
                       <motion.div
                         initial={{ height: "0px", opacity: 0 }}
                         animate={{ height: "max", opacity: 1 }}
@@ -629,48 +685,61 @@ const PoolActivityTable = ({
                           )}
                       </motion.div>
                     )} */}
-                  </Fragment>
-                );
-              })}
-            </>
-          </tbody>
-        </AnimatePresence>
-      </table>
-      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-          onClick={() => handlePagination("prev")}
-        >
-          <ChevronLeftIcon className="w-6" />
-          <p className="text-sm">Previous</p>
-        </button>
-        <p className="text-night-500">
-          Showing{" "}
-          <span className="text-night-200">{activePage * showPerPage + 1}</span>{" "}
-          to{" "}
-          <span className="text-night-200">
-            {formatNumber(transactions.length)}
-          </span>{" "}
-          of{" "}
-          <span className="text-night-200">{formatNumber(pool.txCount)}</span>
-        </p>
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-          onClick={() => handlePagination("next")}
-        >
-          <p className="text-sm">Next</p>
-          <ChevronRightIcon className="w-6" />
-        </button>
-      </nav>
-    </div>
+                          </Fragment>
+                        );
+                      })}
+                  </>
+                </tbody>
+              </AnimatePresence>
+            </table>
+            <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
+              <button
+                className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
+                onClick={() => handlePagination("prev")}
+              >
+                <ChevronLeftIcon className="w-6" />
+                <p className="text-sm">Previous</p>
+              </button>
+              <p className="text-night-500">
+                Showing{" "}
+                <span className="text-night-200">
+                  {activePage * showPerPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="text-night-200">
+                  {formatNumber(transactions.length)}
+                </span>{" "}
+                of{" "}
+                <span className="text-night-200">
+                  {formatNumber(pool.txCount)}
+                </span>
+              </p>
+              <button
+                className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
+                onClick={() => handlePagination("next")}
+              >
+                <p className="text-sm">Next</p>
+                <ChevronRightIcon className="w-6" />
+              </button>
+            </nav>
+          </div>
+        )}
+      </Await>
+    </Suspense>
   );
 };
 
-const PoolTokenCollectionInventory = ({ token }: { token: PoolToken }) => {
+const PoolTokenCollectionInventory = ({
+  token,
+  vaultItems,
+}: {
+  token: PoolToken;
+  vaultItems: TroveTokenItem[];
+}) => {
   return (
     <>
       {token.collections.map(({ id, name, symbol }) => {
-        const reserveItems = token.reserveItems.filter(
+        const reserveItems = vaultItems.filter(
           ({ collectionId }) => collectionId === id
         );
 

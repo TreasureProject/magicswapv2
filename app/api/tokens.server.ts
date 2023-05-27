@@ -40,20 +40,34 @@ export const fetchTokens = async () => {
     {}
   )) as ExecutionResult<getTokensQuery>;
   const { tokens: rawTokens = [] } = result.data ?? {};
-  const [collections, tokens, magicUSD] = await Promise.all([
+  const [collections, magicUSD] = await Promise.all([
     fetchTroveCollections([
       ...new Set(
         rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
       ),
     ]),
-    fetchTroveTokens([
-      ...new Set(rawTokens.flatMap((token) => getTokenReserveItemIds(token))),
-    ]),
     fetchMagicUSD(),
   ]);
   return rawTokens.map((token) =>
-    createPoolToken(token, collections, tokens, magicUSD)
+    createPoolToken(token, collections, magicUSD)
   );
+};
+
+export const fetchToken = async (id: string) => {
+  const result = (await execute(getTokenDocument, {
+    id,
+  })) as ExecutionResult<getTokenQuery>;
+  const { token: rawToken } = result.data ?? {};
+
+  if (!rawToken) {
+    return null;
+  }
+
+  const [collections, magicUSD] = await Promise.all([
+    fetchTroveCollections(getTokenCollectionAddresses(rawToken)),
+    fetchMagicUSD(),
+  ]);
+  return createPoolToken(rawToken, collections, magicUSD);
 };
 
 export const fetchFilters = async (slug: string) => {
@@ -168,7 +182,7 @@ function getTokenIds(id: string) {
 
       return tokenIds;
     },
-    ttl: 1000 * 60, // 1 minutes
+    ttl: 1000 * 60, // 1 minutes,
   });
 }
 

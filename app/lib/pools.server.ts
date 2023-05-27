@@ -16,11 +16,10 @@ const getPoolAPY = (volume1w: number, reserveUSD: number) => {
 export const createPoolFromPair = (
   pair: Pair,
   collections: TroveCollectionMapping,
-  tokens: TroveTokenMapping,
   magicUSD: number
 ) => {
-  const token0 = createPoolToken(pair.token0, collections, tokens, magicUSD);
-  const token1 = createPoolToken(pair.token1, collections, tokens, magicUSD);
+  const token0 = createPoolToken(pair.token0, collections, magicUSD);
+  const token1 = createPoolToken(pair.token1, collections, magicUSD);
   const reserve0 = Number(pair.reserve0);
   const reserve1 = Number(pair.reserve1);
   const token0PriceUSD =
@@ -65,13 +64,6 @@ export const createPoolFromPair = (
     baseToken,
     quoteToken,
     reserveUSD,
-    transactions: pair.transactions.map(
-      ({ items0, items1, ...transaction }) => ({
-        ...transaction,
-        items0: items0?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
-        items1: items1?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
-      })
-    ),
     volume24h,
     volume1w,
     apy: getPoolAPY(volume1w, reserveUSD),
@@ -81,8 +73,3 @@ export const createPoolFromPair = (
 };
 
 export type Pool = ReturnType<typeof createPoolFromPair>;
-
-export type PoolTransactionType = Pool["transactions"][number]["type"];
-
-export type PoolTransactionItem =
-  Pool["transactions"][number]["items0"][number];

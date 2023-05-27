@@ -1,8 +1,9 @@
+import type { Pool } from "./pools.server";
 import {
   getTokenCollectionAddresses,
   getTokenReserveItemIds,
 } from "./tokens.server";
-import type { Pair } from "~/types";
+import type { Pair, Transaction } from "~/types";
 
 export const getPairCollectionAddresses = (pair: Pair) => [
   ...new Set([
@@ -16,22 +17,20 @@ export const getPairERC20Addresses = (pair: Pair) => [
   ...(pair.token1.isNFT ? [] : [pair.token1.id]),
 ];
 
-export const getPairReserveItemAddresses = (pair: Pair) => [
+export const getPoolReserveItemAddresses = (pool: Pool) => [
   ...new Set([
-    ...getTokenReserveItemIds(pair.token0),
-    ...getTokenReserveItemIds(pair.token1),
+    ...getTokenReserveItemIds(pool.token0),
+    ...getTokenReserveItemIds(pool.token1),
   ]),
 ];
 
-export const getPairTransactionItemAddresses = (pair: Pair) => [
-  ...new Set(
-    pair.transactions.flatMap(({ items0, items1 }) => [
-      ...(items0?.map(
-        ({ collection, tokenId }) => `${collection.id}/${tokenId}`
-      ) ?? []),
-      ...(items1?.map(
-        ({ collection, tokenId }) => `${collection.id}/${tokenId}`
-      ) ?? []),
-    ])
-  ),
-];
+export const getPairTransactionItemAddresses = (transaction: Transaction) => {
+  return [
+    ...(transaction.items0?.map(
+      ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+    ) ?? []),
+    ...(transaction.items1?.map(
+      ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+    ) ?? []),
+  ];
+};

@@ -1,6 +1,11 @@
 import type { ExecutionResult } from "graphql";
 
-import type { getPairQuery, getPairsQuery } from "../../.graphclient";
+import type {
+  getPairQuery,
+  getPairsQuery,
+  getTransactionQuery,
+} from "../../.graphclient";
+import { getTransactionDocument } from "../../.graphclient";
 import { getPairDocument } from "../../.graphclient";
 import { execute, getPairsDocument } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
@@ -8,31 +13,60 @@ import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
 import {
   getPairCollectionAddresses,
-  getPairReserveItemAddresses,
   getPairTransactionItemAddresses,
+  getPoolReserveItemAddresses,
 } from "~/lib/pairs.server";
+import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
-import type { Pair } from "~/types";
+import { itemToTroveTokenItem } from "~/lib/tokens.server";
+import type { Pair, Transaction } from "~/types";
 
-const fetchPairsTroveTokens = (pairs: Pair[]) =>
+export const fetchPoolTroveTokens = (pool: Pool[]) =>
   fetchTroveTokens([
     ...new Set([
-      ...pairs.flatMap((pair) => getPairReserveItemAddresses(pair)),
-      ...pairs.flatMap((pair) => getPairTransactionItemAddresses(pair)),
+      ...pool.flatMap((pool) => getPoolReserveItemAddresses(pool)),
+      // ...pool.flatMap((pair) => getPairTransactionItemAddresses(pair)),
     ]),
   ]);
 
+export const fetchTransactionTroveTokens = (transactions: Transaction[]) => {
+  return fetchTroveTokens([
+    ...new Set([
+      ...transactions.flatMap((transaction) =>
+        getPairTransactionItemAddresses(transaction)
+      ),
+    ]),
+  ]);
+};
+
+export const fetchTransactions = async (pool: Pool) => {
+  const result = (await execute(getTransactionDocument, {
+    id: pool.id,
+  })) as ExecutionResult<getTransactionQuery>;
+  const { transactions = [] } = result.data ?? {};
+
+  const tokens = await fetchTransactionTroveTokens(transactions);
+
+  return transactions.map(({ items0, items1, ...transaction }) => ({
+    ...transaction,
+    items0: items0?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
+    items1: items1?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
+  }));
+};
+
+type PoolTransaction = Awaited<ReturnType<typeof fetchTransactions>>[number];
+
+export type PoolTransactionType = PoolTransaction["type"];
+export type PoolTransactionItem = PoolTransaction["items0"][number];
+
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
-  const [collections, tokens, magicUSD] = await Promise.all([
+  const [collections, magicUSD] = await Promise.all([
     fetchTroveCollections([
       ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
     ]),
-    fetchPairsTroveTokens(pairs),
     fetchMagicUSD(),
   ]);
-  return pairs.map((pair) =>
-    createPoolFromPair(pair, collections, tokens, magicUSD)
-  );
+  return pairs.map((pair) => createPoolFromPair(pair, collections, magicUSD));
 };
 
 export const fetchPools = async () => {
@@ -53,10 +87,9 @@ export const fetchPool = async (id: string) => {
     return undefined;
   }
 
-  const [collections, tokens, magicUSD] = await Promise.all([
+  const [collections, magicUSD] = await Promise.all([
     fetchTroveCollections(getPairCollectionAddresses(pair)),
-    fetchPairsTroveTokens([pair]),
     fetchMagicUSD(),
   ]);
-  return createPoolFromPair(pair, collections, tokens, magicUSD);
+  return createPoolFromPair(pair, collections, magicUSD);
 };
