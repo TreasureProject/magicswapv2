@@ -75,9 +75,9 @@ export const meta: V2_MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `${pool?.baseToken.symbol} - ${pool?.quoteToken.symbol} Liquidity Pool`
+      `${pool?.baseToken.symbol}/${pool?.quoteToken.symbol} Liquidity Pool`
     ),
-    description: `Provide liquidity for ${pool?.baseToken.symbol}-${pool?.quoteToken.symbol} on Magicswap`,
+    description: `Provide liquidity for ${pool?.baseToken.symbol}/${pool?.quoteToken.symbol} on Magicswap`,
     image: `${url}.png`,
   });
 };
