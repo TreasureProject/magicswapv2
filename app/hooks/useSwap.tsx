@@ -22,7 +22,7 @@ import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   tokenIn: PoolToken;
-  tokenOut?: PoolToken;
+  tokenOut: PoolToken | null;
   amountIn: bigint;
   amountOut: bigint;
   nftsIn: TroveTokenWithQuantity[];

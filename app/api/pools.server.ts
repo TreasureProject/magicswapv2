@@ -23,10 +23,7 @@ import type { Pair, Transaction } from "~/types";
 
 export const fetchPoolTroveTokens = (pool: Pool[]) =>
   fetchTroveTokens([
-    ...new Set([
-      ...pool.flatMap((pool) => getPoolReserveItemAddresses(pool)),
-      // ...pool.flatMap((pair) => getPairTransactionItemAddresses(pair)),
-    ]),
+    ...new Set([...pool.flatMap((pool) => getPoolReserveItemAddresses(pool))]),
   ]);
 
 export const fetchTransactionTroveTokens = (transactions: Transaction[]) => {

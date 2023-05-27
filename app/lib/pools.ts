@@ -33,7 +33,7 @@ export const getAmountMin = (amount: bigint, slippage: number) =>
 
 export const createSwapRoute = (
   tokenIn: PoolToken,
-  tokenOut: Optional<PoolToken>,
+  tokenOut: PoolToken | null,
   pools: Pool[],
   amount: bigint,
   isExactOut: boolean

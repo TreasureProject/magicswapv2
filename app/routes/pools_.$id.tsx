@@ -390,6 +390,9 @@ export default function PoolDetailsPage() {
                 <Await resolve={vaultItems}>
                   {(vaultItems) => {
                     const targetVault = vaultItems?.baseToken;
+
+                    if (!targetVault) return null;
+
                     return (
                       <PoolTokenCollectionInventory
                         token={pool.baseToken}
@@ -405,6 +408,9 @@ export default function PoolDetailsPage() {
                 <Await resolve={vaultItems}>
                   {(vaultItems) => {
                     const targetVault = vaultItems?.quoteToken;
+
+                    if (!targetVault) return null;
+
                     return (
                       <PoolTokenCollectionInventory
                         token={pool.baseToken}
