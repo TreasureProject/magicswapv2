@@ -228,7 +228,7 @@ export default function Homepage() {
         transition={{ delay: 0.4 }}
       >
         <p className="mb-8 w-full text-center text-xl font-medium leading-[120%] text-night-400">
-          What makes magic swap special?
+          What makes Magicswap special?
         </p>
         <div className="container grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <InfoCard

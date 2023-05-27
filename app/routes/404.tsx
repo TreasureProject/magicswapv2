@@ -72,7 +72,7 @@ const Page404 = () => {
                   <ChevronRightIcon className="w-5 text-night-400 transition-all group-hover:ml-1" />
                 </div>
                 <p className="tranistion-colors text-sm leading-[160%] text-night-400 group-hover:text-night-200">
-                  Start earning by providing liquidity to magic swap
+                  Start earning by providing liquidity to Magicswap
                 </p>
               </div>
             </Link>
