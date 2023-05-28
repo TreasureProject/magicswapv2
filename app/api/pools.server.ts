@@ -2,14 +2,14 @@ import type { ExecutionResult } from "graphql";
 
 import type {
   getPairQuery,
+  getPairTransactionsQuery,
   getPairsQuery,
-  getTransactionQuery,
 } from "../../.graphclient";
 import {
   execute,
   getPairDocument,
+  getPairTransactionsDocument,
   getPairsDocument,
-  getTransactionDocument,
 } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
@@ -44,9 +44,9 @@ export const fetchPoolTroveTokens = (pool: Pool[]) =>
   ]);
 
 export const fetchTransactions = async (pool: Pool) => {
-  const result = (await execute(getTransactionDocument, {
+  const result = (await execute(getPairTransactionsDocument, {
     id: pool.id,
-  })) as ExecutionResult<getTransactionQuery>;
+  })) as ExecutionResult<getPairTransactionsQuery>;
   const { transactions = [] } = result.data ?? {};
 
   const tokens = await fetchTroveTokens([
