@@ -1,6 +1,5 @@
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { notFound } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/user.server";

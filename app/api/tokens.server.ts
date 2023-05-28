@@ -3,13 +3,13 @@ import type { ExecutionResult } from "graphql";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import type { getTokenQuery, getTokensQuery } from ".graphclient";
-import { getTokenDocument } from ".graphclient";
-import { execute, getTokensDocument } from ".graphclient";
+import { execute, getTokenDocument, getTokensDocument } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { cachified } from "~/lib/cache.server";
-import { getTokenCollectionAddresses } from "~/lib/tokens.server";
-import { getTokenReserveItemIds } from "~/lib/tokens.server";
-import { createPoolToken } from "~/lib/tokens.server";
+import {
+  createPoolToken,
+  getTokenCollectionAddresses,
+} from "~/lib/tokens.server";
 import type {
   TraitsResponse,
   TroveApiResponse,

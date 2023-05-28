@@ -14,7 +14,6 @@ import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { getSession } from "~/sessions";
-import type { Optional } from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));

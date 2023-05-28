@@ -24,13 +24,16 @@ import { ClientOnly } from "remix-utils";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
-import { Token } from ".graphclient";
 import type {
+  PoolTransaction,
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
-import { fetchPool, fetchPoolTroveTokens } from "~/api/pools.server";
-import { fetchTransactions } from "~/api/pools.server";
+import {
+  fetchPool,
+  fetchPoolTroveTokens,
+  fetchTransactions,
+} from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -41,8 +44,7 @@ import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
-import { DialogTrigger } from "~/components/ui/Dialog";
-import { Dialog } from "~/components/ui/Dialog";
+import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
@@ -53,8 +55,7 @@ import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken, TroveTokenItem } from "~/lib/tokens.server";
-import { itemToTroveTokenItem } from "~/lib/tokens.server";
-import { findInventories } from "~/lib/tokens.server";
+import { findInventories, itemToTroveTokenItem } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -371,11 +372,14 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
         <Suspense fallback={<div className="h-96" />}>
           <Await resolve={transactions}>
             {(transactions) => (
-              <PoolActivityTable pool={pool} filter={poolActivityFilter} />
+              <PoolActivityTable
+                pool={pool}
+                transactions={transactions}
+                filter={poolActivityFilter}
+              />
             )}
           </Await>
         </Suspense>
@@ -493,12 +497,13 @@ const PoolManagementView = ({
 
 const PoolActivityTable = ({
   pool,
+  transactions,
   filter,
 }: {
   pool: Pool;
+  transactions: PoolTransaction[];
   filter?: PoolTransactionType;
 }) => {
-  const { transactions } = useLoaderData<typeof loader>();
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const showPerPage = 12;
   const [activePage, setActivePage] = useState<number>(0);
@@ -565,7 +570,7 @@ const PoolActivityTable = ({
                           if (tx.isAmount1Out) {
                             tokenA = pool.token0;
                             amountA = tx.amount0;
-                            itemsA = tx.items0;
+                            itemsA = tx.items0 ?? [];
                             tokenB = pool.token1;
                             amountB = tx.amount1;
                             itemsB = tx.items1;

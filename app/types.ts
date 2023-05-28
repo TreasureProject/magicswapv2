@@ -23,7 +23,6 @@ export type NumberString = `${number}`;
 /** Data Transfer Objects */
 // Subgraph
 export type Pair = getPairsQuery["pairs"][number];
-export type Transaction = getTransactionQuery["transactions"][number];
 export type Token = Pair["token0"];
 export type Collection = NonNullable<
   Token["vaultCollections"]

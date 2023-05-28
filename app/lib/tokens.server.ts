@@ -1,14 +1,6 @@
 import { createPoolTokenCollection } from "./collections.server";
-import {
-  fetchTotalInventoryForUser,
-  fetchTroveTokens,
-} from "~/api/tokens.server";
-import type {
-  Pair,
-  Token,
-  TroveCollectionMapping,
-  TroveTokenMapping,
-} from "~/types";
+import { fetchTotalInventoryForUser } from "~/api/tokens.server";
+import type { Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 type Item = {
   collection: {

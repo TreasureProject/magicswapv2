@@ -1,12 +1,7 @@
 import { parseUnits } from "viem";
 
-import { createPoolToken, itemToTroveTokenItem } from "./tokens.server";
-import type {
-  NumberString,
-  Pair,
-  TroveCollectionMapping,
-  TroveTokenMapping,
-} from "~/types";
+import { createPoolToken } from "./tokens.server";
+import type { NumberString, Pair, TroveCollectionMapping } from "~/types";
 
 const getPoolAPY = (volume1w: number, reserveUSD: number) => {
   const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
