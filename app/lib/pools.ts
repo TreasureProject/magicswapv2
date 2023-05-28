@@ -8,7 +8,7 @@ import { parseUnits } from "viem";
 
 import type { Pool } from "./pools.server";
 import type { PoolToken } from "./tokens.server";
-import type { NumberString, Optional } from "~/types";
+import type { NumberString } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);
@@ -33,7 +33,7 @@ export const getAmountMin = (amount: bigint, slippage: number) =>
 
 export const createSwapRoute = (
   tokenIn: PoolToken,
-  tokenOut: Optional<PoolToken>,
+  tokenOut: PoolToken | null,
   pools: Pool[],
   amount: bigint,
   isExactOut: boolean

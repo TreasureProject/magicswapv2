@@ -15,7 +15,11 @@ import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
-import { fetchTokens, fetchTotalInventoryForUser } from "~/api/tokens.server";
+import {
+  fetchToken,
+  fetchTokens,
+  fetchTotalInventoryForUser,
+} from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -42,7 +46,6 @@ import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
-import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import { getSession } from "~/sessions";
 import type {
@@ -52,7 +55,7 @@ import type {
 } from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
-  const [tokens, pools] = await Promise.all([fetchTokens(), fetchPools()]);
+  const pools = await fetchPools();
   const session = await getSession(request.headers.get("Cookie"));
 
   const address = session.get("address");
@@ -62,8 +65,8 @@ export async function loader({ request }: LoaderArgs) {
   const outputAddress = url.searchParams.get("out");
 
   const tokenIn = inputAddress
-    ? tokens.find(({ id }) => id === inputAddress)
-    : tokens.find(({ name }) => name === "MAGIC");
+    ? await fetchToken(inputAddress)
+    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
 
   if (!tokenIn) {
     throw new Response("Input token not found", {
@@ -71,14 +74,12 @@ export async function loader({ request }: LoaderArgs) {
     });
   }
 
-  const tokenOut = outputAddress
-    ? tokens.find(({ id }) => id === outputAddress)
-    : undefined;
+  const tokenOut = outputAddress ? await fetchToken(outputAddress) : null;
 
   if (!address || !tokenIn.isNFT) {
     return defer({
       pools,
-      tokens,
+      tokens: fetchTokens(),
       tokenIn,
       tokenOut,
       inventory: null,
@@ -87,7 +88,7 @@ export async function loader({ request }: LoaderArgs) {
 
   return defer({
     pools,
-    tokens,
+    tokens: fetchTokens(),
     tokenIn,
     tokenOut,
     inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
@@ -95,7 +96,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function SwapPage() {
-  const { pools, tokens, tokenIn, tokenOut } = useLoaderData<typeof loader>();
+  const { pools, tokenIn, tokenOut } = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
@@ -258,7 +259,6 @@ export default function SwapPage() {
               : rawAmount
           }
           selectedNfts={nftsIn}
-          tokens={tokens}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -294,7 +294,6 @@ export default function SwapPage() {
               : formatTokenAmount(amountOut, tokenOut?.decimals ?? 18)
           }
           selectedNfts={nftsOut}
-          tokens={tokens}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -391,24 +390,23 @@ const SwapTokenInput = ({
   balance = BigInt(0),
   amount,
   selectedNfts,
-  tokens,
   onSelect,
   onUpdateAmount,
   onSelectNfts,
   className,
 }: {
-  token?: PoolToken;
-  otherToken?: PoolToken;
+  token: PoolToken | null;
+  otherToken: PoolToken | null;
   isOut: boolean;
   balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
-  tokens: PoolToken[];
   onSelect: (token: PoolToken) => void;
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
 }) => {
+  const { tokens } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
@@ -421,13 +419,19 @@ const SwapTokenInput = ({
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
         <Dialog key={location.search}>
-          <TokenSelectDialog
-            tokens={tokens}
-            disabledTokenIds={
-              [token.id, otherToken?.id].filter((id) => !!id) as string[]
-            }
-            onSelect={onSelect}
-          />
+          <Suspense fallback={null}>
+            <Await resolve={tokens}>
+              {(tokens) => (
+                <TokenSelectDialog
+                  tokens={tokens}
+                  disabledTokenIds={
+                    [token.id, otherToken?.id].filter((id) => !!id) as string[]
+                  }
+                  onSelect={onSelect}
+                />
+              )}
+            </Await>
+          </Suspense>
           <DialogTrigger asChild>
             <button className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
@@ -572,11 +576,19 @@ const SwapTokenInput = ({
     </div>
   ) : (
     <Dialog key={location.search}>
-      <TokenSelectDialog
-        tokens={tokens}
-        disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
-        onSelect={onSelect}
-      />
+      <Suspense fallback={null}>
+        <Await resolve={tokens}>
+          {(tokens) => (
+            <TokenSelectDialog
+              tokens={tokens}
+              disabledTokenIds={
+                [otherToken?.id].filter((id) => !!id) as string[]
+              }
+              onSelect={onSelect}
+            />
+          )}
+        </Await>
+      </Suspense>
       <DialogTrigger asChild>
         <button
           className={cn(

@@ -33,7 +33,22 @@ export const PAIR_FRAGMENT = gql`
     royaltiesFee
     royaltiesBeneficiary
     totalFee
-    transactions(orderBy: timestamp, orderDirection: desc) {
+    dayData(first: 7, orderBy: date, orderDirection: desc) {
+      reserveUSD
+      volumeUSD
+      txCount
+    }
+  }
+`;
+
+export const getPairTransactions = gql`
+  ${TRANSACTION_ITEM_FRAGMENT}
+  query getPairTransactions($id: String!) {
+    transactions(
+      where: { pair: $id }
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
       id
       hash
       timestamp
@@ -52,17 +67,11 @@ export const PAIR_FRAGMENT = gql`
         ...TransactionItemFragment
       }
     }
-    dayData(first: 7, orderBy: date, orderDirection: desc) {
-      reserveUSD
-      volumeUSD
-      txCount
-    }
   }
 `;
 
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
-  ${TRANSACTION_ITEM_FRAGMENT}
   ${PAIR_FRAGMENT}
   query getPairs {
     pairs(orderBy: volumeUSD, orderDirection: desc) {
@@ -73,7 +82,6 @@ export const getPairs = gql`
 
 export const getPair = gql`
   ${TOKEN_FRAGMENT}
-  ${TRANSACTION_ITEM_FRAGMENT}
   ${PAIR_FRAGMENT}
   query getPair($id: ID!) {
     pair(id: $id) {

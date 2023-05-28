@@ -14,14 +14,10 @@ import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { getSession } from "~/sessions";
-import type { Optional } from "~/types";
 
 export async function loader({ request }: LoaderArgs) {
-  let address: Optional<string>;
   const session = await getSession(request.headers.get("Cookie"));
-  if (session.has("address")) {
-    address = session.get("address");
-  }
+  const address = session.get("address");
 
   const [pools, user] = await Promise.all([
     fetchPools(),

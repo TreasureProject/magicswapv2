@@ -1,17 +1,15 @@
-import { verboseReporter } from "cachified";
-import { cachified } from "cachified";
 import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import type { getTokenQuery, getTokensQuery } from ".graphclient";
-import { getTokenDocument } from ".graphclient";
-import { execute, getTokensDocument } from ".graphclient";
+import { execute, getTokenDocument, getTokensDocument } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
-import { cache } from "~/lib/cache.server";
-import { getTokenCollectionAddresses } from "~/lib/tokens.server";
-import { getTokenReserveItemIds } from "~/lib/tokens.server";
-import { createPoolToken } from "~/lib/tokens.server";
+import { cachified } from "~/lib/cache.server";
+import {
+  createPoolToken,
+  getTokenCollectionAddresses,
+} from "~/lib/tokens.server";
 import type {
   TraitsResponse,
   TroveApiResponse,
@@ -34,27 +32,49 @@ function filterNullValues(
   return filteredObj;
 }
 
-export const fetchTokens = async () => {
-  const result = (await execute(
-    getTokensDocument,
-    {}
-  )) as ExecutionResult<getTokensQuery>;
-  const { tokens: rawTokens = [] } = result.data ?? {};
-  const [collections, tokens, magicUSD] = await Promise.all([
-    fetchTroveCollections([
-      ...new Set(
-        rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
-      ),
-    ]),
-    fetchTroveTokens([
-      ...new Set(rawTokens.flatMap((token) => getTokenReserveItemIds(token))),
-    ]),
-    fetchMagicUSD(),
-  ]);
-  return rawTokens.map((token) =>
-    createPoolToken(token, collections, tokens, magicUSD)
-  );
-};
+export const fetchTokens = async () =>
+  cachified({
+    key: "tokens",
+    async getFreshValue() {
+      const result = (await execute(
+        getTokensDocument,
+        {}
+      )) as ExecutionResult<getTokensQuery>;
+      const { tokens: rawTokens = [] } = result.data ?? {};
+      const [collections, magicUSD] = await Promise.all([
+        fetchTroveCollections([
+          ...new Set(
+            rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
+          ),
+        ]),
+        fetchMagicUSD(),
+      ]);
+      return rawTokens.map((token) =>
+        createPoolToken(token, collections, magicUSD)
+      );
+    },
+  });
+
+export const fetchToken = async (id: string) =>
+  cachified({
+    key: `token-${id}`,
+    async getFreshValue() {
+      const result = (await execute(getTokenDocument, {
+        id,
+      })) as ExecutionResult<getTokenQuery>;
+      const { token: rawToken } = result.data ?? {};
+
+      if (!rawToken) {
+        return null;
+      }
+
+      const [collections, magicUSD] = await Promise.all([
+        fetchTroveCollections(getTokenCollectionAddresses(rawToken)),
+        fetchMagicUSD(),
+      ]);
+      return createPoolToken(rawToken, collections, magicUSD);
+    },
+  });
 
 export const fetchFilters = async (slug: string) => {
   const response = await fetch(
@@ -152,9 +172,7 @@ export const fetchCollectionOwnedByAddress = async (
 
 function getTokenIds(id: string) {
   return cachified({
-    reporter: verboseReporter(),
     key: `collection-${id}`,
-    cache,
     async getFreshValue() {
       const res = (await execute(getTokenDocument, {
         id,
@@ -168,7 +186,6 @@ function getTokenIds(id: string) {
 
       return tokenIds;
     },
-    ttl: 1000 * 60, // 1 minutes
   });
 }
 

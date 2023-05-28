@@ -1,5 +1,5 @@
-import type { LoaderArgs, MetaFunction } from "@remix-run/node";
-import { badRequest, image } from "remix-utils";
+import type { LoaderArgs } from "@remix-run/node";
+import { image } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";

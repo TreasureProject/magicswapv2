@@ -4,7 +4,6 @@ import { useNumberFieldState } from "@react-stately/numberfield";
 import React from "react";
 
 import { Input } from "./ui/Input";
-import { Label } from "./ui/Label";
 import { cn } from "~/lib/utils";
 
 export const NumberInput = ({
