@@ -8,9 +8,10 @@ function hydrate() {
   startTransition(() => {
     hydrateRoot(
       document,
-      <StrictMode>
-        <RemixBrowser />
-      </StrictMode>
+      // disable StrictMode for react-aria - https://github.com/adobe/react-spectrum/issues/4281
+      // <StrictMode>
+      <RemixBrowser />
+      // </StrictMode>
     );
   });
 }
