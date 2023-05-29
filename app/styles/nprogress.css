@@ -25,11 +25,11 @@
   width: 100px;
   height: 100%;
   box-shadow: 0 0 10px #b91c1c, 0 0 5px #b91c1c;
-  opacity: 1.0;
+  opacity: 1;
 
   -webkit-transform: rotate(3deg) translate(0px, -4px);
-      -ms-transform: rotate(3deg) translate(0px, -4px);
-          transform: rotate(3deg) translate(0px, -4px);
+  -ms-transform: rotate(3deg) translate(0px, -4px);
+  transform: rotate(3deg) translate(0px, -4px);
 }
 
 /* Remove these to get rid of the spinner */
@@ -39,14 +39,6 @@
   z-index: 1031;
   top: 15px;
   right: 15px;
-}
-
-@media screen and (max-width: 640px) {
-  #nprogress .spinner {
-    top: 22px;
-    right: auto;
-    left: 115px;
-  }
 }
 
 #nprogress .spinner-icon {
@@ -60,7 +52,19 @@
   border-radius: 50%;
 
   -webkit-animation: nprogress-spinner 400ms linear infinite;
-          animation: nprogress-spinner 400ms linear infinite;
+  animation: nprogress-spinner 400ms linear infinite;
+}
+
+@media screen and (max-width: 640px) {
+  #nprogress .spinner {
+    top: 12px;
+    right: 12px;
+  }
+
+  #nprogress .spinner-icon {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .nprogress-custom-parent {
@@ -74,11 +78,18 @@
 }
 
 @-webkit-keyframes nprogress-spinner {
-  0%   { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
 }
 @keyframes nprogress-spinner {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-
