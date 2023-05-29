@@ -35,12 +35,6 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: nProgressStyles },
 ];
 
-export const meta: V2_MetaFunction = () => [
-  { title: "Magicswap" },
-  { charSet: "utf-8" },
-  { name: "viewport", content: "width=device-width,initial-scale=1" },
-];
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const strictEntries = <T extends Record<string, any>>(
   object: T
@@ -112,6 +106,8 @@ export default function App() {
   return (
     <html lang="en" className="h-full">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
       </head>

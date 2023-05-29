@@ -31,17 +31,19 @@ const getPairCollectionAddresses = (pair: Pair) => [
   ]),
 ];
 
-export const fetchPoolTroveTokens = (pool: Pool[]) =>
-  fetchTroveTokens([
-    ...new Set([
-      ...pool.flatMap((pool) => [
-        ...new Set([
-          ...getTokenReserveItemIds(pool.token0),
-          ...getTokenReserveItemIds(pool.token1),
-        ]),
-      ]),
-    ]),
-  ]);
+export const fetchPoolTroveToken = async (pool: Pool) => {
+  return fetchTroveTokens([
+    ...getTokenReserveItemIds(pool.token0),
+    ...getTokenReserveItemIds(pool.token1),
+  ]).then((tokens) => ({
+    baseToken: pool.baseToken.vaultReserveItems.map((item) =>
+      itemToTroveTokenItem(item, tokens)
+    ),
+    quoteToken: pool.quoteToken.vaultReserveItems.map((item) =>
+      itemToTroveTokenItem(item, tokens)
+    ),
+  }));
+};
 
 export const fetchTransactions = async (pool: Pool) => {
   const result = (await execute(getPairTransactionsDocument, {

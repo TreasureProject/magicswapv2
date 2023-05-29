@@ -31,7 +31,7 @@ import type {
 } from "~/api/pools.server";
 import {
   fetchPool,
-  fetchPoolTroveTokens,
+  fetchPoolTroveToken,
   fetchTransactions,
 } from "~/api/pools.server";
 import { LoaderIcon } from "~/components/Icons";
@@ -101,7 +101,7 @@ export async function loader({ params, request }: LoaderArgs) {
     return defer({
       pool,
       inventory: null,
-      vaultItems: null,
+      vaultItems: fetchPoolTroveToken(pool),
       transactions: fetchTransactions(pool),
     });
   }
@@ -110,16 +110,7 @@ export async function loader({ params, request }: LoaderArgs) {
     pool,
     // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
     inventory: findInventories(address, pool.baseToken, pool.quoteToken),
-    vaultItems: fetchPoolTroveTokens([pool]).then((tokens) => {
-      return {
-        baseToken: pool.baseToken.vaultReserveItems.map((item) =>
-          itemToTroveTokenItem(item, tokens)
-        ),
-        quoteToken: pool.quoteToken.vaultReserveItems.map((item) =>
-          itemToTroveTokenItem(item, tokens)
-        ),
-      };
-    }),
+    vaultItems: fetchPoolTroveToken(pool),
     transactions: fetchTransactions(pool),
   });
 }

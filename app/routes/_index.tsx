@@ -1,3 +1,4 @@
+import type { V2_MetaFunction } from "@remix-run/react";
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/server-runtime";
 import { MagicLogo } from "@treasure-project/branding";
@@ -31,6 +32,8 @@ export async function loader() {
     stats,
   });
 }
+
+export const meta: V2_MetaFunction = () => [{ title: "Magicswap" }];
 
 export default function Homepage() {
   const { stats } = useLoaderData<typeof loader>();
