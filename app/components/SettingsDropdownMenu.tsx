@@ -10,15 +10,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/Popover";
-import { useSettingsStore } from "~/store/settings";
+import { useStore } from "~/hooks/useStore";
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 
 export const SettingsDropdownMenu = () => {
-  const { slippage, deadline, update } = useSettingsStore();
+  const state = useStore(useSettingsStore, (state) => state);
 
-  const [current, localUpdate] = useState({ slippage, deadline });
+  const [current, localUpdate] = useState({
+    slippage: state?.slippage,
+    deadline: state?.deadline,
+  });
 
   return (
-    <Popover onOpenChange={() => localUpdate({ slippage, deadline })}>
+    <Popover
+      onOpenChange={() =>
+        localUpdate({ slippage: state?.slippage, deadline: state?.deadline })
+      }
+    >
       <PopoverTrigger asChild>
         <Button variant="ghost">
           <SettingsIcon className="h-6 w-6 text-night-400" />
@@ -75,8 +83,8 @@ export const SettingsDropdownMenu = () => {
             variant="ghost"
             onClick={() =>
               localUpdate({
-                slippage,
-                deadline,
+                slippage: state?.slippage,
+                deadline: state?.deadline,
               })
             }
           >
@@ -86,9 +94,9 @@ export const SettingsDropdownMenu = () => {
             <Button
               variant="secondary"
               onClick={() =>
-                update({
-                  slippage: current.slippage,
-                  deadline: current.deadline,
+                state?.update({
+                  slippage: current.slippage || DEFAULT_SLIPPAGE,
+                  deadline: current.deadline || 30,
                 })
               }
             >

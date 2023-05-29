@@ -11,12 +11,13 @@ import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
+import { useStore } from "~/hooks/useStore";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { InventoryList, PoolToken } from "~/lib/tokens.server";
-import { useSettingsStore } from "~/store/settings";
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { NumberString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -33,7 +34,7 @@ export const PoolWithdrawTab = ({
   inventory,
 }: Props) => {
   const { address } = useAccount();
-  const { slippage } = useSettingsStore();
+  const slippage = useStore(useSettingsStore, (state) => state.slippage);
   const [{ amount: rawAmount, nfts }, setTransaction] = useState({
     amount: "0",
     nfts: [] as TroveTokenWithQuantity[],
@@ -61,10 +62,10 @@ export const PoolWithdrawTab = ({
     : rawAmountQuote;
   const amountBaseMin = pool.baseToken.isNFT
     ? amountBase
-    : getAmountMin(amountBase, slippage);
+    : getAmountMin(amountBase, slippage || DEFAULT_SLIPPAGE);
   const amountQuoteMin = pool.quoteToken.isNFT
     ? amountQuote
-    : getAmountMin(amountQuote, slippage);
+    : getAmountMin(amountQuote, slippage || DEFAULT_SLIPPAGE);
   const amountNFTs = pool.baseToken.isNFT
     ? amountBaseMin
     : pool.quoteToken.isNFT

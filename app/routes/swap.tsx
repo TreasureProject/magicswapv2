@@ -39,6 +39,7 @@ import {
 import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
+import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
 import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
@@ -48,7 +49,7 @@ import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import { getSession } from "~/sessions";
-import { useSettingsStore } from "~/store/settings";
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
   NumberString,
@@ -128,7 +129,7 @@ export default function SwapPage() {
   const amountIn = BigInt(amountInBN.toString());
   const amountOut = BigInt(amountOutBN.toString());
 
-  const { slippage, deadline } = useSettingsStore();
+  const state = useStore(useSettingsStore, (state) => state);
 
   const tokenInPoolId = legs.find(
     ({ tokenFrom }) => tokenFrom.address === tokenIn.id
@@ -341,11 +342,11 @@ export default function SwapPage() {
         <div className="mt-4 text-sm text-night-400">
           <div className="flex items-center justify-between">
             Slippage
-            <span>{formatPercent(slippage)}</span>
+            <span>{formatPercent(state?.slippage || DEFAULT_SLIPPAGE)}</span>
           </div>
           <div className="flex items-center justify-between">
             Deadline
-            <span>{deadline} Minutes</span>
+            <span>{state?.deadline || 30} Minutes</span>
           </div>
           {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
             <>

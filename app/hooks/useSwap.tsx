@@ -14,10 +14,11 @@ import {
   usePrepareMagicSwapV2RouterSwapTokensForExactTokens,
   usePrepareMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
+import { useStore } from "~/hooks/useStore";
 import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
-import { useSettingsStore } from "~/store/settings";
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -44,13 +45,15 @@ export const useSwap = ({
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const { slippage, deadline } = useSettingsStore();
+  const state = useStore(useSettingsStore, (state) => state);
 
   const isEnabled = enabled && !!address && !!tokenOut;
-  const amountInMax = isExactOut ? getAmountMax(amountIn, slippage) : amountIn;
+  const amountInMax = isExactOut
+    ? getAmountMax(amountIn, state?.slippage || DEFAULT_SLIPPAGE)
+    : amountIn;
   const amountOutMin = isExactOut
     ? amountOut
-    : getAmountMin(amountOut, slippage);
+    : getAmountMin(amountOut, state?.slippage || DEFAULT_SLIPPAGE);
   const collectionsIn = nftsIn.map(
     ({ collectionAddr }) => collectionAddr as AddressString
   );
@@ -61,7 +64,9 @@ export const useSwap = ({
   );
   const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
-  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
+  const deadlineBN = BigInt(
+    Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60
+  );
 
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =

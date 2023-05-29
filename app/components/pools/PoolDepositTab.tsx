@@ -13,12 +13,13 @@ import { PoolTokenInput } from "./PoolTokenInput";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
+import { useStore } from "~/hooks/useStore";
 import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { InventoryList, PoolToken } from "~/lib/tokens.server";
-import { useSettingsStore } from "~/store/settings";
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
   NumberString,
@@ -34,7 +35,7 @@ type Props = {
 
 export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
   const { address } = useAccount();
-  const { slippage } = useSettingsStore();
+  const slippage = useStore(useSettingsStore, (state) => state.slippage);
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
     useState({
       amount: "0",
@@ -110,8 +111,12 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
     pool,
     amountBase: amountA,
     amountQuote: amountB,
-    amountBaseMin: isExactB ? getAmountMin(amountA, slippage) : amountA,
-    amountQuoteMin: isExactB ? amountB : getAmountMin(amountB, slippage),
+    amountBaseMin: isExactB
+      ? getAmountMin(amountA, slippage || DEFAULT_SLIPPAGE)
+      : amountA,
+    amountQuoteMin: isExactB
+      ? amountB
+      : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
     nfts: isExactB ? nftsB : nftsA,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
   });

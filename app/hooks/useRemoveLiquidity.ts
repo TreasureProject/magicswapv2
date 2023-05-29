@@ -7,8 +7,9 @@ import {
   usePrepareMagicSwapV2RouterRemoveLiquidity,
   usePrepareMagicSwapV2RouterRemoveLiquidityNft,
 } from "~/generated";
+import { useStore } from "~/hooks/useStore";
 import type { Pool } from "~/lib/pools.server";
-import { useSettingsStore } from "~/store/settings";
+import { DEFAULT_DEADLINE, useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -29,10 +30,12 @@ export const useRemoveLiquidity = ({
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const { deadline } = useSettingsStore();
+  const deadline = useStore(useSettingsStore, (state) => state.deadline);
 
   const isEnabled = enabled && !!address;
-  const deadlineBN = BigInt(Math.floor(Date.now() / 1000) + deadline * 60);
+  const deadlineBN = BigInt(
+    Math.floor(Date.now() / 1000) + (deadline || DEFAULT_DEADLINE) * 60
+  );
   const isNFT = pool.baseToken.isNFT || pool.quoteToken.isNFT;
 
   const { config: tokenRemoveLiquidityConfig } =
