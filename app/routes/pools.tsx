@@ -1,12 +1,12 @@
-import { Link, useLoaderData } from "@remix-run/react";
+import { Await, Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
-import { json } from "@remix-run/server-runtime";
-import { useState } from "react";
+import { defer } from "@remix-run/server-runtime";
+import { Suspense, useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchUser } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
-import { PoolIcon } from "~/components/Icons";
+import { LoaderIcon, PoolIcon } from "~/components/Icons";
 import { Tabs } from "~/components/Tabs";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Button } from "~/components/ui/Button";
@@ -19,17 +19,22 @@ export async function loader({ request }: LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const address = session.get("address");
 
-  const [pools, user] = await Promise.all([
-    fetchPools(),
-    address ? fetchUser(address) : undefined,
-  ]);
-  return json({
-    pools,
-    user,
+  if (!address) {
+    return defer({
+      pools: await fetchPools(),
+      user: null,
+    });
+  }
+
+  return defer({
+    pools: await fetchPools(),
+    user: fetchUser(address),
   });
 }
 
 const PoolsTable = ({ pools }: { pools: Pool[] }) => {
+  if (pools.length === 0) return null;
+
   return (
     <div>
       <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
@@ -153,7 +158,13 @@ export default function PoolsListPage() {
             title: (
               <div className="flex items-center justify-center gap-2">
                 Your Positions
-                <Badge>{user?.liquidityPositionCount ?? 0}</Badge>
+                <Suspense fallback={<LoaderIcon className="h-4 w-4" />}>
+                  <Await resolve={user}>
+                    {(user) => (
+                      <Badge>{user?.liquidityPositionCount ?? 0}</Badge>
+                    )}
+                  </Await>
+                </Suspense>
               </div>
             ),
           },
@@ -163,29 +174,35 @@ export default function PoolsListPage() {
       />
       {tab === "all" && <PoolsTable pools={pools} />}
       {tab === "user" && (
-        <>
-          {!user?.liquidityPositionCount && (
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
-              {/* <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
-              <span className="text-xl">
-                {user?.liquidityPositionCount ?? 0}
-              </span>
-              <span className="text-sm text-night-300">Open Positions</span>
+        <Suspense
+          fallback={
+            <div className="flex h-96 items-center justify-center">
+              <LoaderIcon className="h-10 w-auto" />
             </div>
-            <div className="flex flex-col items-center justify-center gap-1 rounded-lg bg-night-1000 p-4">
-              <span className="text-xl">?</span>
-              <span className="text-sm text-night-300">Rewards Earned</span>
-            </div> */}
-              <div className="col-span-2 flex flex-col items-center justify-center gap-1.5 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
-                <p>You currently do not have any open positions.</p>
-                <Button onClick={() => setTab("all")}>
-                  Create a new position
-                </Button>
-              </div>
-            </div>
-          )}
-          <PoolsTable pools={user?.pools ?? []} />
-        </>
+          }
+        >
+          <Await resolve={user}>
+            {(user) => {
+              console.log({ user });
+              return (
+                <>
+                  {!user?.liquidityPositionCount && (
+                    <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
+                      <div className="col-span-2 flex flex-col items-center justify-center space-y-6 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
+                        <p>You currently do not have any open positions.</p>
+                        <Button onClick={() => setTab("all")}>
+                          Create a new position
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {user?.pools ? <PoolsTable pools={user.pools} /> : null}
+                </>
+              );
+            }}
+          </Await>
+        </Suspense>
       )}
     </main>
   );

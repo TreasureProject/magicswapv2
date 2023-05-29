@@ -19,7 +19,7 @@ import {
   ExternalLinkIcon,
   PlusIcon,
 } from "lucide-react";
-import { Fragment, Suspense, useState } from "react";
+import React, { Fragment, Suspense as ReactSuspense, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
@@ -60,6 +60,18 @@ import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import type { AddressString, Optional } from "~/types";
+
+const Suspense = ({ children }: { children: React.ReactNode }) => (
+  <ReactSuspense
+    fallback={
+      <div className="flex h-96 items-center justify-center">
+        <LoaderIcon className="h-10 w-auto" />
+      </div>
+    }
+  >
+    {children}
+  </ReactSuspense>
+);
 
 export const meta: V2_MetaFunction<
   typeof loader,
@@ -363,7 +375,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <Suspense fallback={<div className="h-96" />}>
+        <Suspense>
           <Await resolve={transactions}>
             {(transactions) => (
               <PoolActivityTable
@@ -381,7 +393,7 @@ export default function PoolDetailsPage() {
               Pool Inventory
             </h3>
             {pool.baseToken.isNFT && (
-              <Suspense fallback={<div className="h-96" />}>
+              <Suspense>
                 <Await resolve={vaultItems}>
                   {(vaultItems) => {
                     const targetVault = vaultItems?.baseToken;
@@ -399,7 +411,7 @@ export default function PoolDetailsPage() {
               </Suspense>
             )}
             {pool.quoteToken.isNFT && (
-              <Suspense fallback={<div className="h-96" />}>
+              <Suspense>
                 <Await resolve={vaultItems}>
                   {(vaultItems) => {
                     const targetVault = vaultItems?.quoteToken;
@@ -519,7 +531,7 @@ const PoolActivityTable = ({
     );
 
   return (
-    <Suspense fallback={<div className="h-96" />}>
+    <Suspense>
       <Await resolve={transactions}>
         {(transactions) => (
           <div>
