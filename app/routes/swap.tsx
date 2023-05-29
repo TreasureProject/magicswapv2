@@ -421,6 +421,7 @@ const SwapTokenInput = ({
   className?: string;
 }) => {
   const { tokens } = useLoaderData<typeof loader>();
+  const { isConnected } = useAccount();
   const location = useLocation();
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
@@ -500,40 +501,49 @@ const SwapTokenInput = ({
                 </div>
               </div>
             ) : (
-              <>
-                <Dialog
-                  open={openSelectionModal}
-                  onOpenChange={setOpenSelectionModal}
-                >
-                  {openSelectionModal && (
-                    <SelectionPopup
-                      type={isOut ? "vault" : "inventory"}
-                      token={token}
-                      selectedTokens={selectedNfts}
-                      onSubmit={onSelectNfts}
-                    />
-                  )}
-                </Dialog>
-                <Button
-                  variant="dark"
-                  size="md"
-                  onClick={() => setOpenSelectionModal(true)}
-                >
-                  Select Items
-                </Button>
-              </>
+              <ClientOnly>
+                {() => (
+                  <>
+                    <Dialog
+                      open={openSelectionModal}
+                      onOpenChange={setOpenSelectionModal}
+                    >
+                      {openSelectionModal && (
+                        <SelectionPopup
+                          type={isOut ? "vault" : "inventory"}
+                          token={token}
+                          selectedTokens={selectedNfts}
+                          onSubmit={onSelectNfts}
+                        />
+                      )}
+                    </Dialog>
+                    <Button
+                      variant="dark"
+                      size="md"
+                      disabled={!isConnected}
+                      onClick={() => setOpenSelectionModal(true)}
+                    >
+                      Select Items
+                    </Button>
+                  </>
+                )}
+              </ClientOnly>
             )
           ) : (
-            <>
-              <CurrencyInput
-                value={amount}
-                onChange={onUpdateAmount}
-                disabled={!!otherToken?.isNFT}
-              />
-              <span className="block text-sm text-night-400">
-                {formatUSD(amountPriceUSD)}
-              </span>
-            </>
+            <ClientOnly>
+              {() => (
+                <>
+                  <CurrencyInput
+                    value={amount}
+                    onChange={onUpdateAmount}
+                    disabled={!!otherToken?.isNFT || !isConnected}
+                  />
+                  <span className="block text-sm text-night-400">
+                    {formatUSD(amountPriceUSD)}
+                  </span>
+                </>
+              )}
+            </ClientOnly>
           )}
         </div>
       </div>

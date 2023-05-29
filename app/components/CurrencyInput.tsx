@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 
+import { Input } from "./ui/Input";
 import { cn } from "~/lib/utils";
 
 type Props = Omit<
@@ -26,9 +27,12 @@ export const CurrencyInput = ({
   };
 
   return (
-    <input
+    <Input
       type="text"
-      className={cn("bg-transparent text-right", className)}
+      className={cn(
+        "border-none p-0 text-right text-base focus-visible:ring-0 focus-visible:ring-offset-0",
+        className
+      )}
       placeholder="0.00"
       value={value === "0" ? "" : value}
       onChange={handleChange}
