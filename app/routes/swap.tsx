@@ -4,12 +4,13 @@ import {
   Link,
   useLoaderData,
   useLocation,
+  useRevalidator,
   useSearchParams,
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
 import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
@@ -38,6 +39,7 @@ import {
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
+import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
@@ -108,6 +110,8 @@ export default function SwapPage() {
       nftsOut: [] as TroveTokenWithQuantity[],
       isExactOut: false,
     });
+
+  const revalidator = useRevalidator();
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -241,6 +245,13 @@ export default function SwapPage() {
       nftsOut: [],
     }));
   }, [tokenOut?.id]);
+
+  useFocusInterval(
+    useCallback(() => {
+      revalidator.revalidate();
+    }, [revalidator]),
+    5000
+  );
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">

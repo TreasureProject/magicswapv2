@@ -8,6 +8,7 @@ import {
   Await,
   Link,
   useLoaderData,
+  useRevalidator,
   useRouteLoaderData,
 } from "@remix-run/react";
 import { AnimatePresence } from "framer-motion";
@@ -19,7 +20,12 @@ import {
   ExternalLinkIcon,
   PlusIcon,
 } from "lucide-react";
-import React, { Fragment, Suspense as ReactSuspense, useState } from "react";
+import React, {
+  Fragment,
+  Suspense as ReactSuspense,
+  useCallback,
+  useState,
+} from "react";
 import { ClientOnly } from "remix-utils";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
@@ -48,6 +54,7 @@ import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
+import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
@@ -55,7 +62,7 @@ import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken, TroveTokenItem } from "~/lib/tokens.server";
-import { findInventories, itemToTroveTokenItem } from "~/lib/tokens.server";
+import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -143,6 +150,15 @@ export default function PoolDetailsPage() {
   const lpBalance = rawLpBalance?.value ?? BigInt(0);
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+
+  const revalidator = useRevalidator();
+
+  useFocusInterval(
+    useCallback(() => {
+      revalidator.revalidate();
+    }, [revalidator]),
+    5000
+  );
 
   return (
     <main className="container">
