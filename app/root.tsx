@@ -23,7 +23,6 @@ import { arbitrum, arbitrumGoerli } from "wagmi/chains";
 import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
-import { SettingsProvider } from "./contexts/settings";
 import { getDomainUrl } from "./lib/seo";
 import { cn } from "./lib/utils";
 import nProgressStyles from "./styles/nprogress.css";
@@ -116,9 +115,7 @@ export default function App() {
           <ConnectKitProvider>
             <Layout>
               <AccountProvider>
-                <SettingsProvider>
-                  <Outlet />
-                </SettingsProvider>
+                <Outlet />
               </AccountProvider>
             </Layout>
           </ConnectKitProvider>

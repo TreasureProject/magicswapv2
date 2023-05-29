@@ -48,6 +48,7 @@ import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import { getSession } from "~/sessions";
+import { useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
   NumberString,
@@ -126,6 +127,8 @@ export default function SwapPage() {
 
   const amountIn = BigInt(amountInBN.toString());
   const amountOut = BigInt(amountOutBN.toString());
+
+  const { slippage, deadline } = useSettingsStore();
 
   const tokenInPoolId = legs.find(
     ({ tokenFrom }) => tokenFrom.address === tokenIn.id
@@ -335,49 +338,59 @@ export default function SwapPage() {
             )}
           </ClientOnly>
         </div>
-        {!!poolTokenIn && !!poolTokenOut && hasAmounts && (
-          <div className="mt-4 text-sm text-night-400">
-            <div className="flex items-center justify-between">
-              Price Impact
-              <span>-{formatPercent(priceImpact)}</span>
-            </div>
-            {lpFee > 0 && (
-              <div className="flex items-center justify-between">
-                Liquidity Provider Fee
-                <span>{formatPercent(lpFee)}</span>
-              </div>
-            )}
-            {protocolFee > 0 && (
-              <div className="flex items-center justify-between">
-                Protocol Fee
-                <span>{formatPercent(protocolFee)}</span>
-              </div>
-            )}
-            {royaltiesFee > 0 && (
-              <div className="flex items-center justify-between">
-                Royalties Fee
-                <span>{formatPercent(royaltiesFee)}</span>
-              </div>
-            )}
-            {isExactOut ? (
-              <div className="flex items-center justify-between">
-                Maximum spent
-                <span>
-                  {formatTokenAmount(amountInMax, poolTokenIn.decimals)}{" "}
-                  {poolTokenIn.symbol}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                Minimum received
-                <span>
-                  {formatTokenAmount(amountOutMin, poolTokenOut.decimals)}{" "}
-                  {poolTokenOut.symbol}
-                </span>
-              </div>
-            )}
+        <div className="mt-4 text-sm text-night-400">
+          <div className="flex items-center justify-between">
+            Slippage
+            <span>{formatPercent(slippage)}</span>
           </div>
-        )}
+          <div className="flex items-center justify-between">
+            Deadline
+            <span>{deadline} Minutes</span>
+          </div>
+          {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
+            <>
+              <div className="flex items-center justify-between">
+                Price Impact
+                <span>-{formatPercent(priceImpact)}</span>
+              </div>
+              {lpFee > 0 && (
+                <div className="flex items-center justify-between">
+                  Liquidity Provider Fee
+                  <span>{formatPercent(lpFee)}</span>
+                </div>
+              )}
+              {protocolFee > 0 && (
+                <div className="flex items-center justify-between">
+                  Protocol Fee
+                  <span>{formatPercent(protocolFee)}</span>
+                </div>
+              )}
+              {royaltiesFee > 0 && (
+                <div className="flex items-center justify-between">
+                  Royalties Fee
+                  <span>{formatPercent(royaltiesFee)}</span>
+                </div>
+              )}
+              {isExactOut ? (
+                <div className="flex items-center justify-between">
+                  Maximum spent
+                  <span>
+                    {formatTokenAmount(amountInMax, poolTokenIn.decimals)}{" "}
+                    {poolTokenIn.symbol}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  Minimum received
+                  <span>
+                    {formatTokenAmount(amountOutMin, poolTokenOut.decimals)}{" "}
+                    {poolTokenOut.symbol}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : null}
+        </div>
       </div>
     </main>
   );

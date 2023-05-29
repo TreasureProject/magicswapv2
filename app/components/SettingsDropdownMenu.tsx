@@ -1,19 +1,24 @@
 import { SettingsIcon } from "lucide-react";
+import { useState } from "react";
 
 import { NumberInput } from "./NumberInput";
 import { Button } from "./ui/Button";
 import { Label } from "./ui/Label";
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/Popover";
-import { useSettings } from "~/contexts/settings";
+import { useSettingsStore } from "~/store/settings";
 
 export const SettingsDropdownMenu = () => {
-  const { slippage, deadline, updateSlippage, updateDeadline } = useSettings();
+  const { slippage, deadline, update } = useSettingsStore();
+
+  const [current, localUpdate] = useState({ slippage, deadline });
+
   return (
-    <Popover>
+    <Popover onOpenChange={() => localUpdate({ slippage, deadline })}>
       <PopoverTrigger asChild>
         <Button variant="ghost">
           <SettingsIcon className="h-6 w-6 text-night-400" />
@@ -28,9 +33,9 @@ export const SettingsDropdownMenu = () => {
             </Label>
             <NumberInput
               id="settingsSlippage"
-              className="col-span-2 px-2 py-1.5"
-              value={slippage}
-              onChange={updateSlippage}
+              className="col-span-2 py-1.5"
+              value={current.slippage}
+              onChange={(value) => localUpdate({ ...current, slippage: value })}
               minValue={0.001}
               maxValue={0.49}
               placeholder="0.5%"
@@ -50,9 +55,9 @@ export const SettingsDropdownMenu = () => {
             </Label>
             <NumberInput
               id="settingsDeadline"
-              className="col-span-2 px-2 py-1.5"
-              value={deadline}
-              onChange={updateDeadline}
+              className="col-span-2 py-1.5"
+              value={current.deadline}
+              onChange={(value) => localUpdate({ ...current, deadline: value })}
               minValue={1}
               maxValue={60}
               placeholder="20"
@@ -64,6 +69,32 @@ export const SettingsDropdownMenu = () => {
               </div>
             </NumberInput>
           </div>
+        </div>
+        <div className="ml-auto mt-4 flex w-max space-x-1">
+          <Button
+            variant="ghost"
+            onClick={() =>
+              localUpdate({
+                slippage,
+                deadline,
+              })
+            }
+          >
+            Reset
+          </Button>
+          <PopoverClose asChild>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                update({
+                  slippage: current.slippage,
+                  deadline: current.deadline,
+                })
+              }
+            >
+              Save
+            </Button>
+          </PopoverClose>
         </div>
       </PopoverContent>
     </Popover>

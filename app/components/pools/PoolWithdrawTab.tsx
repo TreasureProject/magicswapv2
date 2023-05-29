@@ -8,7 +8,6 @@ import { PoolInput } from "./PoolInput";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { useAccount } from "~/contexts/account";
-import { useSettings } from "~/contexts/settings";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
@@ -17,6 +16,7 @@ import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { InventoryList, PoolToken } from "~/lib/tokens.server";
+import { useSettingsStore } from "~/store/settings";
 import type { NumberString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -33,7 +33,7 @@ export const PoolWithdrawTab = ({
   inventory,
 }: Props) => {
   const { address } = useAccount();
-  const { slippage } = useSettings();
+  const { slippage } = useSettingsStore();
   const [{ amount: rawAmount, nfts }, setTransaction] = useState({
     amount: "0",
     nfts: [] as TroveTokenWithQuantity[],

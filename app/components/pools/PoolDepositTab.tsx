@@ -10,7 +10,6 @@ import { Dialog } from "../ui/Dialog";
 import { PoolImage } from "./PoolImage";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
-import { useSettings } from "~/contexts/settings";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
@@ -19,6 +18,7 @@ import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { InventoryList, PoolToken } from "~/lib/tokens.server";
+import { useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
   NumberString,
@@ -34,7 +34,7 @@ type Props = {
 
 export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
   const { address } = useAccount();
-  const { slippage } = useSettings();
+  const { slippage } = useSettingsStore();
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
     useState({
       amount: "0",

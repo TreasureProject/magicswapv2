@@ -2,7 +2,6 @@ import { formatUnits } from "viem";
 import { useWaitForTransaction } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
-import { useSettings } from "~/contexts/settings";
 import {
   useMagicSwapV2RouterSwapExactTokensForTokens,
   useMagicSwapV2RouterSwapNftForNft,
@@ -18,6 +17,7 @@ import {
 import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
+import { useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -44,7 +44,7 @@ export const useSwap = ({
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const { slippage, deadline } = useSettings();
+  const { slippage, deadline } = useSettingsStore();
 
   const isEnabled = enabled && !!address && !!tokenOut;
   const amountInMax = isExactOut ? getAmountMax(amountIn, slippage) : amountIn;
