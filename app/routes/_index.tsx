@@ -1,7 +1,5 @@
 import type { V2_MetaFunction } from "@remix-run/react";
-import { Link, useLoaderData } from "@remix-run/react";
-import { json } from "@remix-run/server-runtime";
-import { MagicLogo } from "@treasure-project/branding";
+import { Link } from "@remix-run/react";
 import { motion } from "framer-motion";
 import {
   ChevronRight as ChevronRightIcon,
@@ -11,32 +9,21 @@ import {
 import collectionsImage from "../assets/collections.png";
 import magicIllustration from "../assets/magic_illustration.png";
 import tokenGraphicImage from "../assets/token_graphic.png";
-import { fetchStats } from "~/api/stats.server";
-import {
-  ChartIcon,
-  ExchangeIcon,
-  FlatMagicIcon,
-  PoolIcon,
-  RoyaltiesIcon,
-  SweepIcon,
-} from "~/assets/Svgs";
+import { PoolIcon, RoyaltiesIcon, SweepIcon } from "~/assets/Svgs";
 import InfoCard from "~/components/Landing/InfoCard";
-import StatisticCard from "~/components/Landing/StatisticCard";
 import { Button } from "~/components/ui/Button";
-import { formatUSD } from "~/lib/currency";
-import { formatNumber } from "~/lib/number";
 import { getSocialMetas, getUrl } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 
-export async function loader() {
-  const stats = await fetchStats();
-  return json({
-    stats,
-  });
-}
+// export async function loader() {
+//   const stats = await fetchStats();
+//   return json({
+//     stats,
+//   });
+// }
 
 export const meta: V2_MetaFunction<
-  typeof loader,
+  unknown, // typeof loader,
   {
     root: RootLoader;
   }
@@ -53,7 +40,6 @@ export const meta: V2_MetaFunction<
 };
 
 export default function Homepage() {
-  const { stats } = useLoaderData<typeof loader>();
   return (
     <div className="max-w-screen mb-24 overflow-x-hidden">
       <div className="ruby-glow h-[548px] w-screen border-b border-b-night-800">
@@ -70,7 +56,7 @@ export default function Homepage() {
               }}
               className="max-w-lg text-center text-4xl font-bold leading-[120%] text-night-100"
             >
-              The Gateway to the cross-game economy.
+              The gateway to the cross-game economy.
             </motion.h1>
             <motion.p
               className="text-center text-night-300"
@@ -133,7 +119,7 @@ export default function Homepage() {
           </motion.button>
         </div>
       </div>
-      <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
+      {/* <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
         <motion.div
           className="div"
           initial={{
@@ -214,7 +200,7 @@ export default function Homepage() {
             title="NFTs Supplied"
           />
         </motion.div>
-      </div>
+      </div> */}
       <motion.div
         className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row"
         initial={{ opacity: 0 }}
