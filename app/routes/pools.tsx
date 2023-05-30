@@ -48,6 +48,7 @@ export const meta: V2_MetaFunction<
 
   return getSocialMetas({
     url,
+    title: "Liquidity Pools",
     image: "/img/pools_banner.png",
   });
 };
