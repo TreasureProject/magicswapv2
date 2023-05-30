@@ -72,9 +72,9 @@ export default function Homepage() {
                 delay: 0.2,
               }}
             >
-              Buy, Sell, Swap{" "}
-              <span className="text-medium uppercase text-honey-800">any</span>{" "}
-              token using Magicswap’s AMM
+              Buy, sell, swap{" "}
+              <span className="text-medium text-honey-800">any</span> token type
+              using Magicswap’s AMM
             </motion.p>
           </div>
           <motion.div
@@ -212,7 +212,7 @@ export default function Homepage() {
             Universal Token Compatibility
           </h1>
           <p className="text-md max-w-[80%] text-center leading-[160%] text-night-500 md:max-w-none md:text-start  lg:text-lg">
-            Support pools for both ERC-20s and NFTs through a single router, and
+            Support pools for both ERC-20s and NFTs through a single router and
             enable trading of all items within game economies.
           </p>
           <button className="flex  items-center gap-2 text-night-500 transition-colors hover:text-night-100 ">
@@ -240,20 +240,20 @@ export default function Homepage() {
           <InfoCard
             Icon={RoyaltiesIcon}
             title="Automated Royalties"
-            description="Automated royalties that can be set for each pool- a feature that is directly integrated into the pool creation progress."
-            link="e"
+            description="Magicswap pools utilize a three-tiered royalty system that includes fees for LPs, project creators, and the protocol."
+            link="/"
           />
           <InfoCard
             Icon={PoolIcon}
             title="NFT:NFT Pools"
             description="Magicswap allows projects to create pools that use an ERC-1155 as the base pair, a first for NFT AMMs."
-            link="e"
+            link="/"
           />
           <InfoCard
             Icon={SweepIcon}
             title="Sweeping"
             description="Magicswap allows user to sweep any number of NFTs from the pools."
-            link="e"
+            link="/"
           />
         </div>
       </motion.div>
@@ -270,12 +270,10 @@ export default function Homepage() {
           <p className="text-md relative z-10 max-w-3xl leading-[160%] text-night-400 md:text-lg">
             Magicswap utilizes{" "}
             <span className="font-medium uppercase text-night-100">$MAGIC</span>{" "}
-            as the governance as well as fee token. The protocol will also
-            collect the royalties currently in place on the Trove marketplace:{" "}
-            <span className="font-medium text-honey-100">2.5% for the DAO</span>{" "}
-            and a variable{" "}
-            <span className="font-medium text-night-600">0-20%</span> for the
-            project creator
+            as the governance and fee token. The protocol collects a{" "}
+            <span className="font-medium text-honey-100">2.5% base fee</span>{" "}
+            for transactions with additional fees for projects and LPs set by
+            the pool creator.
           </p>
           <img
             src={magicIllustration}
