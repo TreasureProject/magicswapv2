@@ -1,4 +1,5 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import type { V2_MetaFunction } from "@remix-run/react";
 import {
   Await,
   Link,
@@ -48,8 +49,10 @@ import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
+import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
@@ -57,6 +60,28 @@ import type {
   NumberString,
   TroveTokenWithQuantity,
 } from "~/types";
+
+export const meta: V2_MetaFunction<
+  typeof loader,
+  {
+    root: RootLoader;
+  }
+> = ({ matches, data, location }) => {
+  const requestInfo = matches.find((match) => match.id === "root")?.data
+    .requestInfo;
+
+  const url = getUrl(requestInfo);
+
+  return getSocialMetas({
+    url,
+    title: generateTitle(
+      `Swap ${data?.tokenIn.symbol} to ${data?.tokenOut?.symbol}`
+    ),
+    image: data?.tokenOut
+      ? `${url}.png${location.search}`
+      : "/img/default_banner.png",
+  });
+};
 
 export async function loader({ request }: LoaderArgs) {
   const pools = await fetchPools();
@@ -294,7 +319,12 @@ export default function SwapPage() {
         />
         <Link
           to={`/swap?in=${tokenOut?.id}&out=${tokenIn.id}`}
-          className="group relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25"
+          aria-disabled={!tokenOut?.id ? "true" : "false"}
+          onClick={(e) => !tokenOut?.id && e.preventDefault()}
+          className={cn(
+            "relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25",
+            !tokenOut?.id ? "cursor-not-allowed text-night-800" : "group"
+          )}
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>

@@ -30,7 +30,7 @@ export const CurrencyInput = ({
     <Input
       type="text"
       className={cn(
-        "border-none p-0 text-right text-base focus-visible:ring-0 focus-visible:ring-offset-0",
+        "h-auto border-none p-0 text-right text-base focus-visible:ring-0 focus-visible:ring-offset-0",
         className
       )}
       placeholder="0.00"

@@ -41,14 +41,14 @@ const strictEntries = <T extends Record<string, any>>(
   return Object.entries(object);
 };
 
-function getPublicKeys(env: Env): Env {
+function getPublicKeys(env: Env) {
   const publicKeys = {} as Env;
   for (const [key, value] of strictEntries(env)) {
     if (key.startsWith("PUBLIC_")) {
       publicKeys[key] = value;
     }
   }
-  return publicKeys;
+  return publicKeys as Pick<Env, keyof Env & `PUBLIC_${string}`>;
 }
 
 export const loader = async ({ request }: LoaderArgs) => {

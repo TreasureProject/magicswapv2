@@ -9,11 +9,9 @@ import {
   MagicSwapLogoFull,
   NIGHT_100,
   NIGHT_400,
+  TokenDisplay,
   generateOgImage,
 } from "~/lib/og.server";
-
-export const OG_IMAGE_WIDTH = 1200;
-export const OG_IMAGE_HEIGHT = 600;
 
 const PILL_BG = "rgba(64, 70, 82, 0.6)";
 
@@ -31,39 +29,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     <div tw="flex p-16 w-full">
       <div tw="flex justify-between flex-col">
         <MagicSwapLogoFull />
-        <div tw="flex">
-          <img
-            src={
-              baseToken?.isNFT
-                ? baseToken?.image
-                : `${origin}${baseToken?.image}`
-            }
-            height={132}
-            width={132}
-            tw={baseToken?.isNFT ? "rounded-lg" : "rounded-full"}
-            alt="banner"
-          />
-          <div
-            tw="rounded-full flex items-center justify-center -ml-10 relative"
-            style={{
-              width: 136,
-              height: 136,
-              backgroundColor: "rgba(13, 20, 32, 1)",
-            }}
-          >
-            <img
-              src={
-                quoteToken?.isNFT
-                  ? quoteToken?.image
-                  : `${origin}${quoteToken?.image}`
-              }
-              height={124}
-              width={124}
-              tw={quoteToken?.isNFT ? "rounded-lg" : "rounded-full"}
-              alt="banner"
-            />
-          </div>
-        </div>
+        <TokenDisplay token0={baseToken} token1={quoteToken} origin={origin} />
         <div tw="flex flex-col">
           <div
             tw="flex font-bold text-5xl"
@@ -215,7 +181,6 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         </div>
       </div>
     </div>,
-
     origin
   );
 

@@ -2,7 +2,10 @@ import { Resvg } from "@resvg/resvg-js";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
-import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "~/routes/resources.og";
+import type { PoolToken } from "./tokens.server";
+
+export const OG_IMAGE_WIDTH = 1200;
+export const OG_IMAGE_HEIGHT = 600;
 
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
@@ -88,6 +91,51 @@ export const NIGHT_100 = "#E7E8E9";
 export const NIGHT_200 = "#CFD1D4";
 
 export const NIGHT_400 = "#9FA3A9";
+
+export const TokenDisplay = ({
+  token0,
+  token1,
+  origin,
+}: {
+  token0?: PoolToken | null;
+  token1?: PoolToken | null;
+  origin: string;
+}) => (
+  <div tw="flex items-center">
+    <img
+      src={token0?.isNFT ? token0?.image : `${origin}${token0?.image}`}
+      height={132}
+      width={132}
+      tw={token0?.isNFT ? "rounded-lg" : "rounded-full"}
+      alt="banner"
+    />
+    <div
+      tw={`${
+        token1?.isNFT ? "rounded-xl" : "rounded-full"
+      } flex items-center justify-center -ml-10 relative`}
+      style={{
+        ...(token1?.isNFT
+          ? {
+              width: 128,
+              height: 128,
+            }
+          : {
+              width: 136,
+              height: 136,
+            }),
+        backgroundColor: "rgba(16, 24, 39, 1)",
+      }}
+    >
+      <img
+        src={token1?.isNFT ? token1?.image : `${origin}${token1?.image}`}
+        height={token1?.isNFT ? 116 : 124}
+        width={token1?.isNFT ? 116 : 124}
+        tw={token1?.isNFT ? "rounded-lg" : "rounded-full"}
+        alt="banner"
+      />
+    </div>
+  </div>
+);
 
 export const generateOgImage = async (
   content: React.ReactNode,
