@@ -75,7 +75,9 @@ export const meta: V2_MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `Swap ${data?.tokenIn.symbol} to ${data?.tokenOut?.symbol}`
+      data?.tokenOut
+        ? `Swap ${data?.tokenIn.symbol} to ${data?.tokenOut.symbol}`
+        : "Swap"
     ),
     image: data?.tokenOut
       ? `${url}.png${location.search}`

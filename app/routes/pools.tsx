@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/Button";
 import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
-import { getSocialMetas, getUrl } from "~/lib/seo";
+import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 
@@ -48,7 +48,7 @@ export const meta: V2_MetaFunction<
 
   return getSocialMetas({
     url,
-    title: "Liquidity Pools",
+    title: generateTitle("Liquidity Pools"),
     image: "/img/pools_banner.png",
   });
 };
