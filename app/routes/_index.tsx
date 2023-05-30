@@ -25,6 +25,8 @@ import StatisticCard from "~/components/Landing/StatisticCard";
 import { Button } from "~/components/ui/Button";
 import { formatUSD } from "~/lib/currency";
 import { formatNumber } from "~/lib/number";
+import { getSocialMetas, getUrl } from "~/lib/seo";
+import type { RootLoader } from "~/root";
 
 export async function loader() {
   const stats = await fetchStats();
@@ -33,7 +35,22 @@ export async function loader() {
   });
 }
 
-export const meta: V2_MetaFunction = () => [{ title: "Magicswap" }];
+export const meta: V2_MetaFunction<
+  typeof loader,
+  {
+    root: RootLoader;
+  }
+> = ({ matches }) => {
+  const requestInfo = matches.find((match) => match.id === "root")?.data
+    .requestInfo;
+
+  const url = getUrl(requestInfo);
+
+  return getSocialMetas({
+    url,
+    image: "/img/default_banner.png",
+  });
+};
 
 export default function Homepage() {
   const { stats } = useLoaderData<typeof loader>();

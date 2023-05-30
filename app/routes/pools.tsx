@@ -1,3 +1,4 @@
+import type { V2_MetaFunction } from "@remix-run/react";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
@@ -13,6 +14,8 @@ import { Button } from "~/components/ui/Button";
 import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
+import { getSocialMetas, getUrl } from "~/lib/seo";
+import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 
 export async function loader({ request }: LoaderArgs) {
@@ -31,6 +34,23 @@ export async function loader({ request }: LoaderArgs) {
     user: fetchUser(address),
   });
 }
+
+export const meta: V2_MetaFunction<
+  typeof loader,
+  {
+    root: RootLoader;
+  }
+> = ({ matches }) => {
+  const requestInfo = matches.find((match) => match.id === "root")?.data
+    .requestInfo;
+
+  const url = getUrl(requestInfo);
+
+  return getSocialMetas({
+    url,
+    image: "/img/pools_banner.png",
+  });
+};
 
 const PoolsTable = ({ pools }: { pools: Pool[] }) => {
   if (pools.length === 0) return null;
