@@ -80,7 +80,7 @@ export const meta: V2_MetaFunction<
         : "Swap"
     ),
     image: data?.tokenOut
-      ? `${url}.png${location.search}`
+      ? `${url}/${data?.tokenIn.id}/${data?.tokenOut.id}.png`
       : "/img/default_banner.png",
   });
 };

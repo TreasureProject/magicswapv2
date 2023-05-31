@@ -12,10 +12,10 @@ import {
 } from "~/lib/og.server";
 
 export const loader = async ({ request, params }: LoaderArgs) => {
-  const { origin, searchParams } = new URL(request.url);
+  const { origin } = new URL(request.url);
 
-  const inputAddress = searchParams.get("in");
-  const outputAddress = searchParams.get("out");
+  const inputAddress = params.tokenIn;
+  const outputAddress = params.tokenOut;
 
   invariant(outputAddress, "Missing output address");
 
