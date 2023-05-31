@@ -742,7 +742,7 @@ const TokenSelectDialog = ({
                   </div>
                   <button
                     onClick={() => onSelect(token)}
-                    className="absolute inset-0"
+                    className="absolute inset-0 h-full w-full"
                   />
                 </li>
               ))}

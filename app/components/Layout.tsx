@@ -188,7 +188,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
           </div>
         </>
       )}
-      <button className="absolute inset-0" onClick={openProfile}>
+      <button className="absolute inset-0 h-full w-full" onClick={openProfile}>
         <span className="sr-only">Open Profile</span>
       </button>
     </div>

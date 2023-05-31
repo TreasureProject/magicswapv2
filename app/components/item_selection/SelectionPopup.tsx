@@ -73,7 +73,7 @@ const ItemCard = ({
         </div>
         {!viewOnly && (
           <button
-            className="absolute inset-0"
+            className="absolute inset-0 h-full w-full"
             onClick={onClick}
             disabled={disableUnselected}
           >
