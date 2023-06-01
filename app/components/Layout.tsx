@@ -1,6 +1,7 @@
 import { Link, NavLink, useFetcher } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Avatar, ConnectKitButton, useModal } from "connectkit";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, InfoIcon, MenuIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -136,6 +137,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
 
   const { openProfile } = useModal();
+  const [error, setError] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams({
       address,
@@ -165,32 +167,54 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
     (domain?.treasuretag?.pfp || domain?.smol?.pfp || domain?.ens?.pfp);
 
   return (
-    <div className="relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
-      {!data && state === "loading" ? (
-        <div className="px-2">
-          <LoaderIcon className="h-5 w-5" />
-        </div>
-      ) : (
-        <>
-          {image ? (
-            <img src={image} alt={name} className="h-9 w-auto" />
-          ) : (
-            <Avatar size={36} address={address} radius={0} />
-          )}
-          <div className="flex items-center space-x-1 px-3">
-            {preferredDomainType === "treasuretag" ? (
-              <TreasureTag name={name} />
-            ) : (
-              <span>{name}</span>
-            )}
-            <ChevronDown className="h-4 w-4 text-night-400" />
+    <motion.div
+      layout
+      className="relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+    >
+      <div className="relative h-9 w-9">
+        <Avatar size={36} address={address} radius={0} />
+        {!data && state === "loading" ? (
+          <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-night-900/50">
+            <LoaderIcon className="h-5 w-5" />
           </div>
-        </>
-      )}
+        ) : (
+          <AnimatePresence>
+            {!error && image && (
+              <motion.img
+                key={name}
+                src={image}
+                alt={name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 h-full w-full"
+                onError={() => setError(true)}
+              />
+            )}
+          </AnimatePresence>
+        )}
+      </div>
+      <div className="flex items-center space-x-1 px-3">
+        <AnimatePresence mode="wait" initial={false}>
+          {preferredDomainType === "treasuretag" ? (
+            <TreasureTag name={name} />
+          ) : (
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {name}
+            </motion.span>
+          )}
+        </AnimatePresence>
+        <ChevronDown className="h-4 w-4 text-night-400" />
+      </div>
+
       <button className="absolute inset-0 h-full w-full" onClick={openProfile}>
         <span className="sr-only">Open Profile</span>
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -198,13 +222,18 @@ const TreasureTag = ({ name }: { name: string }) => {
   const [treasureTag, treasureTagDiscriminant] = name.split("#");
 
   return (
-    <div className="flex items-center space-x-1">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex items-center space-x-1"
+    >
       <MagicStarsIcon className="h-3 w-3 text-ruby-900" />
       <span className="text-honey-25">
         {treasureTag}
         <span className="text-night-500">#{treasureTagDiscriminant}</span>
       </span>
-    </div>
+    </motion.div>
   );
 };
 
