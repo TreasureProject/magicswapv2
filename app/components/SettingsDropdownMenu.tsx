@@ -72,7 +72,7 @@ export const SettingsDropdownMenu = () => {
               errorMessage="Deadline must be between 1 and 60"
               errorCondition={(value) => value > 60}
             >
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center pr-3">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <span className="text-sm text-night-400">Minutes</span>
               </div>
             </NumberInput>

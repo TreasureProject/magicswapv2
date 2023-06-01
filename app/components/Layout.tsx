@@ -1,13 +1,7 @@
 import { Link, NavLink, useFetcher } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Avatar, ConnectKitButton, useModal } from "connectkit";
-import {
-  ChevronDown,
-  InfoIcon,
-  MenuIcon,
-  PlayIcon,
-  SearchIcon,
-} from "lucide-react";
+import { ChevronDown, InfoIcon, MenuIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Footer } from "./Footer";
@@ -29,8 +23,6 @@ import type { AddressString } from "~/types";
 
 const Pages = [
   { name: "Swap", href: "/swap" },
-  // { name: "Tokens", href: "/tokens" },
-  // { name: "NFTs", href: "/nfts" },
   { name: "Pools", href: "/pools" },
 ];
 
@@ -40,27 +32,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-h-full flex-col">
       <header className="container flex h-24 items-center">
-        <div className="flex items-center md:gap-3">
+        <div className="flex items-center gap-8 divide-x divide-night-700/50">
           <Link to="/">
             <MagicSwapLogoFull className="hidden h-7 md:block" />
             <MagicSwapLogo className="h-7 md:hidden" />
           </Link>
-          <button
-            className="ml-3 flex items-center gap-2 rounded-lg border border-night-800 p-2 text-night-600 hover:text-night-300 md:border-none  md:p-0"
-            onClick={() => setShowSearchPopup(true)}
-          >
-            <SearchIcon className="h-4 w-4 " />
-            <p className="hidden text-sm md:block">Quick Search</p>
-          </button>
-          <div className="mx-3 hidden h-5 w-[1px] bg-night-700 md:mx-1.5 md:block" />
-
           <div className="hidden items-center lg:flex">
             {Pages.map((page) => (
               <NavLink
                 prefetch="intent"
                 className={({ isActive }) =>
                   cn(
-                    "cursor-pointer rounded-md px-5 py-2 font-medium text-night-400 transition-colors hover:bg-night-1000",
+                    "ml-3 cursor-pointer rounded-md px-5 py-2 font-medium text-night-400 transition-colors hover:bg-night-1000",
                     isActive && "text-night-100"
                   )
                 }
@@ -79,18 +62,34 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <MenuIcon className="w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>
-                <DropdownMenuItem className="font-medium text-night-200 hover:text-night-100">
-                  <InfoIcon className="mr-2 h-4 w-4" />
-                  <span>Documentation</span>
+                <DropdownMenuItem
+                  asChild
+                  className="font-medium text-night-200 hover:text-night-100"
+                >
+                  <Link to="/swap">
+                    <InfoIcon className="mr-2 h-4 w-4" />
+                    <span>Swap</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="font-medium text-night-200 hover:text-night-100">
-                  <PlayIcon className="mr-2 h-4 w-4" />
-                  <span>Tutorials</span>
+                <DropdownMenuItem
+                  asChild
+                  className="font-medium text-night-200 hover:text-night-100"
+                >
+                  <Link to="/pools">
+                    <PlayIcon className="mr-2 h-4 w-4" />
+                    <span>Pools</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <span>Documentation</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <span>Tutorials</span>
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <span>Articles</span>
               </DropdownMenuItem>
