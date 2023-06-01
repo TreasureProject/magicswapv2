@@ -66,11 +66,6 @@ export const PoolWithdrawTab = ({
   const amountQuoteMin = pool.quoteToken.isNFT
     ? amountQuote
     : getAmountMin(amountQuote, slippage || DEFAULT_SLIPPAGE);
-  const amountNFTs = pool.baseToken.isNFT
-    ? amountBaseMin
-    : pool.quoteToken.isNFT
-    ? amountQuoteMin
-    : "0";
   const amountLeftover = pool.baseToken.isNFT
     ? rawAmountBase - amountBase
     : pool.quoteToken.isNFT
@@ -111,7 +106,7 @@ export const PoolWithdrawTab = ({
     }
   }, [isRemoveLiquiditySuccess, onSuccess]);
 
-  const limitAmount = pool.baseToken.isNFT
+  const amountNFTs = pool.baseToken.isNFT
     ? bigIntToNumber(amountBaseMin, pool.baseToken.decimals)
     : bigIntToNumber(amountQuoteMin, pool.quoteToken.decimals);
 
@@ -160,7 +155,7 @@ export const PoolWithdrawTab = ({
             </div>
             {amountLeftover > 0 && (
               <>
-                <p>And swap leftover NFTs:</p>
+                <p>And swap leftover tokens:</p>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
@@ -222,11 +217,11 @@ export const PoolWithdrawTab = ({
               </>
             )}
           </div>
-          {amountNFTs !== "0" && (
+          {amountNFTs > 0 ? (
             <Dialog>
               <SelectionPopup
                 type="vault"
-                limit={limitAmount}
+                limit={amountNFTs}
                 token={selectingToken}
                 selectedTokens={nfts}
                 onSubmit={(nfts) =>
@@ -238,13 +233,13 @@ export const PoolWithdrawTab = ({
               />
               <PoolNftTokenInput
                 token={pool.baseToken.isNFT ? pool.baseToken : pool.quoteToken}
-                amount={limitAmount}
+                amount={amountNFTs}
                 selectedNfts={nfts}
                 onOpenSelect={setSelectingToken}
                 inventory={inventory}
               />
             </Dialog>
-          )}
+          ) : null}
         </>
       )}
       <div className="space-y-1.5">
