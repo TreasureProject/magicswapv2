@@ -23,6 +23,7 @@ import {
   fetchTotalInventoryForUser,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
+import { DisabledInputPopover } from "~/components/DisabledInputPopover";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
@@ -126,17 +127,19 @@ export async function loader({ request }: LoaderArgs) {
   });
 }
 
+const DEFAULT_STATE = {
+  amount: "0",
+  nftsIn: [] as TroveTokenWithQuantity[],
+  nftsOut: [] as TroveTokenWithQuantity[],
+  isExactOut: false,
+};
+
 export default function SwapPage() {
   const { pools, tokenIn, tokenOut } = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
-    useState({
-      amount: "0",
-      nftsIn: [] as TroveTokenWithQuantity[],
-      nftsOut: [] as TroveTokenWithQuantity[],
-      isExactOut: false,
-    });
+    useState(DEFAULT_STATE);
 
   const revalidator = useRevalidator();
 
@@ -248,30 +251,33 @@ export default function SwapPage() {
 
   useEffect(() => {
     if (isSwapSuccess) {
-      setTrade({
-        amount: "0",
-        nftsIn: [],
-        nftsOut: [],
-        isExactOut: false,
-      });
+      setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
       refetchTokenOutBalance();
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
   useEffect(() => {
-    setTrade((trade) => ({
-      ...trade,
-      nftsIn: [],
-    }));
-  }, [tokenIn.id]);
+    if (tokenIn?.isNFT) {
+      setTrade(DEFAULT_STATE);
+    } else {
+      setTrade((trade) => ({
+        ...trade,
+        nftsOut: [],
+      }));
+    }
+  }, [tokenIn.id, tokenIn.isNFT]);
 
   useEffect(() => {
-    setTrade((trade) => ({
-      ...trade,
-      nftsOut: [],
-    }));
-  }, [tokenOut?.id]);
+    if (tokenOut?.isNFT) {
+      setTrade(DEFAULT_STATE);
+    } else {
+      setTrade((trade) => ({
+        ...trade,
+        nftsOut: [],
+      }));
+    }
+  }, [tokenOut?.id, tokenOut?.isNFT]);
 
   useFocusInterval(
     useCallback(() => {
@@ -279,6 +285,8 @@ export default function SwapPage() {
     }, [revalidator]),
     5000
   );
+
+  console.log({ rawAmount, isExactOut, nftsIn, nftsOut });
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
@@ -625,6 +633,7 @@ const SwapTokenInput = ({
               </VisibleOnClient>
             )}
           </div>
+          {otherToken?.isNFT ? <DisabledInputPopover /> : null}
           {selectedNfts.length > 0 ? (
             <Dialog>
               <SelectionPopup

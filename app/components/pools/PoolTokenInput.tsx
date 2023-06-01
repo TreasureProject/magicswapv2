@@ -1,5 +1,10 @@
+import { HelpCircle } from "lucide-react";
+import Balancer from "react-wrap-balancer";
+
 import { CurrencyInput } from "../CurrencyInput";
+import { DisabledInputPopover } from "../DisabledInputPopover";
 import { VisibleOnClient } from "../VisibleOnClient";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -41,7 +46,7 @@ export const PoolTokenInput = ({
           </span>
         </div>
       </div>
-      <div className="flex flex-col space-y-2 bg-night-1100 p-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+      <div className="flex items-center justify-between bg-night-1100 p-3">
         <p className="flex items-center text-sm text-night-400">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
@@ -50,9 +55,7 @@ export const PoolTokenInput = ({
             </VisibleOnClient>
           </span>
         </p>
-        <p className="text-xs text-night-500">
-          Tokens are proportionally added
-        </p>
+        {disabled ? <DisabledInputPopover /> : null}
       </div>
     </div>
   );
