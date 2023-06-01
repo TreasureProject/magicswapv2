@@ -286,8 +286,6 @@ export default function SwapPage() {
     5000
   );
 
-  console.log({ rawAmount, isExactOut, nftsIn, nftsOut });
-
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">

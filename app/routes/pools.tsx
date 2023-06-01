@@ -204,7 +204,6 @@ export default function PoolsListPage() {
         >
           <Await resolve={user}>
             {(user) => {
-              console.log({ user });
               return (
                 <>
                   {!user?.liquidityPositionCount && (
