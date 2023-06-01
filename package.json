@@ -33,7 +33,7 @@
     "@remix-run/serve": "^1.16.1",
     "@resvg/resvg-js": "^2.4.1",
     "@sushiswap/tines": "^1.0.3",
-    "@treasure-project/branding": "^1.1.0",
+    "@treasure-project/branding": "^1.2.0",
     "buffer-polyfill": "npm:buffer@^6.0.3",
     "cachified": "^3.4.1",
     "class-variance-authority": "^0.6.0",

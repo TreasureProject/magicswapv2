@@ -1,4 +1,5 @@
 import type { LoaderArgs } from "@remix-run/node";
+import { MagicSwapLogoFull } from "@treasure-project/branding";
 import { image } from "remix-utils";
 import invariant from "tiny-invariant";
 
@@ -6,7 +7,6 @@ import { fetchPool } from "~/api/pools.server";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import {
-  MagicSwapLogoFull,
   NIGHT_100,
   NIGHT_400,
   TokenDisplay,
@@ -28,7 +28,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
       <div tw="flex justify-between flex-col">
-        <MagicSwapLogoFull />
+        <MagicSwapLogoFull tw="w-72 h-14" />
         <TokenDisplay token0={baseToken} token1={quoteToken} origin={origin} />
         <div tw="flex flex-col">
           <div
