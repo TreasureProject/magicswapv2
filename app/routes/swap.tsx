@@ -10,7 +10,12 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
-import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ChevronDownIcon,
+  Divide,
+  LayersIcon,
+} from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import { parseUnits } from "viem";
@@ -35,7 +40,6 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
@@ -469,10 +473,8 @@ const SwapTokenInput = ({
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
 }) => {
-  const { tokens } = useLoaderData<typeof loader>();
   const { isConnected } = useAccount();
   const location = useLocation();
-  const [openSelectionModal, setOpenSelectionModal] = useState(false);
   const parsedAmount = Number(amount);
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
@@ -483,19 +485,13 @@ const SwapTokenInput = ({
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
         <Dialog key={location.search}>
-          <Suspense fallback={null}>
-            <Await resolve={tokens}>
-              {(tokens) => (
-                <TokenSelectDialog
-                  tokens={tokens}
-                  disabledTokenIds={
-                    [token.id, otherToken?.id].filter((id) => !!id) as string[]
-                  }
-                  onSelect={onSelect}
-                />
-              )}
-            </Await>
-          </Suspense>
+          <TokenSelectDialog
+            disabledTokenIds={
+              [token.id, otherToken?.id].filter((id) => !!id) as string[]
+            }
+            onSelect={onSelect}
+          />
+
           <DialogTrigger asChild>
             <button className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
@@ -552,29 +548,19 @@ const SwapTokenInput = ({
             ) : (
               <ClientOnly>
                 {() => (
-                  <>
-                    <Dialog
-                      open={openSelectionModal}
-                      onOpenChange={setOpenSelectionModal}
-                    >
-                      {openSelectionModal && (
-                        <SelectionPopup
-                          type={isOut ? "vault" : "inventory"}
-                          token={token}
-                          selectedTokens={selectedNfts}
-                          onSubmit={onSelectNfts}
-                        />
-                      )}
-                    </Dialog>
-                    <Button
-                      variant="dark"
-                      size="md"
-                      disabled={!isConnected}
-                      onClick={() => setOpenSelectionModal(true)}
-                    >
-                      Select Items
-                    </Button>
-                  </>
+                  <Dialog>
+                    <SelectionPopup
+                      type={isOut ? "vault" : "inventory"}
+                      token={token}
+                      selectedTokens={selectedNfts}
+                      onSubmit={onSelectNfts}
+                    />
+                    <DialogTrigger asChild>
+                      <Button variant="dark" size="md" disabled={!isConnected}>
+                        Select Items
+                      </Button>
+                    </DialogTrigger>
+                  </Dialog>
                 )}
               </ClientOnly>
             )
@@ -631,7 +617,7 @@ const SwapTokenInput = ({
               </VisibleOnClient>
             )}
           </div>
-          {otherToken?.isNFT ? <DisabledInputPopover /> : null}
+          {!token?.isNFT && otherToken?.isNFT ? <DisabledInputPopover /> : null}
           {selectedNfts.length > 0 ? (
             <Dialog>
               <SelectionPopup
@@ -650,19 +636,11 @@ const SwapTokenInput = ({
     </div>
   ) : (
     <Dialog key={location.search}>
-      <Suspense fallback={null}>
-        <Await resolve={tokens}>
-          {(tokens) => (
-            <TokenSelectDialog
-              tokens={tokens}
-              disabledTokenIds={
-                [otherToken?.id].filter((id) => !!id) as string[]
-              }
-              onSelect={onSelect}
-            />
-          )}
-        </Await>
-      </Suspense>
+      <TokenSelectDialog
+        disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
+        onSelect={onSelect}
+      />
+
       <DialogTrigger asChild>
         <button
           className={cn(
@@ -681,81 +659,92 @@ const SwapTokenInput = ({
 };
 
 const TokenSelectDialog = ({
-  tokens,
   disabledTokenIds = [],
   onSelect,
 }: {
-  tokens: PoolToken[];
   disabledTokenIds?: string[];
   onSelect: (token: PoolToken) => void;
 }) => {
   const [tab, setTab] = useState<"tokens" | "collections">("collections");
+  const { tokens } = useLoaderData<typeof loader>();
+
   return (
-    <DialogPortal>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Select Asset</DialogTitle>
-          <DialogDescription>
-            Select an asset to add to the swap.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="rounded-lg bg-night-1100 p-4">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                tab === "tokens" &&
-                  "border-night-800 bg-night-800 text-honey-25"
-              )}
-              onClick={() => setTab("tokens")}
-            >
-              <TokenIcon className="h-4 w-4" />
-              Tokens
-            </button>
-            <button
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-                tab === "collections" &&
-                  "border-night-800 bg-night-800 text-honey-25"
-              )}
-              onClick={() => setTab("collections")}
-            >
-              <LayersIcon className="h-4 w-4" />
-              Collections
-            </button>
-          </div>
-          <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
-            {tokens
-              .filter(({ isNFT }) => (tab === "collections" ? isNFT : !isNFT))
-              .map((token) => (
-                <li
-                  key={token.id}
-                  className={cn(
-                    "relative rounded-lg px-3 py-2 hover:bg-night-900",
-                    disabledTokenIds.includes(token.id) &&
-                      "pointer-events-none opacity-50"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <PoolTokenImage token={token} className="h-9 w-9" />
-                    <div className="text-left text-sm">
-                      <span className="block font-semibold text-honey-25">
-                        {token.name}
-                      </span>
-                      <span className="block text-night-600">
-                        {token.symbol}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => onSelect(token)}
-                    className="absolute inset-0 h-full w-full"
-                  />
-                </li>
-              ))}
-          </ul>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Select Asset</DialogTitle>
+        <DialogDescription>
+          Select an asset to add to the swap.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="rounded-lg bg-night-1100 p-4">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+              tab === "tokens" && "border-night-800 bg-night-800 text-honey-25"
+            )}
+            onClick={() => setTab("tokens")}
+          >
+            <TokenIcon className="h-4 w-4" />
+            Tokens
+          </button>
+          <button
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+              tab === "collections" &&
+                "border-night-800 bg-night-800 text-honey-25"
+            )}
+            onClick={() => setTab("collections")}
+          >
+            <LayersIcon className="h-4 w-4" />
+            Collections
+          </button>
         </div>
-      </DialogContent>
-    </DialogPortal>
+        <Suspense
+          fallback={
+            <div className="flex h-80 items-center justify-center">
+              <LoaderIcon className="h-6 w-6" />
+            </div>
+          }
+        >
+          <Await resolve={tokens}>
+            {(tokens) => (
+              <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
+                {tokens
+                  .filter(({ isNFT }) =>
+                    tab === "collections" ? isNFT : !isNFT
+                  )
+                  .map((token) => (
+                    <li
+                      key={token.id}
+                      className={cn(
+                        "relative rounded-lg px-3 py-2 hover:bg-night-900",
+                        disabledTokenIds.includes(token.id) &&
+                          "pointer-events-none opacity-50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <PoolTokenImage token={token} className="h-9 w-9" />
+                        <div className="text-left text-sm">
+                          <span className="block font-semibold text-honey-25">
+                            {token.name}
+                          </span>
+                          <span className="block text-night-600">
+                            {token.symbol}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onSelect(token)}
+                        className="absolute inset-0 h-full w-full"
+                      />
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </Await>
+        </Suspense>
+      </div>
+    </DialogContent>
   );
 };

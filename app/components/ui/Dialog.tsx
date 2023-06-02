@@ -1,11 +1,34 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import type { MotionProps } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "./Button";
 import { cn } from "~/lib/utils";
 
-const Dialog = DialogPrimitive.Root;
+const DialogMotionContent = motion(DialogPrimitive.Content);
+
+const DialogMotionOverlay = motion(DialogPrimitive.Overlay);
+
+const DialogContext = React.createContext<{ open: boolean }>({
+  open: false,
+});
+
+const Dialog = ({
+  onOpenChange,
+  children,
+  ...props
+}: DialogPrimitive.DialogProps) => {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <DialogPrimitive.Root onOpenChange={setOpen} {...props}>
+      <DialogContext.Provider value={{ open }}>
+        {children}
+      </DialogContext.Provider>
+    </DialogPrimitive.Root>
+  );
+};
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
@@ -29,63 +52,65 @@ DialogPortal.displayName = DialogPrimitive.Portal.displayName;
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & MotionProps
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
+  <DialogMotionOverlay
+    initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+    animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
+    exit={{
+      opacity: 0,
+      backdropFilter: "blur(0px)",
+      transition: { duration: 0.1 },
+    }}
+    transition={{ duration: 0.2 }}
+    className={cn("fixed inset-0 z-50 bg-background/80", className)}
     ref={ref}
-    className={cn(
-      "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in",
-      className
-    )}
     {...props}
   />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-export const TransparentDialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal className="sm:items-start">
-    <DialogContent
-      ref={ref}
-      className={cn(
-        "rounded-none border-none bg-transparent shadow-none",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </DialogContent>
-  </DialogPortal>
-));
-
-TransparentDialogContent.displayName = DialogPrimitive.Content.displayName;
-
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed z-50 grid w-full gap-4 rounded-b-lg border bg-background p-6 shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:max-w-lg sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close asChild>
-        <Button variant="ghost" className="absolute right-6 top-6 rounded-full">
-          <XIcon className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </Button>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </>
-));
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & MotionProps
+>(({ className, children, ...props }, ref) => {
+  const { open } = React.useContext(DialogContext);
+
+  console.log(open);
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <DialogPortal forceMount>
+          <DialogOverlay />
+          <DialogMotionContent
+            initial={{ opacity: 0, scale: 0.9, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.1 } }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              "fixed z-50 grid w-full gap-4 rounded-none rounded-b-lg border border-none bg-background bg-transparent p-6 shadow-none sm:max-w-lg sm:rounded-lg",
+              className
+            )}
+            ref={ref}
+            {...props}
+          >
+            {children}
+            <DialogPrimitive.Close asChild>
+              <Button
+                variant="ghost"
+                className="absolute right-6 top-6 h-8 rounded-full px-2"
+              >
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogPrimitive.Close>
+          </DialogMotionContent>
+        </DialogPortal>
+      ) : null}
+    </AnimatePresence>
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({

@@ -25,7 +25,7 @@ import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { ScrollArea } from "../ui/ScrollArea";
 import type { TroveFilters } from "~/api/tokens.server";
-import { TransparentDialogContent } from "~/components/ui/Dialog";
+import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -244,7 +244,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   );
 
   return (
-    <TransparentDialogContent
+    <DialogContent
       className={cn(
         "h-full [grid-template-rows:auto_auto_1fr_1fr_25%] sm:max-w-8xl",
         !props.viewOnly
@@ -654,6 +654,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           </ScrollArea>
         </div>
       )}
-    </TransparentDialogContent>
+    </DialogContent>
   );
 };
