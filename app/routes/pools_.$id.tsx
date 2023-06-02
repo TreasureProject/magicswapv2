@@ -352,7 +352,52 @@ export default function PoolDetailsPage() {
           />
         </div>
         {/*Here the pool & inventory start */}
-        <div className="mt-12 flex w-full items-center justify-between">
+
+        {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
+          <div className="mt-12 space-y-3.5">
+            <h3 className="flex items-center gap-3">
+              <ArrowLeftRightIcon className="h-4 w-4" />
+              Pool Inventory
+            </h3>
+            {pool.baseToken.isNFT && (
+              <Suspense>
+                <Await resolve={vaultItems}>
+                  {(vaultItems) => {
+                    const targetVault = vaultItems?.baseToken;
+
+                    if (!targetVault) return null;
+
+                    return (
+                      <PoolTokenCollectionInventory
+                        token={pool.baseToken}
+                        vaultItems={targetVault}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
+            )}
+            {pool.quoteToken.isNFT && (
+              <Suspense>
+                <Await resolve={vaultItems}>
+                  {(vaultItems) => {
+                    const targetVault = vaultItems?.quoteToken;
+
+                    if (!targetVault) return null;
+
+                    return (
+                      <PoolTokenCollectionInventory
+                        token={pool.baseToken}
+                        vaultItems={targetVault}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
+            )}
+          </div>
+        ) : null}
+        <div className="mt-6 flex w-full items-center justify-between">
           <h3 className="flex items-center gap-3">
             <ArrowLeftRightIcon className="h-4 w-4" />
             Pool Activity
@@ -402,50 +447,6 @@ export default function PoolDetailsPage() {
             )}
           </Await>
         </Suspense>
-        {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
-          <div className="mt-6 space-y-3.5">
-            <h3 className="flex items-center gap-3">
-              <ArrowLeftRightIcon className="h-4 w-4" />
-              Pool Inventory
-            </h3>
-            {pool.baseToken.isNFT && (
-              <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.baseToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
-                </Await>
-              </Suspense>
-            )}
-            {pool.quoteToken.isNFT && (
-              <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.quoteToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
-                </Await>
-              </Suspense>
-            )}
-          </div>
-        ) : null}
       </div>
       <Sheet>
         <SheetTrigger asChild>
