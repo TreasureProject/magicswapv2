@@ -76,8 +76,6 @@ const DialogContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   const { open } = React.useContext(DialogContext);
 
-  console.log(open);
-
   return (
     <AnimatePresence>
       {open ? (
