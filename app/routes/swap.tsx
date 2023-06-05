@@ -50,7 +50,7 @@ import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
 import { sumArray } from "~/lib/array";
-import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -112,6 +112,9 @@ export async function loader({ request }: LoaderArgs) {
 
   const tokenOut = outputAddress ? await fetchToken(outputAddress) : null;
 
+  const { amountInBN = BigNumber.from(0) } =
+    createSwapRoute(tokenIn, tokenOut, pools, parseUnits("1", 18), true) ?? {};
+
   if (!address || !tokenIn.isNFT) {
     return defer({
       pools,
@@ -119,6 +122,7 @@ export async function loader({ request }: LoaderArgs) {
       tokenIn,
       tokenOut,
       inventory: null,
+      comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
     });
   }
 
@@ -128,6 +132,7 @@ export async function loader({ request }: LoaderArgs) {
     tokenIn,
     tokenOut,
     inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
+    comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
   });
 }
 
@@ -139,7 +144,8 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { pools, tokenIn, tokenOut } = useLoaderData<typeof loader>();
+  const { pools, tokenIn, tokenOut, comparisonValue } =
+    useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
@@ -290,6 +296,9 @@ export default function SwapPage() {
     5000
   );
 
+  const token = poolTokenIn ?? tokenIn;
+  const otherToken = poolTokenOut ?? tokenOut;
+
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">
@@ -301,8 +310,8 @@ export default function SwapPage() {
       </div>
       <div className="mt-3">
         <SwapTokenInput
-          token={poolTokenIn ?? tokenIn}
-          otherToken={poolTokenOut ?? tokenOut}
+          token={token}
+          otherToken={otherToken}
           isOut={false}
           balance={tokenInBalance?.value}
           amount={
@@ -341,8 +350,8 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={poolTokenOut ?? tokenOut}
-          otherToken={poolTokenIn ?? tokenIn}
+          token={otherToken}
+          otherToken={token}
           isOut
           balance={tokenOutBalance?.value}
           amount={
@@ -369,6 +378,16 @@ export default function SwapPage() {
             })
           }
         />
+        {otherToken ? (
+          <div className="mt-6 rounded-2xl border border-night-800 p-4">
+            <p className="text-sm text-night-400">
+              <span className="font-medium text-honey-25">
+                {formatAmount(comparisonValue)}
+              </span>{" "}
+              {token.symbol} per {otherToken.symbol}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-4 space-y-1.5">
           <ClientOnly>
             {() => (
