@@ -552,11 +552,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       {!props.viewOnly && (
         <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
           <div className="flex min-h-full flex-col">
-            <p className="px-2 text-sm leading-[160%] text-night-400">
+            <p className="text-sm leading-[160%] text-night-400">
               Selected assets
             </p>
             {selectedItems.length > 0 ? (
-              <div className="mt-2 flex flex-1 flex-col gap-2 overflow-auto px-2">
+              <div className="mt-2 flex flex-1 flex-col gap-2 overflow-auto pr-2">
                 <AnimatePresence initial={false} mode="popLayout">
                   {selectedItems.map((item) => (
                     <motion.div
