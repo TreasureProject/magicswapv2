@@ -1,5 +1,6 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import type { V2_MetaFunction } from "@remix-run/react";
+import { useFetcher } from "@remix-run/react";
 import {
   Await,
   Link,
@@ -10,17 +11,13 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
-import {
-  ArrowDownIcon,
-  ChevronDownIcon,
-  Divide,
-  LayersIcon,
-} from "lucide-react";
+import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
 import { parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
+import type { FetchInventoryLoader } from "./resources.fetch-inventory";
 import { fetchPools } from "~/api/pools.server";
 import {
   fetchToken,
@@ -734,30 +731,12 @@ const TokenSelectDialog = ({
                     tab === "collections" ? isNFT : !isNFT
                   )
                   .map((token) => (
-                    <li
+                    <Token
                       key={token.id}
-                      className={cn(
-                        "relative rounded-lg px-3 py-2 hover:bg-night-900",
-                        disabledTokenIds.includes(token.id) &&
-                          "pointer-events-none opacity-50"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <PoolTokenImage token={token} className="h-9 w-9" />
-                        <div className="text-left text-sm">
-                          <span className="block font-semibold text-honey-25">
-                            {token.name}
-                          </span>
-                          <span className="block text-night-600">
-                            {token.symbol}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => onSelect(token)}
-                        className="absolute inset-0 h-full w-full"
-                      />
-                    </li>
+                      disabled={disabledTokenIds.includes(token.id)}
+                      onSelect={onSelect}
+                      token={token}
+                    />
                   ))}
               </ul>
             )}
@@ -765,5 +744,72 @@ const TokenSelectDialog = ({
         </Suspense>
       </div>
     </DialogContent>
+  );
+};
+
+const Token = ({
+  token,
+  disabled,
+  onSelect,
+}: {
+  token: PoolToken;
+  disabled: boolean;
+  onSelect: (token: PoolToken) => void;
+}) => {
+  const { address } = useAccount();
+
+  const { data: balance, status } = useBalance({
+    address,
+    token: token.id as AddressString,
+    enabled: !!address && !token.isNFT,
+  });
+
+  const { load, state, data } = useFetcher<FetchInventoryLoader>();
+
+  useEffect(() => {
+    if (!token.isNFT || !address) return;
+
+    const params = new URLSearchParams({
+      address,
+      slug: token.urlSlug,
+    });
+
+    load(`/resources/fetch-inventory?${params.toString()}`);
+  }, [address, load, token.isNFT, token.urlSlug]);
+
+  const isLoading = status === "loading" || state === "loading";
+
+  return (
+    <li
+      className={cn(
+        "relative rounded-lg px-3 py-2 hover:bg-night-900",
+        disabled && "pointer-events-none opacity-50"
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <PoolTokenImage token={token} className="h-9 w-9" />
+          <div className="text-left text-sm">
+            <span className="block font-semibold text-honey-25">
+              {token.name}
+            </span>
+            <span className="block text-night-600">{token.symbol}</span>
+          </div>
+        </div>
+        {isLoading ? (
+          <LoaderIcon className="h-4 w-4" />
+        ) : address ? (
+          <p className="text-base-400 text-sm">
+            {token.isNFT
+              ? data?.inventory
+              : formatTokenAmount(balance?.value ?? BigInt(0), token.decimals)}
+          </p>
+        ) : null}
+      </div>
+      <button
+        onClick={() => onSelect(token)}
+        className="absolute inset-0 h-full w-full"
+      />
+    </li>
   );
 };
