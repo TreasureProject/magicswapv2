@@ -1,10 +1,6 @@
-import { HelpCircle } from "lucide-react";
-import Balancer from "react-wrap-balancer";
-
 import { CurrencyInput } from "../CurrencyInput";
 import { DisabledInputPopover } from "../DisabledInputPopover";
 import { VisibleOnClient } from "../VisibleOnClient";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";

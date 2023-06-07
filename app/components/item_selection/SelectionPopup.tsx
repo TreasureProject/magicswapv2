@@ -23,7 +23,6 @@ import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
-import { ScrollArea } from "../ui/ScrollArea";
 import type { TroveFilters } from "~/api/tokens.server";
 import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";

@@ -1,6 +1,5 @@
 import type { LinksFunction, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
 import { useNavigation } from "@remix-run/react";
 import {
   Links,
