@@ -1,3 +1,5 @@
+import { formatEther } from "viem";
+
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
 import { formatAmount, formatUSD } from "~/lib/currency";
@@ -43,7 +45,7 @@ export const PoolInput = ({
             onClick={() =>
               onUpdateAmount(
                 percent === 1
-                  ? bigIntToNumber(balance).toString()
+                  ? formatEther(balance)
                   : formatAmount((bigIntToNumber(balance) * percent).toString())
               )
             }
