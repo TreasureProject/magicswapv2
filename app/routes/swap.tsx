@@ -147,12 +147,14 @@ export default function SwapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState(DEFAULT_STATE);
-
   const revalidator = useRevalidator();
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
-    setSearchParams(searchParams);
+    // adding state (can be anything here) on client side transition to indicate that a modal can pop-up
+    setSearchParams(searchParams, {
+      state: "true",
+    });
   };
 
   const amount = parseUnits(
@@ -496,6 +498,7 @@ const SwapTokenInput = ({
     (token?.priceUSD ?? 0) *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
   const { inventory } = useLoaderData<typeof loader>();
+  const { state: routeState } = useLocation();
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -564,7 +567,12 @@ const SwapTokenInput = ({
             ) : (
               <ClientOnly>
                 {() => (
-                  <Dialog>
+                  <Dialog
+                    defaultOpen={
+                      token.isNFT && !otherToken?.isNFT && !!routeState
+                    }
+                    key={location.search}
+                  >
                     <SelectionPopup
                       type={isOut ? "vault" : "inventory"}
                       token={token}

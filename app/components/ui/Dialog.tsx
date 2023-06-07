@@ -20,7 +20,7 @@ const Dialog = ({
   children,
   ...props
 }: DialogPrimitive.DialogProps) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(props.defaultOpen ?? false);
   return (
     <DialogPrimitive.Root onOpenChange={setOpen} {...props}>
       <DialogContext.Provider value={{ open }}>
