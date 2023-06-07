@@ -176,7 +176,7 @@ export default function PoolDetailsPage() {
               <PoolImage pool={pool} className="h-auto w-14" />
               <div className="flex flex-col text-2xl">
                 <span>{pool.name}</span>
-                <span className="text-xs text-night-400">
+                <span className="text-sm text-night-400">
                   LP Fees: {formatPercent(pool.lpFee)}
                 </span>
               </div>
