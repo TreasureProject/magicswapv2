@@ -4,7 +4,8 @@ import { persist } from "zustand/middleware";
 interface SettingsState {
   slippage: number;
   deadline: number;
-  update: (settings: { slippage: number; deadline: number }) => void;
+  updateSlippage: (slippage: number) => void;
+  updateDeadline: (deadline: number) => void;
 }
 
 export const DEFAULT_SLIPPAGE = 0.005;
@@ -15,7 +16,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       slippage: DEFAULT_SLIPPAGE,
       deadline: DEFAULT_DEADLINE,
-      update: ({ slippage, deadline }) => set({ slippage, deadline }),
+      updateSlippage: (slippage: number) => set({ slippage }),
+      updateDeadline: (deadline: number) => set({ deadline }),
     }),
     {
       name: "settings",

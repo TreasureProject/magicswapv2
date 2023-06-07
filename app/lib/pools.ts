@@ -26,10 +26,10 @@ export const getTokenCountForLp = (
 ) => (totalSupply > 0 ? (amount * reserve) / totalSupply : BigInt(0));
 
 export const getAmountMax = (amount: bigint, slippage: number) =>
-  amount + (amount * BigInt(slippage * 1000)) / BigInt(1000);
+  amount + (amount * BigInt(Math.ceil(slippage * 1000))) / BigInt(1000);
 
 export const getAmountMin = (amount: bigint, slippage: number) =>
-  amount - (amount * BigInt(slippage * 1000)) / BigInt(1000);
+  amount - (amount * BigInt(Math.ceil(slippage * 1000))) / BigInt(1000);
 
 export const createSwapRoute = (
   tokenIn: PoolToken,
