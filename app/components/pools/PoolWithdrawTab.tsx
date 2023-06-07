@@ -243,23 +243,24 @@ export const PoolWithdrawTab = ({
         </>
       )}
       <div className="space-y-1.5">
-        {hasAmount && !isApproved && (
+        {hasAmount && !isApproved ? (
           <Button className="w-full" onClick={() => approve?.()}>
             Approve LP Token
           </Button>
+        ) : (
+          <TransactionButton
+            className="w-full"
+            disabled={
+              !address ||
+              !isApproved ||
+              !hasAmount ||
+              Number(amountNFTs) !== nfts.length
+            }
+            onClick={() => removeLiquidity?.()}
+          >
+            Remove Liquidity
+          </TransactionButton>
         )}
-        <TransactionButton
-          className="w-full"
-          disabled={
-            !address ||
-            !isApproved ||
-            !hasAmount ||
-            Number(amountNFTs) !== nfts.length
-          }
-          onClick={() => removeLiquidity?.()}
-        >
-          Remove Liquidity
-        </TransactionButton>
       </div>
     </div>
   );
