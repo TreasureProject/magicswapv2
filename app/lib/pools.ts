@@ -1,4 +1,5 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import type { NetworkInfo } from "@sushiswap/tines";
 import {
   ConstantProductRPool,
   findMultiRouteExactIn,
@@ -7,6 +8,7 @@ import {
 import { parseUnits } from "viem";
 
 import type { Pool } from "./pools.server";
+import { tokenToRToken } from "./tokens";
 import type { PoolToken } from "./tokens.server";
 import type { NumberString } from "~/types";
 
@@ -42,42 +44,27 @@ export const createSwapRoute = (
     return undefined;
   }
 
-  const rTokenIn = {
-    name: tokenIn.name,
-    symbol: tokenIn.symbol,
-    address: tokenIn.id,
-  };
-  const rTokenOut = {
-    name: tokenOut.name,
-    symbol: tokenOut.symbol,
-    address: tokenOut.id,
-  };
+  const rTokenIn = tokenToRToken(tokenIn);
+  const rTokenOut = tokenToRToken(tokenOut);
   const rPools = pools.map(
     ({ id, token0, token1, reserve0, reserve1, totalFee }) => {
       return new ConstantProductRPool(
         id,
-        {
-          name: token0.name,
-          symbol: token0.symbol,
-          address: token0.id,
-        },
-        {
-          name: token1.name,
-          symbol: token1.symbol,
-          address: token1.id,
-        },
+        tokenToRToken(token0),
+        tokenToRToken(token1),
         Number(totalFee ?? 0),
         BigNumber.from(parseUnits(reserve0 as NumberString, token0.decimals)),
         BigNumber.from(parseUnits(reserve1 as NumberString, token0.decimals))
       );
     }
   );
-  const networks = [
+  const networks: NetworkInfo[] = [
     {
       baseToken: {
         name: "ETH",
         symbol: "ETH",
         address: "0x0",
+        decimals: 18,
       },
       gasPrice: 0,
     },
