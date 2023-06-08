@@ -100,3 +100,12 @@ export const TokenIcon = ({ className }: Props) => (
     />
   </svg>
 );
+
+export const CheckIcon = ({ className }: Props) => (
+  <svg width="9" height="6" viewBox="0 0 9 6" className={className}>
+    <path
+      d="M3.52503 5.93281L0.710449 3.11823L2.00837 1.82031L3.52503 3.33698L6.7917 0.0703125L8.08962 1.36823L3.52503 5.93281Z"
+      fill="currentColor"
+    />
+  </svg>
+);

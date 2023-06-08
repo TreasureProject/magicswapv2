@@ -2,21 +2,18 @@ import { Close } from "@radix-ui/react-dialog";
 import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  CheckIcon,
   TableIcon as ColumnIcon,
-  ExternalLink,
   Filter,
   LayoutGridIcon as GridIcon,
+  InfoIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
-  X,
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useAccount, useChainId } from "wagmi";
-import { arbitrum } from "wagmi/chains";
+import { useAccount } from "wagmi";
 
-import { LoaderIcon } from "../Icons";
+import { CheckIcon, LoaderIcon } from "../Icons";
 import { PoolTokenImage } from "../pools/PoolTokenImage";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
@@ -26,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import type { TroveFilters } from "~/api/tokens.server";
 import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
+import { useTrove } from "~/hooks/useTrove";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.get-collection";
@@ -44,59 +42,66 @@ const ItemCard = ({
   disabled: boolean;
   viewOnly: boolean;
 }) => {
-  const chainId = useChainId();
+  const { createTokenUrl } = useTrove();
   const disableUnselected = !selected && disabled;
-  return (
-    <div
-      className={cn(
-        "group relative flex-col overflow-hidden rounded-lg bg-night-900",
-        selected && "ring-2 ring-night-100"
+
+  const innerCard = (
+    <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
+      {selected && (
+        <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
+          <CheckIcon className="w-3" />
+        </div>
       )}
-    >
-      <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
-        {selected && (
-          <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
-            <CheckIcon className="w-3" />
-          </div>
+      <img
+        src={item.image.uri}
+        alt={item.tokenId}
+        className={cn(
+          "w-full",
+          !viewOnly && !disableUnselected && "group-hover:opacity-75"
         )}
-        <img
-          src={item.image.uri}
-          alt={item.tokenId}
-          className={cn("w-full", !viewOnly && "group-hover:opacity-75")}
-        />
-        <div className="p-3">
-          <p className="text-sm font-medium text-night-100">
+      />
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div className="text-left">
+          <p className="text-sm font-medium text-honey-25">
             {item.metadata.name}
           </p>
-          <p className="text-night-400">{item.tokenId}</p>
+          <p className="text-sm text-night-400">#{item.tokenId}</p>
         </div>
-        {!viewOnly && (
-          <button
-            className="absolute inset-0 h-full w-full"
-            onClick={onClick}
-            disabled={disableUnselected}
-          >
-            <span className="sr-only">Select {item.metadata.name}</span>
-          </button>
-        )}
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`View ${item.metadata.name} on Trove`}
+          className="text-night-400 transition-colors hover:text-night-100"
+          href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <InfoIcon className="h-4 w-4" />
+          <span className="sr-only">View {item.metadata.name} on Trove</span>
+        </a>
       </div>
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        title={`View ${item.collectionUrlSlug} ${item.tokenId} on Trove`}
-        className="text-night-400 transition-colors hover:text-night-100"
-        href={`${
-          chainId === arbitrum.id
-            ? "https://trove.treasure.lol/"
-            : "https://trove-testnet.treasure.lol/"
-        }collection/${item.collectionUrlSlug}/${item.tokenId}`}
-      >
-        <ExternalLink className="absolute bottom-3 right-3 h-auto w-4" />
-        <span className="sr-only">
-          View {item.collectionUrlSlug} {item.tokenId} on Trove
-        </span>
-      </a>
     </div>
+  );
+
+  if (viewOnly) {
+    return (
+      <div className="overflow-hidden rounded-lg bg-night-900">{innerCard}</div>
+    );
+  }
+
+  return (
+    <button
+      className={cn(
+        "group relative overflow-hidden rounded-lg bg-night-900",
+        selected && "ring-2 ring-night-100"
+      )}
+      onClick={onClick}
+      disabled={disableUnselected}
+    >
+      {!disableUnselected ? (
+        <span className="sr-only">Select {item.metadata.name}</span>
+      ) : null}
+      {innerCard}
+    </button>
   );
 };
 
@@ -119,7 +124,7 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
         className="ml-1 inline-flex h-4 w-4 flex-shrink-0 rounded-full p-1 text-night-400 hover:bg-night-1000"
       >
         <span className="sr-only">Remove filter for {value}</span>
-        <X className="h-2 w-2" />
+        <XIcon className="h-2 w-2" />
       </button>
     </span>
   );
@@ -581,11 +586,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                           <div className="h-10 w-10 rounded-[4px] bg-night-800" />
                         )}
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <p className="truncate text-sm font-medium text-night-100">
+                          <p className="truncate text-sm font-medium text-honey-25">
                             {item.metadata.name}
                           </p>
                           <p className="text-sm text-night-400">
-                            {item.tokenId}
+                            #{item.tokenId}
                           </p>
                         </div>
                       </div>
