@@ -401,6 +401,7 @@ export default function SwapPage() {
                 )}
                 <TransactionButton
                   className="w-full"
+                  size="lg"
                   disabled={!isTokenInApproved || !hasAmounts}
                   onClick={() => swap()}
                 >
@@ -606,7 +607,7 @@ const SwapTokenInput = ({
           )}
         </div>
       </div>
-      <div className="bg-night-800 px-4 py-2.5 text-sm">
+      <div className="bg-night-900 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
             <span className="text-night-400 sm:text-sm">
