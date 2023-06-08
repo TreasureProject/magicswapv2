@@ -2,6 +2,7 @@ import { Close } from "@radix-ui/react-dialog";
 import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ChevronDownIcon,
   TableIcon as ColumnIcon,
   Filter,
   LayoutGridIcon as GridIcon,
@@ -13,7 +14,8 @@ import {
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
-import { CheckIcon, LoaderIcon } from "../Icons";
+import { Badge } from "../Badge";
+import { CheckIcon, FilledFilterIcon, LoaderIcon } from "../Icons";
 import { PoolTokenImage } from "../pools/PoolTokenImage";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
@@ -111,20 +113,19 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
   return (
     <span
       key={`${key}:${value}`}
-      className="m-1 inline-flex flex-shrink-0 items-center rounded-full border-transparent bg-secondary py-1.5 pl-3 pr-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-1100 px-3 py-2 text-sm font-medium text-night-700"
     >
-      <p className="space-x-1 text-xs">
-        <span className="inline-block capitalize">{key}</span>
-        <span className="text-night-300">is</span>
-        <span className="inline-block capitalize">{value}</span>
+      <p>
+        <span className="inline-block capitalize">{key}:</span>{" "}
+        <span className="inline-block capitalize text-night-100">{value}</span>
       </p>
       <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
       <button
         type="submit"
-        className="ml-1 inline-flex h-4 w-4 flex-shrink-0 rounded-full p-1 text-night-400 hover:bg-night-1000"
+        className="flex-shrink-0 rounded-full p-1 hover:bg-night-1000"
       >
         <span className="sr-only">Remove filter for {value}</span>
-        <XIcon className="h-2 w-2" />
+        <XIcon className="h-4 w-4" />
       </button>
     </span>
   );
@@ -159,6 +160,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const id = token?.id;
   const fetchFromVault = type === "vault";
@@ -365,24 +367,28 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           }}
         >
           {HiddenInputs}
-          <Popover>
+          <Popover onOpenChange={setIsFilterOpen}>
             <div className="flex space-x-2 divide-x divide-night-800 bg-night-1000 px-4 py-2">
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={cn(
-                    "group flex flex-shrink-0 items-center",
-                    selectedTraitCount === 0 && "text-night-500"
-                  )}
+                  className="group flex flex-shrink-0 items-center gap-2 text-sm font-medium text-honey-25"
                 >
-                  <Filter className="mr-2 h-4 w-4" aria-hidden="true" />
-                  <span className="mr-1 tabular-nums">
-                    {selectedTraitCount}
-                  </span>
-                  <span>Filter(s)</span>
+                  <FilledFilterIcon
+                    className="h-4 w-4 text-night-100"
+                    aria-hidden="true"
+                  />
+                  <span>Filters</span>
+                  <Badge>{selectedTraitCount}</Badge>
+                  <ChevronDownIcon
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      isFilterOpen && "-rotate-180"
+                    )}
+                  />
                 </Button>
               </PopoverTrigger>
-              <div className="flex w-full items-center overflow-x-auto pl-2">
+              <div className="flex w-full items-center gap-3 overflow-x-auto pl-2">
                 {data &&
                   data.traits.map((trait) => (
                     <TraitFilterBadge trait={trait} key={trait} />
@@ -412,10 +418,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                       {filterWithValues.map((filter) => {
                         return (
                           <fieldset key={filter.traitName}>
-                            <legend className="text-sm font-medium text-night-100">
+                            <legend className="text-sm font-medium text-honey-25">
                               {filter.traitName}
                             </legend>
-                            <div className="space-y-6 pt-4">
+                            <div className="space-y-2 pt-4">
                               {filter.values.map((value) => {
                                 return (
                                   <div
@@ -432,7 +438,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                       }
                                       value={`${filter.traitName}:${value.valueName}`}
                                     >
-                                      <span className="cursor-pointer text-xs capitalize">
+                                      <span className="cursor-pointer text-sm font-normal capitalize text-night-400">
                                         {value.valueName}
                                       </span>
                                     </LabeledCheckbox>
