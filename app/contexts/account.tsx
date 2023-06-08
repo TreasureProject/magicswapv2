@@ -1,7 +1,8 @@
 import { useFetcher } from "@remix-run/react";
 import type { ReactNode } from "react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { createContext } from "react";
+import type { ConnectorData } from "wagmi";
 import { useAccount as wagmiUseAccount } from "wagmi";
 
 import type { AddressString, Optional } from "~/types";
@@ -31,22 +32,38 @@ export const useAccount = () => {
 };
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-  const fetcher = useFetcher();
-  const { isConnected, address } = wagmiUseAccount({
+  const { submit } = useFetcher();
+  const { isConnected, address, connector } = wagmiUseAccount({
     onConnect: ({ address }) => {
       if (address) {
-        fetcher.submit(
-          { address },
-          { method: "put", action: "/resources/session" }
-        );
+        submit({ address }, { method: "put", action: "/resources/session" });
       } else {
-        fetcher.submit({}, { method: "delete", action: "/resources/session" });
+        submit({}, { method: "delete", action: "/resources/session" });
       }
     },
     onDisconnect: () => {
-      fetcher.submit({}, { method: "delete", action: "/resources/session" });
+      submit({}, { method: "delete", action: "/resources/session" });
     },
   });
+
+  useEffect(() => {
+    const handleConnectorUpdate = ({ account }: ConnectorData) => {
+      if (account) {
+        submit(
+          { address: account },
+          { method: "put", action: "/resources/session" }
+        );
+      }
+    };
+
+    if (connector) {
+      connector.on("change", handleConnectorUpdate);
+    }
+
+    return () => {
+      connector?.off("change", handleConnectorUpdate);
+    };
+  }, [connector, submit]);
 
   return (
     <Context.Provider

@@ -167,15 +167,17 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
     onSuccess,
   ]);
 
-  const insufficientBalanceA =
-    parseFloat(
-      isExactB ? formatUnits(amountA, pool.baseToken.decimals) : rawAmount
-    ) > parseFloat(formatEther(baseTokenBalance?.value || BigInt(0)));
+  const insufficientBalanceA = !pool.baseToken.isNFT
+    ? parseFloat(
+        isExactB ? formatUnits(amountA, pool.baseToken.decimals) : rawAmount
+      ) > parseFloat(formatEther(baseTokenBalance?.value || BigInt(0)))
+    : false;
 
-  const insufficientBalanceB =
-    parseFloat(
-      !isExactB ? formatUnits(amountB, pool.quoteToken.decimals) : rawAmount
-    ) > parseFloat(formatEther(quoteTokenBalance?.value || BigInt(0)));
+  const insufficientBalanceB = !pool.quoteToken.isNFT
+    ? parseFloat(
+        !isExactB ? formatUnits(amountB, pool.quoteToken.decimals) : rawAmount
+      ) > parseFloat(formatEther(quoteTokenBalance?.value || BigInt(0)))
+    : false;
 
   return (
     <div className="space-y-6">
