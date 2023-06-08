@@ -102,21 +102,6 @@ export default function Homepage() {
               </Button>
             </Link>
           </motion.div>
-          <motion.button
-            className="flex items-center gap-2 py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors hover:text-night-100"
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              delay: 0.4,
-            }}
-          >
-            Watch Tutorial
-            <PlayIcon className="w-4 " />
-          </motion.button>
         </div>
       </div>
       {/* <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
