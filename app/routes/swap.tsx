@@ -68,7 +68,7 @@ export const meta: V2_MetaFunction<
   {
     root: RootLoader;
   }
-> = ({ matches, data, location }) => {
+> = ({ matches, data }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
 

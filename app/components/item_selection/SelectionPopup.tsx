@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDownIcon,
   TableIcon as ColumnIcon,
-  Filter,
   LayoutGridIcon as GridIcon,
   InfoIcon,
   RotateCwIcon as RefreshIcon,

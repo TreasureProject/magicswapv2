@@ -150,7 +150,7 @@ export default function App() {
                 )}
               >
                 <div className="relative p-4">
-                  <div className="text-sm text-white">
+                  <div className="space-y-1 text-sm font-medium text-night-100">
                     {resolveValue(t.message, t)}
                   </div>
                   <div className="absolute right-4 top-4 flex-shrink-0">

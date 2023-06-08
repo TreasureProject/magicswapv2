@@ -6,7 +6,7 @@ import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { Button, TransactionButton } from "../ui/Button";
+import { TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
