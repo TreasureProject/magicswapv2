@@ -72,7 +72,7 @@ CloseButton.displayName = "CloseButton";
 export const TransactionButton = React.forwardRef<
   HTMLButtonElement,
   ButtonProps
->(({ variant, size, children, disabled, onClick, ...props }, ref) => {
+>(({ children, disabled, onClick, ...props }, ref) => {
   const isMounted = useIsMounted();
   const { openSwitchNetworks } = useModal();
   return (

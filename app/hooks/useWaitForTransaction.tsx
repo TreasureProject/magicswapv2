@@ -46,42 +46,50 @@ export const useWaitForTransaction = (
 
   const isSuccess = transactionResult.status === "success";
 
+  const loadingMessage = statusMessage.loading;
+  const errorMessage = statusMessage.error;
+  const successMessage = statusMessage.success;
+
   useEffect(() => {
     if (isLoading) {
       if (toastId.current) {
         toast.loading(
-          renderStatusWithHeader(
-            "Transaction in progress...",
-            statusMessage.loading
-          ),
+          renderStatusWithHeader("Transaction in progress...", loadingMessage),
           {
             id: toastId.current,
           }
         );
       } else {
-        toastId.current = toast.custom(
-          renderStatusWithHeader(
-            "Transaction in progress...",
-            statusMessage.loading
-          )
+        toastId.current = toast.loading(
+          renderStatusWithHeader("Transaction in progress...", loadingMessage)
         );
       }
     } else if (isSuccess) {
       toast.success(
-        renderStatusWithHeader("Transaction successful", statusMessage.success),
+        renderStatusWithHeader("Transaction successful", successMessage),
         {
           id: toastId.current,
         }
       );
     } else if (isError) {
-      toast.error(
-        renderStatusWithHeader("Transaction failed", statusMessage.error),
-        {
-          id: toastId.current,
-        }
-      );
+      toast.error(renderStatusWithHeader("Transaction failed", errorMessage), {
+        id: toastId.current,
+      });
     }
-  });
+
+    return () => {
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, [
+    isLoading,
+    isError,
+    isSuccess,
+    loadingMessage,
+    errorMessage,
+    successMessage,
+  ]);
 
   return transactionResult;
 };

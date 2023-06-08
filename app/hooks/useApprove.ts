@@ -9,6 +9,7 @@ import {
   usePrepareErc721SetApprovalForAll,
   usePrepareErc1155SetApprovalForAll,
 } from "~/generated";
+import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
 import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString } from "~/types";
 
@@ -36,30 +37,60 @@ export const useApprove = ({
     args: [magicSwapV2RouterAddress[421613], amount],
     enabled: enabled && !isERC721 && !isERC1155,
   });
-  const { data: erc20ApproveData, write: erc20Approve } =
-    useErc20Approve(erc20ApproveConfig);
-  const { isSuccess: isERC20ApproveSuccess } =
-    useWaitForTransaction(erc20ApproveData);
+  const {
+    data: erc20ApproveData,
+    write: erc20Approve,
+    status: erc20Status,
+  } = useErc20Approve(erc20ApproveConfig);
+  const { isSuccess: isERC20ApproveSuccess } = useWaitForT(
+    erc20ApproveData,
+    erc20Status,
+    {
+      loading: "Approving...",
+      success: "Approved!",
+      error: "Approval failed",
+    }
+  );
 
   const { config: erc721ApproveConfig } = usePrepareErc721SetApprovalForAll({
     address: collectionAddress,
     args: [magicSwapV2RouterAddress[421613], true],
     enabled: enabled && isERC721,
   });
-  const { data: erc721ApproveData, write: erc721Approve } =
-    useErc721SetApprovalForAll(erc721ApproveConfig);
-  const { isSuccess: isERC721ApproveSuccess } =
-    useWaitForTransaction(erc721ApproveData);
+  const {
+    data: erc721ApproveData,
+    write: erc721Approve,
+    status: erc721Status,
+  } = useErc721SetApprovalForAll(erc721ApproveConfig);
+  const { isSuccess: isERC721ApproveSuccess } = useWaitForT(
+    erc721ApproveData,
+    erc721Status,
+    {
+      loading: "Approving...",
+      success: "Approved!",
+      error: "Approval failed",
+    }
+  );
 
   const { config: erc1155ApproveConfig } = usePrepareErc1155SetApprovalForAll({
     address: collectionAddress,
     args: [magicSwapV2RouterAddress[421613], true],
     enabled: enabled && isERC1155,
   });
-  const { data: erc1155ApproveData, write: erc1155Approve } =
-    useErc1155SetApprovalForAll(erc1155ApproveConfig);
-  const { isSuccess: isERC1155ApproveSuccess } =
-    useWaitForTransaction(erc1155ApproveData);
+  const {
+    data: erc1155ApproveData,
+    write: erc1155Approve,
+    status: erc1155Status,
+  } = useErc1155SetApprovalForAll(erc1155ApproveConfig);
+  const { isSuccess: isERC1155ApproveSuccess } = useWaitForT(
+    erc1155ApproveData,
+    erc1155Status,
+    {
+      loading: "Approving...",
+      success: "Approved!",
+      error: "Approval failed",
+    }
+  );
 
   return {
     approve: () => {

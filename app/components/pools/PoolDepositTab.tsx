@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { parseUnits } from "viem";
+import { formatEther, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
@@ -160,6 +160,16 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
     onSuccess,
   ]);
 
+  const insufficientBalanceA =
+    parseFloat(
+      isExactB ? formatUnits(amountA, pool.baseToken.decimals) : rawAmount
+    ) > parseFloat(formatEther(baseTokenBalance?.value || BigInt(0)));
+
+  const insufficientBalanceB =
+    parseFloat(
+      !isExactB ? formatUnits(amountB, pool.quoteToken.decimals) : rawAmount
+    ) > parseFloat(formatEther(quoteTokenBalance?.value || BigInt(0)));
+
   return (
     <div className="space-y-6">
       <Dialog>
@@ -268,28 +278,34 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
         </LabeledCheckbox>
       )}
       <div className="space-y-1.5">
-        {hasAmount && !isBaseTokenApproved && (
-          <Button className="w-full" onClick={() => approveBaseToken?.()}>
-            Approve {pool.baseToken.name}
-          </Button>
-        )}
-        {hasAmount && !isQuoteTokenApproved && (
-          <Button className="w-full" onClick={() => approveQuoteToken?.()}>
-            Approve {pool.quoteToken.name}
-          </Button>
-        )}
         <TransactionButton
           className="w-full"
+          size="lg"
           disabled={
-            !address ||
             !hasAmount ||
-            !isBaseTokenApproved ||
-            !isQuoteTokenApproved ||
+            insufficientBalanceA ||
+            insufficientBalanceB ||
             (requiresTerms && !checkedTerms)
           }
-          onClick={() => addLiquidity?.()}
+          onClick={() => {
+            if (!isBaseTokenApproved) {
+              return approveBaseToken?.();
+            }
+            if (!isQuoteTokenApproved) {
+              return approveQuoteToken?.();
+            }
+            return addLiquidity?.();
+          }}
         >
-          Add Liquidity
+          {!hasAmount
+            ? "Enter Amount"
+            : insufficientBalanceA || insufficientBalanceB
+            ? "Insufficient Balance"
+            : !isBaseTokenApproved
+            ? `Approve ${pool.baseToken.name}`
+            : !isQuoteTokenApproved
+            ? `Approve ${pool.quoteToken.name}`
+            : "Add Liquidity"}
         </TransactionButton>
       </div>
     </div>
