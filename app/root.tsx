@@ -140,7 +140,12 @@ export default function App() {
             </Layout>
           </ConnectKitProvider>
         </WagmiConfig>
-        <Toaster position="top-right" reverseOrder={false} gutter={18}>
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={18}
+          toastOptions={{ duration: Infinity }}
+        >
           {(t) => {
             return (
               <div

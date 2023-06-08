@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { useAccount } from "~/contexts/account";
 import {
   useMagicSwapV2RouterSwapExactTokensForTokens,
@@ -50,6 +52,7 @@ export const useSwap = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
   const state = useStore(useSettingsStore, (state) => state);
+  const [statusHeader, setStatusHeader] = useState<React.ReactNode>("");
 
   const isEnabled = enabled && !!address && !!tokenOut;
   const amountInMax = isExactOut
@@ -71,11 +74,15 @@ export const useSwap = ({
   const deadlineBN = BigInt(
     Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60
   );
-  const statusHeader =
-    propsStatusHeader ??
-    `Swap ${formatAmount(bigIntToNumber(amountIn))} ${
-      tokenIn.symbol
-    } for ${formatAmount(bigIntToNumber(amountOut))} ${tokenOut?.symbol}`;
+
+  const updateStatusHeader = () => {
+    setStatusHeader(
+      propsStatusHeader ??
+        `Swap ${formatAmount(bigIntToNumber(amountIn))} ${
+          tokenIn.symbol
+        } for ${formatAmount(bigIntToNumber(amountOut))} ${tokenOut?.symbol}`
+    );
+  };
 
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =
@@ -184,6 +191,8 @@ export const useSwap = ({
       if (!isEnabled) {
         return;
       }
+
+      updateStatusHeader();
 
       if (tokenIn.isNFT && tokenOut.isNFT) {
         swapNftForNft.write?.();

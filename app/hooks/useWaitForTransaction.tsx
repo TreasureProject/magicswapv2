@@ -1,14 +1,18 @@
-import { useEffect, useRef } from "react";
+import { ExternalLinkIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import Balancer from "react-wrap-balancer";
 import type { useContractWrite } from "wagmi";
 import { useWaitForTransaction as useWaitForTransactionWagmi } from "wagmi";
 import type { SendTransactionResult } from "wagmi/dist/actions";
 
+import { useBlockExplorer } from "./useBlockExplorer";
 import type { Optional } from "~/types";
 
+const TOAST_DURATION = 5_000;
+
 const renderStatusWithHeader = (
-  message: string,
+  message: React.ReactNode,
   headerMessage?: React.ReactNode
 ) => (
   <>
@@ -23,49 +27,97 @@ export const useWaitForTransaction = (
   statusHeader?: React.ReactNode
 ) => {
   const toastId = useRef<Optional<string>>(undefined);
+  const [toastStatus, setToastStatus] = useState<
+    "error" | "success" | "loading" | "hidden"
+  >("hidden");
+  const { name: blockExplorerName, url: blockExporerUrl } = useBlockExplorer();
 
   const transactionResult = useWaitForTransactionWagmi(transaction);
+  const transactionHash = transaction?.hash;
 
-  const isLoading =
-    transactionResult.status === "loading" || status === "loading";
+  const dismissToast = () => {
+    if (toastId.current) {
+      toast.dismiss(toastId.current);
+      toastId.current = undefined;
+    }
 
-  const isError = transactionResult.status === "error" || status === "error";
-
-  const isSuccess = transactionResult.status === "success";
+    setToastStatus("hidden");
+  };
 
   useEffect(() => {
-    if (isLoading) {
-      if (toastId.current) {
-        toast.loading(
-          renderStatusWithHeader("Transaction in progress...", statusHeader),
-          {
-            id: toastId.current,
-          }
-        );
-      } else {
-        toastId.current = toast.loading(
-          renderStatusWithHeader("Transaction in progress...", statusHeader)
-        );
+    if (status === "loading" || transactionResult.status === "loading") {
+      setToastStatus("loading");
+    } else if (status === "error" || transactionResult.status === "error") {
+      setToastStatus("error");
+    } else if (transactionResult.status === "success") {
+      setToastStatus("success");
+    } else {
+      dismissToast();
+    }
+  }, [status, transactionResult.status]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | undefined;
+    if (toastStatus === "success" || toastStatus === "error") {
+      timeout = setTimeout(dismissToast, TOAST_DURATION);
+    }
+
+    return () => {
+      if (timeout) {
+        dismissToast();
+        clearTimeout(timeout);
       }
-    } else if (isSuccess) {
+    };
+  }, [toastStatus]);
+
+  useEffect(() => {
+    if (toastStatus === "loading") {
+      const message = renderStatusWithHeader(
+        "Transaction in progress...",
+        statusHeader
+      );
+      if (toastId.current) {
+        toast.loading(message, {
+          id: toastId.current,
+        });
+      } else {
+        toastId.current = toast.loading(message);
+      }
+    } else if (toastStatus === "success") {
       toast.success(
-        renderStatusWithHeader("Transaction successful", statusHeader),
+        renderStatusWithHeader(
+          <div className="space-y-1">
+            <p>Transaction successful</p>
+            {transactionHash ? (
+              <a
+                href={`${blockExporerUrl}/tx/${transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-night-300 transition-colors hover:text-honey-25"
+              >
+                View on {blockExplorerName}{" "}
+                <ExternalLinkIcon className="h-3 w-3" />
+              </a>
+            ) : null}
+          </div>,
+          statusHeader
+        ),
         {
           id: toastId.current,
         }
       );
-    } else if (isError) {
+    } else if (toastStatus === "error") {
       toast.error(renderStatusWithHeader("Transaction failed", statusHeader), {
         id: toastId.current,
       });
     }
-
-    return () => {
-      if (toastId.current) {
-        toast.dismiss(toastId.current);
-      }
-    };
-  }, [isLoading, isError, isSuccess, statusHeader]);
+  }, [
+    toastStatus,
+    transactionHash,
+    blockExplorerName,
+    blockExporerUrl,
+    statusHeader,
+  ]);
 
   return transactionResult;
 };

@@ -47,7 +47,7 @@ import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
 import { sumArray } from "~/lib/array";
-import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -649,7 +649,7 @@ const SwapTokenInput = ({
             )}
           </div>
           {!token?.isNFT && otherToken?.isNFT ? <DisabledInputPopover /> : null}
-          {!token?.isNFT && !otherToken?.isNFT ? (
+          {!token?.isNFT && !otherToken?.isNFT && !isOut ? (
             <Button
               size="xs"
               variant="secondary"
