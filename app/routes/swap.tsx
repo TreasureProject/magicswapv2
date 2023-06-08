@@ -14,7 +14,7 @@ import { defer } from "@remix-run/server-runtime";
 import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
-import { parseUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import type { FetchInventoryLoader } from "./resources.fetch-inventory";
@@ -607,7 +607,7 @@ const SwapTokenInput = ({
           )}
         </div>
       </div>
-      <div className="bg-night-900 px-4 py-2.5 text-sm">
+      <div className="bg-night-1000 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
             <span className="text-night-400 sm:text-sm">
@@ -643,6 +643,17 @@ const SwapTokenInput = ({
             )}
           </div>
           {!token?.isNFT && otherToken?.isNFT ? <DisabledInputPopover /> : null}
+          {!token?.isNFT && !otherToken?.isNFT ? (
+            <Button
+              size="xs"
+              variant="secondary"
+              onClick={() =>
+                onUpdateAmount(formatUnits(balance, token.decimals))
+              }
+            >
+              Max
+            </Button>
+          ) : null}
           {selectedNfts.length > 0 ? (
             <Dialog>
               <SelectionPopup
