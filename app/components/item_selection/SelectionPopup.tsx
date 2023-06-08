@@ -2,21 +2,20 @@ import { Close } from "@radix-ui/react-dialog";
 import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  CheckIcon,
+  ChevronDownIcon,
   TableIcon as ColumnIcon,
-  ExternalLink,
   Filter,
   LayoutGridIcon as GridIcon,
+  InfoIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
-  X,
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useAccount, useChainId } from "wagmi";
-import { arbitrum } from "wagmi/chains";
+import { useAccount } from "wagmi";
 
-import { LoaderIcon } from "../Icons";
+import { Badge } from "../Badge";
+import { CheckIcon, FilledFilterIcon, LoaderIcon } from "../Icons";
 import { PoolTokenImage } from "../pools/PoolTokenImage";
 import { Button } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
@@ -26,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import type { TroveFilters } from "~/api/tokens.server";
 import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
+import { useTrove } from "~/hooks/useTrove";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.get-collection";
@@ -44,59 +44,66 @@ const ItemCard = ({
   disabled: boolean;
   viewOnly: boolean;
 }) => {
-  const chainId = useChainId();
+  const { createTokenUrl } = useTrove();
   const disableUnselected = !selected && disabled;
-  return (
-    <div
-      className={cn(
-        "group relative flex-col overflow-hidden rounded-lg bg-night-900",
-        selected && "ring-2 ring-night-100"
+
+  const innerCard = (
+    <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
+      {selected && (
+        <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
+          <CheckIcon className="w-3" />
+        </div>
       )}
-    >
-      <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
-        {selected && (
-          <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
-            <CheckIcon className="w-3" />
-          </div>
+      <img
+        src={item.image.uri}
+        alt={item.tokenId}
+        className={cn(
+          "w-full",
+          !viewOnly && !disableUnselected && "group-hover:opacity-75"
         )}
-        <img
-          src={item.image.uri}
-          alt={item.tokenId}
-          className={cn("w-full", !viewOnly && "group-hover:opacity-75")}
-        />
-        <div className="p-3">
-          <p className="text-sm font-medium text-night-100">
+      />
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div className="text-left">
+          <p className="text-sm font-medium text-honey-25">
             {item.metadata.name}
           </p>
-          <p className="text-night-400">{item.tokenId}</p>
+          <p className="text-sm text-night-400">#{item.tokenId}</p>
         </div>
-        {!viewOnly && (
-          <button
-            className="absolute inset-0 h-full w-full"
-            onClick={onClick}
-            disabled={disableUnselected}
-          >
-            <span className="sr-only">Select {item.metadata.name}</span>
-          </button>
-        )}
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`View ${item.metadata.name} on Trove`}
+          className="text-night-400 transition-colors hover:text-night-100"
+          href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <InfoIcon className="h-4 w-4" />
+          <span className="sr-only">View {item.metadata.name} on Trove</span>
+        </a>
       </div>
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        title={`View ${item.collectionUrlSlug} ${item.tokenId} on Trove`}
-        className="text-night-400 transition-colors hover:text-night-100"
-        href={`${
-          chainId === arbitrum.id
-            ? "https://trove.treasure.lol/"
-            : "https://trove-testnet.treasure.lol/"
-        }collection/${item.collectionUrlSlug}/${item.tokenId}`}
-      >
-        <ExternalLink className="absolute bottom-3 right-3 h-auto w-4" />
-        <span className="sr-only">
-          View {item.collectionUrlSlug} {item.tokenId} on Trove
-        </span>
-      </a>
     </div>
+  );
+
+  if (viewOnly) {
+    return (
+      <div className="overflow-hidden rounded-lg bg-night-900">{innerCard}</div>
+    );
+  }
+
+  return (
+    <button
+      className={cn(
+        "group relative overflow-hidden rounded-lg bg-night-900",
+        selected && "ring-2 ring-night-100"
+      )}
+      onClick={onClick}
+      disabled={disableUnselected}
+    >
+      {!disableUnselected ? (
+        <span className="sr-only">Select {item.metadata.name}</span>
+      ) : null}
+      {innerCard}
+    </button>
   );
 };
 
@@ -106,20 +113,19 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
   return (
     <span
       key={`${key}:${value}`}
-      className="m-1 inline-flex flex-shrink-0 items-center rounded-full border-transparent bg-secondary py-1.5 pl-3 pr-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-1100 px-3 py-2 text-sm font-medium text-night-700"
     >
-      <p className="space-x-1 text-xs">
-        <span className="inline-block capitalize">{key}</span>
-        <span className="text-night-300">is</span>
-        <span className="inline-block capitalize">{value}</span>
+      <p>
+        <span className="inline-block capitalize">{key}:</span>{" "}
+        <span className="inline-block capitalize text-night-100">{value}</span>
       </p>
       <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
       <button
         type="submit"
-        className="ml-1 inline-flex h-4 w-4 flex-shrink-0 rounded-full p-1 text-night-400 hover:bg-night-1000"
+        className="flex-shrink-0 rounded-full p-1 hover:bg-night-1000"
       >
         <span className="sr-only">Remove filter for {value}</span>
-        <X className="h-2 w-2" />
+        <XIcon className="h-4 w-4" />
       </button>
     </span>
   );
@@ -154,6 +160,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const id = token?.id;
   const fetchFromVault = type === "vault";
@@ -360,24 +367,28 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           }}
         >
           {HiddenInputs}
-          <Popover>
+          <Popover onOpenChange={setIsFilterOpen}>
             <div className="flex space-x-2 divide-x divide-night-800 bg-night-1000 px-4 py-2">
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={cn(
-                    "group flex flex-shrink-0 items-center",
-                    selectedTraitCount === 0 && "text-night-500"
-                  )}
+                  className="group flex flex-shrink-0 items-center gap-2 text-sm font-medium text-honey-25"
                 >
-                  <Filter className="mr-2 h-4 w-4" aria-hidden="true" />
-                  <span className="mr-1 tabular-nums">
-                    {selectedTraitCount}
-                  </span>
-                  <span>Filter(s)</span>
+                  <FilledFilterIcon
+                    className="h-4 w-4 text-night-100"
+                    aria-hidden="true"
+                  />
+                  <span>Filters</span>
+                  <Badge>{selectedTraitCount}</Badge>
+                  <ChevronDownIcon
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      isFilterOpen && "-rotate-180"
+                    )}
+                  />
                 </Button>
               </PopoverTrigger>
-              <div className="flex w-full items-center overflow-x-auto pl-2">
+              <div className="flex w-full items-center gap-3 overflow-x-auto pl-2">
                 {data &&
                   data.traits.map((trait) => (
                     <TraitFilterBadge trait={trait} key={trait} />
@@ -407,10 +418,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                       {filterWithValues.map((filter) => {
                         return (
                           <fieldset key={filter.traitName}>
-                            <legend className="text-sm font-medium text-night-100">
+                            <legend className="text-sm font-medium text-honey-25">
                               {filter.traitName}
                             </legend>
-                            <div className="space-y-6 pt-4">
+                            <div className="space-y-2 pt-4">
                               {filter.values.map((value) => {
                                 return (
                                   <div
@@ -427,7 +438,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                       }
                                       value={`${filter.traitName}:${value.valueName}`}
                                     >
-                                      <span className="cursor-pointer text-xs capitalize">
+                                      <span className="cursor-pointer text-sm font-normal capitalize text-night-400">
                                         {value.valueName}
                                       </span>
                                     </LabeledCheckbox>
@@ -581,11 +592,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                           <div className="h-10 w-10 rounded-[4px] bg-night-800" />
                         )}
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <p className="truncate text-sm font-medium text-night-100">
+                          <p className="truncate text-sm font-medium text-honey-25">
                             {item.metadata.name}
                           </p>
                           <p className="text-sm text-night-400">
-                            {item.tokenId}
+                            #{item.tokenId}
                           </p>
                         </div>
                       </div>

@@ -100,3 +100,21 @@ export const TokenIcon = ({ className }: Props) => (
     />
   </svg>
 );
+
+export const CheckIcon = ({ className }: Props) => (
+  <svg width="9" height="6" viewBox="0 0 9 6" className={className}>
+    <path
+      d="M3.52503 5.93281L0.710449 3.11823L2.00837 1.82031L3.52503 3.33698L6.7917 0.0703125L8.08962 1.36823L3.52503 5.93281Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const FilledFilterIcon = ({ className }: Props) => (
+  <svg width="16" height="17" viewBox="0 0 16 17" className={className}>
+    <path
+      d="M6.09435 8.0606C6.26225 8.24332 6.35443 8.48201 6.35443 8.72892V16.0047C6.35443 16.4426 6.88283 16.6649 7.1956 16.357L9.22526 14.0311C9.49687 13.7051 9.64666 13.5438 9.64666 13.2212V8.73057C9.64666 8.48365 9.74049 8.24497 9.90675 8.06223L15.7307 1.74282C16.1669 1.26874 15.8311 0.5 15.1858 0.5H0.815241C0.169964 0.5 -0.167489 1.26709 0.270377 1.74282L6.09435 8.0606Z"
+      fill="currentColor"
+    />
+  </svg>
+);
