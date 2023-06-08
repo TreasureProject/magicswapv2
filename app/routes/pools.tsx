@@ -154,8 +154,7 @@ export default function PoolsListPage() {
         <div className="space-y-1">
           <h1 className="text-3xl font-bold">Pools</h1>
           <p className="text-night-200">
-            Earn from the Liquidity Provider fees by adding NFTs or tokens as
-            liquidity.
+            Use your game assets to earn rewards by providing liquidity.
           </p>
         </div>
         <Button variant="dark" size="md">
