@@ -110,7 +110,13 @@ export async function loader({ request }: LoaderArgs) {
   const tokenOut = outputAddress ? await fetchToken(outputAddress) : null;
 
   const { amountInBN = BigNumber.from(0) } =
-    createSwapRoute(tokenIn, tokenOut, pools, parseUnits("1", 18), true) ?? {};
+    createSwapRoute(
+      tokenIn,
+      tokenOut,
+      pools,
+      parseUnits("1", tokenOut?.decimals ?? 18),
+      true
+    ) ?? {};
 
   if (!address || !tokenIn.isNFT) {
     return defer({
@@ -119,7 +125,7 @@ export async function loader({ request }: LoaderArgs) {
       tokenIn,
       tokenOut,
       inventory: null,
-      comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
+      comparisonValue: amountInBN.toString(),
     });
   }
 
@@ -129,7 +135,7 @@ export async function loader({ request }: LoaderArgs) {
     tokenIn,
     tokenOut,
     inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
-    comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
+    comparisonValue: amountInBN.toString(),
   });
 }
 
@@ -381,7 +387,7 @@ export default function SwapPage() {
           <div className="mt-6 rounded-2xl border border-night-800 p-4">
             <p className="text-sm text-night-400">
               <span className="font-medium text-honey-25">
-                {formatAmount(comparisonValue)}
+                {formatTokenAmount(BigInt(comparisonValue), tokenIn.decimals)}
               </span>{" "}
               {token.symbol} per {otherToken.symbol}
             </p>
