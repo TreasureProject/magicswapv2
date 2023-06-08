@@ -249,7 +249,7 @@ export const PoolWithdrawTab = ({
           </Button>
         ) : (
           <TransactionButton
-            className="w-full"
+            className="h-11 w-full"
             disabled={
               !address ||
               !isApproved ||
