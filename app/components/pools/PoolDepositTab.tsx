@@ -1,4 +1,6 @@
+import { HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import Balancer from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
@@ -7,6 +9,7 @@ import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { Button, TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { PoolImage } from "./PoolImage";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
@@ -79,15 +82,19 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
       enabled: !!address && !pool.quoteToken.isNFT,
     });
 
-  const { isApproved: isBaseTokenApproved, refetch: refetchBaseTokenApproval } =
-    useIsApproved({
-      token: pool.baseToken,
-      amount: amountA,
-      enabled: hasAmount,
-    });
+  const {
+    isApproved: isBaseTokenApproved,
+    refetch: refetchBaseTokenApproval,
+    approvedAlready: isBaseTokenApprovedAlready,
+  } = useIsApproved({
+    token: pool.baseToken,
+    amount: amountA,
+    enabled: hasAmount,
+  });
   const {
     isApproved: isQuoteTokenApproved,
     refetch: refetchQuoteTokenApproval,
+    approvedAlready: isQuoteTokenApprovedAlready,
   } = useIsApproved({
     token: pool.quoteToken,
     amount: amountB,
@@ -297,17 +304,43 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
             return addLiquidity?.();
           }}
         >
-          {!hasAmount
-            ? "Enter Amount"
-            : insufficientBalanceA || insufficientBalanceB
-            ? "Insufficient Balance"
-            : !isBaseTokenApproved
-            ? `Approve ${pool.baseToken.name}`
-            : !isQuoteTokenApproved
-            ? `Approve ${pool.quoteToken.name}`
-            : "Add Liquidity"}
+          {!hasAmount ? (
+            "Enter Amount"
+          ) : insufficientBalanceA || insufficientBalanceB ? (
+            "Insufficient Balance"
+          ) : !isBaseTokenApproved ? (
+            <div className="flex items-center">
+              <span>Approve {pool.baseToken.name}</span>
+              {isBaseTokenApprovedAlready ? <ApproveAgainInfoPopover /> : null}
+            </div>
+          ) : !isQuoteTokenApproved ? (
+            <div className="flex items-center">
+              <span>Approve {pool.quoteToken.name}</span>
+              {isQuoteTokenApprovedAlready ? <ApproveAgainInfoPopover /> : null}
+            </div>
+          ) : (
+            "Add Liquidity"
+          )}
         </TransactionButton>
       </div>
     </div>
   );
 };
+
+const ApproveAgainInfoPopover = () => (
+  <Popover>
+    <PopoverTrigger asChild>
+      <button className="group ml-1" onClick={(e) => e.stopPropagation()}>
+        <HelpCircle className="h-4 w-4 transition-colors group-hover:text-night-100" />
+      </button>
+    </PopoverTrigger>
+    <PopoverContent align="center" className="w-72 text-left">
+      <p className="text-xs text-night-300">
+        <Balancer>
+          You will need to approve again because the amount you entered exceeds
+          the amount you previously approved.
+        </Balancer>
+      </p>
+    </PopoverContent>
+  </Popover>
+);

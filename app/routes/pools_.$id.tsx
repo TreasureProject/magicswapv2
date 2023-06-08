@@ -182,91 +182,89 @@ export default function PoolDetailsPage() {
               </div>
             </div>
             <div className="h-[1px] bg-night-900" />
-            <ClientOnly
-              fallback={
-                <div className="flex h-52 items-center justify-center">
-                  <LoaderIcon className="h-10 w-10" />
-                </div>
-              }
-            >
-              {() => (
-                <>
-                  {address ? (
-                    <div className="space-y-4 rounded-md bg-night-1100 p-4">
-                      <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                        <h3 className="font-medium">Your Positions</h3>
-                        <span className="text-night-200">
-                          <abbr
-                            title="Total Value Locked"
-                            className="text-night-600 no-underline"
-                          >
-                            TVL
-                          </abbr>
-                          : {formatUSD(lpShare * pool.reserveUSD)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col space-y-2 px-2 py-4">
-                        <div className="flex items-center -space-x-1">
-                          <PoolImage pool={pool} className="h-10 w-10" />
-                          <p className="text-3xl text-night-100">
-                            {formatTokenAmount(lpBalance)}
-                          </p>
-                        </div>
-                        <p className="text-sm text-night-400">
-                          Current LP Token Balance
+            {address && lpBalance > BigInt(0) ? (
+              <ClientOnly
+                fallback={
+                  <div className="flex h-52 items-center justify-center">
+                    <LoaderIcon className="h-10 w-10" />
+                  </div>
+                }
+              >
+                {() => (
+                  <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                    <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
+                      <h3 className="font-medium">Your Positions</h3>
+                      <span className="text-night-200">
+                        <abbr
+                          title="Total Value Locked"
+                          className="text-night-600 no-underline"
+                        >
+                          TVL
+                        </abbr>
+                        : {formatUSD(lpShare * pool.reserveUSD)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col space-y-2 px-2 py-4">
+                      <div className="flex items-center -space-x-1">
+                        <PoolImage pool={pool} className="h-10 w-10" />
+                        <p className="text-3xl text-night-100">
+                          {formatTokenAmount(lpBalance)}
                         </p>
                       </div>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {[pool.baseToken, pool.quoteToken].map((token) => (
-                          <div key={token.id} className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <p className="font-medium text-night-100">
-                                {token.name}
-                              </p>
-                              {token.name.toUpperCase() !==
-                              token.symbol.toUpperCase() ? (
-                                <>
-                                  <div className="h-3 w-[1px] bg-night-400" />
-                                  <p className="font-regular uppercase text-night-300">
-                                    {token.symbol}
-                                  </p>
-                                </>
-                              ) : null}
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <PoolTokenImage
-                                  className="h-6 w-6"
-                                  token={token}
-                                />
-                                <p className="text-night-100">
-                                  {formatUSD(lpShare * token.reserve)}
-                                </p>
-                              </div>
-                              <p className="text-xs text-night-500">
-                                {formatUSD(
-                                  lpShare * token.reserve * token.priceUSD
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <Table
-                        items={[
-                          // { label: "Initial LP Tokens", value: 0.0 },
-                          // { label: "Rewards Earned", value: 0.0 },
-                          {
-                            label: "Current Share of Pool",
-                            value: formatPercent(lpShare),
-                          },
-                        ]}
-                      />
+                      <p className="text-sm text-night-400">
+                        Current LP Token Balance
+                      </p>
                     </div>
-                  ) : null}
-                </>
-              )}
-            </ClientOnly>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {[pool.baseToken, pool.quoteToken].map((token) => (
+                        <div key={token.id} className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <p className="font-medium text-night-100">
+                              {token.name}
+                            </p>
+                            {token.name.toUpperCase() !==
+                            token.symbol.toUpperCase() ? (
+                              <>
+                                <div className="h-3 w-[1px] bg-night-400" />
+                                <p className="font-regular uppercase text-night-300">
+                                  {token.symbol}
+                                </p>
+                              </>
+                            ) : null}
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <PoolTokenImage
+                                className="h-6 w-6"
+                                token={token}
+                              />
+                              <p className="text-night-100">
+                                {formatUSD(lpShare * token.reserve)}
+                              </p>
+                            </div>
+                            <p className="text-xs text-night-500">
+                              {formatUSD(
+                                lpShare * token.reserve * token.priceUSD
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Table
+                      items={[
+                        // { label: "Initial LP Tokens", value: 0.0 },
+                        // { label: "Rewards Earned", value: 0.0 },
+                        {
+                          label: "Current Share of Pool",
+                          value: formatPercent(lpShare),
+                        },
+                      ]}
+                    />
+                  </div>
+                )}
+              </ClientOnly>
+            ) : null}
             <div className="rounded-md bg-night-1100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>

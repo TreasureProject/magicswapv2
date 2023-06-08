@@ -71,6 +71,7 @@ export const useIsApproved = ({
       !!erc721IsApprovedForAll ||
       !!erc1155IsApprovedForAll ||
       (!!allowance && allowance >= amount),
+    approvedAlready: !!allowance && allowance > BigInt(0),
     refetch,
   };
 };
