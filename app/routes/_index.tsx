@@ -91,12 +91,12 @@ export default function Homepage() {
               delay: 0.4,
             }}
           >
-            <Link to="/swap">
+            <Link to="/swap" prefetch="render">
               <Button className="w-full" size="lg">
                 Start Trading
               </Button>
             </Link>
-            <Link to="/pools">
+            <Link to="/pools" prefetch="render">
               <Button className="w-full" variant="secondary" size="lg">
                 Add Liquidity
               </Button>
