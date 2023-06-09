@@ -116,6 +116,7 @@ export const useSwap = ({
       statusHeader
     );
 
+  // ERC20-NFT
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
       args: [

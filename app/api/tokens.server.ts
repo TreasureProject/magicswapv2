@@ -135,6 +135,7 @@ export type TroveFilters = ReturnType<typeof fetchFilters>;
 export const fetchCollectionOwnedByAddress = async (
   address: string,
   slug: string,
+  tokenIds: string[],
   traits: string[],
   query: string | null,
   pageKey: string | null,
@@ -151,9 +152,14 @@ export const fetchCollectionOwnedByAddress = async (
         body: JSON.stringify(
           filterNullValues({
             userAddress: address,
-            slugs: [slug],
+            ...(tokenIds.length > 0
+              ? {
+                  ids: tokenIds.map((tokenId) => `${slug}/${tokenId}`),
+                }
+              : {
+                  slugs: [slug],
+                }),
             limit: ITEMS_PER_PAGE,
-            chains: [process.env.TROVE_API_NETWORK],
             query,
             traits,
             pageKey,

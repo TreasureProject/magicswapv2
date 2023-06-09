@@ -31,11 +31,10 @@ export const NumberSelect = ({
     <div className="flex items-center gap-2 rounded-md bg-night-1100 p-2">
       <button
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md  text-night-400  opacity-50 transition-colors",
-          !(number === 0) &&
-            "opacity-100 hover:bg-night-1000 hover:text-night-200"
+          "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
+          number > 1 && "opacity-100 hover:bg-night-1000 hover:text-night-200"
         )}
-        disabled={number === 1}
+        disabled={number <= 1}
         onClick={() => updateNumber("sub")}
       >
         <MinusIcon className="w-4" />
@@ -45,10 +44,10 @@ export const NumberSelect = ({
       </p>
       <button
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md  text-night-400  opacity-50 transition-colors",
-          !(number === max) &&
-            "opacity-100 hover:bg-night-1000 hover:text-night-200"
+          "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
+          number < max && "opacity-100 hover:bg-night-1000 hover:text-night-200"
         )}
+        disabled={number >= max}
         onClick={() => updateNumber("add")}
       >
         <PlusIcon className="w-4" />

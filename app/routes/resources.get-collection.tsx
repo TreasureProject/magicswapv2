@@ -45,9 +45,13 @@ export const loader = async (args: LoaderArgs) => {
     } else {
       invariant(address, "Missing address");
 
+      const tokenIds = url.searchParams.get("tokenIds");
+      const tokenIdsArray = tokenIds ? tokenIds.split(",") : [];
+
       tokens = await fetchCollectionOwnedByAddress(
         address,
         slug.toLowerCase(),
+        tokenIdsArray,
         traitsArray,
         query,
         nextPageKey,

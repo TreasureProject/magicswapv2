@@ -101,8 +101,8 @@ export const createPoolToken = (
   magicUSD: number
 ) => {
   const tokenCollections =
-    token.vaultCollections.map(({ collection }) =>
-      createPoolTokenCollection(collection, collections)
+    token.vaultCollections.map(({ collection, tokenIds }) =>
+      createPoolTokenCollection(collection, tokenIds ?? [], collections)
     ) ?? [];
   const symbol = createTokenSymbol(token, collections);
   return {
@@ -122,6 +122,7 @@ export const createPoolToken = (
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
     collectionId: tokenCollections[0]?.id ?? "",
+    collectionTokenIds: tokenCollections[0]?.tokenIds ?? [],
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
     reserveItems: token.vaultReserveItems,

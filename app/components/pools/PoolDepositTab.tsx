@@ -17,6 +17,7 @@ import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
+import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
@@ -158,6 +159,7 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
       });
       refetchBaseTokenBalance();
       refetchQuoteTokenBalance();
+      setCheckedTerms(false);
       onSuccess?.();
     }
   }, [
@@ -190,7 +192,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
           }
           onSubmit={(tokens) =>
             setTransaction({
-              amount: tokens.length.toString(),
+              amount: sumArray(
+                tokens.map(({ quantity }) => quantity)
+              ).toString(),
               nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
               nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
               isExactB: false,
