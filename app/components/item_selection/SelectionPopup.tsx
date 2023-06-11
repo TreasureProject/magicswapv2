@@ -199,13 +199,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       slug: token.urlSlug,
     });
 
-    if (fetchFromVault && id) {
-      params.set("type", "vault");
-      params.set("id", id);
-    } else {
-      params.set("type", "inventory");
-      params.set("address", address);
-    }
+    params.set("address", fetchFromVault && id ? id : address);
 
     if (traitInfoRef.current.length > 0) {
       params.set("traits", traitInfoRef.current);

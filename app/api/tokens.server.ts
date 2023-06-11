@@ -189,44 +189,6 @@ function getTokenIds(id: string) {
   });
 }
 
-export const fetchIdsFromCollection = async (
-  id: string,
-  slug: string,
-  traits: string[],
-  query: string | null,
-  pageKey: string | null,
-  offset: number
-) => {
-  try {
-    const tokenIds = await getTokenIds(id);
-
-    const response = await fetch(
-      `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/tokens`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(
-          filterNullValues({
-            ids: tokenIds,
-            limit: ITEMS_PER_PAGE,
-            traits,
-            query,
-            pageKey,
-            offset,
-          })
-        ),
-      }
-    );
-    const result = (await response.json()) as TroveApiResponse;
-
-    return result;
-  } catch (e) {
-    throw new Error("Error fetching collection");
-  }
-};
-
 export const fetchTroveTokens = async (
   ids: string[]
 ): Promise<TroveTokenMapping> => {
