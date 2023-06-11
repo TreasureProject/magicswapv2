@@ -141,7 +141,7 @@ export default function PoolDetailsPage() {
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
-  const { data: rawLpBalance } = useBalance({
+  const { data: rawLpBalance, refetch: refetchLpBalance } = useBalance({
     address,
     token: pool.id as AddressString,
     enabled: !!address,
@@ -239,7 +239,7 @@ export default function PoolDetailsPage() {
                                 token={token}
                               />
                               <p className="text-night-100">
-                                {formatUSD(lpShare * token.reserve)}
+                                {formatAmount(lpShare * token.reserve)}
                               </p>
                             </div>
                             <p className="text-xs text-night-500">
@@ -347,6 +347,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
+            onSuccess={() => refetchLpBalance()}
           />
         </div>
         {/*Here the pool & inventory start */}
@@ -459,6 +460,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
+            onSuccess={() => refetchLpBalance()}
           />
         </SheetContent>
       </Sheet>
@@ -469,10 +471,12 @@ export default function PoolDetailsPage() {
 const PoolManagementView = ({
   pool,
   lpBalance,
+  onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
+  onSuccess: () => void;
   className?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<string>("deposit");
@@ -504,10 +508,15 @@ const PoolManagementView = ({
           pool={pool}
           balance={lpBalance}
           inventory={inventory}
+          onSuccess={onSuccess}
         />
       )}
       {activeTab === "deposit" && (
-        <PoolDepositTab pool={pool} inventory={inventory} />
+        <PoolDepositTab
+          pool={pool}
+          inventory={inventory}
+          onSuccess={onSuccess}
+        />
       )}
     </div>
   );
@@ -788,11 +797,11 @@ const PoolTokenCollectionInventory = ({
                       className="relative overflow-hidden rounded"
                     >
                       <img src={image} alt={name} title={name} />
-                      {token.type === "ERC1155" && (
-                        <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-medium text-night-900">
+                      {amount > 1 ? (
+                        <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
                           {amount}x
                         </span>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>

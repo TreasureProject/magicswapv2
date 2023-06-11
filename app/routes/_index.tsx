@@ -223,21 +223,21 @@ export default function Homepage() {
         </p>
         <div className="container grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <InfoCard
-            Icon={RoyaltiesIcon}
-            title="Automated Royalties"
-            description="Magicswap pools utilize a three-tiered royalty system that includes fees for LPs, project creators, and the protocol."
+            Icon={SweepIcon}
+            title="Instant Trading"
+            description="Effortlessly buy and sell various types of game items."
             link="/"
           />
           <InfoCard
             Icon={PoolIcon}
-            title="NFT:NFT Pools"
-            description="Magicswap allows projects to create pools that use an ERC-1155 as the base pair, a first for NFT AMMs."
+            title="Provide Liquidity"
+            description="Deposit game items and earn rewards through trading fees."
             link="/"
           />
           <InfoCard
-            Icon={SweepIcon}
-            title="Sweeping"
-            description="Magicswap allows user to sweep any number of NFTs from the pools."
+            Icon={RoyaltiesIcon}
+            title="Automated Royalties"
+            description="Magicswap pools utilize a three-tiered royalty system that includes fees for LPs, project creators, and the protocol."
             link="/"
           />
         </div>

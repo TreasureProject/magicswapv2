@@ -33,12 +33,14 @@ import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 const ItemCard = ({
   selected,
   item,
+  quantity,
   onClick,
   disabled,
   viewOnly,
 }: {
   selected: boolean;
   item: TroveToken;
+  quantity: number;
   onClick: () => void;
   disabled: boolean;
   viewOnly: boolean;
@@ -53,15 +55,22 @@ const ItemCard = ({
           <CheckIcon className="w-3" />
         </div>
       )}
-      <img
-        src={item.image.uri}
-        alt={item.tokenId}
-        className={cn(
-          "w-full",
-          !viewOnly && !disableUnselected && "group-hover:opacity-75"
-        )}
-      />
-      <div className="flex items-start justify-between gap-2 p-3">
+      <div className="relative">
+        <img
+          src={item.image.uri}
+          alt={item.tokenId}
+          className={cn(
+            "w-full",
+            !viewOnly && !disableUnselected && "group-hover:opacity-75"
+          )}
+        />
+        {quantity > 1 ? (
+          <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+            {quantity}x
+          </span>
+        ) : null}
+      </div>
+      <div className="flex items-start justify-between gap-2 p-2.5">
         <div className="text-left">
           <p className="text-sm font-medium text-honey-25">
             {item.metadata.name}
@@ -92,7 +101,7 @@ const ItemCard = ({
   return (
     <button
       className={cn(
-        "group relative overflow-hidden rounded-lg bg-night-900",
+        "group relative flex items-start overflow-hidden rounded-lg bg-night-900",
         selected && "ring-2 ring-night-100"
       )}
       onClick={onClick}
@@ -456,7 +465,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <LoaderIcon className="h-8 w-8" />
             </div>
           ) : state === "idle" && data ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
               {data.tokens.tokens.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
@@ -465,6 +474,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   )}
                   key={item.tokenId}
                   item={item}
+                  quantity={
+                    "queryUserQuantityOwned" in item
+                      ? item.queryUserQuantityOwned ?? 1
+                      : 1
+                  }
                   viewOnly={props.viewOnly || false}
                   onClick={() => {
                     selectionHandler({
