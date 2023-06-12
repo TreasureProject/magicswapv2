@@ -11,12 +11,11 @@ export const loader = async (args: LoaderArgs) => {
   const address = url.searchParams.get("address");
   const slug = url.searchParams.get("slug");
   const traits = url.searchParams.get("traits");
-  const type = url.searchParams.get("type");
   const query = url.searchParams.get("query");
   const nextPageKey = url.searchParams.get("nextPageKey");
   const offset = url.searchParams.get("offset");
-
-  invariant(type, "Missing type");
+  const tokenIds = url.searchParams.get("tokenIds");
+  const tokenIdsArray = tokenIds ? tokenIds.split(",") : [];
 
   invariant(slug, "Missing slug");
 
@@ -29,6 +28,7 @@ export const loader = async (args: LoaderArgs) => {
       address,
       slug.toLowerCase(),
       traitsArray,
+      tokenIdsArray,
       query,
       nextPageKey,
       Number(offset ?? 0)

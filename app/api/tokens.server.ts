@@ -136,6 +136,7 @@ export const fetchCollectionOwnedByAddress = async (
   address: string,
   slug: string,
   traits: string[],
+  tokenIds: string[],
   query: string | null,
   pageKey: string | null,
   offset: number
@@ -151,9 +152,14 @@ export const fetchCollectionOwnedByAddress = async (
         body: JSON.stringify(
           filterNullValues({
             userAddress: address,
-            slugs: [slug],
+            ...(tokenIds.length > 0
+              ? {
+                  ids: tokenIds.map((tokenId) => `${slug}/${tokenId}`),
+                }
+              : {
+                  slugs: [slug],
+                }),
             limit: ITEMS_PER_PAGE,
-            chains: [process.env.TROVE_API_NETWORK],
             query,
             traits,
             pageKey,
@@ -169,25 +175,6 @@ export const fetchCollectionOwnedByAddress = async (
     throw new Error("Error fetching collection");
   }
 };
-
-function getTokenIds(id: string) {
-  return cachified({
-    key: `collection-${id}`,
-    async getFreshValue() {
-      const res = (await execute(getTokenDocument, {
-        id,
-      })) as ExecutionResult<getTokenQuery>;
-
-      const { token } = res.data ?? {};
-
-      if (!token) throw new Error("Token not found");
-
-      const tokenIds = token.vaultReserveItems.map(({ tokenId }) => tokenId);
-
-      return tokenIds;
-    },
-  });
-}
 
 export const fetchTroveTokens = async (
   ids: string[]

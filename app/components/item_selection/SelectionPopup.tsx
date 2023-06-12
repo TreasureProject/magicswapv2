@@ -171,8 +171,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const id = token?.id;
+  const collectionTokenIds = token?.collectionTokenIds.join(",");
   const fetchFromVault = type === "vault";
   const offsetRef = React.useRef(0);
+
+  console.log({ offsetRef });
 
   const totalQuantity = selectedItems.reduce(
     (acc, curr) => (acc += curr.quantity),
@@ -204,17 +207,31 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       return;
     }
 
+    offsetRef.current = 0;
+
     const params = new URLSearchParams({
       slug: token.urlSlug,
     });
 
     params.set("address", fetchFromVault && id ? id : address);
 
+    if (collectionTokenIds) {
+      params.set("tokenIds", collectionTokenIds);
+    }
+
     if (traitInfoRef.current.length > 0) {
       params.set("traits", traitInfoRef.current);
     }
     load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, fetchFromVault, load, token?.isNFT, token?.urlSlug, id]);
+  }, [
+    address,
+    fetchFromVault,
+    load,
+    token?.isNFT,
+    token?.urlSlug,
+    collectionTokenIds,
+    id,
+  ]);
 
   React.useEffect(() => {
     if (!token?.isNFT) {
@@ -248,12 +265,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
   const HiddenInputs = (
     <>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="address" value={address} />
+      <input
+        type="hidden"
+        name="address"
+        value={fetchFromVault && id ? id : address}
+      />
       <input type="hidden" name="slug" value={token.urlSlug} />
     </>
   );
+
+  const loading = state === "loading" || state === "submitting";
 
   return (
     <DialogContent
@@ -460,7 +481,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </Form>
 
         <div className="relative flex-1 overflow-auto bg-night-1100 p-4">
-          {state === "loading" || state === "submitting" ? (
+          {loading ? (
             <div className="flex h-full items-center justify-center">
               <LoaderIcon className="h-8 w-8" />
             </div>
@@ -519,7 +540,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <input type="hidden" name="query" value={data.query} />
             )}
 
-            <Button variant="secondary" disabled={offsetRef.current === 0}>
+            <Button
+              variant="secondary"
+              disabled={offsetRef.current === 0 || loading}
+            >
               Previous
             </Button>
           </Form>
@@ -560,6 +584,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               variant="secondary"
               type="submit"
               disabled={
+                loading ||
                 !data?.tokens.nextPageKey ||
                 // sometimes the next page key is there but the next page is empty
                 data.tokens.tokens.length < ITEMS_PER_PAGE
