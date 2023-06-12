@@ -54,10 +54,12 @@ import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
+import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -789,11 +791,9 @@ const PoolTokenCollectionInventory = ({
                   alt={item.metadata.name}
                   title={item.metadata.name}
                 />
-                {"queryUserQuantityOwned" in item &&
-                item.queryUserQuantityOwned &&
-                item.queryUserQuantityOwned > 1 ? (
+                {getTroveTokenQuantity(item) > 1 ? (
                   <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
-                    {item.queryUserQuantityOwned}x
+                    {getTroveTokenQuantity(item)}x
                   </span>
                 ) : null}
               </div>
@@ -803,7 +803,8 @@ const PoolTokenCollectionInventory = ({
         <div className="h-[1px] bg-night-800" />
         <div className="flex items-center justify-between px-6 py-3">
           <span className="text-sm text-night-400">
-            Showing {items.length} of {formatNumber(token.reserve)}
+            Showing {sumArray(items.map(getTroveTokenQuantity))} of{" "}
+            {formatNumber(token.reserve)}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>

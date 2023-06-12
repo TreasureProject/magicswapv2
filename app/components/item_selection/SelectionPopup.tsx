@@ -25,6 +25,7 @@ import type { TroveFilters } from "~/api/tokens.server";
 import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
+import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.get-collection";
@@ -493,11 +494,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   )}
                   key={item.tokenId}
                   item={item}
-                  quantity={
-                    "queryUserQuantityOwned" in item
-                      ? item.queryUserQuantityOwned ?? 1
-                      : 1
-                  }
+                  quantity={getTroveTokenQuantity(item)}
                   viewOnly={props.viewOnly || false}
                   onClick={() => {
                     selectionHandler({
