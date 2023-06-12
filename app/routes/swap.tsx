@@ -1,4 +1,5 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import { DialogClose } from "@radix-ui/react-dialog";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { useFetcher } from "@remix-run/react";
 import {
@@ -154,6 +155,7 @@ export default function SwapPage() {
   const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState(DEFAULT_STATE);
   const revalidator = useRevalidator();
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -269,6 +271,7 @@ export default function SwapPage() {
       setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
       refetchTokenOutBalance();
+      setSwapModalOpen(false);
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
@@ -304,6 +307,31 @@ export default function SwapPage() {
   const token = poolTokenIn ?? tokenIn;
   const otherToken = poolTokenOut ?? tokenOut;
 
+  const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
+  const formattedTokenOutAmount = formatTokenAmount(
+    amountOut,
+    tokenOut?.decimals ?? 18
+  );
+
+  // const tokenInAmountPriceUSD =
+  //   (token?.priceUSD ?? 0) *
+  //   (Number.isNaN(
+  //     isExactOut ? formatUnits(amountIn, tokenIn.decimals) : rawAmount
+  //   ) ||
+  //   (isExactOut ? formatUnits(amountIn, tokenIn.decimals) : rawAmount) === 0
+  //     ? 1
+  //     : isExactOut
+  //     ? formatUnits(amountIn, tokenIn.decimals)
+  //     : rawAmount);
+
+  // const tokenInAmountPriceUSD =
+  //   (token?.priceUSD ?? 0) *
+  //   (Number.isNaN(isExactOut ? formattedTokenInAmount : rawAmount) ||
+  //   (isExactOut ? formattedTokenInAmount : rawAmount) === 0
+  //     ? 1
+  //     : isExactOut
+  //     ? formattedTokenInAmount
+  //     : rawAmount);
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">
@@ -319,11 +347,7 @@ export default function SwapPage() {
           otherToken={otherToken}
           isOut={false}
           balance={tokenInBalance?.value}
-          amount={
-            isExactOut
-              ? formatTokenAmount(amountIn, tokenIn.decimals)
-              : rawAmount
-          }
+          amount={isExactOut ? formattedTokenInAmount : rawAmount}
           selectedNfts={nftsIn}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
@@ -359,11 +383,7 @@ export default function SwapPage() {
           otherToken={token}
           isOut
           balance={tokenOutBalance?.value}
-          amount={
-            isExactOut
-              ? rawAmount
-              : formatTokenAmount(amountOut, tokenOut?.decimals ?? 18)
-          }
+          amount={isExactOut ? rawAmount : formattedTokenOutAmount}
           selectedNfts={nftsOut}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
@@ -384,7 +404,7 @@ export default function SwapPage() {
           }
         />
         {otherToken ? (
-          <div className="mt-6 rounded-2xl border border-night-800 p-4">
+          <div className="mt-6 rounded-lg border border-night-800 p-4">
             <p className="text-sm text-night-400">
               <span className="font-medium text-honey-25">
                 {formatTokenAmount(BigInt(comparisonValue), tokenIn.decimals)}
@@ -405,69 +425,243 @@ export default function SwapPage() {
                     Approve {tokenIn.name}
                   </TransactionButton>
                 )}
-                <TransactionButton
-                  className="w-full"
-                  size="lg"
-                  disabled={!isTokenInApproved || !hasAmounts}
-                  onClick={() => swap()}
-                >
-                  Swap Items
-                </TransactionButton>
+
+                <Dialog open={swapModalOpen} onOpenChange={setSwapModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      disabled={!isTokenInApproved || !hasAmounts}
+                    >
+                      Swap Items
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      Swap {formattedTokenInAmount} {token.symbol} for{" "}
+                      {formattedTokenOutAmount} {otherToken?.symbol}
+                    </DialogHeader>
+                    <div>
+                      <div className="overflow-hidden rounded-lg bg-night-1100">
+                        <div className="flex items-center bg-night-900 px-3.5 py-2.5">
+                          <img
+                            src={token.image}
+                            alt={token.symbol}
+                            className="h-6 w-6 rounded-full"
+                          />
+                          <span className="ml-2 font-medium text-honey-25">
+                            {token.name}
+                          </span>
+                        </div>
+                        <div className="p-4">
+                          {token.isNFT ? (
+                            nftsIn.length > 0 ? (
+                              <div className="flex items-center space-x-2">
+                                <div
+                                  className={cn("flex", {
+                                    "-space-x-5": token.type === "ERC721",
+                                  })}
+                                >
+                                  {nftsIn
+                                    .slice(0, Math.min(nftsIn.length, 5))
+                                    .map((nft) => {
+                                      return (
+                                        <div
+                                          key={nft.tokenId}
+                                          className="flex flex-col items-center"
+                                        >
+                                          <img
+                                            className="h-12 w-12 rounded border-2 border-night-1100"
+                                            src={nft.image.uri}
+                                            alt={nft.metadata.name}
+                                          />
+                                          {token.type === "ERC1155" ? (
+                                            <p className="text-xs text-night-600">
+                                              {nft.quantity}x
+                                            </p>
+                                          ) : null}
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                                {nftsIn.length > 5 ? (
+                                  <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
+                                    <p className="text-xs font-semibold text-night-500">
+                                      +{nftsIn.length - 5}
+                                    </p>
+                                  </div>
+                                ) : null}
+                              </div>
+                            ) : null
+                          ) : (
+                            <p>{formattedTokenInAmount}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25">
+                        <ArrowDownIcon className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="overflow-hidden rounded-lg bg-night-1100">
+                        <div className="flex items-center bg-night-900 px-3.5 py-2.5">
+                          <img
+                            src={otherToken?.image}
+                            alt={otherToken?.symbol}
+                            className="h-6 w-6 rounded-full"
+                          />
+                          <span className="ml-2 font-medium text-honey-25">
+                            {otherToken?.name}
+                          </span>
+                        </div>
+                        <div className="p-4">
+                          {otherToken?.isNFT ? (
+                            nftsOut.length > 0 ? (
+                              <div className="flex items-center space-x-2">
+                                <div
+                                  className={cn("flex", {
+                                    "-space-x-5": otherToken?.type === "ERC721",
+                                  })}
+                                >
+                                  {nftsOut
+                                    .slice(0, Math.min(nftsOut.length, 5))
+                                    .map((nft) => {
+                                      return (
+                                        <div
+                                          key={nft.tokenId}
+                                          className="flex flex-col items-center"
+                                        >
+                                          <img
+                                            className="h-12 w-12 rounded border-2 border-night-1100"
+                                            src={nft.image.uri}
+                                            alt={nft.metadata.name}
+                                          />
+                                          {otherToken?.type === "ERC1155" ? (
+                                            <p className="text-xs text-night-600">
+                                              {nft.quantity}x
+                                            </p>
+                                          ) : null}
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                                {nftsOut.length > 5 ? (
+                                  <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
+                                    <p className="text-xs font-semibold text-night-500">
+                                      +{nftsOut.length - 5}
+                                    </p>
+                                  </div>
+                                ) : null}
+                              </div>
+                            ) : null
+                          ) : (
+                            <p>{formattedTokenOutAmount}</p>
+                          )}
+                        </div>
+                      </div>
+                      {otherToken ? (
+                        <div className="mt-6 rounded-lg border border-night-800 p-4">
+                          <p className="text-sm text-night-400">
+                            <span className="font-medium text-honey-25">
+                              {formatTokenAmount(
+                                BigInt(comparisonValue),
+                                tokenIn.decimals
+                              )}
+                            </span>{" "}
+                            {token.symbol} per {otherToken.symbol}
+                          </p>
+                        </div>
+                      ) : null}
+                      <div className="mt-2 rounded-lg border border-night-800 p-4 text-sm text-night-400">
+                        {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
+                          <>
+                            <div className="flex items-center justify-between">
+                              Price Impact
+                              <span>-{formatPercent(priceImpact)}</span>
+                            </div>
+                            {lpFee > 0 && (
+                              <div className="flex items-center justify-between">
+                                Liquidity Provider Fee
+                                <span>{formatPercent(lpFee)}</span>
+                              </div>
+                            )}
+                            {protocolFee > 0 && (
+                              <div className="flex items-center justify-between">
+                                Protocol Fee
+                                <span>{formatPercent(protocolFee)}</span>
+                              </div>
+                            )}
+                            {royaltiesFee > 0 && (
+                              <div className="flex items-center justify-between">
+                                Royalties Fee
+                                <span>{formatPercent(royaltiesFee)}</span>
+                              </div>
+                            )}
+                            {isExactOut ? (
+                              <div className="flex items-center justify-between">
+                                Maximum spent
+                                <span>
+                                  {formatTokenAmount(
+                                    amountInMax,
+                                    poolTokenIn.decimals
+                                  )}{" "}
+                                  {poolTokenIn.symbol}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                Minimum received
+                                <span>
+                                  {formatTokenAmount(
+                                    amountOutMin,
+                                    poolTokenOut.decimals
+                                  )}{" "}
+                                  {poolTokenOut.symbol}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        ) : null}
+                        <div className="flex items-center justify-between">
+                          Slippage
+                          <span>
+                            {formatPercent(state?.slippage || DEFAULT_SLIPPAGE)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          Deadline
+                          <span>{state?.deadline || 30} Minutes</span>
+                        </div>
+                      </div>
+                      <div className="mt-6 grid grid-cols-3 gap-3">
+                        <Button
+                          size="lg"
+                          className="col-span-full sm:col-span-2"
+                          onClick={() => swap()}
+                        >
+                          Confirm Swap
+                        </Button>
+                        <DialogClose asChild>
+                          <Button
+                            size="lg"
+                            variant="secondary"
+                            className="col-span-full sm:col-span-1"
+                          >
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
           </ClientOnly>
         </div>
         <div className="mt-4 text-sm text-night-400">
-          <div className="flex items-center justify-between">
-            Slippage
-            <span>{formatPercent(state?.slippage || DEFAULT_SLIPPAGE)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            Deadline
-            <span>{state?.deadline || 30} Minutes</span>
-          </div>
           {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
-            <>
-              <div className="flex items-center justify-between">
-                Price Impact
-                <span>-{formatPercent(priceImpact)}</span>
-              </div>
-              {lpFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Liquidity Provider Fee
-                  <span>{formatPercent(lpFee)}</span>
-                </div>
-              )}
-              {protocolFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Protocol Fee
-                  <span>{formatPercent(protocolFee)}</span>
-                </div>
-              )}
-              {royaltiesFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Royalties Fee
-                  <span>{formatPercent(royaltiesFee)}</span>
-                </div>
-              )}
-              {isExactOut ? (
-                <div className="flex items-center justify-between">
-                  Maximum spent
-                  <span>
-                    {formatTokenAmount(amountInMax, poolTokenIn.decimals)}{" "}
-                    {poolTokenIn.symbol}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  Minimum received
-                  <span>
-                    {formatTokenAmount(amountOutMin, poolTokenOut.decimals)}{" "}
-                    {poolTokenOut.symbol}
-                  </span>
-                </div>
-              )}
-            </>
+            <div className="flex items-center justify-between">
+              Price Impact
+              <span>-{formatPercent(priceImpact)}</span>
+            </div>
           ) : null}
         </div>
       </div>

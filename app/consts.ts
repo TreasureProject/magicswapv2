@@ -14,4 +14,4 @@ export const media = {
   substack: "https://treasuredao.substack.com/",
 };
 
-export const ITEMS_PER_PAGE = 4;
+export const ITEMS_PER_PAGE = 60;

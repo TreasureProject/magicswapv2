@@ -175,8 +175,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const fetchFromVault = type === "vault";
   const offsetRef = React.useRef(0);
 
-  console.log({ offsetRef });
-
   const totalQuantity = selectedItems.reduce(
     (acc, curr) => (acc += curr.quantity),
     0
