@@ -23,11 +23,11 @@ import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   tokenIn: PoolToken;
-  tokenOut: PoolToken | null;
+  tokenOut: Optional<PoolToken>;
   amountIn: bigint;
   amountOut: bigint;
   nftsIn: TroveTokenWithQuantity[];

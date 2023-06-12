@@ -302,12 +302,12 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
           }
           onClick={() => {
             if (!isBaseTokenApproved) {
-              approveBaseToken?.();
+              return approveBaseToken?.();
             }
             if (!isQuoteTokenApproved) {
-              approveQuoteToken?.();
+              return approveQuoteToken?.();
             }
-            addLiquidity?.();
+            return addLiquidity?.();
           }}
         >
           {!hasAmount ? (

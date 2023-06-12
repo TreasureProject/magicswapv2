@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { DialogClose } from "@radix-ui/react-dialog";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { useFetcher } from "@remix-run/react";
@@ -15,7 +14,7 @@ import { defer } from "@remix-run/server-runtime";
 import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { ClientOnly } from "remix-utils";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { useBalance } from "wagmi";
 
 import type { FetchInventoryLoader } from "./resources.fetch-inventory";
@@ -42,27 +41,21 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
-import { useApprove } from "~/hooks/useApprove";
+import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
-import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
+import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
-import { createSwapRoute } from "~/lib/pools";
-import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  AddressString,
-  NumberString,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 export const meta: V2_MetaFunction<
   typeof loader,
@@ -89,18 +82,19 @@ export const meta: V2_MetaFunction<
 };
 
 export async function loader({ request }: LoaderArgs) {
-  const pools = await fetchPools();
-  const session = await getSession(request.headers.get("Cookie"));
-
-  const address = session.get("address");
+  const [pools, session] = await Promise.all([
+    fetchPools(),
+    getSession(request.headers.get("Cookie")),
+  ]);
 
   const url = new URL(request.url);
   const inputAddress = url.searchParams.get("in");
   const outputAddress = url.searchParams.get("out");
 
-  const tokenIn = inputAddress
-    ? await fetchToken(inputAddress)
-    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
+  const [tokenIn, tokenOut] = await Promise.all([
+    fetchToken(inputAddress ?? process.env.DEFAULT_TOKEN_ADDRESS),
+    outputAddress ? fetchToken(outputAddress) : null,
+  ]);
 
   if (!tokenIn) {
     throw new Response("Input token not found", {
@@ -108,17 +102,7 @@ export async function loader({ request }: LoaderArgs) {
     });
   }
 
-  const tokenOut = outputAddress ? await fetchToken(outputAddress) : null;
-
-  const { amountInBN = BigNumber.from(0) } =
-    createSwapRoute(
-      tokenIn,
-      tokenOut,
-      pools,
-      parseUnits("1", tokenOut?.decimals ?? 18),
-      true
-    ) ?? {};
-
+  const address = session.get("address");
   if (!address || !tokenIn.isNFT) {
     return defer({
       pools,
@@ -126,7 +110,6 @@ export async function loader({ request }: LoaderArgs) {
       tokenIn,
       tokenOut,
       inventory: null,
-      comparisonValue: amountInBN.toString(),
     });
   }
 
@@ -136,7 +119,6 @@ export async function loader({ request }: LoaderArgs) {
     tokenIn,
     tokenOut,
     inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
-    comparisonValue: amountInBN.toString(),
   });
 }
 
@@ -148,14 +130,14 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { pools, tokenIn, tokenOut, comparisonValue } =
-    useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
+  const [{ amount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState(DEFAULT_STATE);
   const revalidator = useRevalidator();
   const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const state = useStore(useSettingsStore, (state) => state);
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -165,57 +147,21 @@ export default function SwapPage() {
     });
   };
 
-  const amount = parseUnits(
-    rawAmount as NumberString,
-    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
-  );
-
   const {
-    amountInBN = BigNumber.from(0),
-    amountOutBN = BigNumber.from(0),
-    legs = [],
-    priceImpact = 0,
-  } = createSwapRoute(
+    amountIn,
+    amountOut,
     tokenIn,
     tokenOut,
-    pools,
-    amount > 0 ? amount : BigInt(1),
-    isExactOut
-  ) ?? {};
-
-  const amountIn = BigInt(amountInBN.toString());
-  const amountOut = BigInt(amountOutBN.toString());
-
-  const state = useStore(useSettingsStore, (state) => state);
-
-  const tokenInPoolId = legs.find(
-    ({ tokenFrom }) => tokenFrom.address === tokenIn.id
-  )?.poolAddress;
-  const tokenOutPoolId = tokenOut
-    ? legs.find(({ tokenTo }) => tokenTo.address === tokenOut.id)?.poolAddress
-    : undefined;
-  const tokenInPool = pools.find(({ id }) => id === tokenInPoolId);
-  const tokenOutPool = tokenOutPoolId
-    ? pools.find(({ id }) => id === tokenOutPoolId)
-    : undefined;
-  const poolTokenIn =
-    tokenIn.id === tokenInPool?.token0.id
-      ? tokenInPool.token0
-      : tokenInPool?.token1;
-  const poolTokenOut =
-    tokenOut && tokenOut.id === tokenOutPool?.token0.id
-      ? tokenOutPool.token0
-      : tokenOutPool?.token1;
-  const legPools = legs
-    .map(({ poolAddress }) => pools.find(({ id }) => id === poolAddress))
-    .filter((pool) => !!pool) as Pool[];
-  const lpFee = sumArray(legPools.map(({ lpFee }) => Number(lpFee ?? 0)));
-  const protocolFee = sumArray(
-    legPools.map(({ protocolFee }) => Number(protocolFee ?? 0))
-  );
-  const royaltiesFee = sumArray(
-    legPools.map(({ royaltiesFee }) => Number(royaltiesFee ?? 0))
-  );
+    path,
+    priceImpact,
+    lpFee,
+    protocolFee,
+    royaltiesFee,
+  } = useSwapRoute({
+    ...loaderData,
+    amount,
+    isExactOut,
+  });
 
   const hasAmounts = amountIn > 0 && amountOut > 0;
 
@@ -232,18 +178,16 @@ export default function SwapPage() {
     }
   );
 
-  const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
-    useIsApproved({
-      token: tokenIn,
-      amount: amountIn,
-      enabled: isConnected && hasAmounts,
-    });
-  const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
-    useApprove({
-      token: tokenIn,
-      amount: amountIn,
-      enabled: !isTokenInApproved,
-    });
+  const {
+    isApproved: isTokenInApproved,
+    approve: approveTokenIn,
+    refetch: refetchTokenInApproval,
+    isSuccess: isApproveTokenInSuccess,
+  } = useApproval({
+    token: tokenIn,
+    amount: amountIn,
+    enabled: isConnected && hasAmounts,
+  });
 
   const {
     amountInMax,
@@ -251,18 +195,14 @@ export default function SwapPage() {
     swap,
     isSuccess: isSwapSuccess,
   } = useSwap({
-    tokenIn: tokenIn,
-    tokenOut: tokenOut,
+    tokenIn,
+    tokenOut,
     amountIn,
     amountOut,
     isExactOut,
     nftsIn,
     nftsOut,
-    path: legs.flatMap(({ tokenFrom, tokenTo }, i) =>
-      i === legs.length - 1
-        ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
-        : (tokenFrom.address as AddressString)
-    ),
+    path,
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
@@ -310,34 +250,12 @@ export default function SwapPage() {
     5000
   );
 
-  const token = poolTokenIn ?? tokenIn;
-  const otherToken = poolTokenOut ?? tokenOut;
-
   const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
   const formattedTokenOutAmount = formatTokenAmount(
     amountOut,
     tokenOut?.decimals ?? 18
   );
 
-  // const tokenInAmountPriceUSD =
-  //   (token?.priceUSD ?? 0) *
-  //   (Number.isNaN(
-  //     isExactOut ? formatUnits(amountIn, tokenIn.decimals) : rawAmount
-  //   ) ||
-  //   (isExactOut ? formatUnits(amountIn, tokenIn.decimals) : rawAmount) === 0
-  //     ? 1
-  //     : isExactOut
-  //     ? formatUnits(amountIn, tokenIn.decimals)
-  //     : rawAmount);
-
-  // const tokenInAmountPriceUSD =
-  //   (token?.priceUSD ?? 0) *
-  //   (Number.isNaN(isExactOut ? formattedTokenInAmount : rawAmount) ||
-  //   (isExactOut ? formattedTokenInAmount : rawAmount) === 0
-  //     ? 1
-  //     : isExactOut
-  //     ? formattedTokenInAmount
-  //     : rawAmount);
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">
@@ -349,11 +267,11 @@ export default function SwapPage() {
       </div>
       <div className="mt-3">
         <SwapTokenInput
-          token={token}
-          otherToken={otherToken}
+          token={tokenIn}
+          otherToken={tokenOut}
           isOut={false}
           balance={tokenInBalance?.value}
-          amount={isExactOut ? formattedTokenInAmount : rawAmount}
+          amount={isExactOut ? formattedTokenInAmount : amount}
           selectedNfts={nftsIn}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
@@ -387,11 +305,11 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={otherToken}
-          otherToken={token}
+          token={tokenOut}
+          otherToken={tokenIn}
           isOut
           balance={tokenOutBalance?.value}
-          amount={isExactOut ? rawAmount : formattedTokenOutAmount}
+          amount={isExactOut ? amount : formattedTokenOutAmount}
           selectedNfts={nftsOut}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
@@ -413,7 +331,7 @@ export default function SwapPage() {
             })
           }
         />
-        {otherToken ? (
+        {/* {otherToken ? (
           <div className="mt-6 rounded-lg border border-night-800 p-4">
             <p className="text-sm text-night-400">
               <span className="font-medium text-honey-25">
@@ -422,7 +340,7 @@ export default function SwapPage() {
               {token.symbol} per {otherToken.symbol}
             </p>
           </div>
-        ) : null}
+        ) : null} */}
         <div className="mt-4 space-y-1.5">
           <ClientOnly>
             {() => (
@@ -430,6 +348,7 @@ export default function SwapPage() {
                 {!isTokenInApproved && hasAmounts ? (
                   <TransactionButton
                     className="w-full"
+                    size="lg"
                     onClick={() => approveTokenIn()}
                   >
                     Approve {tokenIn.name}
@@ -437,34 +356,37 @@ export default function SwapPage() {
                 ) : (
                   <Dialog open={swapModalOpen} onOpenChange={setSwapModalOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full" disabled={!hasAmounts}>
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        disabled={!hasAmounts}
+                      >
                         Swap Items
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        Swap {formattedTokenInAmount} {token.symbol} for{" "}
-                        {formattedTokenOutAmount} {otherToken?.symbol}
+                        Swap {formattedTokenInAmount} {tokenIn.symbol} for{" "}
+                        {formattedTokenOutAmount} {tokenOut?.symbol}
                       </DialogHeader>
                       <div>
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
-                            <img
-                              src={token.image}
-                              alt={token.symbol}
-                              className="h-6 w-6 rounded-full"
+                            <PoolTokenImage
+                              token={tokenIn}
+                              className="h-6 w-6"
                             />
                             <span className="ml-2 font-medium text-honey-25">
-                              {token.name}
+                              {tokenIn.name}
                             </span>
                           </div>
                           <div className="p-4">
-                            {token.isNFT ? (
+                            {tokenIn.isNFT ? (
                               nftsIn.length > 0 ? (
                                 <div className="flex items-center space-x-2">
                                   <div
                                     className={cn("flex", {
-                                      "-space-x-5": token.type === "ERC721",
+                                      "-space-x-5": tokenIn.type === "ERC721",
                                     })}
                                   >
                                     {nftsIn
@@ -480,7 +402,7 @@ export default function SwapPage() {
                                               src={nft.image.uri}
                                               alt={nft.metadata.name}
                                             />
-                                            {token.type === "ERC1155" ? (
+                                            {tokenIn.type === "ERC1155" ? (
                                               <p className="text-xs text-night-600">
                                                 {nft.quantity}x
                                               </p>
@@ -508,23 +430,21 @@ export default function SwapPage() {
                         </div>
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
-                            <img
-                              src={otherToken?.image}
-                              alt={otherToken?.symbol}
-                              className="h-6 w-6 rounded-full"
+                            <PoolTokenImage
+                              token={tokenOut}
+                              className="h-6 w-6"
                             />
                             <span className="ml-2 font-medium text-honey-25">
-                              {otherToken?.name}
+                              {tokenOut?.name}
                             </span>
                           </div>
                           <div className="p-4">
-                            {otherToken?.isNFT ? (
+                            {tokenOut?.isNFT ? (
                               nftsOut.length > 0 ? (
                                 <div className="flex items-center space-x-2">
                                   <div
                                     className={cn("flex", {
-                                      "-space-x-5":
-                                        otherToken?.type === "ERC721",
+                                      "-space-x-5": tokenOut?.type === "ERC721",
                                     })}
                                   >
                                     {nftsOut
@@ -540,7 +460,7 @@ export default function SwapPage() {
                                               src={nft.image.uri}
                                               alt={nft.metadata.name}
                                             />
-                                            {otherToken?.type === "ERC1155" ? (
+                                            {tokenOut?.type === "ERC1155" ? (
                                               <p className="text-xs text-night-600">
                                                 {nft.quantity}x
                                               </p>
@@ -564,7 +484,7 @@ export default function SwapPage() {
                           </div>
                         </div>
                         <div className="mt-4 rounded-lg border border-night-800 p-4 text-sm text-night-400">
-                          {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
+                          {tokenIn && tokenOut && hasAmounts ? (
                             <>
                               <div className="flex items-center justify-between">
                                 Price Impact
@@ -594,9 +514,9 @@ export default function SwapPage() {
                                   <span>
                                     {formatTokenAmount(
                                       amountInMax,
-                                      poolTokenIn.decimals
+                                      tokenIn.decimals
                                     )}{" "}
-                                    {poolTokenIn.symbol}
+                                    {tokenIn.symbol}
                                   </span>
                                 </div>
                               ) : (
@@ -605,9 +525,9 @@ export default function SwapPage() {
                                   <span>
                                     {formatTokenAmount(
                                       amountOutMin,
-                                      poolTokenOut.decimals
+                                      tokenOut.decimals
                                     )}{" "}
-                                    {poolTokenOut.symbol}
+                                    {tokenOut.symbol}
                                   </span>
                                 </div>
                               )}
@@ -653,7 +573,7 @@ export default function SwapPage() {
           </ClientOnly>
         </div>
         <div className="mt-4 text-sm text-night-400">
-          {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
+          {hasAmounts ? (
             <div className="flex items-center justify-between">
               Price Impact
               <span>-{formatPercent(priceImpact)}</span>
@@ -677,8 +597,8 @@ const SwapTokenInput = ({
   onSelectNfts,
   className,
 }: {
-  token: PoolToken | null;
-  otherToken: PoolToken | null;
+  token: Optional<PoolToken>;
+  otherToken: Optional<PoolToken>;
   isOut: boolean;
   balance?: bigint;
   amount: string;
