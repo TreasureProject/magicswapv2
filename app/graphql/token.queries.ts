@@ -15,14 +15,6 @@ export const TOKEN_FRAGMENT = gql`
       }
       tokenIds
     }
-    vaultReserveItems {
-      id
-      collection {
-        id
-      }
-      tokenId
-      amount
-    }
   }
 `;
 

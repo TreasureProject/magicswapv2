@@ -643,13 +643,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                               );
                             }}
                             value={item.quantity}
-                            max={
-                              type === "inventory"
-                                ? item.queryUserQuantityOwned || 1
-                                : token.reserveItems.find(
-                                    (i) => i.tokenId === item.tokenId
-                                  )?.amount || 1
-                            }
+                            max={item.queryUserQuantityOwned || 1}
                           />
                         )}
                         <Button

@@ -57,11 +57,6 @@ export type TroveTokenItem = ReturnType<typeof itemToTroveTokenItem>;
 export const getTokenCollectionAddresses = (token: Token) =>
   token.vaultCollections.map(({ collection }) => collection.id) ?? [];
 
-export const getTokenReserveItemIds = (token: PoolToken) =>
-  token.vaultReserveItems.map(
-    ({ collection, tokenId }) => `${collection.id}/${tokenId}`
-  );
-
 export const createTokenName = (
   token: Token,
   collections: TroveCollectionMapping
@@ -125,12 +120,9 @@ export const createPoolToken = (
     collectionTokenIds: tokenCollections[0]?.tokenIds ?? [],
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
-    reserveItems: token.vaultReserveItems,
   };
 };
 
 export type PoolToken = ReturnType<typeof createPoolToken>;
 
 export type PoolTokenCollection = PoolToken["collections"];
-
-export type TokenReserveItem = PoolToken["reserveItems"];

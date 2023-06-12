@@ -35,11 +35,8 @@ import type {
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
-import {
-  fetchPool,
-  fetchPoolTroveToken,
-  fetchTransactions,
-} from "~/api/pools.server";
+import { fetchPool, fetchTransactions } from "~/api/pools.server";
+import { fetchCollectionOwnedByAddress } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -61,12 +58,12 @@ import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
-import type { PoolToken, TroveTokenItem } from "~/lib/tokens.server";
+import type { PoolToken } from "~/lib/tokens.server";
 import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional } from "~/types";
+import type { AddressString, Optional, TroveToken } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -105,37 +102,57 @@ export const meta: V2_MetaFunction<
 export async function loader({ params, request }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
 
-  const session = await getSession(request.headers.get("Cookie"));
+  const [pool, session] = await Promise.all([
+    fetchPool(params.id),
+    getSession(request.headers.get("Cookie")),
+  ]);
 
-  const address = session.get("address");
-
-  const pool = await fetchPool(params.id);
   if (!pool) {
     throw new Response("Pool not found", {
       status: 404,
     });
   }
 
+  const address = session.get("address");
   if (!address || (!pool.baseToken.isNFT && !pool.quoteToken.isNFT)) {
     return defer({
       pool,
-      inventory: null,
-      vaultItems: fetchPoolTroveToken(pool),
       transactions: fetchTransactions(pool),
+      baseVaultItems: null,
+      quoteVaultItems: null,
+      inventory: null,
     });
   }
 
   return defer({
     pool,
+    transactions: fetchTransactions(pool),
+    baseVaultItems: fetchCollectionOwnedByAddress(
+      pool.baseToken.id,
+      pool.baseToken.urlSlug,
+      [],
+      pool.baseToken.collectionTokenIds,
+      null,
+      null,
+      0
+    ),
+    quoteVaultItems: fetchCollectionOwnedByAddress(
+      pool.quoteToken.id,
+      pool.quoteToken.urlSlug,
+      [],
+      pool.quoteToken.collectionTokenIds,
+      null,
+      null,
+      0
+    ),
     // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
     inventory: findInventories(address, pool.baseToken, pool.quoteToken),
-    vaultItems: fetchPoolTroveToken(pool),
-    transactions: fetchTransactions(pool),
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems, transactions } = useLoaderData<typeof loader>();
+  const { pool, baseVaultItems, quoteVaultItems, transactions } =
+    useLoaderData<typeof loader>();
   const { address } = useAccount();
 
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -358,42 +375,30 @@ export default function PoolDetailsPage() {
               <ArrowLeftRightIcon className="h-4 w-4" />
               Pool Inventory
             </h3>
-            {pool.baseToken.isNFT && (
+            {pool.baseToken.isNFT && baseVaultItems ? (
               <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.baseToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
+                <Await resolve={baseVaultItems}>
+                  {(baseVaultItems) => (
+                    <PoolTokenCollectionInventory
+                      token={pool.baseToken}
+                      items={baseVaultItems.tokens}
+                    />
+                  )}
                 </Await>
               </Suspense>
-            )}
-            {pool.quoteToken.isNFT && (
+            ) : null}
+            {pool.quoteToken.isNFT && quoteVaultItems ? (
               <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.quoteToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
+                <Await resolve={quoteVaultItems}>
+                  {(quoteVaultItems) => (
+                    <PoolTokenCollectionInventory
+                      token={pool.quoteToken}
+                      items={quoteVaultItems.tokens}
+                    />
+                  )}
                 </Await>
               </Suspense>
-            )}
+            ) : null}
           </div>
         ) : null}
         <div className="mt-6 flex w-full items-center justify-between">
@@ -759,58 +764,53 @@ const PoolActivityTable = ({
 
 const PoolTokenCollectionInventory = ({
   token,
-  vaultItems,
+  items,
 }: {
   token: PoolToken;
-  vaultItems: TroveTokenItem[];
+  items: TroveToken[];
 }) => {
   return (
-    <>
-      {token.collections.map(({ id, name, symbol }) => {
-        const reserveItems = vaultItems.filter(
-          ({ collectionId }) => collectionId === id
-        );
-
-        return (
-          <div key={id} className="rounded-lg bg-night-1100">
-            <Dialog>
-              <div className="space-y-5 p-6">
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{name}</span>
-                  <span className="h-3 w-[1px] bg-night-400" />
-                  <span className="uppercase text-night-400">{symbol}</span>
-                </div>
-                <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
-                  {reserveItems.map(({ tokenId, name, image, amount }) => (
-                    <div
-                      key={tokenId}
-                      className="relative overflow-hidden rounded"
-                    >
-                      <img src={image} alt={name} title={name} />
-                      {amount > 1 ? (
-                        <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
-                          {amount}x
-                        </span>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="h-[1px] bg-night-800" />
-              <div className="flex items-center justify-between px-6 py-3">
-                <span className="text-sm text-night-400">
-                  Showing {token.reserveItems.length} of{" "}
-                  {formatNumber(token.reserve)}
-                </span>
-                <DialogTrigger asChild>
-                  <Button variant="ghost">View All</Button>
-                </DialogTrigger>
-              </div>
-              <SelectionPopup type="vault" viewOnly token={token} />
-            </Dialog>
+    <div key={token.id} className="rounded-lg bg-night-1100">
+      <Dialog>
+        <div className="space-y-5 p-6">
+          <div className="flex items-center gap-3">
+            <span className="font-medium">{token.name}</span>
+            <span className="h-3 w-[1px] bg-night-400" />
+            <span className="uppercase text-night-400">{token.symbol}</span>
           </div>
-        );
-      })}
-    </>
+          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
+            {items.map((item) => (
+              <div
+                key={item.tokenId}
+                className="relative overflow-hidden rounded"
+              >
+                <img
+                  src={item.image.uri}
+                  alt={item.metadata.name}
+                  title={item.metadata.name}
+                />
+                {"queryUserQuantityOwned" in item &&
+                item.queryUserQuantityOwned &&
+                item.queryUserQuantityOwned > 1 ? (
+                  <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                    {item.queryUserQuantityOwned}x
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="h-[1px] bg-night-800" />
+        <div className="flex items-center justify-between px-6 py-3">
+          <span className="text-sm text-night-400">
+            Showing {items.length} of {formatNumber(token.reserve)}
+          </span>
+          <DialogTrigger asChild>
+            <Button variant="ghost">View All</Button>
+          </DialogTrigger>
+        </div>
+        <SelectionPopup type="vault" viewOnly token={token} />
+      </Dialog>
+    </div>
   );
 };
