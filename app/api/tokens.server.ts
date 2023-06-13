@@ -197,7 +197,7 @@ export const fetchTroveTokens = async (
   }, {} as TroveTokenMapping);
 };
 
-export const fetchTotalInventoryForUser = async (
+export const fetchUserCollectionBalance = async (
   slug: string,
   address: string
 ) => {
@@ -205,9 +205,7 @@ export const fetchTotalInventoryForUser = async (
   url.searchParams.set("userAddress", address);
   url.searchParams.set("slugs", slug);
 
-  const res = await fetch(url.toString());
-
-  const result = (await res.json()) as TroveCollection[];
-
+  const response = await fetch(url.toString());
+  const result = (await response.json()) as TroveCollection[];
   return result[0]?.numTokensOwnedByUser ?? 0;
 };

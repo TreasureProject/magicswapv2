@@ -1,5 +1,4 @@
 import { createPoolTokenCollection } from "./collections.server";
-import { fetchTotalInventoryForUser } from "~/api/tokens.server";
 import type { Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 type Item = {
@@ -9,27 +8,6 @@ type Item = {
   tokenId: string;
   amount: number;
 };
-
-export const findInventories = async (
-  address: string,
-  token1?: PoolToken,
-  token2?: PoolToken
-) =>
-  Promise.all([
-    token1 && token1.isNFT
-      ? fetchTotalInventoryForUser(token1.urlSlug, address)
-      : null,
-    token2 && token2.isNFT
-      ? fetchTotalInventoryForUser(token2.urlSlug, address)
-      : null,
-  ]).then((res) => {
-    return {
-      ...(token1 && { [token1.id]: res[0] }),
-      ...(token2 && { [token2.id]: res[1] }),
-    };
-  });
-
-export type InventoryList = ReturnType<typeof findInventories>;
 
 export const itemToTroveTokenItem = (
   { collection: { id: collectionId }, tokenId, amount }: Item,

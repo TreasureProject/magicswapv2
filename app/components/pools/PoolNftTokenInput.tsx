@@ -5,23 +5,27 @@ import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
-import type { InventoryList, PoolToken } from "~/lib/tokens.server";
+import { formatAmount } from "~/lib/currency";
+import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { TroveTokenWithQuantity } from "~/types";
 
 export const PoolNftTokenInput = ({
   token,
   amount,
+  balance,
+  reserve,
   selectedNfts,
   onOpenSelect,
-  inventory,
 }: {
   token: PoolToken;
   amount?: number;
+  balance?: Promise<number> | null;
+  reserve?: number;
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
-  inventory: InventoryList | null;
 }) => {
+  const isVault = typeof reserve !== "undefined";
   return (
     <div className="relative rounded-lg border border-night-1000">
       <p className="absolute -top-3.5 left-1.5 flex items-center bg-background px-2.5 py-1 text-sm sm:-top-5 sm:text-lg">
@@ -85,15 +89,17 @@ export const PoolNftTokenInput = ({
       </div>
       <div className="flex h-12 items-center justify-between bg-night-1100 p-2 pr-4">
         <p className="pl-2 text-sm text-night-400">
-          Inventory:
+          {isVault ? "Vault" : "Inventory"}:
           <span className="pl-1 font-medium text-night-100">
-            <Suspense
-              fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
-            >
-              <Await resolve={inventory}>
-                {(inventory) => inventory?.[token.id] ?? 0}
-              </Await>
-            </Suspense>
+            {isVault ? (
+              formatAmount(reserve)
+            ) : (
+              <Suspense
+                fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
+              >
+                <Await resolve={balance}>{(balance) => balance ?? 0}</Await>
+              </Suspense>
+            )}
           </span>
         </p>
         {selectedNfts.length > 0 ? (

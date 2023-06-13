@@ -5,25 +5,23 @@ import invariant from "tiny-invariant";
 
 import { fetchCollectionOwnedByAddress } from "~/api/tokens.server";
 
-export const loader = async (args: LoaderArgs) => {
-  const url = new URL(args.request.url);
+export const loader = async ({ request, params }: LoaderArgs) => {
+  const { slug } = params;
+  invariant(slug, "Missing slug");
 
+  const url = new URL(request.url);
   const address = url.searchParams.get("address");
-  const slug = url.searchParams.get("slug");
+  invariant(address, "Missing address");
+
   const traits = url.searchParams.get("traits");
   const query = url.searchParams.get("query");
   const nextPageKey = url.searchParams.get("nextPageKey");
   const offset = url.searchParams.get("offset");
   const tokenIds = url.searchParams.get("tokenIds");
   const tokenIdsArray = tokenIds ? tokenIds.split(",") : [];
-
-  invariant(slug, "Missing slug");
-
   const traitsArray = traits ? traits.split(",") : [];
 
   try {
-    invariant(address, "Missing address");
-
     const tokens = await fetchCollectionOwnedByAddress(
       address,
       slug.toLowerCase(),

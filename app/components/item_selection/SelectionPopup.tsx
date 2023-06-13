@@ -28,7 +28,7 @@ import { useTrove } from "~/hooks/useTrove";
 import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { CollectionLoader } from "~/routes/resources.get-collection";
+import type { CollectionLoader } from "~/routes/resources.collections.$slug";
 import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
@@ -162,19 +162,24 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     !props.viewOnly ? props.selectedTokens ?? [] : []
   );
-  const fetcher = useFetcher<CollectionLoader>();
-  const filterFetcher = useFetcher<TroveFilters>();
-  const { load, Form, submit, formData, state, data } = fetcher;
-  const { load: loadFilters } = filterFetcher;
+  const { load, Form, submit, formData, state, data } =
+    useFetcher<CollectionLoader>();
+  const {
+    load: loadFilters,
+    state: filtersState,
+    data: filtersData = [],
+  } = useFetcher<TroveFilters>();
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
+  const offsetRef = React.useRef(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const id = token?.id;
   const collectionTokenIds = token?.collectionTokenIds.join(",");
-  const fetchFromVault = type === "vault";
-  const offsetRef = React.useRef(0);
+  const ownerAddress = type === "vault" && token?.id ? token.id : address;
+  const resourcePath = token?.isNFT
+    ? `/resources/collections/${token.urlSlug}`
+    : undefined;
 
   const totalQuantity = selectedItems.reduce(
     (acc, curr) => (acc += curr.quantity),
@@ -202,17 +207,15 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   }, [formData]);
 
   const fetchCollection = React.useCallback(() => {
-    if (!address || !token?.isNFT) {
+    if (!ownerAddress || !resourcePath) {
       return;
     }
 
     offsetRef.current = 0;
 
     const params = new URLSearchParams({
-      slug: token.urlSlug,
+      address: ownerAddress,
     });
-
-    params.set("address", fetchFromVault && id ? id : address);
 
     if (collectionTokenIds) {
       params.set("tokenIds", collectionTokenIds);
@@ -221,24 +224,18 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     if (traitInfoRef.current.length > 0) {
       params.set("traits", traitInfoRef.current);
     }
-    load(`/resources/get-collection/?${params.toString()}`);
-  }, [
-    address,
-    fetchFromVault,
-    load,
-    token?.isNFT,
-    token?.urlSlug,
-    collectionTokenIds,
-    id,
-  ]);
+
+    load(`${resourcePath}?${params.toString()}`);
+  }, [ownerAddress, load, resourcePath, collectionTokenIds]);
 
   React.useEffect(() => {
-    if (!token?.isNFT) {
+    if (!resourcePath) {
       return;
     }
+
     fetchCollection();
-    loadFilters(`/resources/get-filters/${token.urlSlug}`);
-  }, [token?.isNFT, token?.urlSlug, loadFilters, fetchCollection]);
+    loadFilters(`${resourcePath}/filters`);
+  }, [resourcePath, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
@@ -256,20 +253,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
   if (!token) return null;
 
-  const selectedTraitCount = data?.traits ? data?.traits.length : 0;
-
-  const filterWithValues = (filterFetcher.data || []).filter(
-    (d) => d.values.length > 0
-  );
+  const filterWithValues = filtersData.filter((d) => d.values.length > 0);
 
   const HiddenInputs = (
     <>
-      <input
-        type="hidden"
-        name="address"
-        value={fetchFromVault && id ? id : address}
-      />
-      <input type="hidden" name="slug" value={token.urlSlug} />
+      <input type="hidden" name="address" value={ownerAddress} />
     </>
   );
 
@@ -292,7 +280,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         <p className="text-md font-medium capitalize text-night-100">
           {token.name}{" "}
           <span className="normal-case text-night-400">
-            from {fetchFromVault ? "the Vault" : "your Inventory"}
+            from {type === "vault" ? "the Vault" : "your Inventory"}
           </span>
         </p>
       </div>
@@ -307,8 +295,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
 
               offsetRef.current = 0;
@@ -359,8 +346,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
             submit(formData, {
               replace: true,
-              method: "get",
-              action: "/resources/get-collection",
+              action: resourcePath,
             });
 
             offsetRef.current = 0;
@@ -381,8 +367,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
             submit(formData, {
               replace: true,
-              method: "get",
-              action: "/resources/get-collection",
+              action: resourcePath,
             });
 
             offsetRef.current = 0;
@@ -401,7 +386,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     aria-hidden="true"
                   />
                   <span>Filters</span>
-                  <Badge>{selectedTraitCount}</Badge>
+                  <Badge>{data?.traits.length ?? 0}</Badge>
                   <ChevronDownIcon
                     className={cn(
                       "h-4 w-4 transition-transform",
@@ -421,11 +406,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               align="start"
               className="h-96 overflow-auto sm:min-w-[45rem]"
             >
-              {filterFetcher.state === "loading" ? (
+              {filtersState === "loading" ? (
                 <div className="flex h-full items-center justify-center">
                   <LoaderIcon className="h-8 w-8 " />
                 </div>
-              ) : filterFetcher.state === "idle" && filterFetcher.data ? (
+              ) : filtersState === "idle" && filtersData.length > 0 ? (
                 <div className="py-2">
                   {filterWithValues ? (
                     <div
@@ -509,17 +494,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </div>
         <div className="flex justify-between bg-night-1000 p-3">
           <Form
-            action="/resources/get-collection"
-            method="get"
             onSubmit={(e) => {
               e.preventDefault();
+
               const formData = new FormData(e.currentTarget);
               offsetRef.current -= ITEMS_PER_PAGE;
               formData.set("offset", offsetRef.current.toString());
+
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
             }}
           >
@@ -543,17 +527,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             </Button>
           </Form>
           <Form
-            action="/resources/get-collection"
-            method="get"
             onSubmit={(e) => {
               e.preventDefault();
+
               const formData = new FormData(e.currentTarget);
               offsetRef.current += ITEMS_PER_PAGE;
               formData.set("offset", offsetRef.current.toString());
+
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
             }}
           >

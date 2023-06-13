@@ -36,7 +36,10 @@ import type {
   PoolTransactionType,
 } from "~/api/pools.server";
 import { fetchPool, fetchTransactions } from "~/api/pools.server";
-import { fetchCollectionOwnedByAddress } from "~/api/tokens.server";
+import {
+  fetchCollectionOwnedByAddress,
+  fetchUserCollectionBalance,
+} from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -61,7 +64,6 @@ import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
-import { findInventories } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -122,7 +124,8 @@ export async function loader({ params, request }: LoaderArgs) {
       transactions: fetchTransactions(pool),
       baseVaultItems: null,
       quoteVaultItems: null,
-      inventory: null,
+      nftBalance0: null,
+      nftBalance1: null,
     });
   }
 
@@ -147,8 +150,8 @@ export async function loader({ params, request }: LoaderArgs) {
       null,
       0
     ),
-    // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
-    inventory: findInventories(address, pool.baseToken, pool.quoteToken),
+    nftBalance0: fetchUserCollectionBalance(pool.baseToken.urlSlug, address),
+    nftBalance1: fetchUserCollectionBalance(pool.quoteToken.urlSlug, address),
   });
 }
 
@@ -487,9 +490,9 @@ const PoolManagementView = ({
   className?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<string>("deposit");
-  const { inventory } = useRouteLoaderData(
-    "routes/pools_.$id"
-  ) as SerializeFrom<typeof loader>;
+  const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
+    typeof loader
+  >;
 
   return (
     <div className={className}>
@@ -514,14 +517,13 @@ const PoolManagementView = ({
         <PoolWithdrawTab
           pool={pool}
           balance={lpBalance}
-          inventory={inventory}
           onSuccess={onSuccess}
         />
       )}
       {activeTab === "deposit" && (
         <PoolDepositTab
           pool={pool}
-          inventory={inventory}
+          nftBalances={nftBalances}
           onSuccess={onSuccess}
         />
       )}
