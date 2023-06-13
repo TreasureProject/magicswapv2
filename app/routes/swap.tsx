@@ -339,6 +339,7 @@ export default function SwapPage() {
                     checked={priceImpactOptIn}
                     id="priceImpactOptIn"
                     description="You will lose a big portion of your funds in this trade. Please tick the box if you would like to continue."
+                    checkboxClassName="border-red-900"
                   >
                     Price impact is too high
                   </LabeledCheckbox>
@@ -356,7 +357,7 @@ export default function SwapPage() {
                 ) : (
                   <Dialog open={swapModalOpen} onOpenChange={setSwapModalOpen}>
                     <DialogTrigger asChild>
-                      <Button
+                      <TransactionButton
                         className="w-full"
                         size="lg"
                         disabled={
@@ -365,7 +366,7 @@ export default function SwapPage() {
                         }
                       >
                         Swap Items
-                      </Button>
+                      </TransactionButton>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
@@ -486,6 +487,13 @@ export default function SwapPage() {
                             )}
                           </div>
                         </div>
+                        <SwapRoutePanel
+                          className="mt-4"
+                          swapRoute={swapRoute}
+                          isExactOut={isExactOut}
+                          amountInMax={amountInMax}
+                          amountOutMin={amountOutMin}
+                        />
                         <div className="mt-4 grid grid-cols-3 gap-3">
                           <Button
                             size="lg"
@@ -504,13 +512,6 @@ export default function SwapPage() {
                             </Button>
                           </DialogClose>
                         </div>
-                        <SwapRoutePanel
-                          className="mt-4"
-                          swapRoute={swapRoute}
-                          isExactOut={isExactOut}
-                          amountInMax={amountInMax}
-                          amountOutMin={amountOutMin}
-                        />
                       </div>
                     </DialogContent>
                   </Dialog>

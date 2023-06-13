@@ -14,7 +14,7 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "border-input peer h-4 w-4 shrink-0 rounded-[4px] border-[1.5px] ring-offset-background data-[state=checked]:border-none data-[state=checked]:bg-night-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      "h-4 w-4 shrink-0 rounded-[4px] border-[1.5px] border-input ring-offset-background data-[state=checked]:border-none data-[state=checked]:bg-night-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
     {...props}
@@ -29,11 +29,13 @@ Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 const LabeledCheckbox = ({
   children,
   className,
+  checkboxClassName,
   description,
   ...props
 }: {
   children: React.ReactNode;
   className?: string;
+  checkboxClassName?: string;
   description?: string;
 } & React.ComponentProps<typeof CheckboxPrimitive.Root>) => (
   <div
@@ -45,8 +47,11 @@ const LabeledCheckbox = ({
       className
     )}
   >
-    <Checkbox className={cn(description && "mt-[1px]")} {...props} />
-    <div className="grid gap-1.5 leading-none">
+    <Checkbox
+      className={cn(description && "mt-[1px]", checkboxClassName)}
+      {...props}
+    />
+    <div className="mt-px grid gap-1.5 leading-none">
       <Label htmlFor={props.id}>{children}</Label>
       {description && (
         <p className="text-xs leading-[140%] text-muted-foreground sm:text-sm">
