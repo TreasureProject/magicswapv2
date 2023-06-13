@@ -19,7 +19,7 @@ import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -278,7 +278,9 @@ export const PoolDepositTab = ({
             label: "Share of Pool",
             value: formatPercent(
               BigInt(pool.totalSupply) > 0
-                ? Number(estimatedLp / (BigInt(pool.totalSupply) + estimatedLp))
+                ? bigIntToNumber(estimatedLp) /
+                    (bigIntToNumber(BigInt(pool.totalSupply)) +
+                      bigIntToNumber(estimatedLp))
                 : 0
             ),
           },
