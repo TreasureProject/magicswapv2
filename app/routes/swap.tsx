@@ -31,7 +31,9 @@ import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import { SwapRoutePanel } from "~/components/swap/SwapRoutePanel";
 import { Button, TransactionButton } from "~/components/ui/Button";
+import { LabeledCheckbox } from "~/components/ui/Checkbox";
 import {
   Dialog,
   DialogContent,
@@ -43,18 +45,15 @@ import {
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
-import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 export const meta: V2_MetaFunction<
@@ -137,7 +136,7 @@ export default function SwapPage() {
     useState(DEFAULT_STATE);
   const revalidator = useRevalidator();
   const [swapModalOpen, setSwapModalOpen] = useState(false);
-  const state = useStore(useSettingsStore, (state) => state);
+  const [priceImpactOptIn, setPriceImpactOptIn] = useState(false);
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -147,23 +146,17 @@ export default function SwapPage() {
     });
   };
 
-  const {
-    amountIn,
-    amountOut,
-    tokenIn,
-    tokenOut,
-    path,
-    priceImpact,
-    lpFee,
-    protocolFee,
-    royaltiesFee,
-  } = useSwapRoute({
+  const swapRoute = useSwapRoute({
     ...loaderData,
     amount,
     isExactOut,
   });
 
+  const { amountIn, amountOut, tokenIn, tokenOut, path, priceImpact } =
+    swapRoute;
+
   const hasAmounts = amountIn > 0 && amountOut > 0;
+  const requiresPriceImpactOptIn = priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -333,21 +326,26 @@ export default function SwapPage() {
             })
           }
         />
-        {/* {otherToken ? (
-          <div className="mt-6 rounded-lg border border-night-800 p-4">
-            <p className="text-sm text-night-400">
-              <span className="font-medium text-honey-25">
-                {formatTokenAmount(BigInt(comparisonValue), tokenIn.decimals)}
-              </span>{" "}
-              {token.symbol} per {otherToken.symbol}
-            </p>
-          </div>
-        ) : null} */}
-        <div className="mt-4 space-y-1.5">
+        <div className="mt-4 space-y-4">
           <ClientOnly>
             {() => (
               <>
-                {!isTokenInApproved && hasAmounts ? (
+                {requiresPriceImpactOptIn ? (
+                  <LabeledCheckbox
+                    className="rounded-lg border border-red-500 bg-red-500/20 p-3 text-honey-25/90"
+                    onCheckedChange={(checked) =>
+                      setPriceImpactOptIn(Boolean(checked))
+                    }
+                    checked={priceImpactOptIn}
+                    id="priceImpactOptIn"
+                    description="You will lose a big portion of your funds in this trade. Please tick the box if you would like to continue."
+                  >
+                    Price impact is too high
+                  </LabeledCheckbox>
+                ) : null}
+                {!isTokenInApproved &&
+                hasAmounts &&
+                (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
                   <TransactionButton
                     className="w-full"
                     size="lg"
@@ -361,7 +359,10 @@ export default function SwapPage() {
                       <Button
                         className="w-full"
                         size="lg"
-                        disabled={!hasAmounts}
+                        disabled={
+                          !hasAmounts ||
+                          (requiresPriceImpactOptIn && !priceImpactOptIn)
+                        }
                       >
                         Swap Items
                       </Button>
@@ -485,70 +486,7 @@ export default function SwapPage() {
                             )}
                           </div>
                         </div>
-                        <div className="mt-4 rounded-lg border border-night-800 p-4 text-sm text-night-400">
-                          {tokenIn && tokenOut && hasAmounts ? (
-                            <>
-                              <div className="flex items-center justify-between">
-                                Price Impact
-                                <span>-{formatPercent(priceImpact)}</span>
-                              </div>
-                              {lpFee > 0 && (
-                                <div className="flex items-center justify-between">
-                                  Liquidity Provider Fee
-                                  <span>{formatPercent(lpFee)}</span>
-                                </div>
-                              )}
-                              {protocolFee > 0 && (
-                                <div className="flex items-center justify-between">
-                                  Protocol Fee
-                                  <span>{formatPercent(protocolFee)}</span>
-                                </div>
-                              )}
-                              {royaltiesFee > 0 && (
-                                <div className="flex items-center justify-between">
-                                  Royalties Fee
-                                  <span>{formatPercent(royaltiesFee)}</span>
-                                </div>
-                              )}
-                              {isExactOut ? (
-                                <div className="flex items-center justify-between">
-                                  Maximum spent
-                                  <span>
-                                    {formatTokenAmount(
-                                      amountInMax,
-                                      tokenIn.decimals
-                                    )}{" "}
-                                    {tokenIn.symbol}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-between">
-                                  Minimum received
-                                  <span>
-                                    {formatTokenAmount(
-                                      amountOutMin,
-                                      tokenOut.decimals
-                                    )}{" "}
-                                    {tokenOut.symbol}
-                                  </span>
-                                </div>
-                              )}
-                            </>
-                          ) : null}
-                          <div className="flex items-center justify-between">
-                            Slippage
-                            <span>
-                              {formatPercent(
-                                state?.slippage || DEFAULT_SLIPPAGE
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            Deadline
-                            <span>{state?.deadline || 30} Minutes</span>
-                          </div>
-                        </div>
-                        <div className="mt-6 grid grid-cols-3 gap-3">
+                        <div className="mt-4 grid grid-cols-3 gap-3">
                           <Button
                             size="lg"
                             className="col-span-full sm:col-span-2"
@@ -566,6 +504,13 @@ export default function SwapPage() {
                             </Button>
                           </DialogClose>
                         </div>
+                        <SwapRoutePanel
+                          className="mt-4"
+                          swapRoute={swapRoute}
+                          isExactOut={isExactOut}
+                          amountInMax={amountInMax}
+                          amountOutMin={amountOutMin}
+                        />
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -574,14 +519,15 @@ export default function SwapPage() {
             )}
           </ClientOnly>
         </div>
-        <div className="mt-4 text-sm text-night-400">
-          {hasAmounts ? (
-            <div className="flex items-center justify-between">
-              Price Impact
-              <span>-{formatPercent(priceImpact)}</span>
-            </div>
-          ) : null}
-        </div>
+        {tokenOut ? (
+          <SwapRoutePanel
+            className="mt-4"
+            swapRoute={swapRoute}
+            isExactOut={isExactOut}
+            amountInMax={amountInMax}
+            amountOutMin={amountOutMin}
+          />
+        ) : null}
       </div>
     </main>
   );
