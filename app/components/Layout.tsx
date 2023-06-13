@@ -100,6 +100,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <DropdownMenuItem>
                 <span>Terms of Service</span>
               </DropdownMenuItem>
+              <a
+                href="https://commonwealth.im/treasure-dao/discussions/MagicSwap"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <DropdownMenuItem>
+                  <span>Governance Forum</span>
+                </DropdownMenuItem>
+              </a>
               <div className="flex items-center gap-3 p-3">
                 <button>
                   <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />

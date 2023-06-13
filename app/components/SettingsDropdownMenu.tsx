@@ -24,7 +24,7 @@ export const SettingsDropdownMenu = memo(() => {
       }}
     >
       <PopoverTrigger asChild>
-        <Button variant="ghost">
+        <Button variant="ghost" className="h-12 w-12">
           <SettingsIcon className="h-6 w-6 text-night-400" />
         </Button>
       </PopoverTrigger>
