@@ -123,7 +123,7 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
   return (
     <span
       key={`${key}:${value}`}
-      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-1100 px-3 py-2 text-sm font-medium text-night-700"
+      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-800 py-1 pl-3 pr-1 text-sm font-medium text-night-500"
     >
       <p>
         <span className="inline-block capitalize">{key}:</span>{" "}
@@ -132,7 +132,7 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
       <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
       <button
         type="submit"
-        className="flex-shrink-0 rounded-full p-1 hover:bg-night-1000"
+        className="flex-shrink-0 rounded-md p-2 text-night-600 hover:bg-night-700 hover:text-night-200"
       >
         <span className="sr-only">Remove filter for {value}</span>
         <XIcon className="h-4 w-4" />
