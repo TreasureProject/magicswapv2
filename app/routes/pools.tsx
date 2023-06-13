@@ -203,9 +203,10 @@ export default function PoolsListPage() {
         >
           <Await resolve={user}>
             {(user) => {
+              const positionCount = Number(user?.liquidityPositionCount ?? "0");
               return (
                 <>
-                  {!user?.liquidityPositionCount && (
+                  {positionCount === 0 ? (
                     <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
                       <div className="col-span-2 flex flex-col items-center justify-center space-y-6 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
                         <p>You currently do not have any open positions.</p>
@@ -214,8 +215,7 @@ export default function PoolsListPage() {
                         </Button>
                       </div>
                     </div>
-                  )}
-
+                  ) : null}
                   {user?.pools ? <PoolsTable pools={user.pools} /> : null}
                 </>
               );
