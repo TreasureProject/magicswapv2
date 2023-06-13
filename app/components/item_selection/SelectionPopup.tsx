@@ -259,6 +259,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const HiddenInputs = (
     <>
       <input type="hidden" name="address" value={ownerAddress} />
+      <input type="hidden" name="tokenIds" value={collectionTokenIds} />
     </>
   );
 
