@@ -16,7 +16,6 @@ import {
   ArrowDownIcon,
   ChevronDownIcon,
   ExternalLink,
-  InfoIcon,
   LayersIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
