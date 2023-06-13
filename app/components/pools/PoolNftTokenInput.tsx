@@ -28,7 +28,9 @@ export const PoolNftTokenInput = ({
         <div className="flex-center flex gap-3">
           <PoolTokenImage className="h-10 w-10" token={token} />
           <div>
-            <p className=" text-md flex items-center">{token.name}</p>
+            <p className=" text-md sm:text-md w-max items-center overflow-ellipsis whitespace-nowrap text-sm">
+              {token.name}
+            </p>
             <p className="text-sm leading-4 text-night-700">{token.symbol}</p>
           </div>
         </div>

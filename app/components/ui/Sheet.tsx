@@ -54,7 +54,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 bg-night-1100 rounded-t-xl p-6 opacity-100 shadow-lg ",
+  "fixed z-50 scale-100 gap-4 bg-night-1100 rounded-t-xl p-4 opacity-100 shadow-lg ",
   {
     variants: {
       position: {
