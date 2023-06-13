@@ -1,5 +1,4 @@
-import { formatUnits } from "viem";
-import { useWaitForTransaction } from "wagmi";
+import { useState } from "react";
 
 import { useAccount } from "~/contexts/account";
 import {
@@ -15,15 +14,20 @@ import {
   usePrepareMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
 import { useStore } from "~/hooks/useStore";
-import { useWaitForTransaction as useWaitForT } from "~/hooks/useWaitForTransaction";
+import {
+  useWaitForTransaction as useWaitForT,
+  useWaitForTransaction,
+} from "~/hooks/useWaitForTransaction";
+import { formatAmount } from "~/lib/currency";
+import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
   tokenIn: PoolToken;
-  tokenOut: PoolToken | null;
+  tokenOut: Optional<PoolToken>;
   amountIn: bigint;
   amountOut: bigint;
   nftsIn: TroveTokenWithQuantity[];
@@ -31,6 +35,7 @@ type Props = {
   isExactOut: boolean;
   path: AddressString[];
   enabled?: boolean;
+  statusHeader?: React.ReactNode;
 };
 
 export const useSwap = ({
@@ -43,9 +48,11 @@ export const useSwap = ({
   isExactOut,
   path,
   enabled = true,
+  statusHeader: propsStatusHeader,
 }: Props) => {
   const { address, addressArg } = useAccount();
   const state = useStore(useSettingsStore, (state) => state);
+  const [statusHeader, setStatusHeader] = useState<React.ReactNode>("");
 
   const isEnabled = enabled && !!address && !!tokenOut;
   const amountInMax = isExactOut
@@ -68,20 +75,30 @@ export const useSwap = ({
     Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60
   );
 
+  const updateStatusHeader = () => {
+    setStatusHeader(
+      propsStatusHeader ??
+        `Swap ${formatAmount(bigIntToNumber(amountIn))} ${
+          tokenIn.symbol
+        } for ${formatAmount(bigIntToNumber(amountOut))} ${tokenOut?.symbol}`
+    );
+  };
+
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =
     usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
       args: [amountIn, amountOutMin, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
     });
-  const {
-    data: swapExactTokensForTokensData,
-    write: swapExactTokensForTokens,
-  } = useMagicSwapV2RouterSwapExactTokensForTokens(
+  const swapExactTokensForTokens = useMagicSwapV2RouterSwapExactTokensForTokens(
     swapExactTokensForTokensConfig
   );
   const { isSuccess: isSwapExactTokensForTokensSuccess } =
-    useWaitForTransaction(swapExactTokensForTokensData);
+    useWaitForTransaction(
+      swapExactTokensForTokens.data,
+      swapExactTokensForTokens.status,
+      statusHeader
+    );
 
   // ERC20-ERC20, exact out
   const { config: swapTokensForExactTokensConfig } =
@@ -89,15 +106,17 @@ export const useSwap = ({
       args: [amountOut, amountInMax, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
     });
-  const {
-    data: swapTokensForExactTokensData,
-    write: swapTokensForExactTokens,
-  } = useMagicSwapV2RouterSwapTokensForExactTokens(
+  const swapTokensForExactTokens = useMagicSwapV2RouterSwapTokensForExactTokens(
     swapTokensForExactTokensConfig
   );
   const { isSuccess: isSwapTokensForExactTokensSuccess } =
-    useWaitForTransaction(swapTokensForExactTokensData);
+    useWaitForTransaction(
+      swapTokensForExactTokens.data,
+      swapTokensForExactTokens.status,
+      statusHeader
+    );
 
+  // ERC20-NFT
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
       args: [
@@ -111,26 +130,13 @@ export const useSwap = ({
       ],
       enabled: isEnabled && !tokenIn.isNFT && tokenOut.isNFT,
     });
-  const {
-    data: swapTokensForNftData,
-    write: swapTokensForNft,
-    status: swapTokensForNftStatus,
-  } = useMagicSwapV2RouterSwapTokensForNft(swapTokensForNftConfig);
+  const swapTokensForNft = useMagicSwapV2RouterSwapTokensForNft(
+    swapTokensForNftConfig
+  );
   const { isSuccess: isSwapTokensForNftSuccess } = useWaitForT(
-    swapTokensForNftData,
-    swapTokensForNftStatus,
-    {
-      loading: (
-        <>
-          Swapping {parseFloat(formatUnits(amountInMax, 18)).toFixed(3)}{" "}
-          {tokenIn?.symbol} <span className="text-night-600">for</span>{" "}
-          {quantitiesOut.length} {tokenOut?.symbol}
-          {quantitiesOut.length > 1 ? "S" : ""}
-        </>
-      ),
-      success: "Success!",
-      error: "Error!",
-    }
+    swapTokensForNft.data,
+    swapTokensForNft.status,
+    statusHeader
   );
 
   // NFT-ERC20
@@ -147,10 +153,14 @@ export const useSwap = ({
       ],
       enabled: isEnabled && tokenIn.isNFT && !tokenOut.isNFT,
     });
-  const { data: swapNftForTokensData, write: swapNftForTokens } =
-    useMagicSwapV2RouterSwapNftForTokens(swapNftForTokensConfig);
-  const { isSuccess: isSwapNftForTokensSuccess } =
-    useWaitForTransaction(swapNftForTokensData);
+  const swapNftForTokens = useMagicSwapV2RouterSwapNftForTokens(
+    swapNftForTokensConfig
+  );
+  const { isSuccess: isSwapNftForTokensSuccess } = useWaitForTransaction(
+    swapNftForTokens.data,
+    swapNftForTokens.status,
+    statusHeader
+  );
 
   // NFT-NFT
   const { config: swapNftForNftConfig } =
@@ -168,10 +178,12 @@ export const useSwap = ({
       ],
       enabled: isEnabled && tokenIn.isNFT && tokenOut.isNFT,
     });
-  const { data: swapNftForNftData, write: swapNftForNft } =
-    useMagicSwapV2RouterSwapNftForNft(swapNftForNftConfig);
-  const { isSuccess: isSwapNftForNftSuccess } =
-    useWaitForTransaction(swapNftForNftData);
+  const swapNftForNft = useMagicSwapV2RouterSwapNftForNft(swapNftForNftConfig);
+  const { isSuccess: isSwapNftForNftSuccess } = useWaitForTransaction(
+    swapNftForNft.data,
+    swapNftForNft.status,
+    statusHeader
+  );
 
   return {
     amountInMax,
@@ -181,16 +193,18 @@ export const useSwap = ({
         return;
       }
 
+      updateStatusHeader();
+
       if (tokenIn.isNFT && tokenOut.isNFT) {
-        swapNftForNft?.();
+        swapNftForNft.write?.();
       } else if (tokenIn.isNFT) {
-        swapNftForTokens?.();
+        swapNftForTokens.write?.();
       } else if (tokenOut.isNFT) {
-        swapTokensForNft?.();
+        swapTokensForNft.write?.();
       } else if (isExactOut) {
-        swapTokensForExactTokens?.();
+        swapTokensForExactTokens.write?.();
       } else {
-        swapExactTokensForTokens?.();
+        swapExactTokensForTokens.write?.();
       }
     },
     isSuccess:

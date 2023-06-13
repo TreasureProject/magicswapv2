@@ -40,7 +40,7 @@ export const createSwapRoute = (
   amount: bigint,
   isExactOut: boolean
 ) => {
-  if (!tokenOut) {
+  if (amount <= 0 || !tokenOut) {
     return undefined;
   }
 

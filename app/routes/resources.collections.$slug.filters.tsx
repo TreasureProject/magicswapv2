@@ -5,9 +5,8 @@ import invariant from "tiny-invariant";
 
 import { fetchFilters } from "~/api/tokens.server";
 
-export const loader = async (args: LoaderArgs) => {
-  const { slug } = args.params;
-
+export const loader = async ({ params }: LoaderArgs) => {
+  const { slug } = params;
   invariant(slug, "Missing slug");
 
   try {

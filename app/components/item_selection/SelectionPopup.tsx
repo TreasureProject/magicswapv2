@@ -3,10 +3,10 @@ import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDownIcon,
+  ChevronRightIcon,
   TableIcon as ColumnIcon,
-  Filter,
+  ExternalLink,
   LayoutGridIcon as GridIcon,
-  InfoIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
   XIcon,
@@ -26,20 +26,23 @@ import type { TroveFilters } from "~/api/tokens.server";
 import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
+import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
-import type { CollectionLoader } from "~/routes/resources.get-collection";
+import type { CollectionLoader } from "~/routes/resources.collections.$slug";
 import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
   selected,
   item,
+  quantity,
   onClick,
   disabled,
   viewOnly,
 }: {
   selected: boolean;
   item: TroveToken;
+  quantity: number;
   onClick: () => void;
   disabled: boolean;
   viewOnly: boolean;
@@ -54,17 +57,24 @@ const ItemCard = ({
           <CheckIcon className="w-3" />
         </div>
       )}
-      <img
-        src={item.image.uri}
-        alt={item.tokenId}
-        className={cn(
-          "w-full",
-          !viewOnly && !disableUnselected && "group-hover:opacity-75"
-        )}
-      />
-      <div className="flex items-start justify-between gap-2 p-3">
+      <div className="relative">
+        <img
+          src={item.image.uri}
+          alt={item.tokenId}
+          className={cn(
+            "w-full",
+            !viewOnly && !disableUnselected && "group-hover:opacity-75"
+          )}
+        />
+        {quantity > 1 ? (
+          <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+            {quantity}x
+          </span>
+        ) : null}
+      </div>
+      <div className="flex items-start justify-between gap-2 p-2.5">
         <div className="text-left">
-          <p className="text-sm font-medium text-honey-25">
+          <p className="text-xs font-medium text-honey-25 sm:text-sm">
             {item.metadata.name}
           </p>
           <p className="text-sm text-night-400">#{item.tokenId}</p>
@@ -77,7 +87,7 @@ const ItemCard = ({
           href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
           onClick={(e) => e.stopPropagation()}
         >
-          <InfoIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
           <span className="sr-only">View {item.metadata.name} on Trove</span>
         </a>
       </div>
@@ -93,7 +103,7 @@ const ItemCard = ({
   return (
     <button
       className={cn(
-        "group relative overflow-hidden rounded-lg bg-night-900",
+        "group relative flex items-start overflow-hidden rounded-lg bg-night-900",
         selected && "ring-2 ring-night-100"
       )}
       onClick={onClick}
@@ -153,18 +163,24 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     !props.viewOnly ? props.selectedTokens ?? [] : []
   );
-  const fetcher = useFetcher<CollectionLoader>();
-  const filterFetcher = useFetcher<TroveFilters>();
-  const { load, Form, submit, formData, state, data } = fetcher;
-  const { load: loadFilters } = filterFetcher;
+  const { load, Form, submit, formData, state, data } =
+    useFetcher<CollectionLoader>();
+  const {
+    load: loadFilters,
+    state: filtersState,
+    data: filtersData = [],
+  } = useFetcher<TroveFilters>();
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
+  const offsetRef = React.useRef(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const id = token?.id;
-  const fetchFromVault = type === "vault";
-  const offsetRef = React.useRef(0);
+  const collectionTokenIds = token?.collectionTokenIds.join(",");
+  const ownerAddress = type === "vault" && token?.id ? token.id : address;
+  const resourcePath = token?.isNFT
+    ? `/resources/collections/${token.urlSlug}`
+    : undefined;
 
   const totalQuantity = selectedItems.reduce(
     (acc, curr) => (acc += curr.quantity),
@@ -192,35 +208,35 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   }, [formData]);
 
   const fetchCollection = React.useCallback(() => {
-    if (!address || !token?.isNFT) {
+    if (!ownerAddress || !resourcePath) {
       return;
     }
 
+    offsetRef.current = 0;
+
     const params = new URLSearchParams({
-      slug: token.urlSlug,
+      address: ownerAddress,
     });
 
-    if (fetchFromVault && id) {
-      params.set("type", "vault");
-      params.set("id", id);
-    } else {
-      params.set("type", "inventory");
-      params.set("address", address);
+    if (collectionTokenIds) {
+      params.set("tokenIds", collectionTokenIds);
     }
 
     if (traitInfoRef.current.length > 0) {
       params.set("traits", traitInfoRef.current);
     }
-    load(`/resources/get-collection/?${params.toString()}`);
-  }, [address, fetchFromVault, load, token?.isNFT, token?.urlSlug, id]);
+
+    load(`${resourcePath}?${params.toString()}`);
+  }, [ownerAddress, load, resourcePath, collectionTokenIds]);
 
   React.useEffect(() => {
-    if (!token?.isNFT) {
+    if (!resourcePath) {
       return;
     }
+
     fetchCollection();
-    loadFilters(`/resources/get-filters/${token.urlSlug}`);
-  }, [token?.isNFT, token?.urlSlug, loadFilters, fetchCollection]);
+    loadFilters(`${resourcePath}/filters`);
+  }, [resourcePath, loadFilters, fetchCollection]);
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
@@ -238,20 +254,15 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
   if (!token) return null;
 
-  const selectedTraitCount = data?.traits ? data?.traits.length : 0;
-
-  const filterWithValues = (filterFetcher.data || []).filter(
-    (d) => d.values.length > 0
-  );
+  const filterWithValues = filtersData.filter((d) => d.values.length > 0);
 
   const HiddenInputs = (
     <>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="address" value={address} />
-      <input type="hidden" name="slug" value={token.urlSlug} />
+      <input type="hidden" name="address" value={ownerAddress} />
     </>
   );
+
+  const loading = state === "loading" || state === "submitting";
 
   return (
     <DialogContent
@@ -262,15 +273,13 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           : "grid-areas-nft-modal-viewonly"
       )}
     >
-      <div className="flex items-center gap-2 grid-in-header">
-        <p className="text-md text-night-400">
-          {props.viewOnly ? "View" : "Select"}
-        </p>
+      <div className="flex items-center gap-2 text-xs grid-in-header sm:text-base">
+        <p className="text-night-400">{props.viewOnly ? "View" : "Select"}</p>
         <PoolTokenImage className="h-6 w-6" token={token} />
         <p className="text-md font-medium capitalize text-night-100">
           {token.name}{" "}
           <span className="normal-case text-night-400">
-            from {fetchFromVault ? "the Vault" : "your Inventory"}
+            from {type === "vault" ? "the Vault" : "your Inventory"}
           </span>
         </p>
       </div>
@@ -285,8 +294,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
 
               offsetRef.current = 0;
@@ -337,8 +345,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
             submit(formData, {
               replace: true,
-              method: "get",
-              action: "/resources/get-collection",
+              action: resourcePath,
             });
 
             offsetRef.current = 0;
@@ -359,8 +366,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
             submit(formData, {
               replace: true,
-              method: "get",
-              action: "/resources/get-collection",
+              action: resourcePath,
             });
 
             offsetRef.current = 0;
@@ -379,7 +385,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     aria-hidden="true"
                   />
                   <span>Filters</span>
-                  <Badge>{selectedTraitCount}</Badge>
+                  <Badge>{data?.traits.length ?? 0}</Badge>
                   <ChevronDownIcon
                     className={cn(
                       "h-4 w-4 transition-transform",
@@ -399,11 +405,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               align="start"
               className="h-96 overflow-auto sm:min-w-[45rem]"
             >
-              {filterFetcher.state === "loading" ? (
+              {filtersState === "loading" ? (
                 <div className="flex h-full items-center justify-center">
                   <LoaderIcon className="h-8 w-8 " />
                 </div>
-              ) : filterFetcher.state === "idle" && filterFetcher.data ? (
+              ) : filtersState === "idle" && filtersData.length > 0 ? (
                 <div className="py-2">
                   {filterWithValues ? (
                     <div
@@ -458,12 +464,12 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </Form>
 
         <div className="relative flex-1 overflow-auto bg-night-1100 p-4">
-          {state === "loading" || state === "submitting" ? (
+          {loading ? (
             <div className="flex h-full items-center justify-center">
               <LoaderIcon className="h-8 w-8" />
             </div>
           ) : state === "idle" && data ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
               {data.tokens.tokens.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
@@ -472,6 +478,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   )}
                   key={item.tokenId}
                   item={item}
+                  quantity={getTroveTokenQuantity(item)}
                   viewOnly={props.viewOnly || false}
                   onClick={() => {
                     selectionHandler({
@@ -486,17 +493,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </div>
         <div className="flex justify-between bg-night-1000 p-3">
           <Form
-            action="/resources/get-collection"
-            method="get"
             onSubmit={(e) => {
               e.preventDefault();
+
               const formData = new FormData(e.currentTarget);
               offsetRef.current -= ITEMS_PER_PAGE;
               formData.set("offset", offsetRef.current.toString());
+
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
             }}
           >
@@ -512,22 +518,26 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <input type="hidden" name="query" value={data.query} />
             )}
 
-            <Button variant="secondary" disabled={offsetRef.current === 0}>
+            <Button
+              variant="ghost"
+              className="pl-2 pr-3.5"
+              disabled={offsetRef.current === 0 || loading}
+            >
+              <ChevronRightIcon className="w-4 rotate-180" />
               Previous
             </Button>
           </Form>
           <Form
-            action="/resources/get-collection"
-            method="get"
             onSubmit={(e) => {
               e.preventDefault();
+
               const formData = new FormData(e.currentTarget);
               offsetRef.current += ITEMS_PER_PAGE;
               formData.set("offset", offsetRef.current.toString());
+
               submit(formData, {
                 replace: true,
-                method: "get",
-                action: "/resources/get-collection",
+                action: resourcePath,
               });
             }}
           >
@@ -550,15 +560,18 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <input type="hidden" name="query" value={data.query} />
             )}
             <Button
-              variant="secondary"
+              variant="ghost"
               type="submit"
+              className="pl-3.5 pr-2"
               disabled={
+                loading ||
                 !data?.tokens.nextPageKey ||
                 // sometimes the next page key is there but the next page is empty
                 data.tokens.tokens.length < ITEMS_PER_PAGE
               }
             >
               Next
+              <ChevronRightIcon className="w-4" />
             </Button>
           </Form>
         </div>
@@ -613,13 +626,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                               );
                             }}
                             value={item.quantity}
-                            max={
-                              type === "inventory"
-                                ? item.queryUserQuantityOwned || 1
-                                : token.reserveItems.find(
-                                    (i) => i.tokenId === item.tokenId
-                                  )?.amount || 1
-                            }
+                            max={item.queryUserQuantityOwned || 1}
                           />
                         )}
                         <Button

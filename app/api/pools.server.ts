@@ -19,7 +19,6 @@ import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import {
   getTokenCollectionAddresses,
-  getTokenReserveItemIds,
   itemToTroveTokenItem,
 } from "~/lib/tokens.server";
 import type { Pair } from "~/types";
@@ -30,20 +29,6 @@ const getPairCollectionAddresses = (pair: Pair) => [
     ...getTokenCollectionAddresses(pair.token1),
   ]),
 ];
-
-export const fetchPoolTroveToken = async (pool: Pool) => {
-  return fetchTroveTokens([
-    ...getTokenReserveItemIds(pool.token0),
-    ...getTokenReserveItemIds(pool.token1),
-  ]).then((tokens) => ({
-    baseToken: pool.baseToken.vaultReserveItems.map((item) =>
-      itemToTroveTokenItem(item, tokens)
-    ),
-    quoteToken: pool.quoteToken.vaultReserveItems.map((item) =>
-      itemToTroveTokenItem(item, tokens)
-    ),
-  }));
-};
 
 export const fetchTransactions = async (pool: Pool) => {
   const result = (await execute(getPairTransactionsDocument, {

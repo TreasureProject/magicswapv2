@@ -1,5 +1,4 @@
-import { useWaitForTransaction } from "wagmi";
-
+import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
   useMagicSwapV2RouterAddLiquidity,
@@ -20,6 +19,7 @@ type Props = {
   amountQuoteMin: bigint;
   nfts: TroveTokenWithQuantity[];
   enabled?: boolean;
+  statusHeader?: React.ReactNode;
 };
 
 export const useAddLiquidity = ({
@@ -30,6 +30,7 @@ export const useAddLiquidity = ({
   amountQuoteMin,
   nfts,
   enabled = true,
+  statusHeader: propsStatusHeader,
 }: Props) => {
   const { address, addressArg } = useAccount();
   const deadline = useStore(useSettingsStore, (state) => state.deadline);
@@ -39,6 +40,7 @@ export const useAddLiquidity = ({
     Math.floor(Date.now() / 1000) + (deadline || DEFAULT_DEADLINE) * 60
   );
   const isNFT = pool.baseToken.isNFT || pool.quoteToken.isNFT;
+  const statusHeader = propsStatusHeader ?? `Deposit for ${pool.name} LP`;
 
   const { config: tokenAddLiquidityConfig } =
     usePrepareMagicSwapV2RouterAddLiquidity({
@@ -54,10 +56,13 @@ export const useAddLiquidity = ({
       ],
       enabled: isEnabled && !isNFT,
     });
-  const { data: tokenAddLiquidityData, write: tokenAddLiquidity } =
-    useMagicSwapV2RouterAddLiquidity(tokenAddLiquidityConfig);
+  const tokenAddLiquidity = useMagicSwapV2RouterAddLiquidity(
+    tokenAddLiquidityConfig
+  );
   const { isSuccess: isTokenAddLiquiditySuccess } = useWaitForTransaction(
-    tokenAddLiquidityData
+    tokenAddLiquidity.data,
+    tokenAddLiquidity.status,
+    statusHeader
   );
 
   const { config: nftAddLiquidityConfig } =
@@ -75,17 +80,21 @@ export const useAddLiquidity = ({
       ],
       enabled: isEnabled && isNFT,
     });
-  const { data: nftAddLiquidityData, write: nftAddLiquidity } =
-    useMagicSwapV2RouterAddLiquidityNft(nftAddLiquidityConfig);
-  const { isSuccess: isNFTAddLiquiditySuccess } =
-    useWaitForTransaction(nftAddLiquidityData);
+  const nftAddLiquidity = useMagicSwapV2RouterAddLiquidityNft(
+    nftAddLiquidityConfig
+  );
+  const { isSuccess: isNFTAddLiquiditySuccess } = useWaitForTransaction(
+    nftAddLiquidity.data,
+    nftAddLiquidity.status,
+    statusHeader
+  );
 
   return {
     addLiquidity: () => {
       if (isNFT) {
-        nftAddLiquidity?.();
+        nftAddLiquidity.write?.();
       } else {
-        tokenAddLiquidity?.();
+        tokenAddLiquidity.write?.();
       }
     },
     isSuccess: isTokenAddLiquiditySuccess || isNFTAddLiquiditySuccess,

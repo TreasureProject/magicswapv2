@@ -1,5 +1,4 @@
-import { useWaitForTransaction } from "wagmi";
-
+import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
   useMagicSwapV2RouterRemoveLiquidity,
@@ -19,6 +18,7 @@ type Props = {
   amountQuoteMin: bigint;
   nfts: TroveTokenWithQuantity[];
   enabled?: boolean;
+  statusHeader?: React.ReactNode;
 };
 
 export const useRemoveLiquidity = ({
@@ -28,6 +28,7 @@ export const useRemoveLiquidity = ({
   amountQuoteMin,
   nfts,
   enabled = true,
+  statusHeader: propsStatusHeader,
 }: Props) => {
   const { address, addressArg } = useAccount();
   const deadline = useStore(useSettingsStore, (state) => state.deadline);
@@ -37,6 +38,7 @@ export const useRemoveLiquidity = ({
     Math.floor(Date.now() / 1000) + (deadline || DEFAULT_DEADLINE) * 60
   );
   const isNFT = pool.baseToken.isNFT || pool.quoteToken.isNFT;
+  const statusHeader = propsStatusHeader ?? `Withdraw from ${pool.name} LP`;
 
   const { config: tokenRemoveLiquidityConfig } =
     usePrepareMagicSwapV2RouterRemoveLiquidity({
@@ -51,10 +53,13 @@ export const useRemoveLiquidity = ({
       ],
       enabled: isEnabled && !isNFT,
     });
-  const { data: tokenRemoveLiquidityData, write: tokenRemoveLiquidity } =
-    useMagicSwapV2RouterRemoveLiquidity(tokenRemoveLiquidityConfig);
+  const tokenRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidity(
+    tokenRemoveLiquidityConfig
+  );
   const { isSuccess: isTokenRemoveLiquiditySuccess } = useWaitForTransaction(
-    tokenRemoveLiquidityData
+    tokenRemoveLiquidity.data,
+    tokenRemoveLiquidity.status,
+    statusHeader
   );
 
   const { config: nftRemoveLiquidityConfig } =
@@ -74,18 +79,21 @@ export const useRemoveLiquidity = ({
       ],
       enabled: isEnabled && isNFT,
     });
-  const { data: nftRemoveLiquidityData, write: nftRemoveLiquidity } =
-    useMagicSwapV2RouterRemoveLiquidityNft(nftRemoveLiquidityConfig);
+  const nftRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidityNft(
+    nftRemoveLiquidityConfig
+  );
   const { isSuccess: isNFTRemoveLiquiditySuccess } = useWaitForTransaction(
-    nftRemoveLiquidityData
+    nftRemoveLiquidity.data,
+    nftRemoveLiquidity.status,
+    statusHeader
   );
 
   return {
     removeLiquidity: () => {
       if (isNFT) {
-        nftRemoveLiquidity?.();
+        nftRemoveLiquidity.write?.();
       } else {
-        tokenRemoveLiquidity?.();
+        tokenRemoveLiquidity.write?.();
       }
     },
     isSuccess: isTokenRemoveLiquiditySuccess || isNFTRemoveLiquiditySuccess,

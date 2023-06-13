@@ -1,4 +1,4 @@
-import { BigNumber } from "@ethersproject/bignumber";
+import { DialogClose } from "@radix-ui/react-dialog";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { useFetcher } from "@remix-run/react";
 import {
@@ -11,18 +11,26 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
-import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowDownIcon,
+  ChevronDownIcon,
+  ExternalLink,
+  InfoIcon,
+  LayersIcon,
+} from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { useBalance } from "wagmi";
 
-import type { FetchInventoryLoader } from "./resources.fetch-inventory";
+import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
 import {
   fetchToken,
   fetchTokens,
-  fetchTotalInventoryForUser,
+  fetchUserCollectionBalance,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
@@ -31,7 +39,9 @@ import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
+import { SwapRoutePanel } from "~/components/swap/SwapRoutePanel";
 import { Button, TransactionButton } from "~/components/ui/Button";
+import { LabeledCheckbox } from "~/components/ui/Checkbox";
 import {
   Dialog,
   DialogContent,
@@ -41,34 +51,26 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
-import { useApprove } from "~/hooks/useApprove";
+import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
-import { useIsApproved } from "~/hooks/useIsApproved";
-import { useStore } from "~/hooks/useStore";
 import { useSwap } from "~/hooks/useSwap";
+import { useSwapRoute } from "~/hooks/useSwapRoute";
+import { useTrove } from "~/hooks/useTrove";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
-import { createSwapRoute } from "~/lib/pools";
-import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  AddressString,
-  NumberString,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
 export const meta: V2_MetaFunction<
   typeof loader,
   {
     root: RootLoader;
   }
-> = ({ matches, data, location }) => {
+> = ({ matches, data }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
 
@@ -88,18 +90,19 @@ export const meta: V2_MetaFunction<
 };
 
 export async function loader({ request }: LoaderArgs) {
-  const pools = await fetchPools();
-  const session = await getSession(request.headers.get("Cookie"));
-
-  const address = session.get("address");
+  const [pools, session] = await Promise.all([
+    fetchPools(),
+    getSession(request.headers.get("Cookie")),
+  ]);
 
   const url = new URL(request.url);
   const inputAddress = url.searchParams.get("in");
   const outputAddress = url.searchParams.get("out");
 
-  const tokenIn = inputAddress
-    ? await fetchToken(inputAddress)
-    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
+  const [tokenIn, tokenOut] = await Promise.all([
+    fetchToken(inputAddress ?? process.env.DEFAULT_TOKEN_ADDRESS),
+    outputAddress ? fetchToken(outputAddress) : null,
+  ]);
 
   if (!tokenIn) {
     throw new Response("Input token not found", {
@@ -107,19 +110,14 @@ export async function loader({ request }: LoaderArgs) {
     });
   }
 
-  const tokenOut = outputAddress ? await fetchToken(outputAddress) : null;
-
-  const { amountInBN = BigNumber.from(0) } =
-    createSwapRoute(tokenIn, tokenOut, pools, parseUnits("1", 18), true) ?? {};
-
+  const address = session.get("address");
   if (!address || !tokenIn.isNFT) {
     return defer({
       pools,
       tokens: fetchTokens(),
       tokenIn,
       tokenOut,
-      inventory: null,
-      comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
+      tokenInNFTBalance: null,
     });
   }
 
@@ -128,8 +126,7 @@ export async function loader({ request }: LoaderArgs) {
     tokens: fetchTokens(),
     tokenIn,
     tokenOut,
-    inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
-    comparisonValue: formatTokenAmount(BigInt(amountInBN.toString())),
+    tokenInNFTBalance: fetchUserCollectionBalance(tokenIn.urlSlug, address),
   });
 }
 
@@ -141,13 +138,14 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { pools, tokenIn, tokenOut, comparisonValue } =
-    useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [{ amount: rawAmount, isExactOut, nftsIn, nftsOut }, setTrade] =
+  const [{ amount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState(DEFAULT_STATE);
   const revalidator = useRevalidator();
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [priceImpactOptIn, setPriceImpactOptIn] = useState(false);
 
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
@@ -157,53 +155,17 @@ export default function SwapPage() {
     });
   };
 
-  const amount = parseUnits(
-    rawAmount as NumberString,
-    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
-  );
+  const swapRoute = useSwapRoute({
+    ...loaderData,
+    amount,
+    isExactOut,
+  });
 
-  const {
-    amountInBN = BigNumber.from(0),
-    amountOutBN = BigNumber.from(0),
-    legs = [],
-    priceImpact = 0,
-  } = createSwapRoute(tokenIn, tokenOut, pools, amount, isExactOut) ?? {};
-
-  const amountIn = BigInt(amountInBN.toString());
-  const amountOut = BigInt(amountOutBN.toString());
-
-  const state = useStore(useSettingsStore, (state) => state);
-
-  const tokenInPoolId = legs.find(
-    ({ tokenFrom }) => tokenFrom.address === tokenIn.id
-  )?.poolAddress;
-  const tokenOutPoolId = tokenOut
-    ? legs.find(({ tokenTo }) => tokenTo.address === tokenOut.id)?.poolAddress
-    : undefined;
-  const tokenInPool = pools.find(({ id }) => id === tokenInPoolId);
-  const tokenOutPool = tokenOutPoolId
-    ? pools.find(({ id }) => id === tokenOutPoolId)
-    : undefined;
-  const poolTokenIn =
-    tokenIn.id === tokenInPool?.token0.id
-      ? tokenInPool.token0
-      : tokenInPool?.token1;
-  const poolTokenOut =
-    tokenOut && tokenOut.id === tokenOutPool?.token0.id
-      ? tokenOutPool.token0
-      : tokenOutPool?.token1;
-  const legPools = legs
-    .map(({ poolAddress }) => pools.find(({ id }) => id === poolAddress))
-    .filter((pool) => !!pool) as Pool[];
-  const lpFee = sumArray(legPools.map(({ lpFee }) => Number(lpFee ?? 0)));
-  const protocolFee = sumArray(
-    legPools.map(({ protocolFee }) => Number(protocolFee ?? 0))
-  );
-  const royaltiesFee = sumArray(
-    legPools.map(({ royaltiesFee }) => Number(royaltiesFee ?? 0))
-  );
+  const { amountIn, amountOut, tokenIn, tokenOut, path, priceImpact } =
+    swapRoute;
 
   const hasAmounts = amountIn > 0 && amountOut > 0;
+  const requiresPriceImpactOptIn = priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -218,18 +180,16 @@ export default function SwapPage() {
     }
   );
 
-  const { isApproved: isTokenInApproved, refetch: refetchTokenInApproval } =
-    useIsApproved({
-      token: tokenIn,
-      amount: amountIn,
-      enabled: isConnected && hasAmounts,
-    });
-  const { approve: approveTokenIn, isSuccess: isApproveTokenInSuccess } =
-    useApprove({
-      token: tokenIn,
-      amount: amountIn,
-      enabled: !isTokenInApproved,
-    });
+  const {
+    isApproved: isTokenInApproved,
+    approve: approveTokenIn,
+    refetch: refetchTokenInApproval,
+    isSuccess: isApproveTokenInSuccess,
+  } = useApproval({
+    token: tokenIn,
+    amount: amountIn,
+    enabled: isConnected && hasAmounts,
+  });
 
   const {
     amountInMax,
@@ -237,18 +197,14 @@ export default function SwapPage() {
     swap,
     isSuccess: isSwapSuccess,
   } = useSwap({
-    tokenIn: tokenIn,
-    tokenOut: tokenOut,
+    tokenIn,
+    tokenOut,
     amountIn,
     amountOut,
     isExactOut,
     nftsIn,
     nftsOut,
-    path: legs.flatMap(({ tokenFrom, tokenTo }, i) =>
-      i === legs.length - 1
-        ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
-        : (tokenFrom.address as AddressString)
-    ),
+    path,
     enabled: isConnected && !!tokenOut && hasAmounts,
   });
 
@@ -263,6 +219,7 @@ export default function SwapPage() {
       setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
       refetchTokenOutBalance();
+      setSwapModalOpen(false);
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
@@ -295,8 +252,11 @@ export default function SwapPage() {
     5000
   );
 
-  const token = poolTokenIn ?? tokenIn;
-  const otherToken = poolTokenOut ?? tokenOut;
+  const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
+  const formattedTokenOutAmount = formatTokenAmount(
+    amountOut,
+    tokenOut?.decimals ?? 18
+  );
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
@@ -309,15 +269,12 @@ export default function SwapPage() {
       </div>
       <div className="mt-3">
         <SwapTokenInput
-          token={token}
-          otherToken={otherToken}
+          isSwapSuccess={isSwapSuccess}
+          token={tokenIn}
+          otherToken={tokenOut}
           isOut={false}
           balance={tokenInBalance?.value}
-          amount={
-            isExactOut
-              ? formatTokenAmount(amountIn, tokenIn.decimals)
-              : rawAmount
-          }
+          amount={isExactOut ? formattedTokenInAmount : amount}
           selectedNfts={nftsIn}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
@@ -330,7 +287,9 @@ export default function SwapPage() {
           }
           onSelectNfts={(tokens) =>
             setTrade({
-              amount: tokens.length.toString(),
+              amount: sumArray(
+                tokens.map(({ quantity }) => quantity)
+              ).toString(),
               nftsIn: tokens,
               nftsOut: [],
               isExactOut: false,
@@ -349,15 +308,12 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          token={otherToken}
-          otherToken={token}
+          isSwapSuccess={isSwapSuccess}
+          token={tokenOut}
+          otherToken={tokenIn}
           isOut
           balance={tokenOutBalance?.value}
-          amount={
-            isExactOut
-              ? rawAmount
-              : formatTokenAmount(amountOut, tokenOut?.decimals ?? 18)
-          }
+          amount={isExactOut ? amount : formattedTokenOutAmount}
           selectedNfts={nftsOut}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
@@ -370,100 +326,218 @@ export default function SwapPage() {
           }
           onSelectNfts={(tokens) =>
             setTrade({
-              amount: tokens.length.toString(),
+              amount: sumArray(
+                tokens.map(({ quantity }) => quantity)
+              ).toString(),
               nftsIn: [],
               nftsOut: tokens,
               isExactOut: true,
             })
           }
         />
-        {otherToken ? (
-          <div className="mt-6 rounded-2xl border border-night-800 p-4">
-            <p className="text-sm text-night-400">
-              <span className="font-medium text-honey-25">
-                {formatAmount(comparisonValue)}
-              </span>{" "}
-              {token.symbol} per {otherToken.symbol}
-            </p>
-          </div>
-        ) : null}
-        <div className="mt-4 space-y-1.5">
+        <div className="mt-4 space-y-4">
           <ClientOnly>
             {() => (
               <>
-                {!isTokenInApproved && hasAmounts && (
+                {requiresPriceImpactOptIn ? (
+                  <LabeledCheckbox
+                    className="rounded-lg border border-red-500 bg-red-500/20 p-3 text-honey-25/90"
+                    onCheckedChange={(checked) =>
+                      setPriceImpactOptIn(Boolean(checked))
+                    }
+                    checked={priceImpactOptIn}
+                    id="priceImpactOptIn"
+                    description="You will lose a big portion of your funds in this trade. Please tick the box if you would like to continue."
+                    checkboxClassName="border-red-900"
+                  >
+                    Price impact is too high
+                  </LabeledCheckbox>
+                ) : null}
+                {!isTokenInApproved &&
+                hasAmounts &&
+                (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
                   <TransactionButton
                     className="w-full"
+                    size="lg"
                     onClick={() => approveTokenIn()}
                   >
                     Approve {tokenIn.name}
                   </TransactionButton>
+                ) : (
+                  <Dialog open={swapModalOpen} onOpenChange={setSwapModalOpen}>
+                    <DialogTrigger asChild>
+                      <TransactionButton
+                        className="w-full"
+                        size="lg"
+                        disabled={
+                          !hasAmounts ||
+                          (requiresPriceImpactOptIn && !priceImpactOptIn)
+                        }
+                      >
+                        Swap Items
+                      </TransactionButton>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        Swap {formattedTokenInAmount} {tokenIn.symbol} for{" "}
+                        {formattedTokenOutAmount} {tokenOut?.symbol}
+                      </DialogHeader>
+                      <div>
+                        <div className="overflow-hidden rounded-lg bg-night-1100">
+                          <div className="flex items-center bg-night-900 px-3.5 py-2.5">
+                            <PoolTokenImage
+                              token={tokenIn}
+                              className="h-6 w-6"
+                            />
+                            <span className="ml-2 font-medium text-honey-25">
+                              {tokenIn.name}
+                            </span>
+                          </div>
+                          <div className="p-4">
+                            {tokenIn.isNFT ? (
+                              nftsIn.length > 0 ? (
+                                <div className="flex items-center space-x-2">
+                                  <div
+                                    className={cn("flex", {
+                                      "-space-x-5": tokenIn.type === "ERC721",
+                                    })}
+                                  >
+                                    {nftsIn
+                                      .slice(0, Math.min(nftsIn.length, 5))
+                                      .map((nft) => {
+                                        return (
+                                          <div
+                                            key={nft.tokenId}
+                                            className="flex flex-col items-center"
+                                          >
+                                            <img
+                                              className="h-12 w-12 rounded border-2 border-night-1100"
+                                              src={nft.image.uri}
+                                              alt={nft.metadata.name}
+                                            />
+                                            {tokenIn.type === "ERC1155" ? (
+                                              <p className="text-xs text-night-600">
+                                                {nft.quantity}x
+                                              </p>
+                                            ) : null}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                  {nftsIn.length > 5 ? (
+                                    <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
+                                      <p className="text-xs font-semibold text-night-500">
+                                        +{nftsIn.length - 5}
+                                      </p>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : null
+                            ) : (
+                              <p>{formattedTokenInAmount}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25">
+                          <ArrowDownIcon className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="overflow-hidden rounded-lg bg-night-1100">
+                          <div className="flex items-center bg-night-900 px-3.5 py-2.5">
+                            <PoolTokenImage
+                              token={tokenOut}
+                              className="h-6 w-6"
+                            />
+                            <span className="ml-2 font-medium text-honey-25">
+                              {tokenOut?.name}
+                            </span>
+                          </div>
+                          <div className="p-4">
+                            {tokenOut?.isNFT ? (
+                              nftsOut.length > 0 ? (
+                                <div className="flex items-center space-x-2">
+                                  <div
+                                    className={cn("flex", {
+                                      "-space-x-5": tokenOut?.type === "ERC721",
+                                    })}
+                                  >
+                                    {nftsOut
+                                      .slice(0, Math.min(nftsOut.length, 5))
+                                      .map((nft) => {
+                                        return (
+                                          <div
+                                            key={nft.tokenId}
+                                            className="flex flex-col items-center"
+                                          >
+                                            <img
+                                              className="h-12 w-12 rounded border-2 border-night-1100"
+                                              src={nft.image.uri}
+                                              alt={nft.metadata.name}
+                                            />
+                                            {tokenOut?.type === "ERC1155" ? (
+                                              <p className="text-xs text-night-600">
+                                                {nft.quantity}x
+                                              </p>
+                                            ) : null}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                  {nftsOut.length > 5 ? (
+                                    <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
+                                      <p className="text-xs font-semibold text-night-500">
+                                        +{nftsOut.length - 5}
+                                      </p>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : null
+                            ) : (
+                              <p>{formattedTokenOutAmount}</p>
+                            )}
+                          </div>
+                        </div>
+                        <SwapRoutePanel
+                          className="mt-4"
+                          swapRoute={swapRoute}
+                          isExactOut={isExactOut}
+                          amountInMax={amountInMax}
+                          amountOutMin={amountOutMin}
+                        />
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                          <Button
+                            size="lg"
+                            className="col-span-full sm:col-span-2"
+                            onClick={() => swap()}
+                          >
+                            Confirm Swap
+                          </Button>
+                          <DialogClose asChild>
+                            <Button
+                              size="lg"
+                              variant="secondary"
+                              className="col-span-full sm:col-span-1"
+                            >
+                              Cancel
+                            </Button>
+                          </DialogClose>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
-                <TransactionButton
-                  className="w-full"
-                  size="lg"
-                  disabled={!isTokenInApproved || !hasAmounts}
-                  onClick={() => swap()}
-                >
-                  Swap Items
-                </TransactionButton>
               </>
             )}
           </ClientOnly>
         </div>
-        <div className="mt-4 text-sm text-night-400">
-          <div className="flex items-center justify-between">
-            Slippage
-            <span>{formatPercent(state?.slippage || DEFAULT_SLIPPAGE)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            Deadline
-            <span>{state?.deadline || 30} Minutes</span>
-          </div>
-          {!!poolTokenIn && !!poolTokenOut && hasAmounts ? (
-            <>
-              <div className="flex items-center justify-between">
-                Price Impact
-                <span>-{formatPercent(priceImpact)}</span>
-              </div>
-              {lpFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Liquidity Provider Fee
-                  <span>{formatPercent(lpFee)}</span>
-                </div>
-              )}
-              {protocolFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Protocol Fee
-                  <span>{formatPercent(protocolFee)}</span>
-                </div>
-              )}
-              {royaltiesFee > 0 && (
-                <div className="flex items-center justify-between">
-                  Royalties Fee
-                  <span>{formatPercent(royaltiesFee)}</span>
-                </div>
-              )}
-              {isExactOut ? (
-                <div className="flex items-center justify-between">
-                  Maximum spent
-                  <span>
-                    {formatTokenAmount(amountInMax, poolTokenIn.decimals)}{" "}
-                    {poolTokenIn.symbol}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  Minimum received
-                  <span>
-                    {formatTokenAmount(amountOutMin, poolTokenOut.decimals)}{" "}
-                    {poolTokenOut.symbol}
-                  </span>
-                </div>
-              )}
-            </>
-          ) : null}
-        </div>
+        {tokenOut ? (
+          <SwapRoutePanel
+            className="mt-4"
+            swapRoute={swapRoute}
+            isExactOut={isExactOut}
+            amountInMax={amountInMax}
+            amountOutMin={amountOutMin}
+          />
+        ) : null}
       </div>
     </main>
   );
@@ -480,9 +554,10 @@ const SwapTokenInput = ({
   onUpdateAmount,
   onSelectNfts,
   className,
+  isSwapSuccess,
 }: {
-  token: PoolToken | null;
-  otherToken: PoolToken | null;
+  token: Optional<PoolToken>;
+  otherToken: Optional<PoolToken>;
   isOut: boolean;
   balance?: bigint;
   amount: string;
@@ -491,6 +566,7 @@ const SwapTokenInput = ({
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
+  isSwapSuccess: boolean;
 }) => {
   const { isConnected } = useAccount();
   const location = useLocation();
@@ -498,8 +574,11 @@ const SwapTokenInput = ({
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
-  const { inventory } = useLoaderData<typeof loader>();
+  const { tokenInNFTBalance } = useLoaderData<typeof loader>();
   const { state: routeState } = useLocation();
+  const [collapsed, setCollapsed] = useState(true);
+  const [ref, bounds] = useMeasure();
+  const { createTokenUrl } = useTrove();
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -564,13 +643,30 @@ const SwapTokenInput = ({
                       );
                     })}
                 </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCollapsed((col) => !col)}
+                >
+                  <ChevronDownIcon
+                    className={cn(
+                      "h-4 w-auto transition-transform will-change-transform",
+                      !collapsed && "-rotate-180"
+                    )}
+                  />
+                  <span className="sr-only">
+                    {collapsed ? "See selected NFTs" : "Close"}
+                  </span>
+                </Button>
               </div>
             ) : (
               <ClientOnly>
                 {() => (
                   <Dialog
                     defaultOpen={
-                      token.isNFT && !otherToken?.isNFT && !!routeState
+                      token.isNFT &&
+                      !otherToken?.isNFT &&
+                      !!routeState &&
+                      !isSwapSuccess
                     }
                     key={location.search}
                   >
@@ -607,6 +703,87 @@ const SwapTokenInput = ({
           )}
         </div>
       </div>
+      <motion.div animate={{ height: bounds.height }}>
+        <div ref={ref}>
+          <AnimatePresence initial={false} mode="popLayout">
+            {!collapsed ? (
+              <motion.div
+                key="collapsed"
+                exit={{
+                  opacity: 0,
+                }}
+              >
+                <motion.div
+                  className="grid max-h-64 grid-cols-4 gap-3 overflow-auto p-4"
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: 1,
+                    transition: {
+                      delay: 0.2,
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                  }}
+                  transition={{
+                    duration: 0.15,
+                  }}
+                >
+                  {selectedNfts.map((nft) => {
+                    return (
+                      <div
+                        key={nft.tokenId}
+                        className="flex flex-col overflow-hidden rounded-lg bg-night-900"
+                      >
+                        <div className="relative">
+                          <img
+                            src={nft.image.uri}
+                            alt={nft.tokenId}
+                            className="w-full"
+                          />
+                          {token.type === "ERC1155" ? (
+                            <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                              {nft.quantity}x
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex items-start justify-between gap-2 p-2.5">
+                          <div className="min-w-0 text-left">
+                            <p className="truncate text-xs font-medium text-honey-25">
+                              {nft.metadata.name}
+                            </p>
+                            <p className="truncate text-[0.6rem] text-night-400">
+                              #{nft.tokenId}
+                            </p>
+                          </div>
+                          <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`View ${nft.metadata.name} on Trove`}
+                            className="text-night-400 transition-colors hover:text-night-100"
+                            href={createTokenUrl(
+                              nft.collectionUrlSlug,
+                              nft.tokenId
+                            )}
+                          >
+                            <ExternalLink
+                              className="h-3.5 w-auto"
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">
+                              View {nft.metadata.name} on Trove
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </motion.div>
       <div className="bg-night-1000 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
@@ -621,15 +798,15 @@ const SwapTokenInput = ({
             {token.isNFT ? (
               <>
                 {isOut ? (
-                  token.vaultReserveItems.length
+                  formatAmount(token.reserve)
                 ) : (
                   <Suspense
                     fallback={
                       <LoaderIcon className="inline-block h-3.5 w-3.5" />
                     }
                   >
-                    <Await resolve={inventory}>
-                      {(inventory) => inventory ?? 0}
+                    <Await resolve={tokenInNFTBalance}>
+                      {(balance) => balance ?? 0}
                     </Await>
                   </Suspense>
                 )}
@@ -643,7 +820,7 @@ const SwapTokenInput = ({
             )}
           </div>
           {!token?.isNFT && otherToken?.isNFT ? <DisabledInputPopover /> : null}
-          {!token?.isNFT && !otherToken?.isNFT ? (
+          {!token?.isNFT && !otherToken?.isNFT && !isOut ? (
             <Button
               size="xs"
               variant="secondary"
@@ -777,6 +954,11 @@ const Token = ({
   onSelect: (token: PoolToken) => void;
 }) => {
   const { address } = useAccount();
+  const {
+    load: loadNFTBalance,
+    state: nftBalanceStatus,
+    data: { balance: nftBalance = 0 } = {},
+  } = useFetcher<FetchNFTBalanceLoader>();
 
   const { data: balance, status } = useBalance({
     address,
@@ -784,20 +966,21 @@ const Token = ({
     enabled: !!address && !token.isNFT,
   });
 
-  const { load, state, data } = useFetcher<FetchInventoryLoader>();
-
   useEffect(() => {
-    if (!token.isNFT || !address) return;
+    if (!token.urlSlug || !address) {
+      return;
+    }
 
     const params = new URLSearchParams({
       address,
-      slug: token.urlSlug,
     });
 
-    load(`/resources/fetch-inventory?${params.toString()}`);
-  }, [address, load, token.isNFT, token.urlSlug]);
+    loadNFTBalance(
+      `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
+    );
+  }, [address, loadNFTBalance, token.urlSlug]);
 
-  const isLoading = status === "loading" || state === "loading";
+  const isLoading = status === "loading" || nftBalanceStatus === "loading";
 
   return (
     <li
@@ -821,7 +1004,7 @@ const Token = ({
         ) : address ? (
           <p className="text-base-400 text-sm">
             {token.isNFT
-              ? data?.inventory
+              ? nftBalance
               : formatTokenAmount(balance?.value ?? BigInt(0), token.decimals)}
           </p>
         ) : null}
