@@ -21,11 +21,14 @@ export const PoolTokenInput = ({
   const parsedAmount = Number(amount);
   return (
     <div className="relative rounded-lg border border-night-900">
-      <p className="absolute -top-3.5 left-1.5 flex items-center bg-background px-2.5 py-1 text-sm sm:-top-5 sm:text-lg">
-        {token.name}
-      </p>
       <div className="flex items-center justify-between gap-3 p-4">
-        <PoolTokenImage className="h-10 w-10" token={token} />
+        <div className="flex-center flex gap-3">
+          <PoolTokenImage className="h-10 w-10" token={token} />
+          <div>
+            <p className=" text-md flex items-center">{token.name}</p>
+            <p className="text-sm leading-4 text-night-700">{token.symbol}</p>
+          </div>
+        </div>
         <div className="space-y-1 text-right">
           <CurrencyInput
             value={amount}

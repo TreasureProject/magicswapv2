@@ -348,6 +348,22 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
           />
+          <Sheet>
+            <SheetTrigger asChild>
+              <div className="flex justify-center lg:hidden">
+                <Button size="lg" className="w-full">
+                  My Positions
+                </Button>
+              </div>
+            </SheetTrigger>
+            <SheetContent position="bottom" size="content" className="w-screen">
+              <PoolManagementView
+                className="mt-4 space-y-6 border-none"
+                pool={pool}
+                lpBalance={lpBalance}
+              />
+            </SheetContent>
+          </Sheet>
         </div>
         {/*Here the pool & inventory start */}
 
@@ -446,22 +462,6 @@ export default function PoolDetailsPage() {
           </Await>
         </Suspense>
       </div>
-      <Sheet>
-        <SheetTrigger asChild>
-          <div className="fixed bottom-12 left-0 right-0 flex justify-center lg:hidden">
-            <Button size="lg" className="rounded-full">
-              My Positions
-            </Button>
-          </div>
-        </SheetTrigger>
-        <SheetContent position="right" size="xl">
-          <PoolManagementView
-            className="mt-4 space-y-6"
-            pool={pool}
-            lpBalance={lpBalance}
-          />
-        </SheetContent>
-      </Sheet>
     </main>
   );
 }
@@ -484,6 +484,7 @@ const PoolManagementView = ({
     <div className={className}>
       <div className="flex items-center gap-3">
         <MultiSelect
+          className="bg-night-1200 sm:bg-night-1100"
           tabs={[
             {
               id: "deposit",
