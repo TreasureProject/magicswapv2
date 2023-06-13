@@ -48,6 +48,7 @@ module.exports = {
           DEFAULT: colors.ruby[900],
           foreground: "#ffffff",
         },
+        input: "#404652",
         secondary: {
           DEFAULT: colors.night[800],
           foreground: "#ffffff",

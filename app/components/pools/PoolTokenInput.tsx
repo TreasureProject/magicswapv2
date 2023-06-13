@@ -20,13 +20,17 @@ export const PoolTokenInput = ({
 }) => {
   const parsedAmount = Number(amount);
   return (
-    <div className="relative rounded-lg border border-night-900">
+    <div className="overflow-hidden rounded-lg border border-night-1000">
       <div className="flex items-center justify-between gap-3 p-4">
-        <div className="flex-center flex gap-3">
+        <div className="flex items-center gap-4">
           <PoolTokenImage className="h-10 w-10" token={token} />
-          <div>
-            <p className=" text-md flex items-center">{token.name}</p>
-            <p className="text-sm leading-4 text-night-700">{token.symbol}</p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium sm:text-xl">{token.name}</p>
+            {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
+              <p className="text-xs text-night-400 sm:text-sm">
+                {token.symbol}
+              </p>
+            )}
           </div>
         </div>
         <div className="space-y-1 text-right">

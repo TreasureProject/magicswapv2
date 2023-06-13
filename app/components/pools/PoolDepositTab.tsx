@@ -6,7 +6,7 @@ import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { Button, TransactionButton } from "../ui/Button";
+import { TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
@@ -17,11 +17,12 @@ import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
+import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { InventoryList, PoolToken } from "~/lib/tokens.server";
+import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
@@ -32,11 +33,18 @@ import type {
 
 type Props = {
   pool: Pool;
+  nftBalances: {
+    nftBalance0: Promise<number> | null;
+    nftBalance1: Promise<number> | null;
+  };
   onSuccess?: () => void;
-  inventory: InventoryList | null;
 };
 
-export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
+export const PoolDepositTab = ({
+  pool,
+  nftBalances: { nftBalance0, nftBalance1 },
+  onSuccess,
+}: Props) => {
   const { address } = useAccount();
   const slippage = useStore(useSettingsStore, (state) => state.slippage);
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
@@ -158,6 +166,7 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
       });
       refetchBaseTokenBalance();
       refetchQuoteTokenBalance();
+      setCheckedTerms(false);
       onSuccess?.();
     }
   }, [
@@ -190,7 +199,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
           }
           onSubmit={(tokens) =>
             setTransaction({
-              amount: tokens.length.toString(),
+              amount: sumArray(
+                tokens.map(({ quantity }) => quantity)
+              ).toString(),
               nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
               nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
               isExactB: false,
@@ -200,9 +211,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
+            balance={nftBalance0}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
-            inventory={inventory}
           />
         ) : (
           <PoolTokenInput
@@ -227,9 +238,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
         {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
+            balance={nftBalance1}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
-            inventory={inventory}
           />
         ) : (
           <PoolTokenInput

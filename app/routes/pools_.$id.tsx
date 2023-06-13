@@ -35,11 +35,11 @@ import type {
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
+import { fetchPool, fetchTransactions } from "~/api/pools.server";
 import {
-  fetchPool,
-  fetchPoolTroveToken,
-  fetchTransactions,
-} from "~/api/pools.server";
+  fetchCollectionOwnedByAddress,
+  fetchUserCollectionBalance,
+} from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import Table from "~/components/Table";
@@ -57,16 +57,17 @@ import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { truncateEthAddress } from "~/lib/address";
+import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
-import type { PoolToken, TroveTokenItem } from "~/lib/tokens.server";
-import { findInventories } from "~/lib/tokens.server";
+import { getTroveTokenQuantity } from "~/lib/tokens";
+import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional } from "~/types";
+import type { AddressString, Optional, TroveToken } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -105,43 +106,64 @@ export const meta: V2_MetaFunction<
 export async function loader({ params, request }: LoaderArgs) {
   invariant(params.id, "Pool ID required");
 
-  const session = await getSession(request.headers.get("Cookie"));
+  const [pool, session] = await Promise.all([
+    fetchPool(params.id),
+    getSession(request.headers.get("Cookie")),
+  ]);
 
-  const address = session.get("address");
-
-  const pool = await fetchPool(params.id);
   if (!pool) {
     throw new Response("Pool not found", {
       status: 404,
     });
   }
 
+  const address = session.get("address");
   if (!address || (!pool.baseToken.isNFT && !pool.quoteToken.isNFT)) {
     return defer({
       pool,
-      inventory: null,
-      vaultItems: fetchPoolTroveToken(pool),
       transactions: fetchTransactions(pool),
+      baseVaultItems: null,
+      quoteVaultItems: null,
+      nftBalance0: null,
+      nftBalance1: null,
     });
   }
 
   return defer({
     pool,
-    // TIL defer only tracks Promises values at the top level. Can't nest them inside an object
-    inventory: findInventories(address, pool.baseToken, pool.quoteToken),
-    vaultItems: fetchPoolTroveToken(pool),
     transactions: fetchTransactions(pool),
+    baseVaultItems: fetchCollectionOwnedByAddress(
+      pool.baseToken.id,
+      pool.baseToken.urlSlug,
+      [],
+      pool.baseToken.collectionTokenIds,
+      null,
+      null,
+      0
+    ),
+    quoteVaultItems: fetchCollectionOwnedByAddress(
+      pool.quoteToken.id,
+      pool.quoteToken.urlSlug,
+      [],
+      pool.quoteToken.collectionTokenIds,
+      null,
+      null,
+      0
+    ),
+    nftBalance0: fetchUserCollectionBalance(pool.baseToken.urlSlug, address),
+    nftBalance1: fetchUserCollectionBalance(pool.quoteToken.urlSlug, address),
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems, transactions } = useLoaderData<typeof loader>();
+  const { pool, baseVaultItems, quoteVaultItems, transactions } =
+    useLoaderData<typeof loader>();
   const { address } = useAccount();
 
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
-  const { data: rawLpBalance } = useBalance({
+  const { data: rawLpBalance, refetch: refetchLpBalance } = useBalance({
     address,
     token: pool.id as AddressString,
     enabled: !!address,
@@ -182,89 +204,91 @@ export default function PoolDetailsPage() {
               </div>
             </div>
             <div className="h-[1px] bg-night-900" />
-            {address && lpBalance > BigInt(0) ? (
-              <ClientOnly
-                fallback={
-                  <div className="flex h-52 items-center justify-center">
-                    <LoaderIcon className="h-10 w-10" />
-                  </div>
-                }
-              >
-                {() => (
-                  <div className="space-y-4 rounded-md bg-night-1100 p-4">
-                    <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                      <h3 className="font-medium">Your Positions</h3>
-                      <span className="text-night-200">
-                        <abbr
-                          title="Total Value Locked"
-                          className="text-night-600 no-underline"
-                        >
-                          TVL
-                        </abbr>
-                        : {formatUSD(lpShare * pool.reserveUSD)}
-                      </span>
-                    </div>
-                    <div className="flex flex-col space-y-2 px-2 py-4">
-                      <div className="flex items-center -space-x-1">
-                        <PoolImage pool={pool} className="h-10 w-10" />
-                        <p className="text-3xl text-night-100">
-                          {formatTokenAmount(lpBalance)}
+            <ClientOnly
+              fallback={
+                <div className="flex h-52 items-center justify-center">
+                  <LoaderIcon className="h-10 w-10" />
+                </div>
+              }
+            >
+              {() => (
+                <>
+                  {address && lpBalance > BigInt(0) ? (
+                    <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                      <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
+                        <h3 className="font-medium">Your Positions</h3>
+                        <span className="text-night-200">
+                          <abbr
+                            title="Total Value Locked"
+                            className="text-night-600 no-underline"
+                          >
+                            TVL
+                          </abbr>
+                          : {formatUSD(lpShare * pool.reserveUSD)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col space-y-2 px-2 py-4">
+                        <div className="flex items-center -space-x-1">
+                          <PoolImage pool={pool} className="h-10 w-10" />
+                          <p className="text-3xl text-night-100">
+                            {formatTokenAmount(lpBalance)}
+                          </p>
+                        </div>
+                        <p className="text-sm text-night-400">
+                          Current LP Token Balance
                         </p>
                       </div>
-                      <p className="text-sm text-night-400">
-                        Current LP Token Balance
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {[pool.baseToken, pool.quoteToken].map((token) => (
-                        <div key={token.id} className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <p className="font-medium text-night-100">
-                              {token.name}
-                            </p>
-                            {token.name.toUpperCase() !==
-                            token.symbol.toUpperCase() ? (
-                              <>
-                                <div className="h-3 w-[1px] bg-night-400" />
-                                <p className="font-regular uppercase text-night-300">
-                                  {token.symbol}
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {[pool.baseToken, pool.quoteToken].map((token) => (
+                          <div key={token.id} className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <p className="font-medium text-night-100">
+                                {token.name}
+                              </p>
+                              {token.name.toUpperCase() !==
+                              token.symbol.toUpperCase() ? (
+                                <>
+                                  <div className="h-3 w-[1px] bg-night-400" />
+                                  <p className="font-regular uppercase text-night-300">
+                                    {token.symbol}
+                                  </p>
+                                </>
+                              ) : null}
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <PoolTokenImage
+                                  className="h-6 w-6"
+                                  token={token}
+                                />
+                                <p className="text-night-100">
+                                  {formatAmount(lpShare * token.reserve)}
                                 </p>
-                              </>
-                            ) : null}
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-1.5">
-                              <PoolTokenImage
-                                className="h-6 w-6"
-                                token={token}
-                              />
-                              <p className="text-night-100">
-                                {formatUSD(lpShare * token.reserve)}
+                              </div>
+                              <p className="text-xs text-night-500">
+                                {formatUSD(
+                                  lpShare * token.reserve * token.priceUSD
+                                )}
                               </p>
                             </div>
-                            <p className="text-xs text-night-500">
-                              {formatUSD(
-                                lpShare * token.reserve * token.priceUSD
-                              )}
-                            </p>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      <Table
+                        items={[
+                          // { label: "Initial LP Tokens", value: 0.0 },
+                          // { label: "Rewards Earned", value: 0.0 },
+                          {
+                            label: "Current Share of Pool",
+                            value: formatPercent(lpShare),
+                          },
+                        ]}
+                      />
                     </div>
-                    <Table
-                      items={[
-                        // { label: "Initial LP Tokens", value: 0.0 },
-                        // { label: "Rewards Earned", value: 0.0 },
-                        {
-                          label: "Current Share of Pool",
-                          value: formatPercent(lpShare),
-                        },
-                      ]}
-                    />
-                  </div>
-                )}
-              </ClientOnly>
-            ) : null}
+                  ) : null}
+                </>
+              )}
+            </ClientOnly>
             <div className="rounded-md bg-night-1100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>
@@ -347,6 +371,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
+            onSuccess={() => refetchLpBalance()}
           />
           <Sheet>
             <SheetTrigger asChild>
@@ -373,42 +398,30 @@ export default function PoolDetailsPage() {
               <ArrowLeftRightIcon className="h-4 w-4" />
               Pool Inventory
             </h3>
-            {pool.baseToken.isNFT && (
+            {pool.baseToken.isNFT && baseVaultItems ? (
               <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.baseToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
+                <Await resolve={baseVaultItems}>
+                  {(baseVaultItems) => (
+                    <PoolTokenCollectionInventory
+                      token={pool.baseToken}
+                      items={baseVaultItems.tokens}
+                    />
+                  )}
                 </Await>
               </Suspense>
-            )}
-            {pool.quoteToken.isNFT && (
+            ) : null}
+            {pool.quoteToken.isNFT && quoteVaultItems ? (
               <Suspense>
-                <Await resolve={vaultItems}>
-                  {(vaultItems) => {
-                    const targetVault = vaultItems?.quoteToken;
-
-                    if (!targetVault) return null;
-
-                    return (
-                      <PoolTokenCollectionInventory
-                        token={pool.baseToken}
-                        vaultItems={targetVault}
-                      />
-                    );
-                  }}
+                <Await resolve={quoteVaultItems}>
+                  {(quoteVaultItems) => (
+                    <PoolTokenCollectionInventory
+                      token={pool.quoteToken}
+                      items={quoteVaultItems.tokens}
+                    />
+                  )}
                 </Await>
               </Suspense>
-            )}
+            ) : null}
           </div>
         ) : null}
         <div className="mt-6 flex w-full items-center justify-between">
@@ -469,16 +482,18 @@ export default function PoolDetailsPage() {
 const PoolManagementView = ({
   pool,
   lpBalance,
+  onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
+  onSuccess: () => void;
   className?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<string>("deposit");
-  const { inventory } = useRouteLoaderData(
-    "routes/pools_.$id"
-  ) as SerializeFrom<typeof loader>;
+  const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
+    typeof loader
+  >;
 
   return (
     <div className={className}>
@@ -504,11 +519,15 @@ const PoolManagementView = ({
         <PoolWithdrawTab
           pool={pool}
           balance={lpBalance}
-          inventory={inventory}
+          onSuccess={onSuccess}
         />
       )}
       {activeTab === "deposit" && (
-        <PoolDepositTab pool={pool} inventory={inventory} />
+        <PoolDepositTab
+          pool={pool}
+          nftBalances={nftBalances}
+          onSuccess={onSuccess}
+        />
       )}
     </div>
   );
@@ -547,137 +566,134 @@ const PoolActivityTable = ({
     );
 
   return (
-    <Suspense>
-      <Await resolve={transactions}>
-        {(transactions) => (
-          <div>
-            <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
-              <thead className="border-b border-b-night-900">
-                <tr className="text-sm text-night-200">
-                  <th className="px-4 py-2.5 text-left font-normal sm:px-5">
-                    Tokens
-                  </th>
-                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
-                    Action
-                  </th>
-                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
-                    Value
-                  </th>
-                  <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
-                    User
-                  </th>
-                  <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
-                    Date
-                  </th>
-                  <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
-                </tr>
-              </thead>
-              <AnimatePresence>
-                <tbody className="transition-all">
-                  <>
-                    {transactions
-                      .filter(({ type }) => !filter || type === filter)
-                      .map((tx) => {
-                        let tokenA: PoolToken;
-                        let amountA: string;
-                        let itemsA: PoolTransactionItem[];
-                        let tokenB: PoolToken;
-                        let amountB: string;
-                        let itemsB: PoolTransactionItem[];
-                        const isSwap = tx.type === "Swap";
-                        if (isSwap) {
-                          if (tx.isAmount1Out) {
-                            tokenA = pool.token0;
-                            amountA = tx.amount0;
-                            itemsA = tx.items0 ?? [];
-                            tokenB = pool.token1;
-                            amountB = tx.amount1;
-                            itemsB = tx.items1;
-                          } else {
-                            tokenA = pool.token1;
-                            amountA = tx.amount1;
-                            itemsA = tx.items1;
-                            tokenB = pool.token0;
-                            amountB = tx.amount0;
-                            itemsB = tx.items0;
-                          }
-                        } else {
-                          tokenA = pool.baseToken;
-                          tokenB = pool.quoteToken;
-                          if (tokenA.id === pool.token0.id) {
-                            amountA = tx.amount0;
-                            itemsA = tx.items0;
-                            amountB = tx.amount1;
-                            itemsB = tx.items1;
-                          } else {
-                            amountA = tx.amount1;
-                            itemsA = tx.items1;
-                            amountB = tx.amount0;
-                            itemsB = tx.items0;
-                          }
-                        }
+    <div>
+      <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
+        <thead className="border-b border-b-night-900">
+          <tr className="text-sm text-night-200">
+            <th className="px-4 py-2.5 text-left font-normal sm:px-5">
+              Tokens
+            </th>
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
+              Action
+            </th>
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+              Value
+            </th>
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+              User
+            </th>
+            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
+              Date
+            </th>
+            <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
+          </tr>
+        </thead>
+        <AnimatePresence>
+          <tbody className="transition-all">
+            <>
+              {transactions
+                .filter(({ type }) => !filter || type === filter)
+                .map((tx) => {
+                  let tokenA: PoolToken;
+                  let amountA: string;
+                  let itemsA: PoolTransactionItem[];
+                  let tokenB: PoolToken;
+                  let amountB: string;
+                  let itemsB: PoolTransactionItem[];
+                  const isSwap = tx.type === "Swap";
+                  if (isSwap) {
+                    if (tx.isAmount1Out) {
+                      tokenA = pool.token0;
+                      amountA = tx.amount0;
+                      itemsA = tx.items0 ?? [];
+                      tokenB = pool.token1;
+                      amountB = tx.amount1;
+                      itemsB = tx.items1;
+                    } else {
+                      tokenA = pool.token1;
+                      amountA = tx.amount1;
+                      itemsA = tx.items1;
+                      tokenB = pool.token0;
+                      amountB = tx.amount0;
+                      itemsB = tx.items0;
+                    }
+                  } else {
+                    tokenA = pool.baseToken;
+                    tokenB = pool.quoteToken;
+                    if (tokenA.id === pool.token0.id) {
+                      amountA = tx.amount0;
+                      itemsA = tx.items0;
+                      amountB = tx.amount1;
+                      itemsB = tx.items1;
+                    } else {
+                      amountA = tx.amount1;
+                      itemsA = tx.items1;
+                      amountB = tx.amount0;
+                      itemsB = tx.items0;
+                    }
+                  }
 
-                        return (
-                          <Fragment key={tx.id}>
-                            <tr className="border-b border-b-night-900 transition-colors">
-                              <td className="px-4 py-4 text-left uppercase sm:px-5">
-                                <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
-                                  <div className="flex items-center gap-2.5">
-                                    <PoolTransactionImage
-                                      token={tokenA}
-                                      items={itemsA}
-                                    />
-                                    <span>
-                                      <span className="text-honey-25">
-                                        {formatAmount(amountA)}
-                                      </span>{" "}
-                                      {tokenA.symbol}
-                                    </span>
-                                  </div>
-                                  {isSwap ? (
-                                    <ArrowRightIcon className="h-6 w-6" />
-                                  ) : (
-                                    <PlusIcon className="h-6 w-6" />
-                                  )}
-                                  <div className="flex items-center gap-2.5">
-                                    <PoolTransactionImage
-                                      token={tokenB}
-                                      items={itemsB}
-                                    />
-                                    <span>
-                                      <span className="text-honey-25">
-                                        {formatAmount(amountB)}
-                                      </span>{" "}
-                                      {tokenB.symbol}
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                                {tx.type}
-                              </td>
-                              <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                                {formatUSD(tx.amountUSD)}
-                              </td>
-                              <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
-                                {truncateEthAddress(tx.user.id)}
-                              </td>
-                              <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
-                                {new Date(
-                                  Number(tx.timestamp) * 1000
-                                ).toLocaleString()}
-                              </td>
-                              <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
-                                <a
-                                  className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
-                                  href={`${blockExplorer.url}/tx/${tx.hash}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title={`View on ${blockExplorer.name}`}
-                                >
-                                  <ExternalLinkIcon className="h-4 w-4" />
-                                </a>
-                                {/* <button
+                  return (
+                    <Fragment key={tx.id}>
+                      <tr className="border-b border-b-night-900 transition-colors">
+                        <td className="px-4 py-4 text-left uppercase sm:px-5">
+                          <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
+                            <div className="flex items-center gap-2.5">
+                              <PoolTransactionImage
+                                token={tokenA}
+                                items={itemsA}
+                              />
+                              <span>
+                                <span className="text-honey-25">
+                                  {formatAmount(amountA)}
+                                </span>{" "}
+                                {tokenA.symbol}
+                              </span>
+                            </div>
+                            {isSwap ? (
+                              <ArrowRightIcon className="h-6 w-6" />
+                            ) : (
+                              <PlusIcon className="h-6 w-6" />
+                            )}
+                            <div className="flex items-center gap-2.5">
+                              <PoolTransactionImage
+                                token={tokenB}
+                                items={itemsB}
+                              />
+                              <span>
+                                <span className="text-honey-25">
+                                  {formatAmount(amountB)}
+                                </span>{" "}
+                                {tokenB.symbol}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                          {tx.type}
+                        </td>
+                        <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                          {formatUSD(tx.amountUSD)}
+                        </td>
+                        <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
+                          {truncateEthAddress(tx.user.id)}
+                        </td>
+                        <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
+                          {new Date(
+                            Number(tx.timestamp) * 1000
+                          ).toLocaleString()}
+                        </td>
+                        <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                          <a
+                            className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                            href={`${blockExplorer.url}/tx/${tx.hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`View on ${blockExplorer.name}`}
+                          >
+                            <ExternalLinkIcon className="h-4 w-4" />
+                          </a>
+                          {/* <button
                           className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
                           onClick={() =>
                             setExpandedRow(expandedRow === 0 ? null : 0)
@@ -690,9 +706,9 @@ const PoolActivityTable = ({
                             )}
                           />
                         </button> */}
-                              </td>
-                            </tr>
-                            {/* {expandedRow === 0 && (
+                        </td>
+                      </tr>
+                      {/* {expandedRow === 0 && (
                       <motion.div
                         initial={{ height: "0px", opacity: 0 }}
                         animate={{ height: "max", opacity: 1 }}
@@ -715,104 +731,93 @@ const PoolActivityTable = ({
                           )}
                       </motion.div>
                     )} */}
-                          </Fragment>
-                        );
-                      })}
-                  </>
-                </tbody>
-              </AnimatePresence>
-            </table>
-            <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
-              <button
-                className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-                onClick={() => handlePagination("prev")}
-              >
-                <ChevronLeftIcon className="w-6" />
-                <p className="text-sm">Previous</p>
-              </button>
-              <p className="text-night-500">
-                Showing{" "}
-                <span className="text-night-200">
-                  {activePage * showPerPage + 1}
-                </span>{" "}
-                to{" "}
-                <span className="text-night-200">
-                  {formatNumber(transactions.length)}
-                </span>{" "}
-                of{" "}
-                <span className="text-night-200">
-                  {formatNumber(pool.txCount)}
-                </span>
-              </p>
-              <button
-                className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
-                onClick={() => handlePagination("next")}
-              >
-                <p className="text-sm">Next</p>
-                <ChevronRightIcon className="w-6" />
-              </button>
-            </nav>
-          </div>
-        )}
-      </Await>
-    </Suspense>
+                    </Fragment>
+                  );
+                })}
+            </>
+          </tbody>
+        </AnimatePresence>
+      </table>
+      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
+        <Button
+          variant="ghost"
+          className="pl-2 pr-3.5"
+          onClick={() => handlePagination("prev")}
+        >
+          <ChevronLeftIcon className="w-4" />
+          <p className="text-sm">Previous</p>
+        </Button>
+        <p className="text-night-500">
+          Showing{" "}
+          <span className="text-night-200">{activePage * showPerPage + 1}</span>{" "}
+          to{" "}
+          <span className="text-night-200">
+            {formatNumber(transactions.length)}
+          </span>{" "}
+          of{" "}
+          <span className="text-night-200">{formatNumber(pool.txCount)}</span>
+        </p>
+        <Button
+          variant="ghost"
+          className="pl-3.5 pr-2"
+          onClick={() => handlePagination("next")}
+        >
+          <p className="text-sm">Next</p>
+          <ChevronRightIcon className="w-4" />
+        </Button>
+      </nav>
+    </div>
   );
 };
 
 const PoolTokenCollectionInventory = ({
   token,
-  vaultItems,
+  items,
 }: {
   token: PoolToken;
-  vaultItems: TroveTokenItem[];
+  items: TroveToken[];
 }) => {
   return (
-    <>
-      {token.collections.map(({ id, name, symbol }) => {
-        const reserveItems = vaultItems.filter(
-          ({ collectionId }) => collectionId === id
-        );
-
-        return (
-          <div key={id} className="rounded-lg bg-night-1100">
-            <Dialog>
-              <div className="space-y-5 p-6">
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{name}</span>
-                  <span className="h-3 w-[1px] bg-night-400" />
-                  <span className="uppercase text-night-400">{symbol}</span>
-                </div>
-                <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
-                  {reserveItems.map(({ tokenId, name, image, amount }) => (
-                    <div
-                      key={tokenId}
-                      className="relative overflow-hidden rounded"
-                    >
-                      <img src={image} alt={name} title={name} />
-                      {token.type === "ERC1155" && (
-                        <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-medium text-night-900">
-                          {amount}x
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="h-[1px] bg-night-800" />
-              <div className="flex items-center justify-between px-6 py-3">
-                <span className="text-sm text-night-400">
-                  Showing {token.reserveItems.length} of{" "}
-                  {formatNumber(token.reserve)}
-                </span>
-                <DialogTrigger asChild>
-                  <Button variant="ghost">View All</Button>
-                </DialogTrigger>
-              </div>
-              <SelectionPopup type="vault" viewOnly token={token} />
-            </Dialog>
+    <div key={token.id} className="rounded-lg bg-night-1100">
+      <Dialog>
+        <div className="space-y-5 p-6">
+          <div className="flex items-center gap-3">
+            <span className="font-medium">{token.name}</span>
+            <span className="h-3 w-[1px] bg-night-400" />
+            <span className="uppercase text-night-400">{token.symbol}</span>
           </div>
-        );
-      })}
-    </>
+          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
+            {items.map((item) => (
+              <div
+                key={item.tokenId}
+                className="relative overflow-hidden rounded"
+              >
+                <img
+                  src={item.image.uri}
+                  alt={item.metadata.name}
+                  title={item.metadata.name}
+                />
+                {getTroveTokenQuantity(item) > 1 ? (
+                  <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                    {getTroveTokenQuantity(item)}x
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="h-[1px] bg-night-800" />
+        <div className="flex items-center justify-between px-6 py-3">
+          <span className="text-sm text-night-400">
+            Showing {sumArray(items.map(getTroveTokenQuantity))} of{" "}
+            {formatNumber(token.reserve)}
+          </span>
+          <DialogTrigger asChild>
+            <Button variant="ghost">View All</Button>
+          </DialogTrigger>
+        </div>
+        <SelectionPopup type="vault" viewOnly token={token} />
+      </Dialog>
+    </div>
   );
 };

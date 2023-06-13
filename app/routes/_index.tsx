@@ -91,32 +91,17 @@ export default function Homepage() {
               delay: 0.4,
             }}
           >
-            <Link to="/swap">
+            <Link to="/swap" prefetch="render">
               <Button className="w-full" size="lg">
                 Start Trading
               </Button>
             </Link>
-            <Link to="/pools">
+            <Link to="/pools" prefetch="render">
               <Button className="w-full" variant="secondary" size="lg">
                 Add Liquidity
               </Button>
             </Link>
           </motion.div>
-          <motion.button
-            className="flex items-center gap-2 py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors hover:text-night-100"
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              delay: 0.4,
-            }}
-          >
-            Watch Tutorial
-            <PlayIcon className="w-4 " />
-          </motion.button>
         </div>
       </div>
       {/* <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
@@ -238,21 +223,21 @@ export default function Homepage() {
         </p>
         <div className="container grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <InfoCard
-            Icon={RoyaltiesIcon}
-            title="Automated Royalties"
-            description="Magicswap pools utilize a three-tiered royalty system that includes fees for LPs, project creators, and the protocol."
+            Icon={SweepIcon}
+            title="Instant Trading"
+            description="Effortlessly buy and sell various types of game items."
             link="/"
           />
           <InfoCard
             Icon={PoolIcon}
-            title="NFT:NFT Pools"
-            description="Magicswap allows projects to create pools that use an ERC-1155 as the base pair, a first for NFT AMMs."
+            title="Provide Liquidity"
+            description="Deposit game items and earn rewards through trading fees."
             link="/"
           />
           <InfoCard
-            Icon={SweepIcon}
-            title="Sweeping"
-            description="Magicswap allows user to sweep any number of NFTs from the pools."
+            Icon={RoyaltiesIcon}
+            title="Automated Royalties"
+            description="Magicswap pools utilize a three-tiered royalty system that includes fees for LPs, project creators, and the protocol."
             link="/"
           />
         </div>

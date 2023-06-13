@@ -1,5 +1,4 @@
 import { createPoolTokenCollection } from "./collections.server";
-import { fetchTotalInventoryForUser } from "~/api/tokens.server";
 import type { Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
 
 type Item = {
@@ -9,27 +8,6 @@ type Item = {
   tokenId: string;
   amount: number;
 };
-
-export const findInventories = async (
-  address: string,
-  token1?: PoolToken,
-  token2?: PoolToken
-) =>
-  Promise.all([
-    token1 && token1.isNFT
-      ? fetchTotalInventoryForUser(token1.urlSlug, address)
-      : null,
-    token2 && token2.isNFT
-      ? fetchTotalInventoryForUser(token2.urlSlug, address)
-      : null,
-  ]).then((res) => {
-    return {
-      ...(token1 && { [token1.id]: res[0] }),
-      ...(token2 && { [token2.id]: res[1] }),
-    };
-  });
-
-export type InventoryList = ReturnType<typeof findInventories>;
 
 export const itemToTroveTokenItem = (
   { collection: { id: collectionId }, tokenId, amount }: Item,
@@ -56,11 +34,6 @@ export type TroveTokenItem = ReturnType<typeof itemToTroveTokenItem>;
 
 export const getTokenCollectionAddresses = (token: Token) =>
   token.vaultCollections.map(({ collection }) => collection.id) ?? [];
-
-export const getTokenReserveItemIds = (token: PoolToken) =>
-  token.vaultReserveItems.map(
-    ({ collection, tokenId }) => `${collection.id}/${tokenId}`
-  );
 
 export const createTokenName = (
   token: Token,
@@ -101,8 +74,8 @@ export const createPoolToken = (
   magicUSD: number
 ) => {
   const tokenCollections =
-    token.vaultCollections.map(({ collection }) =>
-      createPoolTokenCollection(collection, collections)
+    token.vaultCollections.map(({ collection, tokenIds }) =>
+      createPoolTokenCollection(collection, tokenIds ?? [], collections)
     ) ?? [];
   const symbol = createTokenSymbol(token, collections);
   return {
@@ -122,14 +95,12 @@ export const createPoolToken = (
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
     collectionId: tokenCollections[0]?.id ?? "",
+    collectionTokenIds: tokenCollections[0]?.tokenIds ?? [],
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
     reserve: 0,
-    reserveItems: token.vaultReserveItems,
   };
 };
 
 export type PoolToken = ReturnType<typeof createPoolToken>;
 
 export type PoolTokenCollection = PoolToken["collections"];
-
-export type TokenReserveItem = PoolToken["reserveItems"];
