@@ -267,6 +267,7 @@ export default function SwapPage() {
       </div>
       <div className="mt-3">
         <SwapTokenInput
+          isSwapSuccess={isSwapSuccess}
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
@@ -305,6 +306,7 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
+          isSwapSuccess={isSwapSuccess}
           token={tokenOut}
           otherToken={tokenIn}
           isOut
@@ -596,6 +598,7 @@ const SwapTokenInput = ({
   onUpdateAmount,
   onSelectNfts,
   className,
+  isSwapSuccess,
 }: {
   token: Optional<PoolToken>;
   otherToken: Optional<PoolToken>;
@@ -607,6 +610,7 @@ const SwapTokenInput = ({
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
+  isSwapSuccess: boolean;
 }) => {
   const { isConnected } = useAccount();
   const location = useLocation();
@@ -686,7 +690,10 @@ const SwapTokenInput = ({
                 {() => (
                   <Dialog
                     defaultOpen={
-                      token.isNFT && !otherToken?.isNFT && !!routeState
+                      token.isNFT &&
+                      !otherToken?.isNFT &&
+                      !!routeState &&
+                      !isSwapSuccess
                     }
                     key={location.search}
                   >
