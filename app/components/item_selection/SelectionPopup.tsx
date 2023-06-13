@@ -3,6 +3,7 @@ import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDownIcon,
+  ChevronRightIcon,
   TableIcon as ColumnIcon,
   LayoutGridIcon as GridIcon,
   InfoIcon,
@@ -520,9 +521,11 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             )}
 
             <Button
-              variant="secondary"
+              variant="ghost"
+              className="pl-2 pr-3.5"
               disabled={offsetRef.current === 0 || loading}
             >
+              <ChevronRightIcon className="w-4 rotate-180" />
               Previous
             </Button>
           </Form>
@@ -559,8 +562,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <input type="hidden" name="query" value={data.query} />
             )}
             <Button
-              variant="secondary"
+              variant="ghost"
               type="submit"
+              className="pl-3.5 pr-2"
               disabled={
                 loading ||
                 !data?.tokens.nextPageKey ||
@@ -569,6 +573,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               }
             >
               Next
+              <ChevronRightIcon className="w-4" />
             </Button>
           </Form>
         </div>

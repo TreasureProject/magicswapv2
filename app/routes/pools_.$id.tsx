@@ -739,13 +739,14 @@ const PoolActivityTable = ({
         </AnimatePresence>
       </table>
       <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
+        <Button
+          variant="ghost"
+          className="pl-2 pr-3.5"
           onClick={() => handlePagination("prev")}
         >
-          <ChevronLeftIcon className="w-6" />
+          <ChevronLeftIcon className="w-4" />
           <p className="text-sm">Previous</p>
-        </button>
+        </Button>
         <p className="text-night-500">
           Showing{" "}
           <span className="text-night-200">{activePage * showPerPage + 1}</span>{" "}
@@ -756,13 +757,14 @@ const PoolActivityTable = ({
           of{" "}
           <span className="text-night-200">{formatNumber(pool.txCount)}</span>
         </p>
-        <button
-          className="flex items-center rounded-md bg-transparent p-2 text-night-500 transition-colors hover:bg-night-900 hover:text-night-200"
+        <Button
+          variant="ghost"
+          className="pl-3.5 pr-2"
           onClick={() => handlePagination("next")}
         >
           <p className="text-sm">Next</p>
-          <ChevronRightIcon className="w-6" />
-        </button>
+          <ChevronRightIcon className="w-4" />
+        </Button>
       </nav>
     </div>
   );
