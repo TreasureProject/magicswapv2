@@ -17,7 +17,7 @@ import { ClientOnly } from "remix-utils";
 import { formatUnits } from "viem";
 import { useBalance } from "wagmi";
 
-import type { FetchInventoryLoader } from "./resources.collections.$slug.balance";
+import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
 import {
   fetchToken,
@@ -904,7 +904,7 @@ const Token = ({
     load: loadNFTBalance,
     state: nftBalanceStatus,
     data: { balance: nftBalance = 0 } = {},
-  } = useFetcher<FetchInventoryLoader>();
+  } = useFetcher<FetchNFTBalanceLoader>();
 
   const { data: balance, status } = useBalance({
     address,
@@ -922,7 +922,7 @@ const Token = ({
     });
 
     loadNFTBalance(
-      `/resources/collections/${token.urlSlug}/inventory?${params.toString()}`
+      `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
     );
   }, [address, loadNFTBalance, token.urlSlug]);
 

@@ -23,4 +23,4 @@ export const loader = async ({ request, params }: LoaderArgs) => {
   }
 };
 
-export type FetchInventoryLoader = typeof loader;
+export type FetchNFTBalanceLoader = typeof loader;
