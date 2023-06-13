@@ -20,11 +20,11 @@ export const PoolInput = ({
   const parsedAmount = Number(amount);
   return (
     <div className="relative rounded-lg border border-night-900">
-      <p className="absolute -top-3.5 left-1.5 flex items-center bg-background px-2.5 py-1 text-sm sm:-top-5 sm:text-lg">
-        {pool.name}
-      </p>
       <div className="flex items-center justify-between gap-3 p-4">
-        <PoolImage pool={pool} />
+        <div className="flex items-center">
+          <PoolImage pool={pool} />
+          <p className="text-sm font-medium sm:text-xl">{pool.name}</p>
+        </div>
         <div className="space-y-1 text-right">
           <CurrencyInput value={amount} onChange={onUpdateAmount} />
           <span className="block text-sm text-night-400">

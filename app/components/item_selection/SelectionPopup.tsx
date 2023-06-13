@@ -5,8 +5,8 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   TableIcon as ColumnIcon,
+  ExternalLink,
   LayoutGridIcon as GridIcon,
-  InfoIcon,
   RotateCwIcon as RefreshIcon,
   SearchIcon,
   XIcon,
@@ -74,7 +74,7 @@ const ItemCard = ({
       </div>
       <div className="flex items-start justify-between gap-2 p-2.5">
         <div className="text-left">
-          <p className="text-sm font-medium text-honey-25">
+          <p className="text-xs font-medium text-honey-25 sm:text-sm">
             {item.metadata.name}
           </p>
           <p className="text-sm text-night-400">#{item.tokenId}</p>
@@ -87,7 +87,7 @@ const ItemCard = ({
           href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
           onClick={(e) => e.stopPropagation()}
         >
-          <InfoIcon className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
           <span className="sr-only">View {item.metadata.name} on Trove</span>
         </a>
       </div>
@@ -273,10 +273,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           : "grid-areas-nft-modal-viewonly"
       )}
     >
-      <div className="flex items-center gap-2 grid-in-header">
-        <p className="text-md text-night-400">
-          {props.viewOnly ? "View" : "Select"}
-        </p>
+      <div className="flex items-center gap-2 text-xs grid-in-header sm:text-base">
+        <p className="text-night-400">{props.viewOnly ? "View" : "Select"}</p>
         <PoolTokenImage className="h-6 w-6" token={token} />
         <p className="text-md font-medium capitalize text-night-100">
           {token.name}{" "}

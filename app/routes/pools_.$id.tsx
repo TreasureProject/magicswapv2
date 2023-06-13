@@ -467,7 +467,7 @@ export default function PoolDetailsPage() {
             </Button>
           </div>
         </SheetTrigger>
-        <SheetContent position="right" size="xl">
+        <SheetContent position="bottom" size="xl">
           <PoolManagementView
             className="mt-4 space-y-6"
             pool={pool}

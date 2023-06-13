@@ -11,8 +11,16 @@ import {
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/server-runtime";
 import { defer } from "@remix-run/server-runtime";
-import { ArrowDownIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowDownIcon,
+  ChevronDownIcon,
+  ExternalLink,
+  InfoIcon,
+  LayersIcon,
+} from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils";
 import { formatUnits } from "viem";
 import { useBalance } from "wagmi";
@@ -47,6 +55,7 @@ import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
+import { useTrove } from "~/hooks/useTrove";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
@@ -567,6 +576,9 @@ const SwapTokenInput = ({
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
   const { tokenInNFTBalance } = useLoaderData<typeof loader>();
   const { state: routeState } = useLocation();
+  const [collapsed, setCollapsed] = useState(true);
+  const [ref, bounds] = useMeasure();
+  const { createTokenUrl } = useTrove();
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -631,6 +643,20 @@ const SwapTokenInput = ({
                       );
                     })}
                 </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCollapsed((col) => !col)}
+                >
+                  <ChevronDownIcon
+                    className={cn(
+                      "h-4 w-auto transition-transform will-change-transform",
+                      !collapsed && "-rotate-180"
+                    )}
+                  />
+                  <span className="sr-only">
+                    {collapsed ? "See selected NFTs" : "Close"}
+                  </span>
+                </Button>
               </div>
             ) : (
               <ClientOnly>
@@ -677,6 +703,87 @@ const SwapTokenInput = ({
           )}
         </div>
       </div>
+      <motion.div animate={{ height: bounds.height }}>
+        <div ref={ref}>
+          <AnimatePresence initial={false} mode="popLayout">
+            {!collapsed ? (
+              <motion.div
+                key="collapsed"
+                exit={{
+                  opacity: 0,
+                }}
+              >
+                <motion.div
+                  className="grid max-h-64 grid-cols-4 gap-3 overflow-auto p-4"
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: 1,
+                    transition: {
+                      delay: 0.2,
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                  }}
+                  transition={{
+                    duration: 0.15,
+                  }}
+                >
+                  {selectedNfts.map((nft) => {
+                    return (
+                      <div
+                        key={nft.tokenId}
+                        className="flex flex-col overflow-hidden rounded-lg bg-night-900"
+                      >
+                        <div className="relative">
+                          <img
+                            src={nft.image.uri}
+                            alt={nft.tokenId}
+                            className="w-full"
+                          />
+                          {token.type === "ERC1155" ? (
+                            <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                              {nft.quantity}x
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex items-start justify-between gap-2 p-2.5">
+                          <div className="min-w-0 text-left">
+                            <p className="truncate text-xs font-medium text-honey-25">
+                              {nft.metadata.name}
+                            </p>
+                            <p className="truncate text-[0.6rem] text-night-400">
+                              #{nft.tokenId}
+                            </p>
+                          </div>
+                          <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`View ${nft.metadata.name} on Trove`}
+                            className="text-night-400 transition-colors hover:text-night-100"
+                            href={createTokenUrl(
+                              nft.collectionUrlSlug,
+                              nft.tokenId
+                            )}
+                          >
+                            <ExternalLink
+                              className="h-3.5 w-auto"
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">
+                              View {nft.metadata.name} on Trove
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </motion.div>
       <div className="bg-night-1000 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
