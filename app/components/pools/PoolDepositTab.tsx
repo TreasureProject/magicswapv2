@@ -22,7 +22,7 @@ import { formatTokenAmount } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { InventoryList, PoolToken } from "~/lib/tokens.server";
+import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
@@ -33,11 +33,18 @@ import type {
 
 type Props = {
   pool: Pool;
+  nftBalances: {
+    nftBalance0: Promise<number> | null;
+    nftBalance1: Promise<number> | null;
+  };
   onSuccess?: () => void;
-  inventory: InventoryList | null;
 };
 
-export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
+export const PoolDepositTab = ({
+  pool,
+  nftBalances: { nftBalance0, nftBalance1 },
+  onSuccess,
+}: Props) => {
   const { address } = useAccount();
   const slippage = useStore(useSettingsStore, (state) => state.slippage);
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
@@ -204,9 +211,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
+            balance={nftBalance0}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
-            inventory={inventory}
           />
         ) : (
           <PoolTokenInput
@@ -231,9 +238,9 @@ export const PoolDepositTab = ({ pool, onSuccess, inventory }: Props) => {
         {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
+            balance={nftBalance1}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
-            inventory={inventory}
           />
         ) : (
           <PoolTokenInput

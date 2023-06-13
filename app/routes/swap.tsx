@@ -17,12 +17,12 @@ import { ClientOnly } from "remix-utils";
 import { formatUnits } from "viem";
 import { useBalance } from "wagmi";
 
-import type { FetchInventoryLoader } from "./resources.fetch-inventory";
+import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
 import {
   fetchToken,
   fetchTokens,
-  fetchTotalInventoryForUser,
+  fetchUserCollectionBalance,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
@@ -109,7 +109,7 @@ export async function loader({ request }: LoaderArgs) {
       tokens: fetchTokens(),
       tokenIn,
       tokenOut,
-      inventory: null,
+      tokenInNFTBalance: null,
     });
   }
 
@@ -118,7 +118,7 @@ export async function loader({ request }: LoaderArgs) {
     tokens: fetchTokens(),
     tokenIn,
     tokenOut,
-    inventory: fetchTotalInventoryForUser(tokenIn.urlSlug, address),
+    tokenInNFTBalance: fetchUserCollectionBalance(tokenIn.urlSlug, address),
   });
 }
 
@@ -618,7 +618,7 @@ const SwapTokenInput = ({
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
-  const { inventory } = useLoaderData<typeof loader>();
+  const { tokenInNFTBalance } = useLoaderData<typeof loader>();
   const { state: routeState } = useLocation();
 
   return token ? (
@@ -751,8 +751,8 @@ const SwapTokenInput = ({
                       <LoaderIcon className="inline-block h-3.5 w-3.5" />
                     }
                   >
-                    <Await resolve={inventory}>
-                      {(inventory) => inventory ?? 0}
+                    <Await resolve={tokenInNFTBalance}>
+                      {(balance) => balance ?? 0}
                     </Await>
                   </Suspense>
                 )}
@@ -900,6 +900,11 @@ const Token = ({
   onSelect: (token: PoolToken) => void;
 }) => {
   const { address } = useAccount();
+  const {
+    load: loadNFTBalance,
+    state: nftBalanceStatus,
+    data: { balance: nftBalance = 0 } = {},
+  } = useFetcher<FetchNFTBalanceLoader>();
 
   const { data: balance, status } = useBalance({
     address,
@@ -907,20 +912,21 @@ const Token = ({
     enabled: !!address && !token.isNFT,
   });
 
-  const { load, state, data } = useFetcher<FetchInventoryLoader>();
-
   useEffect(() => {
-    if (!token.isNFT || !address) return;
+    if (!token.urlSlug || !address) {
+      return;
+    }
 
     const params = new URLSearchParams({
       address,
-      slug: token.urlSlug,
     });
 
-    load(`/resources/fetch-inventory?${params.toString()}`);
-  }, [address, load, token.isNFT, token.urlSlug]);
+    loadNFTBalance(
+      `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
+    );
+  }, [address, loadNFTBalance, token.urlSlug]);
 
-  const isLoading = status === "loading" || state === "loading";
+  const isLoading = status === "loading" || nftBalanceStatus === "loading";
 
   return (
     <li
@@ -944,7 +950,7 @@ const Token = ({
         ) : address ? (
           <p className="text-base-400 text-sm">
             {token.isNFT
-              ? data?.inventory
+              ? nftBalance
               : formatTokenAmount(balance?.value ?? BigInt(0), token.decimals)}
           </p>
         ) : null}
