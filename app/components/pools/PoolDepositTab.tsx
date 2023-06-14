@@ -64,16 +64,16 @@ export const PoolDepositTab = ({
   const amountA = isExactB
     ? quote(
         amount,
-        BigInt(pool.quoteToken.reserveBI),
-        BigInt(pool.baseToken.reserveBI)
+        BigInt(pool.quoteToken.reserve),
+        BigInt(pool.baseToken.reserve)
       )
     : amount;
   const amountB = isExactB
     ? amount
     : quote(
         amount,
-        BigInt(pool.baseToken.reserveBI),
-        BigInt(pool.quoteToken.reserveBI)
+        BigInt(pool.baseToken.reserve),
+        BigInt(pool.quoteToken.reserve)
       );
   const hasAmount = amount > 0;
 
@@ -138,7 +138,7 @@ export const PoolDepositTab = ({
 
   const estimatedLp = getLpCountForTokens(
     amount,
-    BigInt(pool.baseToken.reserveBI),
+    BigInt(pool.baseToken.reserve),
     BigInt(pool.totalSupply)
   );
 

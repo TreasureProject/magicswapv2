@@ -178,12 +178,14 @@ export default function PoolDetailsPage() {
 
   const revalidator = useRevalidator();
 
-  useFocusInterval(
-    useCallback(() => {
+  const refresh = useCallback(() => {
+    if (revalidator.state === "idle") {
       revalidator.revalidate();
-    }, [revalidator]),
-    5000
-  );
+    }
+    refetchLpBalance();
+  }, [revalidator, refetchLpBalance]);
+
+  useFocusInterval(refresh, 5000);
 
   return (
     <main className="container">
@@ -265,12 +267,23 @@ export default function PoolDetailsPage() {
                                   token={token}
                                 />
                                 <p className="text-night-100">
-                                  {formatAmount(lpShare * token.reserve)}
+                                  {formatAmount(
+                                    lpShare *
+                                      bigIntToNumber(
+                                        BigInt(token.reserve),
+                                        token.decimals
+                                      )
+                                  )}
                                 </p>
                               </div>
                               <p className="text-xs text-night-500">
                                 {formatUSD(
-                                  lpShare * token.reserve * token.priceUSD
+                                  lpShare *
+                                    bigIntToNumber(
+                                      BigInt(token.reserve),
+                                      token.decimals
+                                    ) *
+                                    token.priceUSD
                                 )}
                               </p>
                             </div>
@@ -314,7 +327,14 @@ export default function PoolDetailsPage() {
                 <p className="text-night-400">
                   <span className="text-night-100">
                     {formatAmount(
-                      pool.quoteToken.reserve / pool.baseToken.reserve
+                      bigIntToNumber(
+                        BigInt(pool.quoteToken.reserve),
+                        pool.quoteToken.decimals
+                      ) /
+                        bigIntToNumber(
+                          BigInt(pool.baseToken.reserve),
+                          pool.baseToken.decimals
+                        )
                     )}
                   </span>{" "}
                   {pool.quoteToken.symbol}
@@ -335,12 +355,17 @@ export default function PoolDetailsPage() {
                       <div className="space-y-0.5 text-right">
                         <p className="text-night-100">
                           {formatTokenAmount(
-                            BigInt(token.reserveBI),
+                            BigInt(token.reserve),
                             token.decimals
                           )}
                         </p>
                         <p className="text-xs text-night-400">
-                          {formatUSD(token.reserve * token.priceUSD)}
+                          {formatUSD(
+                            bigIntToNumber(
+                              BigInt(token.reserve),
+                              token.decimals
+                            ) * token.priceUSD
+                          )}
                         </p>
                       </div>
                     </div>
@@ -374,7 +399,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={() => refetchLpBalance()}
+            onSuccess={() => refresh()}
           />
         </div>
         {/*Here the pool & inventory start */}
@@ -471,7 +496,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={() => refetchLpBalance()}
+            onSuccess={() => refresh()}
           />
         </SheetContent>
       </Sheet>
