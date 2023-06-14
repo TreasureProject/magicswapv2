@@ -46,7 +46,7 @@ export const PoolInput = ({
               onUpdateAmount(
                 percent === 1
                   ? formatEther(balance)
-                  : formatAmount((bigIntToNumber(balance) * percent).toString())
+                  : formatAmount(bigIntToNumber(balance) * percent, false)
               )
             }
           >

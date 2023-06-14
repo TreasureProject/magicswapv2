@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { parseEther } from "viem";
 
 import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { Button, TransactionButton } from "../ui/Button";
+import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { PoolInput } from "./PoolInput";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
