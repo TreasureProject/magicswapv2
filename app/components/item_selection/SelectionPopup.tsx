@@ -23,7 +23,7 @@ import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import type { TroveFilters } from "~/api/tokens.server";
-import { DialogContent, DialogContext } from "~/components/ui/Dialog";
+import { DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
 import { getTroveTokenQuantity } from "~/lib/tokens";
@@ -190,8 +190,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     (acc, curr) => (acc += curr.quantity),
     0
   );
-
-  const { open } = React.useContext(DialogContext);
 
   const selectionDisabled =
     !props.viewOnly && props.limit ? totalQuantity >= props.limit : false;
