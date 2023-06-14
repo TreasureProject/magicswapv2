@@ -300,10 +300,7 @@ export const PoolDepositTab = ({
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
           id="terms"
-          description="I understand there is a chance I am not be able to withdrawal and
-          receive the asset I deposited. If the asset deposited in the pool is
-          no longer available, I am ok receiving another asset from the
-          collection."
+          description="I hereby acknowledge and accept the potential uncertainty regarding the retrievability of the specific asset deposited. Should the original asset become unavailable, I willingly consent to receive an alternative asset from the existing collection."
         >
           Accept terms and conditions
         </LabeledCheckbox>
