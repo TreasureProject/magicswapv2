@@ -54,7 +54,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 bg-night-1100 rounded-t-xl p-4 opacity-100 shadow-lg ",
+  "fixed z-50 scale-100 gap-4 bg-night-1100 rounded-t-xl p-4 opacity-100 shadow-lg",
   {
     variants: {
       position: {
@@ -157,7 +157,7 @@ const SheetContent = React.forwardRef<
       {...props}
     >
       {children}
-      <SheetPrimitive.Close className="absolute -top-12 right-4  flex h-10 w-10 items-center justify-center rounded-full border border-night-700 opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+      <SheetPrimitive.Close className="absolute -top-12 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-night-700 opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
         <X className="h-6 w-6" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
