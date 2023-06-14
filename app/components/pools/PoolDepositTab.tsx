@@ -299,6 +299,7 @@ export const PoolDepositTab = ({
         <LabeledCheckbox
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
+          className="rounded-md border border-night-800 bg-night-1100/50 p-4"
           id="terms"
           description="I hereby acknowledge and accept the potential uncertainty regarding the retrievability of the specific asset deposited. Should the original asset become unavailable, I willingly consent to receive an alternative asset from the existing collection."
         >

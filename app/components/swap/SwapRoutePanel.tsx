@@ -32,11 +32,11 @@ export const SwapRoutePanel = ({
   return (
     <div
       className={cn(
-        "rounded-lg border border-night-800 p-4 text-sm text-night-400",
+        "overflow-hidden rounded-lg border  border-night-800 text-sm text-night-400",
         className
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border border-b border-night-1000 p-4">
         <span>
           <span className="font-medium text-honey-25">1</span>{" "}
           {tokenOut?.symbol} ={" "}
@@ -47,7 +47,7 @@ export const SwapRoutePanel = ({
         </span>
       </div>
       {amountIn > 0 && amountOut > 0 ? (
-        <ul className="mt-2.5 space-y-1">
+        <ul className="mt-2.5 space-y-1 p-4 pt-0">
           <li className="flex items-center justify-between">
             Price impact
             <span className={getPriceImpactClassName(priceImpact)}>
