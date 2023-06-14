@@ -595,10 +595,10 @@ const SwapTokenInput = ({
             <button className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
               <div className="space-y-1">
-                <span className="flex items-center gap-1.5 text-lg font-medium text-honey-25">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
                   {token.name} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                <span className="block text-sm text-night-600">
+                <span className="block text-xs text-night-600 sm:text-sm">
                   {token.symbol}
                 </span>
               </div>
