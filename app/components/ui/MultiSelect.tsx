@@ -13,13 +13,20 @@ export const MultiSelect = ({
   activeTab,
   setActiveTab,
   tabs,
+  className,
 }: {
   activeTab: string;
   setActiveTab: (arg0: string) => void;
+  className?: string;
   tabs: Tab[];
 }) => {
   return (
-    <div className="flex h-max w-full items-center justify-between rounded-full bg-night-1100 p-1">
+    <div
+      className={cn(
+        "flex h-max w-full items-center justify-between rounded-full bg-night-1100 p-1",
+        className
+      )}
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}
