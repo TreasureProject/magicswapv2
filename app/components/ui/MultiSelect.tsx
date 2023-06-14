@@ -1,5 +1,4 @@
 import React from "react";
-import { twMerge } from "tailwind-merge";
 
 import { cn } from "~/lib/utils";
 
@@ -23,7 +22,7 @@ export const MultiSelect = ({
 }) => {
   return (
     <div
-      className={twMerge(
+      className={cn(
         "flex h-max w-full items-center justify-between rounded-full bg-night-1100 p-1",
         className
       )}

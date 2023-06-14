@@ -1,5 +1,6 @@
 import React from "react";
-import { twMerge } from "tailwind-merge";
+
+import { cn } from "~/lib/utils";
 
 interface Props {
   className?: string;
@@ -11,14 +12,14 @@ interface Props {
 
 const Input = ({ icon, placeholder, onChange, className, value }: Props) => {
   return (
-    <div className={twMerge("relative h-10", className)}>
+    <div className={cn("relative h-10", className)}>
       {!!icon && (
         <div className="absolute left-2 top-1/2 -translate-y-1/2 text-night-700">
           {icon}
         </div>
       )}
       <input
-        className={twMerge(
+        className={cn(
           "h-full rounded-md bg-night-900 px-3 text-sm text-night-600 placeholder:text-night-600 focus:border-none focus:outline-none focus:ring-0",
           icon && "pl-8",
           className
