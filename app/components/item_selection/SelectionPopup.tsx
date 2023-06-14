@@ -23,7 +23,7 @@ import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import type { TroveFilters } from "~/api/tokens.server";
-import { DialogContent } from "~/components/ui/Dialog";
+import { DialogContent, DialogContext } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
 import { getTroveTokenQuantity } from "~/lib/tokens";
@@ -180,7 +180,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const offsetRef = React.useRef(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCompactMode, setIsCompactMode] = useState(false);
-
   const collectionTokenIds = token?.collectionTokenIds.join(",");
   const ownerAddress = type === "vault" && token?.id ? token.id : address;
   const resourcePath = token?.isNFT
@@ -192,11 +191,13 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     0
   );
 
+  const { open } = React.useContext(DialogContext);
+
   const selectionDisabled =
     !props.viewOnly && props.limit ? totalQuantity >= props.limit : false;
   const buttonDisabled =
     !props.viewOnly && props.limit
-      ? totalQuantity > props.limit
+      ? totalQuantity < props.limit
       : selectedItems.length === 0
       ? true
       : false;
@@ -677,8 +678,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     onClick={() => props.onSubmit(selectedItems)}
                   >
                     {props.limit && buttonDisabled
-                      ? `Remove ${totalQuantity - props.limit} Item${
-                          totalQuantity - props.limit > 1 ? "s" : ""
+                      ? `Add ${props.limit - totalQuantity} Item${
+                          props.limit - totalQuantity > 1 ? "s" : ""
                         }`
                       : "Save selections"}
                   </Button>

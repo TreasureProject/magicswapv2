@@ -579,6 +579,9 @@ const SwapTokenInput = ({
   const [collapsed, setCollapsed] = useState(true);
   const [ref, bounds] = useMeasure();
   const { createTokenUrl } = useTrove();
+  const [openSelectionModal, setOpenSelectionModal] = useState(
+    token?.isNFT && !otherToken?.isNFT && !!routeState
+  );
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -661,27 +664,30 @@ const SwapTokenInput = ({
             ) : (
               <ClientOnly>
                 {() => (
-                  <Dialog
-                    defaultOpen={
-                      token.isNFT &&
-                      !otherToken?.isNFT &&
-                      !!routeState &&
-                      !isSwapSuccess
-                    }
-                    key={location.search}
-                  >
-                    <SelectionPopup
-                      type={isOut ? "vault" : "inventory"}
-                      token={token}
-                      selectedTokens={selectedNfts}
-                      onSubmit={onSelectNfts}
-                    />
-                    <DialogTrigger asChild>
-                      <Button variant="dark" size="md" disabled={!isConnected}>
-                        Select Items
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
+                  <>
+                    <Dialog
+                      open={openSelectionModal}
+                      onOpenChange={setOpenSelectionModal}
+                      key={location.search}
+                    >
+                      {openSelectionModal ? (
+                        <SelectionPopup
+                          type={isOut ? "vault" : "inventory"}
+                          token={token}
+                          selectedTokens={selectedNfts}
+                          onSubmit={onSelectNfts}
+                        />
+                      ) : null}
+                    </Dialog>
+                    <Button
+                      variant="dark"
+                      size="md"
+                      disabled={!isConnected}
+                      onClick={() => setOpenSelectionModal(true)}
+                    >
+                      Select Items
+                    </Button>
+                  </>
                 )}
               </ClientOnly>
             )
@@ -832,17 +838,27 @@ const SwapTokenInput = ({
             </Button>
           ) : null}
           {selectedNfts.length > 0 ? (
-            <Dialog>
-              <SelectionPopup
-                type={isOut ? "vault" : "inventory"}
-                token={token}
-                selectedTokens={selectedNfts}
-                onSubmit={onSelectNfts}
-              />
-              <DialogTrigger asChild>
-                <Button variant="ghost">Edit Selection</Button>
-              </DialogTrigger>
-            </Dialog>
+            <>
+              <Dialog
+                open={openSelectionModal}
+                onOpenChange={setOpenSelectionModal}
+              >
+                {openSelectionModal ? (
+                  <SelectionPopup
+                    type={isOut ? "vault" : "inventory"}
+                    token={token}
+                    selectedTokens={selectedNfts}
+                    onSubmit={onSelectNfts}
+                  />
+                ) : null}
+              </Dialog>
+              <Button
+                variant="ghost"
+                onClick={() => setOpenSelectionModal(true)}
+              >
+                Edit Selection
+              </Button>
+            </>
           ) : null}
         </div>
       </div>

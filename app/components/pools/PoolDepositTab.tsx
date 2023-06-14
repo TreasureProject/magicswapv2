@@ -190,24 +190,33 @@ export const PoolDepositTab = ({
 
   return (
     <div className="space-y-6">
-      <Dialog>
-        <SelectionPopup
-          type="inventory"
-          token={selectingToken}
-          selectedTokens={
-            selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+      <Dialog
+        open={!!selectingToken}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectingToken(undefined);
           }
-          onSubmit={(tokens) =>
-            setTransaction({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
-              nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
-              nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
-              isExactB: false,
-            })
-          }
-        />
+        }}
+      >
+        {selectingToken ? (
+          <SelectionPopup
+            type="inventory"
+            token={selectingToken}
+            selectedTokens={
+              selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+            }
+            onSubmit={(tokens) =>
+              setTransaction({
+                amount: sumArray(
+                  tokens.map(({ quantity }) => quantity)
+                ).toString(),
+                nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
+                nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
+                isExactB: false,
+              })
+            }
+          />
+        ) : null}
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}

@@ -5,6 +5,10 @@ import * as React from "react";
 import { Button } from "./Button";
 import { cn } from "~/lib/utils";
 
+export const DialogContext = React.createContext<{ open: boolean }>({
+  open: false,
+});
+
 const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
