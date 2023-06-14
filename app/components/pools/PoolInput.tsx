@@ -19,7 +19,7 @@ export const PoolInput = ({
 }) => {
   const parsedAmount = Number(amount);
   return (
-    <div className="relative rounded-lg border border-night-900">
+    <div className="relative overflow-hidden rounded-lg bg-night-1100">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center">
           <PoolImage pool={pool} />
@@ -37,11 +37,11 @@ export const PoolInput = ({
           </span>
         </div>
       </div>
-      <div className="flex h-12 items-center justify-end bg-night-1000 p-2">
+      <div className="flex h-12 items-center justify-end bg-night-900 p-2">
         {[0.25, 0.5, 0.75, 1].map((percent) => (
           <button
             key={percent}
-            className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
+            className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-800 hover:text-night-100"
             onClick={() =>
               onUpdateAmount(
                 percent === 1

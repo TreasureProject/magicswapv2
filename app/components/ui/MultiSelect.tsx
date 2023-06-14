@@ -31,7 +31,7 @@ export const MultiSelect = ({
         <button
           key={tab.id}
           className={cn(
-            "flex w-full items-center justify-center gap-4 rounded-full py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors sm:text-base",
+            "flex w-full items-center justify-center gap-3 rounded-full py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors sm:text-base",
             activeTab === tab.id && "bg-night-800 text-night-100"
           )}
           onClick={() => setActiveTab(tab.id)}

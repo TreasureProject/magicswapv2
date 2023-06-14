@@ -27,7 +27,7 @@ export const PoolNftTokenInput = ({
 }) => {
   const isVault = typeof reserve !== "undefined";
   return (
-    <div className="overflow-hidden rounded-lg border border-night-900">
+    <div className="overflow-hidden rounded-lg bg-night-1100">
       <div className="flex gap-3 p-4">
         <PoolTokenImage className="h-10 w-10" token={token} />
         <div className="flex flex-1 items-center justify-between gap-3">
@@ -92,7 +92,7 @@ export const PoolNftTokenInput = ({
           )}
         </div>
       </div>
-      <div className="flex h-12 items-center justify-between bg-night-1100 p-2 pr-4">
+      <div className="flex h-12 items-center justify-between bg-night-900 p-2 pr-4">
         <p className="pl-2 text-sm text-night-400">
           {isVault ? "Vault" : "Inventory"}:
           <span className="pl-1 font-medium text-night-100">

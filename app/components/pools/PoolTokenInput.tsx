@@ -20,7 +20,7 @@ export const PoolTokenInput = ({
 }) => {
   const parsedAmount = Number(amount);
   return (
-    <div className="overflow-hidden rounded-lg border border-night-1000">
+    <div className="overflow-hidden rounded-lg bg-night-1100">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-4">
           <PoolTokenImage className="h-10 w-10" token={token} />
@@ -49,7 +49,7 @@ export const PoolTokenInput = ({
           </span>
         </div>
       </div>
-      <div className="flex items-center justify-between bg-night-1100 p-3">
+      <div className="flex items-center justify-between bg-night-900 p-3">
         <p className="flex items-center text-sm text-night-400">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
