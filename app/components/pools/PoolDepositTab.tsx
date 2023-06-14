@@ -299,6 +299,7 @@ export const PoolDepositTab = ({
         <LabeledCheckbox
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
+          className="rounded-md border border-night-800 p-4"
           id="terms"
           description="I understand there is a chance I am not be able to withdrawal and
           receive the asset I deposited. If the asset deposited in the pool is
