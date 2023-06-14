@@ -500,6 +500,7 @@ const PoolManagementView = ({
     <div className={className}>
       <div className="flex items-center gap-3">
         <MultiSelect
+          className="bg-night-1200 sm:bg-night-1100"
           tabs={[
             {
               id: "deposit",
