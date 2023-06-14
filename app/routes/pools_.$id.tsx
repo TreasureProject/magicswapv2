@@ -19,6 +19,9 @@ import {
   ChevronRightIcon,
   ExternalLinkIcon,
   PlusIcon,
+  RepeatIcon,
+  ShoppingCartIcon,
+  SlidersHorizontalIcon,
 } from "lucide-react";
 import React, {
   Fragment,
@@ -378,10 +381,6 @@ export default function PoolDetailsPage() {
 
         {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
           <div className="mt-12 space-y-3.5">
-            <h3 className="flex items-center gap-3">
-              <ArrowLeftRightIcon className="h-4 w-4" />
-              Pool Inventory
-            </h3>
             {pool.baseToken.isNFT && baseVaultItems ? (
               <Suspense>
                 <Await resolve={baseVaultItems}>
@@ -498,24 +497,32 @@ const PoolManagementView = ({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-3">
-        <MultiSelect
-          className="bg-night-1200 sm:bg-night-1100"
-          tabs={[
-            {
-              id: "deposit",
-              name: "Deposit",
-            },
-            {
-              id: "withdraw",
-              name: "Withdraw",
-            },
-          ]}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-2">
+          <RepeatIcon className="h-5 w-5 text-night-400" />
+          <h1 className="text-lg font-semibold text-night-100 ">
+            Add Liquidity
+          </h1>
+        </div>
         <SettingsDropdownMenu />
       </div>
+      <MultiSelect
+        className="bg-night-1200 sm:bg-night-1100"
+        tabs={[
+          {
+            id: "deposit",
+            icon: ShoppingCartIcon,
+            name: "Deposit",
+          },
+          {
+            id: "withdraw",
+            icon: SlidersHorizontalIcon,
+            name: "Withdraw",
+          },
+        ]}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
       {activeTab === "withdraw" && (
         <PoolWithdrawTab
           pool={pool}
