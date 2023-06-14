@@ -16,7 +16,6 @@ import {
   ArrowDownIcon,
   ChevronDownIcon,
   ExternalLink,
-  InfoIcon,
   LayersIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -165,7 +164,7 @@ export default function SwapPage() {
     swapRoute;
 
   const hasAmounts = amountIn > 0 && amountOut > 0;
-  const requiresPriceImpactOptIn = priceImpact >= 0.15;
+  const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -220,6 +219,7 @@ export default function SwapPage() {
       refetchTokenInBalance();
       refetchTokenOutBalance();
       setSwapModalOpen(false);
+      setPriceImpactOptIn(false);
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 

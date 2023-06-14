@@ -51,8 +51,8 @@ export const PoolNftTokenInput = ({
                 </div>
               ) : null}
               <div
-                className={cn("flex", {
-                  "-space-x-5": token.type === "ERC721",
+                className={cn("text-center", {
+                  "flex -space-x-5": token.type === "ERC721",
                 })}
               >
                 {selectedNfts

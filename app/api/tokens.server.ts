@@ -84,43 +84,27 @@ export const fetchFilters = async (slug: string) => {
   const { traitsMap } = (await response.json()) as TraitsResponse;
 
   return Object.entries(traitsMap).map(([traitName, traitMetadata]) => {
-    const values = Object.entries(traitMetadata.valuesMap).map(
-      ([valueName, valueMetadata]) => {
+    const isNumeric =
+      "display_type" in traitMetadata &&
+      (traitMetadata.display_type === "numeric" ||
+        traitMetadata.display_type === "percentage");
+    const values = Object.entries(traitMetadata.valuesMap)
+      .map(([valueName, valueMetadata]) => {
         return {
           valueName,
           count: valueMetadata.valueCount,
           valuePriority: valueMetadata.valuePriority ?? 0,
         };
-      }
-    );
-    if (traitMetadata.display_order === "name") {
-      // Priority sort, then sort by alphabetical order of valueName.
-      values.sort((a, b) => {
+      })
+      .sort((a, b) => {
         if (a.valuePriority !== b.valuePriority) {
           return b.valuePriority - a.valuePriority;
         }
 
-        return a.valueName.localeCompare(b.valueName);
+        return a.valueName.localeCompare(b.valueName, undefined, {
+          numeric: isNumeric || a.valueName.includes("%"),
+        });
       });
-    } else if (traitMetadata.display_order === "frequency_desc") {
-      // Priority sort, then sort by descending frequency of value count.
-      values.sort((a, b) => {
-        if (a.valuePriority !== b.valuePriority) {
-          return b.valuePriority - a.valuePriority;
-        }
-
-        return b.count - a.count;
-      });
-    } else {
-      // Priority sort, then sort by ascending frequency of value count.
-      values.sort((a, b) => {
-        if (a.valuePriority !== b.valuePriority) {
-          return b.valuePriority - a.valuePriority;
-        }
-
-        return a.count - b.count;
-      });
-    }
 
     return {
       ...traitMetadata,

@@ -12,6 +12,7 @@ import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { useStore } from "~/hooks/useStore";
+import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
@@ -242,17 +243,19 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
       )}
       <div className="space-y-1.5">
         {hasAmount && !isApproved ? (
-          <Button className="w-full" onClick={() => approve?.()}>
+          <Button className="w-full" size="lg" onClick={() => approve?.()}>
             Approve LP Token
           </Button>
         ) : (
           <TransactionButton
             className="w-full"
+            size="lg"
             disabled={
               !address ||
               !isApproved ||
               !hasAmount ||
-              Number(amountNFTs) !== nfts.length
+              Number(amountNFTs) !==
+                sumArray(nfts.map(({ quantity }) => quantity))
             }
             onClick={() => removeLiquidity?.()}
           >

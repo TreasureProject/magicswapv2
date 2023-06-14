@@ -37,7 +37,7 @@ const FooterPoints: {
     },
     {
       text: "Governance Forum",
-      href: "https://gov.treasure.lol/overview",
+      href: "https://commonwealth.im/treasure-dao/discussions/MagicSwap",
       type: "external",
     },
   ],
