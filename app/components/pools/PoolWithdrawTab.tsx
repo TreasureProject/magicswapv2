@@ -12,6 +12,7 @@ import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { useStore } from "~/hooks/useStore";
+import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
@@ -212,19 +213,28 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             )}
           </div>
           {amountNFTs > 0 ? (
-            <Dialog>
-              <SelectionPopup
-                type="vault"
-                limit={amountNFTs}
-                token={selectingToken}
-                selectedTokens={nfts}
-                onSubmit={(nfts) =>
-                  setTransaction((transaction) => ({
-                    ...transaction,
-                    nfts,
-                  }))
+            <Dialog
+              open={!!selectingToken}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setSelectingToken(undefined);
                 }
-              />
+              }}
+            >
+              {selectingToken ? (
+                <SelectionPopup
+                  type="vault"
+                  limit={amountNFTs}
+                  token={selectingToken}
+                  selectedTokens={nfts}
+                  onSubmit={(nfts) =>
+                    setTransaction((transaction) => ({
+                      ...transaction,
+                      nfts,
+                    }))
+                  }
+                />
+              ) : null}
               <PoolNftTokenInput
                 token={pool.baseToken.isNFT ? pool.baseToken : pool.quoteToken}
                 amount={amountNFTs}
@@ -242,9 +252,13 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
       )}
       <div className="space-y-1.5">
         {hasAmount && !isApproved ? (
-          <Button className="w-full" onClick={() => approve?.()}>
+          <TransactionButton
+            className="w-full"
+            size="lg"
+            onClick={() => approve?.()}
+          >
             Approve LP Token
-          </Button>
+          </TransactionButton>
         ) : (
           <TransactionButton
             className="w-full"
@@ -253,7 +267,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               !address ||
               !isApproved ||
               !hasAmount ||
-              Number(amountNFTs) !== nfts.length
+              Number(amountNFTs) !==
+                sumArray(nfts.map(({ quantity }) => quantity))
             }
             onClick={() => removeLiquidity?.()}
           >

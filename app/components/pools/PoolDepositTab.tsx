@@ -19,7 +19,7 @@ import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
 import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -190,24 +190,33 @@ export const PoolDepositTab = ({
 
   return (
     <div className="space-y-6">
-      <Dialog>
-        <SelectionPopup
-          type="inventory"
-          token={selectingToken}
-          selectedTokens={
-            selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+      <Dialog
+        open={!!selectingToken}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectingToken(undefined);
           }
-          onSubmit={(tokens) =>
-            setTransaction({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
-              nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
-              nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
-              isExactB: false,
-            })
-          }
-        />
+        }}
+      >
+        {selectingToken ? (
+          <SelectionPopup
+            type="inventory"
+            token={selectingToken}
+            selectedTokens={
+              selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+            }
+            onSubmit={(tokens) =>
+              setTransaction({
+                amount: sumArray(
+                  tokens.map(({ quantity }) => quantity)
+                ).toString(),
+                nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
+                nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
+                isExactB: false,
+              })
+            }
+          />
+        ) : null}
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
@@ -278,7 +287,9 @@ export const PoolDepositTab = ({
             label: "Share of Pool",
             value: formatPercent(
               BigInt(pool.totalSupply) > 0
-                ? Number(estimatedLp / (BigInt(pool.totalSupply) + estimatedLp))
+                ? bigIntToNumber(estimatedLp) /
+                    (bigIntToNumber(BigInt(pool.totalSupply)) +
+                      bigIntToNumber(estimatedLp))
                 : 0
             ),
           },

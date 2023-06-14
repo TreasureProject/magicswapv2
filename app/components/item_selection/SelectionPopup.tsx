@@ -39,6 +39,7 @@ const ItemCard = ({
   onClick,
   disabled,
   viewOnly,
+  compact,
 }: {
   selected: boolean;
   item: TroveToken;
@@ -46,6 +47,7 @@ const ItemCard = ({
   onClick: () => void;
   disabled: boolean;
   viewOnly: boolean;
+  compact: boolean;
 }) => {
   const { createTokenUrl } = useTrove();
   const disableUnselected = !selected && disabled;
@@ -72,25 +74,27 @@ const ItemCard = ({
           </span>
         ) : null}
       </div>
-      <div className="flex items-start justify-between gap-2 p-2.5">
-        <div className="text-left">
-          <p className="text-xs font-medium text-honey-25 sm:text-sm">
-            {item.metadata.name}
-          </p>
-          <p className="text-sm text-night-400">#{item.tokenId}</p>
+      {!compact ? (
+        <div className="flex items-start justify-between gap-2 p-2.5">
+          <div className="text-left">
+            <p className="text-xs font-medium text-honey-25 sm:text-sm">
+              {item.metadata.name}
+            </p>
+            <p className="text-sm text-night-400">#{item.tokenId}</p>
+          </div>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`View ${item.metadata.name} on Trove`}
+            className="text-night-400 transition-colors hover:text-night-100"
+            href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span className="sr-only">View {item.metadata.name} on Trove</span>
+          </a>
         </div>
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          title={`View ${item.metadata.name} on Trove`}
-          className="text-night-400 transition-colors hover:text-night-100"
-          href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ExternalLink className="h-4 w-4" />
-          <span className="sr-only">View {item.metadata.name} on Trove</span>
-        </a>
-      </div>
+      ) : null}
     </div>
   );
 
@@ -123,7 +127,7 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
   return (
     <span
       key={`${key}:${value}`}
-      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-1100 px-3 py-2 text-sm font-medium text-night-700"
+      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-800 py-1 pl-3 pr-1 text-sm font-medium text-night-500"
     >
       <p>
         <span className="inline-block capitalize">{key}:</span>{" "}
@@ -132,7 +136,7 @@ const TraitFilterBadge = ({ trait }: { trait: string }) => {
       <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
       <button
         type="submit"
-        className="flex-shrink-0 rounded-full p-1 hover:bg-night-1000"
+        className="flex-shrink-0 rounded-md p-2 text-night-600 hover:bg-night-700 hover:text-night-200"
       >
         <span className="sr-only">Remove filter for {value}</span>
         <XIcon className="h-4 w-4" />
@@ -175,7 +179,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const queryFormRef = React.useRef<HTMLFormElement>(null);
   const offsetRef = React.useRef(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  const [isCompactMode, setIsCompactMode] = useState(false);
   const collectionTokenIds = token?.collectionTokenIds.join(",");
   const ownerAddress = type === "vault" && token?.id ? token.id : address;
   const resourcePath = token?.isNFT
@@ -191,7 +195,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     !props.viewOnly && props.limit ? totalQuantity >= props.limit : false;
   const buttonDisabled =
     !props.viewOnly && props.limit
-      ? totalQuantity > props.limit
+      ? totalQuantity < props.limit
       : selectedItems.length === 0
       ? true
       : false;
@@ -259,6 +263,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const HiddenInputs = (
     <>
       <input type="hidden" name="address" value={ownerAddress} />
+      <input type="hidden" name="tokenIds" value={collectionTokenIds} />
     </>
   );
 
@@ -315,14 +320,15 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           <IconToggle
             icons={[
               {
-                id: "grid",
+                id: "full",
                 icon: GridIcon,
               },
               {
-                id: "column",
+                id: "compact",
                 icon: ColumnIcon,
               },
             ]}
+            onChange={(id) => setIsCompactMode(id === "compact")}
           />
           <button
             onClick={fetchCollection}
@@ -469,7 +475,14 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               <LoaderIcon className="h-8 w-8" />
             </div>
           ) : state === "idle" && data ? (
-            <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
+            <div
+              className={cn(
+                "grid gap-3",
+                isCompactMode
+                  ? "grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
+                  : "grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+              )}
+            >
               {data.tokens.tokens.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
@@ -480,6 +493,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   item={item}
                   quantity={getTroveTokenQuantity(item)}
                   viewOnly={props.viewOnly || false}
+                  compact={isCompactMode}
                   onClick={() => {
                     selectionHandler({
                       ...item,
@@ -662,8 +676,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     onClick={() => props.onSubmit(selectedItems)}
                   >
                     {props.limit && buttonDisabled
-                      ? `Remove ${totalQuantity - props.limit} Item${
-                          totalQuantity - props.limit > 1 ? "s" : ""
+                      ? `Add ${props.limit - totalQuantity} Item${
+                          props.limit - totalQuantity > 1 ? "s" : ""
                         }`
                       : "Save selections"}
                   </Button>

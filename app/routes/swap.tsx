@@ -1,4 +1,6 @@
 import { DialogClose } from "@radix-ui/react-dialog";
+import type { LoaderArgs } from "@remix-run/node";
+import { defer } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { useFetcher } from "@remix-run/react";
 import {
@@ -9,14 +11,11 @@ import {
   useRevalidator,
   useSearchParams,
 } from "@remix-run/react";
-import type { LoaderArgs } from "@remix-run/server-runtime";
-import { defer } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownIcon,
   ChevronDownIcon,
   ExternalLink,
-  InfoIcon,
   LayersIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -165,7 +164,7 @@ export default function SwapPage() {
     swapRoute;
 
   const hasAmounts = amountIn > 0 && amountOut > 0;
-  const requiresPriceImpactOptIn = priceImpact >= 0.15;
+  const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
@@ -220,6 +219,7 @@ export default function SwapPage() {
       refetchTokenInBalance();
       refetchTokenOutBalance();
       setSwapModalOpen(false);
+      setPriceImpactOptIn(false);
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
@@ -579,6 +579,9 @@ const SwapTokenInput = ({
   const [collapsed, setCollapsed] = useState(true);
   const [ref, bounds] = useMeasure();
   const { createTokenUrl } = useTrove();
+  const [openSelectionModal, setOpenSelectionModal] = useState(
+    token?.isNFT && !otherToken?.isNFT && !!routeState
+  );
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -595,10 +598,10 @@ const SwapTokenInput = ({
             <button className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
               <div className="space-y-1">
-                <span className="flex items-center gap-1.5 text-lg font-medium text-honey-25">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
                   {token.name} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                <span className="block text-sm text-night-600">
+                <span className="block text-xs text-night-600 sm:text-sm">
                   {token.symbol}
                 </span>
               </div>
@@ -661,27 +664,30 @@ const SwapTokenInput = ({
             ) : (
               <ClientOnly>
                 {() => (
-                  <Dialog
-                    defaultOpen={
-                      token.isNFT &&
-                      !otherToken?.isNFT &&
-                      !!routeState &&
-                      !isSwapSuccess
-                    }
-                    key={location.search}
-                  >
-                    <SelectionPopup
-                      type={isOut ? "vault" : "inventory"}
-                      token={token}
-                      selectedTokens={selectedNfts}
-                      onSubmit={onSelectNfts}
-                    />
-                    <DialogTrigger asChild>
-                      <Button variant="dark" size="md" disabled={!isConnected}>
-                        Select Items
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
+                  <>
+                    <Dialog
+                      open={openSelectionModal}
+                      onOpenChange={setOpenSelectionModal}
+                      key={location.search}
+                    >
+                      {openSelectionModal ? (
+                        <SelectionPopup
+                          type={isOut ? "vault" : "inventory"}
+                          token={token}
+                          selectedTokens={selectedNfts}
+                          onSubmit={onSelectNfts}
+                        />
+                      ) : null}
+                    </Dialog>
+                    <Button
+                      variant="dark"
+                      size="md"
+                      disabled={!isConnected}
+                      onClick={() => setOpenSelectionModal(true)}
+                    >
+                      Select Items
+                    </Button>
+                  </>
                 )}
               </ClientOnly>
             )
@@ -832,17 +838,27 @@ const SwapTokenInput = ({
             </Button>
           ) : null}
           {selectedNfts.length > 0 ? (
-            <Dialog>
-              <SelectionPopup
-                type={isOut ? "vault" : "inventory"}
-                token={token}
-                selectedTokens={selectedNfts}
-                onSubmit={onSelectNfts}
-              />
-              <DialogTrigger asChild>
-                <Button variant="ghost">Edit Selection</Button>
-              </DialogTrigger>
-            </Dialog>
+            <>
+              <Dialog
+                open={openSelectionModal}
+                onOpenChange={setOpenSelectionModal}
+              >
+                {openSelectionModal ? (
+                  <SelectionPopup
+                    type={isOut ? "vault" : "inventory"}
+                    token={token}
+                    selectedTokens={selectedNfts}
+                    onSubmit={onSelectNfts}
+                  />
+                ) : null}
+              </Dialog>
+              <Button
+                variant="ghost"
+                onClick={() => setOpenSelectionModal(true)}
+              >
+                Edit Selection
+              </Button>
+            </>
           ) : null}
         </div>
       </div>
