@@ -1,7 +1,7 @@
+import type { LoaderArgs } from "@remix-run/node";
+import { defer } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { Await, Link, useLoaderData } from "@remix-run/react";
-import type { LoaderArgs } from "@remix-run/server-runtime";
-import { defer } from "@remix-run/server-runtime";
 import { Suspense, useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
