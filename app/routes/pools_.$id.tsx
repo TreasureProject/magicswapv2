@@ -17,11 +17,11 @@ import {
   ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ArrowDownToLineIcon as DepositIcon,
   ExternalLinkIcon,
   PlusIcon,
   RepeatIcon,
-  ShoppingCartIcon,
-  SlidersHorizontalIcon,
+  ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
 import React, {
   Fragment,
@@ -405,7 +405,7 @@ export default function PoolDetailsPage() {
         </div>
         {/*Here the pool & inventory start */}
 
-        {pool.baseToken.isNFT || pool.quoteToken.isNFT ? (
+        {pool.hasNFT ? (
           <div className="mt-12 space-y-3.5">
             {pool.baseToken.isNFT && baseVaultItems ? (
               <Suspense>
@@ -537,12 +537,12 @@ const PoolManagementView = ({
         tabs={[
           {
             id: "deposit",
-            icon: ShoppingCartIcon,
+            icon: DepositIcon,
             name: "Deposit",
           },
           {
             id: "withdraw",
-            icon: SlidersHorizontalIcon,
+            icon: WithdrawIcon,
             name: "Withdraw",
           },
         ]}

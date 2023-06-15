@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useAccount } from "~/contexts/account";
 import {
-  magicSwapV2RouterAddress,
   useErc20Allowance,
   useErc721IsApprovedForAll,
   useErc1155IsApprovedForAll,
@@ -22,6 +22,7 @@ export const useIsApproved = ({
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
+  const operator = useMagicSwapV2RouterAddress();
 
   const isFullToken = typeof token !== "string";
   const tokenAddress = (isFullToken ? token.id : token) as AddressString;
@@ -34,7 +35,7 @@ export const useIsApproved = ({
 
   const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
     address: tokenAddress,
-    args: [addressArg, magicSwapV2RouterAddress[421613]],
+    args: [addressArg, operator],
     enabled: isEnabled && !isERC721 && !isERC1155,
   });
 
@@ -43,7 +44,7 @@ export const useIsApproved = ({
     refetch: refetchERC721IsApprovedForAll,
   } = useErc721IsApprovedForAll({
     address: collectionAddress,
-    args: [addressArg, magicSwapV2RouterAddress[421613]],
+    args: [addressArg, operator],
     enabled: isEnabled && !!collectionAddress && isERC721,
   });
 
@@ -52,7 +53,7 @@ export const useIsApproved = ({
     refetch: refetchERC1155IsApprovedForAll,
   } = useErc1155IsApprovedForAll({
     address: collectionAddress,
-    args: [addressArg, magicSwapV2RouterAddress[421613]],
+    args: [addressArg, operator],
     enabled: isEnabled && !!collectionAddress && isERC1155,
   });
 

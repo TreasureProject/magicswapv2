@@ -1,5 +1,5 @@
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import {
-  magicSwapV2RouterAddress,
   useErc20Approve,
   useErc721SetApprovalForAll,
   useErc1155SetApprovalForAll,
@@ -24,6 +24,7 @@ export const useApprove = ({
   enabled = true,
   statusHeader: propsStatusHeader,
 }: Props) => {
+  const operator = useMagicSwapV2RouterAddress();
   const isFullToken = typeof token !== "string";
   const tokenAddress = (isFullToken ? token.id : token) as AddressString;
   const collectionAddress = isFullToken
@@ -37,7 +38,7 @@ export const useApprove = ({
 
   const { config: erc20ApproveConfig } = usePrepareErc20Approve({
     address: tokenAddress,
-    args: [magicSwapV2RouterAddress[421613], amount],
+    args: [operator, amount],
     enabled: enabled && !isERC721 && !isERC1155,
   });
   const erc20Approve = useErc20Approve(erc20ApproveConfig);
@@ -49,7 +50,7 @@ export const useApprove = ({
 
   const { config: erc721ApproveConfig } = usePrepareErc721SetApprovalForAll({
     address: collectionAddress,
-    args: [magicSwapV2RouterAddress[421613], true],
+    args: [operator, true],
     enabled: enabled && isERC721,
   });
   const erc721Approve = useErc721SetApprovalForAll(erc721ApproveConfig);
@@ -61,7 +62,7 @@ export const useApprove = ({
 
   const { config: erc1155ApproveConfig } = usePrepareErc1155SetApprovalForAll({
     address: collectionAddress,
-    args: [magicSwapV2RouterAddress[421613], true],
+    args: [operator, true],
     enabled: enabled && isERC1155,
   });
   const erc1155Approve = useErc1155SetApprovalForAll(erc1155ApproveConfig);
