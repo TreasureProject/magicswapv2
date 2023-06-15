@@ -369,16 +369,16 @@ const TotalDisplay = ({
   const amountA = isExactB
     ? quote(
         amount,
-        BigInt(pool.quoteToken.reserveBI),
-        BigInt(pool.baseToken.reserveBI)
+        BigInt(pool.quoteToken.reserve),
+        BigInt(pool.baseToken.reserve)
       )
     : amount;
   const amountB = isExactB
     ? amount
     : quote(
         amount,
-        BigInt(pool.baseToken.reserveBI),
-        BigInt(pool.quoteToken.reserveBI)
+        BigInt(pool.baseToken.reserve),
+        BigInt(pool.quoteToken.reserve)
       );
 
   const formattedTokenInAmount = formatTokenAmount(
