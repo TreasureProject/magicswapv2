@@ -5,7 +5,7 @@ import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { bigIntToNumber, formatPercent } from "~/lib/number";
 import {
   NIGHT_100,
   NIGHT_400,
@@ -50,7 +50,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
               >
                 {formatTokenAmount(
-                  BigInt(baseToken?.reserveBI || 0),
+                  BigInt(baseToken?.reserve ?? "0"),
                   baseToken?.decimals
                 )}
               </div>
@@ -71,7 +71,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
                 }}
               >
                 {formatTokenAmount(
-                  BigInt(quoteToken?.reserveBI || 0),
+                  BigInt(quoteToken?.reserve ?? "0"),
                   quoteToken?.decimals
                 )}
               </div>
@@ -167,7 +167,14 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         >
           <span>
             {formatAmount(
-              (quoteToken?.reserve || 0) / (baseToken?.reserve || 0)
+              bigIntToNumber(
+                BigInt(quoteToken?.reserve ?? "0"),
+                quoteToken?.decimals
+              ) /
+                bigIntToNumber(
+                  BigInt(baseToken?.reserve ?? "0"),
+                  baseToken?.decimals
+                )
             )}
           </span>
           <span

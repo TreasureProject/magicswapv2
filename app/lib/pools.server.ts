@@ -11,34 +11,23 @@ const getPoolAPY = (volume1w: number, reserveUSD: number) => {
 export const createPoolFromPair = (
   pair: Pair,
   collections: TroveCollectionMapping,
-  magicUSD: number
+  magicUSD: number,
+  reserves?: [bigint, bigint]
 ) => {
   const token0 = createPoolToken(pair.token0, collections, magicUSD);
   const token1 = createPoolToken(pair.token1, collections, magicUSD);
-  const reserve0 = Number(pair.reserve0);
-  const reserve1 = Number(pair.reserve1);
-  const token0PriceUSD =
-    token0.priceUSD ||
-    (reserve0 > 0 ? (reserve1 * token1.priceUSD) / reserve0 : 0);
-  const token1PriceUSD =
-    token1.priceUSD ||
-    (reserve1 > 0 ? (reserve0 * token0.priceUSD) / reserve1 : 0);
   const poolToken0 = {
     ...token0,
-    priceUSD: token0PriceUSD,
-    reserve: reserve0,
-    reserveBI: parseUnits(
-      pair.reserve0 as NumberString,
-      token0.decimals
+    reserve: (
+      reserves?.[0] ??
+      parseUnits(pair.reserve0 as NumberString, token0.decimals)
     ).toString(),
   };
   const poolToken1 = {
     ...token1,
-    priceUSD: token1PriceUSD,
-    reserve: reserve1,
-    reserveBI: parseUnits(
-      pair.reserve1 as NumberString,
-      token1.decimals
+    reserve: (
+      reserves?.[1] ??
+      parseUnits(pair.reserve1 as NumberString, token1.decimals)
     ).toString(),
   };
   const switchTokens =

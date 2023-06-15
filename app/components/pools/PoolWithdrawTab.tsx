@@ -41,12 +41,12 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
 
   const rawAmountBase = getTokenCountForLp(
     amount,
-    BigInt(pool.baseToken.reserveBI),
+    BigInt(pool.baseToken.reserve),
     BigInt(pool.totalSupply)
   );
   const rawAmountQuote = getTokenCountForLp(
     amount,
-    BigInt(pool.quoteToken.reserveBI),
+    BigInt(pool.quoteToken.reserve),
     BigInt(pool.totalSupply)
   );
   const amountBase = pool.baseToken.isNFT
@@ -184,11 +184,11 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                           quote(
                             amountLeftover,
                             pool.baseToken.isNFT
-                              ? BigInt(pool.baseToken.reserveBI)
-                              : BigInt(pool.quoteToken.reserveBI),
+                              ? BigInt(pool.baseToken.reserve)
+                              : BigInt(pool.quoteToken.reserve),
                             pool.baseToken.isNFT
-                              ? BigInt(pool.quoteToken.reserveBI)
-                              : BigInt(pool.baseToken.reserveBI)
+                              ? BigInt(pool.quoteToken.reserve)
+                              : BigInt(pool.baseToken.reserve)
                           )
                         )}
                       </span>
@@ -240,8 +240,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                 amount={amountNFTs}
                 reserve={
                   pool.baseToken.isNFT
-                    ? pool.baseToken.reserve
-                    : pool.quoteToken.reserve
+                    ? BigInt(pool.baseToken.reserve)
+                    : BigInt(pool.quoteToken.reserve)
                 }
                 selectedNfts={nfts}
                 onOpenSelect={setSelectingToken}

@@ -5,7 +5,7 @@ import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatAmount } from "~/lib/currency";
+import { formatAmount, formatTokenAmount } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { TroveTokenWithQuantity } from "~/types";
@@ -21,7 +21,7 @@ export const PoolNftTokenInput = ({
   token: PoolToken;
   amount?: number;
   balance?: Promise<number> | null;
-  reserve?: number;
+  reserve?: bigint;
   selectedNfts: TroveTokenWithQuantity[];
   onOpenSelect: (token: PoolToken) => void;
 }) => {
@@ -97,7 +97,7 @@ export const PoolNftTokenInput = ({
           {isVault ? "Vault" : "Inventory"}:
           <span className="pl-1 font-medium text-night-100">
             {isVault ? (
-              formatAmount(reserve)
+              formatTokenAmount(reserve, token.decimals)
             ) : (
               <Suspense
                 fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}

@@ -2,6 +2,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { parseUnits } from "viem";
 
 import { multiplyArray, sumArray } from "~/lib/array";
+import { bigIntToNumber } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -79,7 +80,9 @@ export const useSwapRoute = ({
     priceImpact,
     derivedValue: multiplyArray(
       poolLegs.map(
-        ({ tokenFrom, tokenTo }) => tokenFrom.reserve / tokenTo.reserve
+        ({ tokenFrom, tokenTo }) =>
+          bigIntToNumber(BigInt(tokenFrom.reserve), tokenFrom.decimals) /
+          bigIntToNumber(BigInt(tokenTo.reserve), tokenTo.decimals)
       )
     ),
     lpFee: sumArray(poolLegs.map(({ lpFee }) => Number(lpFee))),

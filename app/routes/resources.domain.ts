@@ -1,5 +1,6 @@
 import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import type { ShouldRevalidateFunction } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/user.server";
@@ -21,6 +22,10 @@ export const loader = async (args: LoaderArgs) => {
       domain: null,
     });
   }
+};
+
+export const shouldRevalidate: ShouldRevalidateFunction = () => {
+  return false;
 };
 
 export type DomainLoader = typeof loader;

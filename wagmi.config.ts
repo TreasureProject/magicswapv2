@@ -3,6 +3,7 @@ import { etherscan, react } from "@wagmi/cli/plugins";
 import { erc1155ABI } from "./artifacts/ERC1155";
 import { erc20ABI, erc721ABI } from "wagmi";
 import { arbitrumGoerli } from "wagmi/chains";
+import { uniswapV2PairABI } from "./artifacts/UniswapV2Pair";
 
 export default defineConfig({
   out: "app/generated.ts",
@@ -18,6 +19,10 @@ export default defineConfig({
     {
       name: "ERC1155",
       abi: erc1155ABI,
+    },
+    {
+      name: "UniswapV2Pair",
+      abi: uniswapV2PairABI,
     },
   ],
   plugins: [
