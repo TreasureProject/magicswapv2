@@ -15,7 +15,6 @@ import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
 import { uniswapV2PairABI } from "~/generated";
-import { cachified } from "~/lib/cache.server";
 import { client } from "~/lib/chain.server";
 import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
@@ -94,32 +93,24 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
   });
 };
 
-export const fetchPools = async () =>
-  cachified({
-    key: "pools",
-    async getFreshValue() {
-      const result = (await execute(
-        getPairsDocument,
-        {}
-      )) as ExecutionResult<getPairsQuery>;
-      const { pairs = [] } = result.data ?? {};
-      return createPoolsFromPairs(pairs);
-    },
-  });
+export const fetchPools = async () => {
+  const result = (await execute(
+    getPairsDocument,
+    {}
+  )) as ExecutionResult<getPairsQuery>;
+  const { pairs = [] } = result.data ?? {};
+  return createPoolsFromPairs(pairs);
+};
 
-export const fetchPool = async (id: string) =>
-  cachified({
-    key: `pool-${id}`,
-    async getFreshValue() {
-      const result = (await execute(getPairDocument, {
-        id,
-      })) as ExecutionResult<getPairQuery>;
-      const pair = result.data?.pair;
-      if (!pair) {
-        return undefined;
-      }
+export const fetchPool = async (id: string) => {
+  const result = (await execute(getPairDocument, {
+    id,
+  })) as ExecutionResult<getPairQuery>;
+  const pair = result.data?.pair;
+  if (!pair) {
+    return undefined;
+  }
 
-      const pools = await createPoolsFromPairs([pair]);
-      return pools[0];
-    },
-  });
+  const pools = await createPoolsFromPairs([pair]);
+  return pools[0];
+};

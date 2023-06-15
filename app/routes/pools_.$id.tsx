@@ -176,14 +176,15 @@ export default function PoolDetailsPage() {
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
-  const { revalidate, state } = useRevalidator();
+  const revalidator = useRevalidator();
 
   const refresh = useCallback(() => {
-    if (state === "idle") {
-      revalidate();
+    if (revalidator.state === "idle") {
+      revalidator.revalidate();
     }
+
     refetchLpBalance();
-  }, [refetchLpBalance, revalidate, state]);
+  }, [refetchLpBalance, revalidator]);
 
   useFocusInterval(refresh, 5000);
 
@@ -196,7 +197,6 @@ export default function PoolDetailsPage() {
         <ChevronLeftIcon className="h-4" />
         All Pools
       </Link>
-      <Button onClick={refresh}>onClick</Button>
       <div className="mt-6">
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
@@ -844,7 +844,7 @@ const PoolTokenCollectionInventory = ({
         <div className="flex items-center justify-between px-6 py-3">
           <span className="text-sm text-night-400">
             Showing {sumArray(items.map(getTroveTokenQuantity))} of{" "}
-            {formatNumber(token.reserve)}
+            {formatTokenAmount(BigInt(token.reserve), token.decimals)}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>
