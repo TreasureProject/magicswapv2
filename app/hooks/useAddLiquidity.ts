@@ -20,6 +20,7 @@ type Props = {
   nfts: TroveTokenWithQuantity[];
   enabled?: boolean;
   statusHeader?: React.ReactNode;
+  onSuccess: () => void;
 };
 
 export const useAddLiquidity = ({
@@ -31,6 +32,7 @@ export const useAddLiquidity = ({
   nfts,
   enabled = true,
   statusHeader: propsStatusHeader,
+  onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
   const deadline = useStore(useSettingsStore, (state) => state.deadline);
@@ -60,7 +62,7 @@ export const useAddLiquidity = ({
     tokenAddLiquidityConfig
   );
   const { isSuccess: isTokenAddLiquiditySuccess } = useWaitForTransaction(
-    tokenAddLiquidity.data,
+    { ...tokenAddLiquidity.data, onSuccess },
     tokenAddLiquidity.status,
     statusHeader
   );
@@ -84,7 +86,7 @@ export const useAddLiquidity = ({
     nftAddLiquidityConfig
   );
   const { isSuccess: isNFTAddLiquiditySuccess } = useWaitForTransaction(
-    nftAddLiquidity.data,
+    { ...nftAddLiquidity.data, onSuccess },
     nftAddLiquidity.status,
     statusHeader
   );

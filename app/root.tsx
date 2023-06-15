@@ -1,5 +1,6 @@
 import type { LinksFunction, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import type { ShouldRevalidateFunction } from "@remix-run/react";
 import { useNavigation } from "@remix-run/react";
 import {
   Links,
@@ -58,6 +59,10 @@ export const loader = async ({ request }: LoaderArgs) => {
       path: new URL(request.url).pathname,
     },
   });
+};
+
+export const shouldRevalidate: ShouldRevalidateFunction = () => {
+  return false;
 };
 
 export type RootLoader = typeof loader;

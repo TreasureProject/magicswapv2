@@ -14,14 +14,15 @@ import {
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
-import { cachified } from "~/lib/cache.server";
+import { uniswapV2PairABI } from "~/generated";
+import { client } from "~/lib/chain.server";
 import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import {
   getTokenCollectionAddresses,
   itemToTroveTokenItem,
 } from "~/lib/tokens.server";
-import type { Pair } from "~/types";
+import type { AddressString, Pair } from "~/types";
 
 const getPairCollectionAddresses = (pair: Pair) => [
   ...new Set([
@@ -63,44 +64,53 @@ export type PoolTransactionType = PoolTransaction["type"];
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
-  const [collections, magicUSD] = await Promise.all([
+  const [collections, magicUSD, reserves] = await Promise.all([
     fetchTroveCollections([
       ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
     ]),
     fetchMagicUSD(),
+    client.multicall({
+      contracts: pairs.map(({ id }) => ({
+        address: id as AddressString,
+        abi: uniswapV2PairABI,
+        functionName: "getReserves",
+      })),
+    }),
   ]);
-  return pairs.map((pair) => createPoolFromPair(pair, collections, magicUSD));
+  return pairs.map((pair, i) => {
+    const reserve = reserves[i] as {
+      result: [bigint, bigint, number];
+      status: "success" | "reverted";
+    };
+    return createPoolFromPair(
+      pair,
+      collections,
+      magicUSD,
+      reserve?.status === "success"
+        ? [reserve.result[0], reserve.result[1]]
+        : undefined
+    );
+  });
 };
 
-export const fetchPools = async () =>
-  cachified({
-    key: "pools",
-    async getFreshValue() {
-      const result = (await execute(
-        getPairsDocument,
-        {}
-      )) as ExecutionResult<getPairsQuery>;
-      const { pairs = [] } = result.data ?? {};
-      return createPoolsFromPairs(pairs);
-    },
-  });
+export const fetchPools = async () => {
+  const result = (await execute(
+    getPairsDocument,
+    {}
+  )) as ExecutionResult<getPairsQuery>;
+  const { pairs = [] } = result.data ?? {};
+  return createPoolsFromPairs(pairs);
+};
 
-export const fetchPool = async (id: string) =>
-  cachified({
-    key: `pool-${id}`,
-    async getFreshValue() {
-      const result = (await execute(getPairDocument, {
-        id,
-      })) as ExecutionResult<getPairQuery>;
-      const pair = result.data?.pair;
-      if (!pair) {
-        return undefined;
-      }
+export const fetchPool = async (id: string) => {
+  const result = (await execute(getPairDocument, {
+    id,
+  })) as ExecutionResult<getPairQuery>;
+  const pair = result.data?.pair;
+  if (!pair) {
+    return undefined;
+  }
 
-      const [collections, magicUSD] = await Promise.all([
-        fetchTroveCollections(getPairCollectionAddresses(pair)),
-        fetchMagicUSD(),
-      ]);
-      return createPoolFromPair(pair, collections, magicUSD);
-    },
-  });
+  const pools = await createPoolsFromPairs([pair]);
+  return pools[0];
+};

@@ -813,7 +813,7 @@ const SwapTokenInput = ({
             {token.isNFT ? (
               <>
                 {isOut ? (
-                  formatAmount(token.reserve)
+                  formatTokenAmount(BigInt(token.reserve), token.decimals)
                 ) : (
                   <Suspense
                     fallback={

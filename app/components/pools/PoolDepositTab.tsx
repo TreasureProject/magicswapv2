@@ -65,16 +65,16 @@ export const PoolDepositTab = ({
   const amountA = isExactB
     ? quote(
         amount,
-        BigInt(pool.quoteToken.reserveBI),
-        BigInt(pool.baseToken.reserveBI)
+        BigInt(pool.quoteToken.reserve),
+        BigInt(pool.baseToken.reserve)
       )
     : amount;
   const amountB = isExactB
     ? amount
     : quote(
         amount,
-        BigInt(pool.baseToken.reserveBI),
-        BigInt(pool.quoteToken.reserveBI)
+        BigInt(pool.baseToken.reserve),
+        BigInt(pool.quoteToken.reserve)
       );
   const hasAmount = amount > 0;
 
@@ -123,7 +123,7 @@ export const PoolDepositTab = ({
       enabled: !isQuoteTokenApproved,
     });
 
-  const { addLiquidity, isSuccess: isAddLiquiditySuccess } = useAddLiquidity({
+  const { addLiquidity } = useAddLiquidity({
     pool,
     amountBase: amountA,
     amountQuote: amountB,
@@ -135,11 +135,23 @@ export const PoolDepositTab = ({
       : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
     nfts: isExactB ? nftsB : nftsA,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
+    onSuccess: () => {
+      setTransaction({
+        amount: "0",
+        nftsA: [],
+        nftsB: [],
+        isExactB: false,
+      });
+      refetchBaseTokenBalance();
+      refetchQuoteTokenBalance();
+      setCheckedTerms(false);
+      onSuccess?.();
+    },
   });
 
   const estimatedLp = getLpCountForTokens(
     amount,
-    BigInt(pool.baseToken.reserveBI),
+    BigInt(pool.baseToken.reserve),
     BigInt(pool.totalSupply)
   );
 
@@ -156,26 +168,6 @@ export const PoolDepositTab = ({
       refetchQuoteTokenApproval();
     }
   }, [isApproveQuoteTokenSuccess, refetchQuoteTokenApproval]);
-
-  useEffect(() => {
-    if (isAddLiquiditySuccess) {
-      setTransaction({
-        amount: "0",
-        nftsA: [],
-        nftsB: [],
-        isExactB: false,
-      });
-      refetchBaseTokenBalance();
-      refetchQuoteTokenBalance();
-      setCheckedTerms(false);
-      onSuccess?.();
-    }
-  }, [
-    isAddLiquiditySuccess,
-    refetchBaseTokenBalance,
-    refetchQuoteTokenBalance,
-    onSuccess,
-  ]);
 
   const insufficientBalanceA = !pool.baseToken.isNFT
     ? parseFloat(

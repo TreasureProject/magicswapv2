@@ -97,7 +97,7 @@ export const createPoolToken = (
     collectionId: tokenCollections[0]?.id ?? "",
     collectionTokenIds: tokenCollections[0]?.tokenIds ?? [],
     priceUSD: Number(token.derivedMAGIC) * magicUSD,
-    reserve: 0,
+    reserve: "0",
   };
 };
 

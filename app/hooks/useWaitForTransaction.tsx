@@ -22,7 +22,7 @@ const renderStatusWithHeader = (
 );
 
 export const useWaitForTransaction = (
-  transaction: SendTransactionResult | undefined,
+  transaction: Parameters<typeof useWaitForTransactionWagmi>[0],
   status: ReturnType<typeof useContractWrite>["status"],
   statusHeader?: React.ReactNode
 ) => {
@@ -33,6 +33,7 @@ export const useWaitForTransaction = (
   const { name: blockExplorerName, url: blockExporerUrl } = useBlockExplorer();
 
   const transactionResult = useWaitForTransactionWagmi(transaction);
+
   const transactionHash = transaction?.hash;
 
   const dismissToast = () => {
