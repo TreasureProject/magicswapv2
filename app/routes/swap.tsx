@@ -37,6 +37,7 @@ import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
+import { TotalDisplayInner } from "~/components/item_selection/TotalDisplayInner";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { SwapRoutePanel } from "~/components/swap/SwapRoutePanel";
 import { Button, TransactionButton } from "~/components/ui/Button";
@@ -145,7 +146,7 @@ export default function SwapPage() {
   const revalidator = useRevalidator();
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [priceImpactOptIn, setPriceImpactOptIn] = useState(false);
-
+  const location = useLocation();
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     // adding state (can be anything here) on client side transition to indicate that a modal can pop-up
@@ -269,7 +270,7 @@ export default function SwapPage() {
       </div>
       <div className="mt-3">
         <SwapTokenInput
-          isSwapSuccess={isSwapSuccess}
+          key={`${location.search}-in`}
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
@@ -308,7 +309,7 @@ export default function SwapPage() {
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
-          isSwapSuccess={isSwapSuccess}
+          key={`${location.search}-out`}
           token={tokenOut}
           otherToken={tokenIn}
           isOut
@@ -554,7 +555,6 @@ const SwapTokenInput = ({
   onUpdateAmount,
   onSelectNfts,
   className,
-  isSwapSuccess,
 }: {
   token: Optional<PoolToken>;
   otherToken: Optional<PoolToken>;
@@ -566,10 +566,8 @@ const SwapTokenInput = ({
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
-  isSwapSuccess: boolean;
 }) => {
   const { isConnected } = useAccount();
-  const location = useLocation();
   const parsedAmount = Number(amount);
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
@@ -586,7 +584,7 @@ const SwapTokenInput = ({
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
-        <Dialog key={location.search}>
+        <Dialog>
           <TokenSelectDialog
             disabledTokenIds={
               [token.id, otherToken?.id].filter((id) => !!id) as string[]
@@ -668,7 +666,9 @@ const SwapTokenInput = ({
                     <Dialog
                       open={openSelectionModal}
                       onOpenChange={setOpenSelectionModal}
-                      key={location.search}
+                      defaultOpen={
+                        token?.isNFT && !otherToken?.isNFT && !!routeState
+                      }
                     >
                       {openSelectionModal ? (
                         <SelectionPopup
@@ -676,7 +676,16 @@ const SwapTokenInput = ({
                           token={token}
                           selectedTokens={selectedNfts}
                           onSubmit={onSelectNfts}
-                        />
+                        >
+                          {({ selectedItems }) => {
+                            return (
+                              <TotalDisplay
+                                amount={String(selectedItems.length)}
+                                isExactOut={isOut}
+                              />
+                            );
+                          }}
+                        </SelectionPopup>
                       ) : null}
                     </Dialog>
                     <Button
@@ -849,7 +858,16 @@ const SwapTokenInput = ({
                     token={token}
                     selectedTokens={selectedNfts}
                     onSubmit={onSelectNfts}
-                  />
+                  >
+                    {({ selectedItems }) => {
+                      return (
+                        <TotalDisplay
+                          amount={String(selectedItems.length)}
+                          isExactOut={isOut}
+                        />
+                      );
+                    }}
+                  </SelectionPopup>
                 ) : null}
               </Dialog>
               <Button
@@ -864,7 +882,7 @@ const SwapTokenInput = ({
       </div>
     </div>
   ) : (
-    <Dialog key={location.search}>
+    <Dialog>
       <TokenSelectDialog
         disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
         onSelect={onSelect}
@@ -884,6 +902,37 @@ const SwapTokenInput = ({
         </button>
       </DialogTrigger>
     </Dialog>
+  );
+};
+
+const TotalDisplay = ({
+  amount,
+  isExactOut,
+}: {
+  amount: string;
+  isExactOut: boolean;
+}) => {
+  const loaderData = useLoaderData<typeof loader>();
+
+  const swapRoute = useSwapRoute({
+    ...loaderData,
+    amount,
+    isExactOut,
+  });
+
+  const { amountIn, amountOut, tokenIn, tokenOut } = swapRoute;
+
+  const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
+  const formattedTokenOutAmount = formatTokenAmount(
+    amountOut,
+    tokenOut?.decimals ?? 18
+  );
+
+  return (
+    <TotalDisplayInner
+      token={isExactOut ? tokenIn : tokenOut}
+      total={isExactOut ? formattedTokenInAmount : formattedTokenOutAmount}
+    />
   );
 };
 

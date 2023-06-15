@@ -1,4 +1,3 @@
-import { Close } from "@radix-ui/react-dialog";
 import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -23,7 +22,7 @@ import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import type { TroveFilters } from "~/api/tokens.server";
-import { DialogContent } from "~/components/ui/Dialog";
+import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
 import { getTroveTokenQuantity } from "~/lib/tokens";
@@ -159,6 +158,9 @@ type EditableProps = BaseProps & {
   selectedTokens?: TroveTokenWithQuantity[];
   limit?: number;
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
+  children?: (renderProps: {
+    selectedItems: TroveTokenWithQuantity[];
+  }) => React.ReactNode;
 };
 
 type Props = ViewOnlyProps | EditableProps;
@@ -661,28 +663,39 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               </p>
             )}
             <div className="sticky bottom-0 mt-2 space-y-3 bg-night-1100/50 backdrop-blur-sm">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex rounded-lg bg-night-800 p-4">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="text-sm text-night-400">Total</span>
+                  {!props.viewOnly &&
+                    props.children &&
+                    props.children({
+                      selectedItems,
+                    })}
+                </div>
                 <Button
-                  size="md"
-                  variant="secondary"
+                  size="xs"
+                  className="p-0 text-[#28A0F0] hover:bg-transparent hover:text-[#28A0F0]/90"
+                  variant="ghost"
                   onClick={() => setSelectedItems([])}
                 >
                   Clear
                 </Button>
-                <Close asChild>
-                  <Button
-                    disabled={buttonDisabled}
-                    size="md"
-                    onClick={() => props.onSubmit(selectedItems)}
-                  >
-                    {props.limit && buttonDisabled
-                      ? `Add ${props.limit - totalQuantity} Item${
-                          props.limit - totalQuantity > 1 ? "s" : ""
-                        }`
-                      : "Save selections"}
-                  </Button>
-                </Close>
               </div>
+
+              <DialogClose asChild>
+                <Button
+                  disabled={buttonDisabled}
+                  size="md"
+                  className="w-full"
+                  onClick={() => props.onSubmit(selectedItems)}
+                >
+                  {props.limit && buttonDisabled
+                    ? `Add ${props.limit - totalQuantity} Item${
+                        props.limit - totalQuantity > 1 ? "s" : ""
+                      }`
+                    : "Save selections"}
+                </Button>
+              </DialogClose>
             </div>
           </div>
         </div>

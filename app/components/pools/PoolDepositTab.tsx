@@ -6,6 +6,7 @@ import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
+import { TotalDisplayInner } from "../item_selection/TotalDisplayInner";
 import { TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
@@ -215,7 +216,17 @@ export const PoolDepositTab = ({
                 isExactB: false,
               })
             }
-          />
+          >
+            {({ selectedItems }) => {
+              return (
+                <TotalDisplay
+                  rawAmount={String(selectedItems.length)}
+                  isExactB={isExactB}
+                  pool={pool}
+                />
+              );
+            }}
+          </SelectionPopup>
         ) : null}
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
@@ -346,6 +357,52 @@ export const PoolDepositTab = ({
         </TransactionButton>
       </div>
     </div>
+  );
+};
+
+const TotalDisplay = ({
+  rawAmount,
+  pool,
+  isExactB,
+}: {
+  rawAmount: string;
+  pool: Pool;
+  isExactB: boolean;
+}) => {
+  const amount = parseUnits(
+    rawAmount as NumberString,
+    isExactB ? pool.quoteToken.decimals : pool.baseToken.decimals
+  );
+
+  const amountA = isExactB
+    ? quote(
+        amount,
+        BigInt(pool.quoteToken.reserveBI),
+        BigInt(pool.baseToken.reserveBI)
+      )
+    : amount;
+  const amountB = isExactB
+    ? amount
+    : quote(
+        amount,
+        BigInt(pool.baseToken.reserveBI),
+        BigInt(pool.quoteToken.reserveBI)
+      );
+
+  const formattedTokenInAmount = formatTokenAmount(
+    amountA,
+    pool.baseToken.decimals
+  );
+  const formattedTokenOutAmount = formatTokenAmount(
+    amountB,
+    pool.quoteToken?.decimals ?? 18
+  );
+
+  return (
+    <TotalDisplayInner
+      token={isExactB ? pool.baseToken : pool.quoteToken}
+      total={isExactB ? formattedTokenInAmount : formattedTokenOutAmount}
+    />
   );
 };
 
