@@ -25,6 +25,7 @@ import type { TroveFilters } from "~/api/tokens.server";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
+import { sumArray } from "~/lib/array";
 import { getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -158,9 +159,7 @@ type EditableProps = BaseProps & {
   selectedTokens?: TroveTokenWithQuantity[];
   limit?: number;
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
-  children?: (renderProps: {
-    selectedItems: TroveTokenWithQuantity[];
-  }) => React.ReactNode;
+  children?: (renderProps: { amount: string }) => React.ReactNode;
 };
 
 type Props = ViewOnlyProps | EditableProps;
@@ -669,7 +668,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   {!props.viewOnly &&
                     props.children &&
                     props.children({
-                      selectedItems,
+                      amount: String(
+                        sumArray(selectedItems.map(({ quantity }) => quantity))
+                      ),
                     })}
                 </div>
                 <Button

@@ -209,10 +209,10 @@ export const PoolDepositTab = ({
               })
             }
           >
-            {({ selectedItems }) => {
+            {({ amount }) => {
               return (
                 <TotalDisplay
-                  rawAmount={String(selectedItems.length)}
+                  rawAmount={amount}
                   isExactB={isExactB}
                   pool={pool}
                 />

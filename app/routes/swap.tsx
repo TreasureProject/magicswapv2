@@ -57,7 +57,7 @@ import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
 import { sumArray } from "~/lib/array";
-import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
@@ -677,10 +677,10 @@ const SwapTokenInput = ({
                           selectedTokens={selectedNfts}
                           onSubmit={onSelectNfts}
                         >
-                          {({ selectedItems }) => {
+                          {({ amount }) => {
                             return (
                               <TotalDisplay
-                                amount={String(selectedItems.length)}
+                                amount={amount}
                                 isExactOut={isOut}
                               />
                             );
@@ -859,12 +859,9 @@ const SwapTokenInput = ({
                     selectedTokens={selectedNfts}
                     onSubmit={onSelectNfts}
                   >
-                    {({ selectedItems }) => {
+                    {({ amount }) => {
                       return (
-                        <TotalDisplay
-                          amount={String(selectedItems.length)}
-                          isExactOut={isOut}
-                        />
+                        <TotalDisplay amount={amount} isExactOut={isOut} />
                       );
                     }}
                   </SelectionPopup>
