@@ -122,7 +122,7 @@ export const PoolDepositTab = ({
       enabled: !isQuoteTokenApproved,
     });
 
-  const { addLiquidity, isSuccess: isAddLiquiditySuccess } = useAddLiquidity({
+  const { addLiquidity } = useAddLiquidity({
     pool,
     amountBase: amountA,
     amountQuote: amountB,
@@ -134,6 +134,18 @@ export const PoolDepositTab = ({
       : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
     nfts: isExactB ? nftsB : nftsA,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
+    onSuccess: () => {
+      setTransaction({
+        amount: "0",
+        nftsA: [],
+        nftsB: [],
+        isExactB: false,
+      });
+      refetchBaseTokenBalance();
+      refetchQuoteTokenBalance();
+      setCheckedTerms(false);
+      onSuccess?.();
+    },
   });
 
   const estimatedLp = getLpCountForTokens(
@@ -155,26 +167,6 @@ export const PoolDepositTab = ({
       refetchQuoteTokenApproval();
     }
   }, [isApproveQuoteTokenSuccess, refetchQuoteTokenApproval]);
-
-  useEffect(() => {
-    if (isAddLiquiditySuccess) {
-      setTransaction({
-        amount: "0",
-        nftsA: [],
-        nftsB: [],
-        isExactB: false,
-      });
-      refetchBaseTokenBalance();
-      refetchQuoteTokenBalance();
-      setCheckedTerms(false);
-      onSuccess?.();
-    }
-  }, [
-    isAddLiquiditySuccess,
-    refetchBaseTokenBalance,
-    refetchQuoteTokenBalance,
-    onSuccess,
-  ]);
 
   const insufficientBalanceA = !pool.baseToken.isNFT
     ? parseFloat(

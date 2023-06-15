@@ -176,14 +176,14 @@ export default function PoolDetailsPage() {
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
-  const revalidator = useRevalidator();
+  const { revalidate, state } = useRevalidator();
 
   const refresh = useCallback(() => {
-    if (revalidator.state === "idle") {
-      revalidator.revalidate();
+    if (state === "idle") {
+      revalidate();
     }
     refetchLpBalance();
-  }, [revalidator, refetchLpBalance]);
+  }, [refetchLpBalance, revalidate, state]);
 
   useFocusInterval(refresh, 5000);
 
@@ -196,6 +196,7 @@ export default function PoolDetailsPage() {
         <ChevronLeftIcon className="h-4" />
         All Pools
       </Link>
+      <Button onClick={refresh}>onClick</Button>
       <div className="mt-6">
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
@@ -399,7 +400,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={() => refresh()}
+            onSuccess={refresh}
           />
         </div>
         {/*Here the pool & inventory start */}
@@ -496,7 +497,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={() => refresh()}
+            onSuccess={refresh}
           />
         </SheetContent>
       </Sheet>
