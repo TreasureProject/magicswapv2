@@ -56,9 +56,9 @@ import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
-import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { countTokens } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
@@ -288,9 +288,7 @@ export default function SwapPage() {
           }
           onSelectNfts={(tokens) =>
             setTrade({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
+              amount: countTokens(tokens).toString(),
               nftsIn: tokens,
               nftsOut: [],
               isExactOut: false,
@@ -327,9 +325,7 @@ export default function SwapPage() {
           }
           onSelectNfts={(tokens) =>
             setTrade({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
+              amount: countTokens(tokens).toString(),
               nftsIn: [],
               nftsOut: tokens,
               isExactOut: true,

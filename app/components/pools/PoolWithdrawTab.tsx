@@ -12,11 +12,11 @@ import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { useStore } from "~/hooks/useStore";
-import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
+import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { NumberString, TroveTokenWithQuantity } from "~/types";
 
@@ -296,10 +296,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               !address ||
               !isApproved ||
               !hasAmount ||
-              Number(amountNFTsA) !==
-                sumArray(nftsA.map(({ quantity }) => quantity)) ||
-              Number(amountNFTsB) !==
-                sumArray(nftsB.map(({ quantity }) => quantity))
+              Number(amountNFTsA) !== countTokens(nftsA) ||
+              Number(amountNFTsB) !== countTokens(nftsB)
             }
             onClick={() => removeLiquidity?.()}
           >

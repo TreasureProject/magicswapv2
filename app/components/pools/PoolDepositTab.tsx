@@ -18,11 +18,11 @@ import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
-import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
+import { countTokens } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
@@ -195,17 +195,41 @@ export const PoolDepositTab = ({
             type="inventory"
             token={selectingToken}
             selectedTokens={
-              selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+              selectingToken.id === pool.baseToken.id ? nftsA : nftsB
             }
             onSubmit={(tokens) => {
-              const isExactB = selectingToken?.id === pool.quoteToken.id;
-              setTransaction({
-                amount: sumArray(
-                  tokens.map(({ quantity }) => quantity)
-                ).toString(),
-                nftsA: isExactB ? [] : tokens,
-                nftsB: isExactB ? tokens : [],
-                isExactB,
+              const amountTokens = countTokens(tokens);
+              const isSelectingB = selectingToken.id === pool.quoteToken.id;
+              setTransaction((curr) => {
+                const amountNFTsA = countTokens(curr.nftsA);
+                const amountNFTsB = countTokens(curr.nftsB);
+                // Determine if we should treat this seleciton as a new transaction
+                if (
+                  (amountNFTsA === 0 && amountNFTsB === 0) || // user hasn't selecting anything previously
+                  (isSelectingB &&
+                    amountNFTsB > 0 &&
+                    amountNFTsB !== amountTokens) || // user previously selected NFTs B, but changed the amount
+                  (!isSelectingB &&
+                    amountNFTsA > 0 &&
+                    amountNFTsA !== amountTokens) // user previously selected NFTs A, but changed the amount
+                ) {
+                  return {
+                    amount: amountTokens.toString(),
+                    nftsA: isSelectingB ? [] : tokens,
+                    nftsB: isSelectingB ? tokens : [],
+                    isExactB: isSelectingB,
+                  };
+                }
+
+                // Not a new transaction, treat this simply as an NFT selection
+                const next = { ...curr };
+                if (isSelectingB) {
+                  next.nftsB = tokens;
+                } else {
+                  next.nftsA = tokens;
+                }
+
+                return next;
               });
             }}
           >
