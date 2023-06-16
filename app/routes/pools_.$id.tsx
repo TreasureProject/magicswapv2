@@ -223,15 +223,17 @@ export default function PoolDetailsPage() {
                     <div className="space-y-4 rounded-md bg-night-1100 p-4">
                       <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
                         <h3 className="font-medium">Your Positions</h3>
-                        <span className="text-night-200">
-                          <abbr
-                            title="Total Value Locked"
-                            className="text-night-600 no-underline"
-                          >
-                            TVL
-                          </abbr>
-                          : {formatUSD(lpShare * pool.reserveUSD)}
-                        </span>
+                        {pool.reserveUSD > 0 ? (
+                          <span className="text-night-200">
+                            <abbr
+                              title="Total Value Locked"
+                              className="text-night-600 no-underline"
+                            >
+                              TVL
+                            </abbr>
+                            : {formatUSD(lpShare * pool.reserveUSD)}
+                          </span>
+                        ) : null}
                       </div>
                       <div className="flex flex-col space-y-2 px-2 py-4">
                         <div className="flex items-center -space-x-1">
@@ -277,16 +279,18 @@ export default function PoolDetailsPage() {
                                   )}
                                 </p>
                               </div>
-                              <p className="text-xs text-night-500">
-                                {formatUSD(
-                                  lpShare *
-                                    bigIntToNumber(
-                                      BigInt(token.reserve),
-                                      token.decimals
-                                    ) *
-                                    token.priceUSD
-                                )}
-                              </p>
+                              {token.priceUSD > 0 ? (
+                                <p className="text-xs text-night-500">
+                                  {formatUSD(
+                                    lpShare *
+                                      bigIntToNumber(
+                                        BigInt(token.reserve),
+                                        token.decimals
+                                      ) *
+                                      token.priceUSD
+                                  )}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         ))}
@@ -309,15 +313,17 @@ export default function PoolDetailsPage() {
             <div className="rounded-md bg-night-1100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-medium">Pool Reserves</h3>
-                <span className="text-night-200">
-                  <abbr
-                    title="Total Value Locked"
-                    className="text-night-600 no-underline"
-                  >
-                    TVL
-                  </abbr>
-                  : <span className="">{formatUSD(pool.reserveUSD)}</span>
-                </span>
+                {pool.reserveUSD > 0 ? (
+                  <span className="text-night-200">
+                    <abbr
+                      title="Total Value Locked"
+                      className="text-night-600 no-underline"
+                    >
+                      TVL
+                    </abbr>
+                    : <span className="">{formatUSD(pool.reserveUSD)}</span>
+                  </span>
+                ) : null}
               </div>
               <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
                 <p className="justify-self-end text-night-400">
@@ -360,22 +366,23 @@ export default function PoolDetailsPage() {
                             token.decimals
                           )}
                         </p>
-                        <p className="text-xs text-night-400">
-                          {formatUSD(
-                            bigIntToNumber(
-                              BigInt(token.reserve),
-                              token.decimals
-                            ) * token.priceUSD
-                          )}
-                        </p>
+                        {token.priceUSD > 0 ? (
+                          <p className="text-xs text-night-400">
+                            {formatUSD(
+                              bigIntToNumber(
+                                BigInt(token.reserve),
+                                token.decimals
+                              ) * token.priceUSD
+                            )}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-
-            <div className="flex w-full flex-col gap-3 sm:flex-row ">
+            <div className="flex w-full flex-col gap-3 sm:flex-row">
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Volume (24h)</p>
                 <p className="font-medium text-night-100">
@@ -707,7 +714,7 @@ const PoolActivityTable = ({
                           {tx.type}
                         </td>
                         <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                          {formatUSD(tx.amountUSD)}
+                          {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td>
                         <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
                           {truncateEthAddress(tx.user.id)}
