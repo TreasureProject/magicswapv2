@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import Balancer from "react-wrap-balancer";
 import type { useContractWrite } from "wagmi";
 import { useWaitForTransaction as useWaitForTransactionWagmi } from "wagmi";
-import type { SendTransactionResult } from "wagmi/dist/actions";
 
 import { useBlockExplorer } from "./useBlockExplorer";
 import type { Optional } from "~/types";

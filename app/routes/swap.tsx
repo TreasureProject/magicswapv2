@@ -57,6 +57,7 @@ import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { bigIntToNumber } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -161,10 +162,21 @@ export default function SwapPage() {
     isExactOut,
   });
 
+  const amountNFTsIn = countTokens(nftsIn);
+  const amountNFTsOut = countTokens(nftsOut);
+
   const { amountIn, amountOut, tokenIn, tokenOut, path, priceImpact } =
     swapRoute;
 
-  const hasAmounts = amountIn > 0 && amountOut > 0;
+  const hasAmounts =
+    amountIn > 0 &&
+    amountOut > 0 &&
+    (!tokenIn.isNFT ||
+      Math.floor(bigIntToNumber(amountIn, tokenIn.decimals)) ===
+        amountNFTsIn) &&
+    (!tokenOut?.isNFT ||
+      Math.floor(bigIntToNumber(amountOut, tokenOut.decimals)) ===
+        amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
@@ -286,14 +298,29 @@ export default function SwapPage() {
               isExactOut: false,
             })
           }
-          onSelectNfts={(tokens) =>
-            setTrade({
-              amount: countTokens(tokens).toString(),
-              nftsIn: tokens,
-              nftsOut: [],
-              isExactOut: false,
-            })
-          }
+          onSelectNfts={(tokens) => {
+            const amountTokens = countTokens(tokens);
+            setTrade((curr) => {
+              // Determine if we should treat this seleciton as a new transaction
+              if (
+                (amountNFTsIn === 0 && amountNFTsOut === 0) || // user hasn't selecting anything previously
+                (amountNFTsIn > 0 && amountNFTsIn !== amountTokens) // user previously selected NFTs in, but changed the amount
+              ) {
+                return {
+                  amount: amountTokens.toString(),
+                  nftsIn: tokens,
+                  nftsOut: [],
+                  isExactOut: false,
+                };
+              }
+
+              // Not a new transaction, treat this simply as an NFT selection
+              return {
+                ...curr,
+                nftsIn: tokens,
+              };
+            });
+          }}
         />
         <Link
           to={`/swap?in=${tokenOut?.id}&out=${tokenIn.id}`}
@@ -323,14 +350,29 @@ export default function SwapPage() {
               isExactOut: true,
             })
           }
-          onSelectNfts={(tokens) =>
-            setTrade({
-              amount: countTokens(tokens).toString(),
-              nftsIn: [],
-              nftsOut: tokens,
-              isExactOut: true,
-            })
-          }
+          onSelectNfts={(tokens) => {
+            const amountTokens = countTokens(tokens);
+            setTrade((curr) => {
+              // Determine if we should treat this seleciton as a new transaction
+              if (
+                (amountNFTsIn === 0 && amountNFTsOut === 0) || // user hasn't selecting anything previously
+                (amountNFTsOut > 0 && amountNFTsOut !== amountTokens) // user previously selected NFTs out, but changed the amount
+              ) {
+                return {
+                  amount: amountTokens.toString(),
+                  nftsIn: [],
+                  nftsOut: tokens,
+                  isExactOut: true,
+                };
+              }
+
+              // Not a new transaction, treat this simply as an NFT selection
+              return {
+                ...curr,
+                nftsOut: tokens,
+              };
+            });
+          }}
         />
         <div className="mt-4 space-y-4">
           <ClientOnly>
@@ -690,7 +732,11 @@ const SwapTokenInput = ({
                       disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      Select Items
+                      {Number(amount)
+                        ? Number(amount) === 1
+                          ? "Select Item"
+                          : `Select ${amount} Items`
+                        : "Select Items"}
                     </Button>
                   </>
                 )}
