@@ -25,8 +25,7 @@ import type { TroveFilters } from "~/api/tokens.server";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
-import { sumArray } from "~/lib/array";
-import { getTroveTokenQuantity } from "~/lib/tokens";
+import { countTokens, getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.collections.$slug";
@@ -668,9 +667,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   {!props.viewOnly &&
                     props.children &&
                     props.children({
-                      amount: String(
-                        sumArray(selectedItems.map(({ quantity }) => quantity))
-                      ),
+                      amount: String(countTokens(selectedItems)),
                     })}
                 </div>
                 <Button

@@ -47,6 +47,8 @@ export const createPoolFromPair = (
     token1: poolToken1,
     baseToken,
     quoteToken,
+    hasNFT: baseToken.isNFT || quoteToken.isNFT,
+    isNFTNFT: baseToken.isNFT && quoteToken.isNFT,
     reserveUSD,
     volume24h,
     volume1w,

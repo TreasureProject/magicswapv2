@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useAccount } from "~/contexts/account";
 import {
   useMagicSwapV2RouterSwapExactTokensForTokens,
@@ -51,6 +52,7 @@ export const useSwap = ({
   statusHeader: propsStatusHeader,
 }: Props) => {
   const { address, addressArg } = useAccount();
+  const routerAddress = useMagicSwapV2RouterAddress();
   const state = useStore(useSettingsStore, (state) => state);
   const [statusHeader, setStatusHeader] = useState<React.ReactNode>("");
 
@@ -87,6 +89,7 @@ export const useSwap = ({
   // ERC20-ERC20, exact in
   const { config: swapExactTokensForTokensConfig } =
     usePrepareMagicSwapV2RouterSwapExactTokensForTokens({
+      address: routerAddress,
       args: [amountIn, amountOutMin, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
     });
@@ -103,6 +106,7 @@ export const useSwap = ({
   // ERC20-ERC20, exact out
   const { config: swapTokensForExactTokensConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForExactTokens({
+      address: routerAddress,
       args: [amountOut, amountInMax, path, addressArg, deadlineBN],
       enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
     });
@@ -119,6 +123,7 @@ export const useSwap = ({
   // ERC20-NFT
   const { config: swapTokensForNftConfig } =
     usePrepareMagicSwapV2RouterSwapTokensForNft({
+      address: routerAddress,
       args: [
         collectionsOut,
         tokenIdsOut,
@@ -142,6 +147,7 @@ export const useSwap = ({
   // NFT-ERC20
   const { config: swapNftForTokensConfig } =
     usePrepareMagicSwapV2RouterSwapNftForTokens({
+      address: routerAddress,
       args: [
         collectionsIn,
         tokenIdsIn,
@@ -165,6 +171,7 @@ export const useSwap = ({
   // NFT-NFT
   const { config: swapNftForNftConfig } =
     usePrepareMagicSwapV2RouterSwapNftForNft({
+      address: routerAddress,
       args: [
         collectionsIn,
         tokenIdsIn,

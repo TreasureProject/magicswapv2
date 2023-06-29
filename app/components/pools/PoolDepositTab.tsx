@@ -18,11 +18,11 @@ import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useStore } from "~/hooks/useStore";
-import { sumArray } from "~/lib/array";
 import { formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
+import { countTokens } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
@@ -125,15 +125,16 @@ export const PoolDepositTab = ({
 
   const { addLiquidity } = useAddLiquidity({
     pool,
-    amountBase: amountA,
-    amountQuote: amountB,
-    amountBaseMin: isExactB
+    amountA,
+    amountB,
+    amountAMin: isExactB
       ? getAmountMin(amountA, slippage || DEFAULT_SLIPPAGE)
       : amountA,
-    amountQuoteMin: isExactB
+    amountBMin: isExactB
       ? amountB
       : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
-    nfts: isExactB ? nftsB : nftsA,
+    nftsA,
+    nftsB,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
     onSuccess: () => {
       setTransaction({
@@ -154,8 +155,6 @@ export const PoolDepositTab = ({
     BigInt(pool.baseToken.reserve),
     BigInt(pool.totalSupply)
   );
-
-  const requiresTerms = pool.baseToken.isNFT || pool.quoteToken.isNFT;
 
   useEffect(() => {
     if (isApproveBaseTokenSuccess) {
@@ -196,18 +195,43 @@ export const PoolDepositTab = ({
             type="inventory"
             token={selectingToken}
             selectedTokens={
-              selectingToken?.id === pool.baseToken.id ? nftsA : nftsB
+              selectingToken.id === pool.baseToken.id ? nftsA : nftsB
             }
-            onSubmit={(tokens) =>
-              setTransaction({
-                amount: sumArray(
-                  tokens.map(({ quantity }) => quantity)
-                ).toString(),
-                nftsA: selectingToken?.id === pool.baseToken.id ? tokens : [],
-                nftsB: selectingToken?.id === pool.quoteToken.id ? tokens : [],
-                isExactB: false,
-              })
-            }
+            onSubmit={(tokens) => {
+              const amountTokens = countTokens(tokens);
+              const isSelectingB = selectingToken.id === pool.quoteToken.id;
+              setTransaction((curr) => {
+                const amountNFTsA = countTokens(curr.nftsA);
+                const amountNFTsB = countTokens(curr.nftsB);
+                // Determine if we should treat this seleciton as a new transaction
+                if (
+                  (amountNFTsA === 0 && amountNFTsB === 0) || // user hasn't selecting anything previously
+                  (isSelectingB &&
+                    amountNFTsB > 0 &&
+                    amountNFTsB !== amountTokens) || // user previously selected NFTs B, but changed the amount
+                  (!isSelectingB &&
+                    amountNFTsA > 0 &&
+                    amountNFTsA !== amountTokens) // user previously selected NFTs A, but changed the amount
+                ) {
+                  return {
+                    amount: amountTokens.toString(),
+                    nftsA: isSelectingB ? [] : tokens,
+                    nftsB: isSelectingB ? tokens : [],
+                    isExactB: isSelectingB,
+                  };
+                }
+
+                // Not a new transaction, treat this simply as an NFT selection
+                const next = { ...curr };
+                if (isSelectingB) {
+                  next.nftsB = tokens;
+                } else {
+                  next.nftsA = tokens;
+                }
+
+                return next;
+              });
+            }}
           >
             {({ amount }) => {
               return (
@@ -223,6 +247,11 @@ export const PoolDepositTab = ({
         {pool.baseToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.baseToken}
+            amount={
+              isExactB
+                ? bigIntToNumber(amountA, pool.baseToken.decimals)
+                : undefined
+            }
             balance={nftBalance0}
             selectedNfts={nftsA}
             onOpenSelect={setSelectingToken}
@@ -250,6 +279,11 @@ export const PoolDepositTab = ({
         {pool.quoteToken.isNFT ? (
           <PoolNftTokenInput
             token={pool.quoteToken}
+            amount={
+              isExactB
+                ? undefined
+                : bigIntToNumber(amountB, pool.quoteToken.decimals)
+            }
             balance={nftBalance1}
             selectedNfts={nftsB}
             onOpenSelect={setSelectingToken}
@@ -298,7 +332,7 @@ export const PoolDepositTab = ({
           },
         ]}
       />
-      {requiresTerms && (
+      {pool.hasNFT && (
         <LabeledCheckbox
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
@@ -317,7 +351,7 @@ export const PoolDepositTab = ({
             !hasAmount ||
             insufficientBalanceA ||
             insufficientBalanceB ||
-            (requiresTerms && !checkedTerms)
+            (pool.hasNFT && !checkedTerms)
           }
           onClick={() => {
             if (!isBaseTokenApproved) {

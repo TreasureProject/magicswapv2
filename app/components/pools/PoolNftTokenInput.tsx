@@ -1,11 +1,11 @@
 import { Await } from "@remix-run/react";
-import { Fragment, Suspense } from "react";
+import { Suspense } from "react";
 
 import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatAmount, formatTokenAmount } from "~/lib/currency";
+import { formatTokenAmount } from "~/lib/currency";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { TroveTokenWithQuantity } from "~/types";
@@ -23,15 +23,20 @@ export const PoolNftTokenInput = ({
   balance?: Promise<number> | null;
   reserve?: bigint;
   selectedNfts: TroveTokenWithQuantity[];
-  onOpenSelect: (token: PoolToken) => void;
+  onOpenSelect?: (token: PoolToken) => void;
 }) => {
   const isVault = typeof reserve !== "undefined";
   return (
     <div className="overflow-hidden rounded-lg bg-night-1100">
       <div className="flex gap-3 p-4">
         <PoolTokenImage className="h-10 w-10" token={token} />
-        <div className="flex flex-1 items-center justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-1">
+        <div
+          className={cn(
+            "flex flex-1 justify-between gap-3",
+            selectedNfts.length > 0 ? "items-start" : "items-center"
+          )}
+        >
+          <div className="flex-1 space-y-1">
             <p className="truncate text-sm font-medium sm:text-xl">
               {token.name}
             </p>
@@ -42,7 +47,7 @@ export const PoolNftTokenInput = ({
             )}
           </div>
           {selectedNfts.length > 0 ? (
-            <div className="flex items-center space-x-2">
+            <div className="flex grow flex-wrap items-center justify-end space-x-2">
               {selectedNfts.length > 5 ? (
                 <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
                   <p className="text-xs font-semibold text-night-500">
@@ -50,16 +55,16 @@ export const PoolNftTokenInput = ({
                   </p>
                 </div>
               ) : null}
-              <div
-                className={cn("text-center", {
-                  "flex -space-x-5": token.type === "ERC721",
+              <ul
+                className={cn("flex items-center", {
+                  "-space-x-5": token.type === "ERC721",
                 })}
               >
                 {selectedNfts
                   .slice(0, Math.min(selectedNfts.length, 5))
                   .map((nft) => {
                     return (
-                      <Fragment key={nft.tokenId}>
+                      <li key={nft.tokenId} className="text-center">
                         <img
                           className="h-10 w-10 rounded border-2 border-night-1100 sm:h-12 sm:w-12"
                           src={nft.image.uri}
@@ -70,17 +75,17 @@ export const PoolNftTokenInput = ({
                             {nft.quantity}x
                           </p>
                         ) : null}
-                      </Fragment>
+                      </li>
                     );
                   })}
-              </div>
+              </ul>
             </div>
           ) : (
             <DialogTrigger asChild>
               <Button
                 variant="dark"
                 size="md"
-                onClick={() => onOpenSelect(token)}
+                onClick={() => onOpenSelect?.(token)}
               >
                 {amount
                   ? amount === 1
@@ -109,7 +114,7 @@ export const PoolNftTokenInput = ({
         </p>
         {selectedNfts.length > 0 ? (
           <DialogTrigger asChild>
-            <Button variant="ghost" onClick={() => onOpenSelect(token)}>
+            <Button variant="ghost" onClick={() => onOpenSelect?.(token)}>
               Edit Selection
             </Button>
           </DialogTrigger>

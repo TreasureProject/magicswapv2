@@ -56,9 +56,10 @@ import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
-import { sumArray } from "~/lib/array";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { countTokens } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
@@ -161,10 +162,22 @@ export default function SwapPage() {
     isExactOut,
   });
 
+  const amountNFTsIn = countTokens(nftsIn);
+  const amountNFTsOut = countTokens(nftsOut);
+
   const { amountIn, amountOut, tokenIn, tokenOut, path, priceImpact } =
     swapRoute;
 
-  const hasAmounts = amountIn > 0 && amountOut > 0;
+  const limitNFTsIn = Math.floor(bigIntToNumber(amountIn, tokenIn.decimals));
+  const limitNFTsOut = Math.floor(
+    bigIntToNumber(amountOut, tokenOut?.decimals)
+  );
+
+  const hasAmounts =
+    amountIn > 0 &&
+    amountOut > 0 &&
+    (!tokenIn.isNFT || limitNFTsIn === amountNFTsIn) &&
+    (!tokenOut?.isNFT || limitNFTsOut === amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
@@ -275,8 +288,15 @@ export default function SwapPage() {
           otherToken={tokenOut}
           isOut={false}
           balance={tokenInBalance?.value}
-          amount={isExactOut ? formattedTokenInAmount : amount}
+          amount={
+            isExactOut
+              ? tokenIn.isNFT
+                ? limitNFTsIn.toString()
+                : formattedTokenInAmount
+              : amount
+          }
           selectedNfts={nftsIn}
+          nftLimit={amountNFTsOut > 0 && isExactOut ? limitNFTsIn : undefined}
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -286,16 +306,29 @@ export default function SwapPage() {
               isExactOut: false,
             })
           }
-          onSelectNfts={(tokens) =>
-            setTrade({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
-              nftsIn: tokens,
-              nftsOut: [],
-              isExactOut: false,
-            })
-          }
+          onSelectNfts={(tokens) => {
+            const amountTokens = countTokens(tokens);
+            setTrade((curr) => {
+              // Determine if we should treat this seleciton as a new transaction
+              if (
+                (amountNFTsIn === 0 && amountNFTsOut === 0) || // user hasn't selecting anything previously
+                (amountNFTsIn > 0 && amountNFTsIn !== amountTokens) // user previously selected NFTs in, but changed the amount
+              ) {
+                return {
+                  amount: amountTokens.toString(),
+                  nftsIn: tokens,
+                  nftsOut: [],
+                  isExactOut: false,
+                };
+              }
+
+              // Not a new transaction, treat this simply as an NFT selection
+              return {
+                ...curr,
+                nftsIn: tokens,
+              };
+            });
+          }}
         />
         <Link
           to={`/swap?in=${tokenOut?.id}&out=${tokenIn.id}`}
@@ -314,8 +347,15 @@ export default function SwapPage() {
           otherToken={tokenIn}
           isOut
           balance={tokenOutBalance?.value}
-          amount={isExactOut ? amount : formattedTokenOutAmount}
+          amount={
+            isExactOut
+              ? amount
+              : tokenOut?.isNFT
+              ? limitNFTsOut.toString()
+              : formattedTokenOutAmount
+          }
           selectedNfts={nftsOut}
+          nftLimit={!isExactOut && amountNFTsIn > 0 ? limitNFTsOut : undefined}
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -325,16 +365,29 @@ export default function SwapPage() {
               isExactOut: true,
             })
           }
-          onSelectNfts={(tokens) =>
-            setTrade({
-              amount: sumArray(
-                tokens.map(({ quantity }) => quantity)
-              ).toString(),
-              nftsIn: [],
-              nftsOut: tokens,
-              isExactOut: true,
-            })
-          }
+          onSelectNfts={(tokens) => {
+            const amountTokens = countTokens(tokens);
+            setTrade((curr) => {
+              // Determine if we should treat this seleciton as a new transaction
+              if (
+                (amountNFTsIn === 0 && amountNFTsOut === 0) || // user hasn't selecting anything previously
+                (amountNFTsOut > 0 && amountNFTsOut !== amountTokens) // user previously selected NFTs out, but changed the amount
+              ) {
+                return {
+                  amount: amountTokens.toString(),
+                  nftsIn: [],
+                  nftsOut: tokens,
+                  isExactOut: true,
+                };
+              }
+
+              // Not a new transaction, treat this simply as an NFT selection
+              return {
+                ...curr,
+                nftsOut: tokens,
+              };
+            });
+          }}
         />
         <div className="mt-4 space-y-4">
           <ClientOnly>
@@ -501,8 +554,14 @@ export default function SwapPage() {
                           className="mt-4"
                           swapRoute={swapRoute}
                           isExactOut={isExactOut}
-                          amountInMax={amountInMax}
-                          amountOutMin={amountOutMin}
+                          amountInMax={
+                            tokenIn.isNFT ? floorBigInt(amountIn) : amountInMax
+                          }
+                          amountOutMin={
+                            tokenOut?.isNFT
+                              ? floorBigInt(amountOut)
+                              : amountOutMin
+                          }
                         />
                         <div className="mt-4 grid grid-cols-3 gap-3">
                           <Button
@@ -551,6 +610,7 @@ const SwapTokenInput = ({
   balance = BigInt(0),
   amount,
   selectedNfts,
+  nftLimit,
   onSelect,
   onUpdateAmount,
   onSelectNfts,
@@ -562,6 +622,7 @@ const SwapTokenInput = ({
   balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
+  nftLimit?: number;
   onSelect: (token: PoolToken) => void;
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
@@ -675,6 +736,7 @@ const SwapTokenInput = ({
                           type={isOut ? "vault" : "inventory"}
                           token={token}
                           selectedTokens={selectedNfts}
+                          limit={nftLimit}
                           onSubmit={onSelectNfts}
                         >
                           {({ amount }) => {
@@ -694,7 +756,11 @@ const SwapTokenInput = ({
                       disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      Select Items
+                      {Number(amount)
+                        ? `Select ${amount} ${
+                            Number(amount) === 1 ? "Item" : "Items"
+                          }`
+                        : "Select Items"}
                     </Button>
                   </>
                 )}
@@ -857,6 +923,7 @@ const SwapTokenInput = ({
                     type={isOut ? "vault" : "inventory"}
                     token={token}
                     selectedTokens={selectedNfts}
+                    limit={nftLimit}
                     onSubmit={onSelectNfts}
                   >
                     {({ amount }) => {

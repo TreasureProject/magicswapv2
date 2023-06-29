@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 
 import type { SwapRoute } from "~/hooks/useSwapRoute";
 import { formatAmount, formatTokenAmount } from "~/lib/currency";
-import { formatPercent } from "~/lib/number";
+import { floorBigInt, formatPercent } from "~/lib/number";
 import { cn } from "~/lib/utils";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
@@ -29,6 +29,7 @@ export const SwapRoutePanel = ({
   amountOutMin,
   className,
 }: Props) => {
+  const isNFTNFT = tokenIn.isNFT && !!tokenOut?.isNFT;
   return (
     <div
       className={cn(
@@ -72,7 +73,20 @@ export const SwapRoutePanel = ({
               <span>{formatPercent(royaltiesFee)}</span>
             </li>
           )}
-          {isExactOut ? (
+          {isNFTNFT ? (
+            <li className="flex items-center justify-between">
+              NFT dust sent to pool
+              <span>
+                {formatTokenAmount(
+                  isExactOut
+                    ? amountIn - floorBigInt(amountIn)
+                    : amountOut - floorBigInt(amountOut),
+                  isExactOut ? tokenIn.decimals : tokenOut.decimals
+                )}{" "}
+                {isExactOut ? tokenIn.symbol : tokenOut.symbol}
+              </span>
+            </li>
+          ) : isExactOut ? (
             <li className="flex items-center justify-between">
               Maximum spent
               <span>
