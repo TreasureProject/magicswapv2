@@ -12,7 +12,11 @@ const getTroveCollections = async (
       .join(",")
   );
 
-  const response = await fetch(url.toString());
+  const response = await fetch(url.toString(), {
+    headers: {
+      "X-API-Key": process.env.TROVE_API_KEY,
+    },
+  });
   return response.json();
 };
 

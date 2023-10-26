@@ -23,7 +23,11 @@ export const fetchUser = async (address: string) => {
 };
 
 export const fetchDomain = async (address: string) => {
-  const res = await fetch(`${process.env.TROVE_API_URL}/domain/${address}`);
+  const res = await fetch(`${process.env.TROVE_API_URL}/domain/${address}`, {
+    headers: {
+      "X-API-Key": process.env.TROVE_API_KEY,
+    },
+  });
 
   if (!res.ok) {
     throw new Error(`Error fetching domain: ${res.statusText}`);

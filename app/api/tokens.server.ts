@@ -78,7 +78,12 @@ export const fetchToken = async (id: string) =>
 
 export const fetchFilters = async (slug: string) => {
   const response = await fetch(
-    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`
+    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`,
+    {
+      headers: {
+        "X-API-Key": process.env.TROVE_API_KEY,
+      },
+    }
   );
 
   const { traitsMap } = (await response.json()) as TraitsResponse;
@@ -132,6 +137,7 @@ export const fetchCollectionOwnedByAddress = async (
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-API-Key": process.env.TROVE_API_KEY,
         },
         body: JSON.stringify(
           filterNullValues({
@@ -167,6 +173,7 @@ export const fetchTroveTokens = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-API-Key": process.env.TROVE_API_KEY,
     },
     body: JSON.stringify({
       ids: ids.map((id) => `${process.env.TROVE_API_NETWORK}/${id}`),
@@ -189,7 +196,11 @@ export const fetchUserCollectionBalance = async (
   url.searchParams.set("userAddress", address);
   url.searchParams.set("slugs", slug);
 
-  const response = await fetch(url.toString());
+  const response = await fetch(url.toString(), {
+    headers: {
+      "X-API-Key": process.env.TROVE_API_KEY,
+    },
+  });
   const result = (await response.json()) as TroveCollection[];
   return result[0]?.numTokensOwnedByUser ?? 0;
 };
