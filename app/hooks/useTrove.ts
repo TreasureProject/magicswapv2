@@ -1,5 +1,5 @@
 import { useChainId } from "wagmi";
-import { arbitrumGoerli } from "wagmi/chains";
+import { arbitrumSepolia } from "wagmi/chains";
 
 const createCollectionUrl = (url: string, slug: string) =>
   `${url}/collection/${slug}`;
@@ -7,7 +7,7 @@ const createCollectionUrl = (url: string, slug: string) =>
 export const useTrove = () => {
   const chainId = useChainId();
   const url =
-    chainId === arbitrumGoerli.id
+    chainId === arbitrumSepolia.id
       ? "https://trove-testnet.treasure.lol"
       : "https://trove.treasure.lol";
   return {

@@ -14,7 +14,7 @@ import {
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
-import { uniswapV2PairABI } from "~/generated";
+import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
 import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
@@ -72,7 +72,7 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
     client.multicall({
       contracts: pairs.map(({ id }) => ({
         address: id as AddressString,
-        abi: uniswapV2PairABI,
+        abi: uniswapV2PairAbi,
         functionName: "getReserves",
       })),
     }),

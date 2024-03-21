@@ -1,11 +1,11 @@
 import { DialogClose } from "@radix-ui/react-dialog";
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { defer } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
-import { useFetcher } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/react";
 import {
   Await,
   Link,
+  useFetcher,
   useLoaderData,
   useLocation,
   useRevalidator,
@@ -20,9 +20,9 @@ import {
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
-import { ClientOnly } from "remix-utils";
+import { ClientOnly } from "remix-utils/client-only";
 import { formatUnits } from "viem";
-import { useBalance } from "wagmi";
+import { useBalance, useReadContract } from "wagmi";
 
 import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
@@ -51,6 +51,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
+import { useReadErc20BalanceOf } from "~/generated";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useSwap } from "~/hooks/useSwap";
@@ -66,7 +67,7 @@ import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 
-export const meta: V2_MetaFunction<
+export const meta: MetaFunction<
   typeof loader,
   {
     root: RootLoader;
@@ -90,7 +91,7 @@ export const meta: V2_MetaFunction<
   });
 };
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const [pools, session] = await Promise.all([
     fetchPools(),
     getSession(request.headers.get("Cookie")),
@@ -183,13 +184,17 @@ export default function SwapPage() {
   const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
     address,
     token: tokenIn.id as AddressString,
-    enabled: isConnected && !tokenIn.isNFT,
+    query: {
+      enabled: isConnected && !tokenIn.isNFT,
+    },
   });
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
     {
       address,
       token: tokenOut?.id as AddressString,
-      enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
+      query: {
+        enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
+      },
     }
   );
 
@@ -1082,34 +1087,39 @@ const Token = ({
   disabled: boolean;
   onSelect: (token: PoolToken) => void;
 }) => {
-  const { address } = useAccount();
+  const { addressArg } = useAccount();
   const {
     load: loadNFTBalance,
     state: nftBalanceStatus,
-    data: { balance: nftBalance = 0 } = {},
+    data,
   } = useFetcher<FetchNFTBalanceLoader>();
 
-  const { data: balance, status } = useBalance({
-    address,
-    token: token.id as AddressString,
-    enabled: !!address && !token.isNFT,
+  const { data: balance, fetchStatus } = useReadErc20BalanceOf({
+    address: token.id as AddressString,
+    args: [addressArg],
+    query: {
+      enabled: !!addressArg && !token.isNFT,
+    },
   });
 
   useEffect(() => {
-    if (!token.urlSlug || !address) {
+    if (!token.urlSlug || !addressArg) {
       return;
     }
 
     const params = new URLSearchParams({
-      address,
+      address: addressArg,
     });
 
     loadNFTBalance(
       `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
     );
-  }, [address, loadNFTBalance, token.urlSlug]);
+  }, [addressArg, loadNFTBalance, token.urlSlug]);
 
-  const isLoading = status === "loading" || nftBalanceStatus === "loading";
+  const isLoading =
+    fetchStatus === "fetching" || nftBalanceStatus === "loading";
+
+  const nftBalance = data && data.ok ? data.balance : null;
 
   return (
     <li
@@ -1130,11 +1140,11 @@ const Token = ({
         </div>
         {isLoading ? (
           <LoaderIcon className="h-4 w-4" />
-        ) : address ? (
+        ) : addressArg ? (
           <p className="text-base-400 text-sm">
             {token.isNFT
               ? nftBalance
-              : formatTokenAmount(balance?.value ?? BigInt(0), token.decimals)}
+              : formatTokenAmount(balance ?? BigInt(0), token.decimals)}
           </p>
         ) : null}
       </div>

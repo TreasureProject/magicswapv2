@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import type { NetworkInfo } from "@sushiswap/tines";
 import {
   ConstantProductRPool,
@@ -10,7 +9,7 @@ import { parseUnits } from "viem";
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
 import type { PoolToken } from "./tokens.server";
-import type { NumberString } from "~/types";
+import type { AddressString, NumberString } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);
@@ -49,12 +48,12 @@ export const createSwapRoute = (
   const rPools = pools.map(
     ({ id, token0, token1, reserve0, reserve1, totalFee }) => {
       return new ConstantProductRPool(
-        id,
+        id as AddressString,
         tokenToRToken(token0),
         tokenToRToken(token1),
         Number(totalFee ?? 0),
-        BigNumber.from(parseUnits(reserve0 as NumberString, token0.decimals)),
-        BigNumber.from(parseUnits(reserve1 as NumberString, token0.decimals))
+        BigInt(parseUnits(reserve0 as NumberString, token0.decimals)),
+        BigInt(parseUnits(reserve1 as NumberString, token0.decimals))
       );
     }
   );
@@ -70,7 +69,7 @@ export const createSwapRoute = (
     },
   ];
 
-  const amountBN = BigNumber.from(amount.toString());
+  const amountBN = BigInt(amount);
 
   if (isExactOut) {
     return findMultiRouteExactOut(

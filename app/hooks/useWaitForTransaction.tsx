@@ -2,8 +2,8 @@ import { ExternalLinkIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import Balancer from "react-wrap-balancer";
-import type { useContractWrite } from "wagmi";
-import { useWaitForTransaction as useWaitForTransactionWagmi } from "wagmi";
+import type { useWriteContract } from "wagmi";
+import { useWaitForTransactionReceipt as useWaitForTransactionWagmi } from "wagmi";
 
 import { useBlockExplorer } from "./useBlockExplorer";
 import type { Optional } from "~/types";
@@ -22,7 +22,7 @@ const renderStatusWithHeader = (
 
 export const useWaitForTransaction = (
   transaction: Parameters<typeof useWaitForTransactionWagmi>[0],
-  status: ReturnType<typeof useContractWrite>["status"],
+  status: ReturnType<typeof useWriteContract>["status"],
   statusHeader?: React.ReactNode
 ) => {
   const toastId = useRef<Optional<string>>(undefined);
@@ -45,7 +45,7 @@ export const useWaitForTransaction = (
   };
 
   useEffect(() => {
-    if (status === "loading" || transactionResult.status === "loading") {
+    if (status === "pending" && transactionResult.status === "pending") {
       setToastStatus("loading");
     } else if (status === "error" || transactionResult.status === "error") {
       setToastStatus("error");

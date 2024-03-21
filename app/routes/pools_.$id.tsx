@@ -1,8 +1,8 @@
 import { defer } from "@remix-run/node";
 import type {
-  LoaderArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
   SerializeFrom,
-  V2_MetaFunction,
 } from "@remix-run/node";
 import {
   Await,
@@ -29,7 +29,7 @@ import React, {
   useCallback,
   useState,
 } from "react";
-import { ClientOnly } from "remix-utils";
+import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
 import { useAccount, useBalance } from "wagmi";
 
@@ -84,7 +84,7 @@ const Suspense = ({ children }: { children: React.ReactNode }) => (
   </ReactSuspense>
 );
 
-export const meta: V2_MetaFunction<
+export const meta: MetaFunction<
   typeof loader,
   {
     root: RootLoader;
@@ -106,7 +106,7 @@ export const meta: V2_MetaFunction<
   });
 };
 
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   invariant(params.id, "Pool ID required");
 
   const [pool, session] = await Promise.all([
@@ -169,7 +169,9 @@ export default function PoolDetailsPage() {
   const { data: rawLpBalance, refetch: refetchLpBalance } = useBalance({
     address,
     token: pool.id as AddressString,
-    enabled: !!address,
+    query: {
+      enabled: !!address,
+    },
   });
 
   const lpBalance = rawLpBalance?.value ?? BigInt(0);

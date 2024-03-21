@@ -1,6 +1,6 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { defer } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/react";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Suspense, useState } from "react";
 
@@ -18,7 +18,7 @@ import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const address = session.get("address");
 
@@ -35,7 +35,7 @@ export async function loader({ request }: LoaderArgs) {
   });
 }
 
-export const meta: V2_MetaFunction<
+export const meta: MetaFunction<
   typeof loader,
   {
     root: RootLoader;

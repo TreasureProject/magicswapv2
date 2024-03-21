@@ -1,9 +1,9 @@
 import { createPublicClient, http } from "viem";
-import { arbitrumGoerli } from "viem/chains";
+import { arbitrumSepolia } from "viem/chains";
 
 export const client = createPublicClient({
-  chain: arbitrumGoerli,
+  chain: arbitrumSepolia,
   transport: http(
-    `${arbitrumGoerli.rpcUrls.alchemy.http[0]}/${process.env.PUBLIC_ALCHEMY_KEY}`
+    `${arbitrumSepolia.rpcUrls.default.http[0]}/${process.env.PUBLIC_ALCHEMY_KEY}`
   ),
 });

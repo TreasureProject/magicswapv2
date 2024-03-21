@@ -78,7 +78,8 @@ export const TransactionButton = React.forwardRef<
   return (
     <ConnectKitButton.Custom>
       {({ isConnected, chain, show }) => {
-        const unsupported = chain?.unsupported ?? true;
+        const unsupported = chain?.unsupported ?? false;
+        console.log({ chain });
         const isDisabled = disabled && isConnected && !unsupported;
 
         const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {

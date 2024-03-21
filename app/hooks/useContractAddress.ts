@@ -1,11 +1,11 @@
-import { arbitrum, arbitrumGoerli } from "viem/chains";
+import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
 
 import type { AddressString } from "~/types";
 
 const CONTRACT_ADDRESSES = {
-  [arbitrumGoerli.id]: {
-    MagicSwapV2Router: "0xe9a62dedde9ecc1527832fce2c8147481af0c1c3",
+  [arbitrumSepolia.id]: {
+    MagicSwapV2Router: "0x5C22f12214b7e4A6b7FE3428595B90e2388DA26B",
   },
   [arbitrum.id]: {
     MagicSwapV2Router: "",
@@ -18,7 +18,7 @@ export const useContractAddress = (contract: Contract) => {
   const chainId = useChainId();
   const addresses =
     CONTRACT_ADDRESSES[
-      chainId === arbitrumGoerli.id ? arbitrumGoerli.id : arbitrum.id
+      chainId === arbitrumSepolia.id ? arbitrumSepolia.id : arbitrum.id
     ];
   return addresses[contract] as AddressString;
 };

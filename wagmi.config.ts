@@ -1,8 +1,7 @@
 import { defineConfig } from "@wagmi/cli";
-import { etherscan, react } from "@wagmi/cli/plugins";
+import {  react } from "@wagmi/cli/plugins";
 import { erc1155ABI } from "./artifacts/ERC1155";
-import { erc20ABI, erc721ABI } from "wagmi";
-import { arbitrumGoerli } from "wagmi/chains";
+import { erc20Abi, erc721Abi } from "viem";
 import { uniswapV2PairABI } from "./artifacts/UniswapV2Pair";
 import { magicSwapV2RouterABI } from "./artifacts/MagicSwapV2Router";
 
@@ -11,11 +10,11 @@ export default defineConfig({
   contracts: [
     {
       name: "ERC20",
-      abi: erc20ABI,
+      abi: erc20Abi,
     },
     {
       name: "ERC721",
-      abi: erc721ABI,
+      abi: erc721Abi,
     },
     {
       name: "ERC1155",
@@ -31,19 +30,6 @@ export default defineConfig({
     }
   ],
   plugins: [
-    // Unable to use this right now due to unverified contracts
-    // etherscan({
-    //   apiKey: process.env.ARBISCAN_API_KEY ?? "",
-    //   chainId: arbitrumGoerli.id,
-    //   contracts: [
-    //     {
-    //       name: "MagicSwapV2Router",
-    //       address: {
-    //         [arbitrumGoerli.id]: "0x37fc6b8b979beeaa969ef1c15ba23bce0cd50dae",
-    //       },
-    //     },
-    //   ],
-    // }),
     react(),
   ],
 });

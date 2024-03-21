@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import { parseUnits } from "viem";
 
 import { multiplyArray, sumArray } from "~/lib/array";
@@ -30,8 +29,8 @@ export const useSwapRoute = ({
   const isSampleRoute = amountBI <= 0;
 
   const {
-    amountInBN = BigNumber.from(0),
-    amountOutBN = BigNumber.from(0),
+    amountInBI = BigInt(0),
+    amountOutBI = BigInt(0),
     legs = [],
     priceImpact = 0,
   } = createSwapRoute(
@@ -67,8 +66,8 @@ export const useSwapRoute = ({
   })[];
 
   return {
-    amountIn: BigInt(isSampleRoute ? 0 : amountInBN.toString()),
-    amountOut: BigInt(isSampleRoute ? 0 : amountOutBN.toString()),
+    amountIn: BigInt(isSampleRoute ? 0 : amountInBI.toString()),
+    amountOut: BigInt(isSampleRoute ? 0 : amountOutBI.toString()),
     tokenIn: poolLegs[0]?.tokenFrom ?? tokenIn,
     tokenOut: poolLegs[poolLegs.length - 1]?.tokenTo ?? tokenOut ?? undefined,
     legs,

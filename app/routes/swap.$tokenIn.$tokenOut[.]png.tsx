@@ -1,6 +1,5 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { MagicSwapLogoFull } from "@treasure-project/branding";
-import { image } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchToken } from "~/api/tokens.server";
@@ -11,7 +10,7 @@ import {
   generateOgImage,
 } from "~/lib/og.server";
 
-export const loader = async ({ request, params }: LoaderArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
   const inputAddress = params.tokenIn;
@@ -70,10 +69,10 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     origin
   );
 
-  return image(png, {
+  return new Response(png, {
     status: 200,
-    type: "image/png",
     headers: {
+      "Content-Type": "image/png",
       "cache-control":
         process.env.NODE_ENV === "development"
           ? "no-cache, no-store"

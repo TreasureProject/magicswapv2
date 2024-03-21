@@ -2,12 +2,12 @@ import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
-  useMagicSwapV2RouterAddLiquidity,
-  useMagicSwapV2RouterAddLiquidityNft,
-  useMagicSwapV2RouterAddLiquidityNftnft,
-  usePrepareMagicSwapV2RouterAddLiquidity,
-  usePrepareMagicSwapV2RouterAddLiquidityNft,
-  usePrepareMagicSwapV2RouterAddLiquidityNftnft,
+  useSimulateMagicSwapV2RouterAddLiquidity,
+  useSimulateMagicSwapV2RouterAddLiquidityNft,
+  useSimulateMagicSwapV2RouterAddLiquidityNftnft,
+  useWriteMagicSwapV2RouterAddLiquidity,
+  useWriteMagicSwapV2RouterAddLiquidityNft,
+  useWriteMagicSwapV2RouterAddLiquidityNftnft,
 } from "~/generated";
 import { useStore } from "~/hooks/useStore";
 import type { Pool } from "~/lib/pools.server";
@@ -50,8 +50,8 @@ export const useAddLiquidity = ({
   const statusHeader = propsStatusHeader ?? `Deposit for ${pool.name} LP`;
 
   // ERC20-ERC20
-  const { config: tokenAddLiquidityConfig } =
-    usePrepareMagicSwapV2RouterAddLiquidity({
+  const { data: tokenAddLiquidityConfig } =
+    useSimulateMagicSwapV2RouterAddLiquidity({
       address: routerAddress,
       args: [
         pool.baseToken.id as AddressString,
@@ -63,20 +63,21 @@ export const useAddLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.hasNFT,
+      },
     });
-  const tokenAddLiquidity = useMagicSwapV2RouterAddLiquidity(
-    tokenAddLiquidityConfig
-  );
+  const tokenAddLiquidity = useWriteMagicSwapV2RouterAddLiquidity();
+
   useWaitForTransaction(
-    { ...tokenAddLiquidity.data, onSuccess },
+    { hash: tokenAddLiquidity.data },
     tokenAddLiquidity.status,
     statusHeader
   );
 
   // NFT-ERC20
-  const { config: nftAddLiquidityConfig } =
-    usePrepareMagicSwapV2RouterAddLiquidityNft({
+  const { data: nftAddLiquidityConfig } =
+    useSimulateMagicSwapV2RouterAddLiquidityNft({
       address: routerAddress,
       args: [
         {
@@ -93,20 +94,21 @@ export const useAddLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      },
     });
-  const nftAddLiquidity = useMagicSwapV2RouterAddLiquidityNft(
-    nftAddLiquidityConfig
-  );
+  const nftAddLiquidity = useWriteMagicSwapV2RouterAddLiquidityNft();
+
   useWaitForTransaction(
-    { ...nftAddLiquidity.data, onSuccess },
+    { hash: nftAddLiquidity.data },
     nftAddLiquidity.status,
     statusHeader
   );
 
   // NFT-NFT
-  const { config: nftNFTAddLiquidityConfig } =
-    usePrepareMagicSwapV2RouterAddLiquidityNftnft({
+  const { data: nftNFTAddLiquidityConfig } =
+    useSimulateMagicSwapV2RouterAddLiquidityNftnft({
       address: routerAddress,
       args: [
         {
@@ -128,25 +130,25 @@ export const useAddLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && pool.isNFTNFT,
+      query: {
+        enabled: isEnabled && pool.isNFTNFT,
+      },
     });
-  const nftNFTAddLiquidity = useMagicSwapV2RouterAddLiquidityNftnft(
-    nftNFTAddLiquidityConfig
-  );
+  const nftNFTAddLiquidity = useWriteMagicSwapV2RouterAddLiquidityNftnft();
   useWaitForTransaction(
-    { ...nftNFTAddLiquidity.data, onSuccess },
+    { hash: nftNFTAddLiquidity.data },
     nftNFTAddLiquidity.status,
     statusHeader
   );
 
   return {
     addLiquidity: () => {
-      if (pool.isNFTNFT) {
-        nftNFTAddLiquidity.write?.();
-      } else if (pool.hasNFT) {
-        nftAddLiquidity.write?.();
-      } else {
-        tokenAddLiquidity.write?.();
+      if (pool.isNFTNFT && nftNFTAddLiquidityConfig?.request) {
+        nftNFTAddLiquidity.writeContract(nftNFTAddLiquidityConfig?.request);
+      } else if (pool.hasNFT && nftAddLiquidityConfig?.request) {
+        nftAddLiquidity.writeContract(nftAddLiquidityConfig?.request);
+      } else if (tokenAddLiquidityConfig?.request) {
+        tokenAddLiquidity.writeContract(tokenAddLiquidityConfig?.request);
       }
     },
   };

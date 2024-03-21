@@ -1,6 +1,5 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { MagicSwapLogoFull } from "@treasure-project/branding";
-import { image } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
@@ -15,7 +14,7 @@ import {
 
 const PILL_BG = "rgba(64, 70, 82, 0.6)";
 
-export const loader = async ({ request, params }: LoaderArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
   invariant(params.id, "Missing pool id");
@@ -191,10 +190,10 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     origin
   );
 
-  return image(png, {
+  return new Response(png, {
     status: 200,
-    type: "image/png",
     headers: {
+      "Content-Type": "image/png",
       "cache-control":
         process.env.NODE_ENV === "development"
           ? "no-cache, no-store"

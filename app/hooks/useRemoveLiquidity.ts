@@ -2,12 +2,12 @@ import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
-  useMagicSwapV2RouterRemoveLiquidity,
-  useMagicSwapV2RouterRemoveLiquidityNft,
-  useMagicSwapV2RouterRemoveLiquidityNftnft,
-  usePrepareMagicSwapV2RouterRemoveLiquidity,
-  usePrepareMagicSwapV2RouterRemoveLiquidityNft,
-  usePrepareMagicSwapV2RouterRemoveLiquidityNftnft,
+  useSimulateMagicSwapV2RouterRemoveLiquidity,
+  useSimulateMagicSwapV2RouterRemoveLiquidityNft,
+  useSimulateMagicSwapV2RouterRemoveLiquidityNftnft,
+  useWriteMagicSwapV2RouterRemoveLiquidity,
+  useWriteMagicSwapV2RouterRemoveLiquidityNft,
+  useWriteMagicSwapV2RouterRemoveLiquidityNftnft,
 } from "~/generated";
 import { useStore } from "~/hooks/useStore";
 import type { Pool } from "~/lib/pools.server";
@@ -48,8 +48,8 @@ export const useRemoveLiquidity = ({
   const statusHeader = propsStatusHeader ?? `Withdraw from ${pool.name} LP`;
 
   // ERC20-ERC20
-  const { config: tokenRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidity({
+  const { data: tokenRemoveLiquidityConfig } =
+    useSimulateMagicSwapV2RouterRemoveLiquidity({
       address: routerAddress,
       args: [
         pool.baseToken.id as AddressString,
@@ -60,20 +60,20 @@ export const useRemoveLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.hasNFT,
+      },
     });
-  const tokenRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidity(
-    tokenRemoveLiquidityConfig
-  );
+  const tokenRemoveLiquidity = useWriteMagicSwapV2RouterRemoveLiquidity();
   useWaitForTransaction(
-    { ...tokenRemoveLiquidity.data, onSuccess },
+    { hash: tokenRemoveLiquidity.data },
     tokenRemoveLiquidity.status,
     statusHeader
   );
 
   // NFT-ERC20
-  const { config: nftRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidityNft({
+  const { data: nftRemoveLiquidityConfig } =
+    useSimulateMagicSwapV2RouterRemoveLiquidityNft({
       address: routerAddress,
       args: [
         {
@@ -92,20 +92,20 @@ export const useRemoveLiquidity = ({
         deadlineBN,
         true, // swapLeftover
       ],
-      enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      },
     });
-  const nftRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidityNft(
-    nftRemoveLiquidityConfig
-  );
+  const nftRemoveLiquidity = useWriteMagicSwapV2RouterRemoveLiquidityNft();
   useWaitForTransaction(
-    { ...nftRemoveLiquidity.data, onSuccess },
+    { hash: nftRemoveLiquidity.data },
     nftRemoveLiquidity.status,
     statusHeader
   );
 
   // NFT-NFT
-  const { config: nftNFTRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidityNftnft({
+  const { data: nftNFTRemoveLiquidityConfig } =
+    useSimulateMagicSwapV2RouterRemoveLiquidityNftnft({
       address: routerAddress,
       args: [
         {
@@ -130,25 +130,28 @@ export const useRemoveLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && pool.isNFTNFT,
+      query: {
+        enabled: isEnabled && pool.isNFTNFT,
+      },
     });
-  const nftNFTRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidityNftnft(
-    nftNFTRemoveLiquidityConfig
-  );
+  const nftNFTRemoveLiquidity =
+    useWriteMagicSwapV2RouterRemoveLiquidityNftnft();
   useWaitForTransaction(
-    { ...nftNFTRemoveLiquidity.data, onSuccess },
+    { hash: nftNFTRemoveLiquidity.data },
     nftNFTRemoveLiquidity.status,
     statusHeader
   );
 
   return {
     removeLiquidity: () => {
-      if (pool.isNFTNFT) {
-        nftNFTRemoveLiquidity.write?.();
-      } else if (pool.hasNFT) {
-        nftRemoveLiquidity.write?.();
-      } else {
-        tokenRemoveLiquidity.write?.();
+      if (pool.isNFTNFT && nftNFTRemoveLiquidityConfig?.request) {
+        nftNFTRemoveLiquidity.writeContract(
+          nftNFTRemoveLiquidityConfig?.request
+        );
+      } else if (pool.hasNFT && nftRemoveLiquidityConfig?.request) {
+        nftRemoveLiquidity.writeContract(nftRemoveLiquidityConfig?.request);
+      } else if (tokenRemoveLiquidityConfig?.request) {
+        tokenRemoveLiquidity.writeContract(tokenRemoveLiquidityConfig?.request);
       }
     },
   };
