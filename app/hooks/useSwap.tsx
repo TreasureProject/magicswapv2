@@ -14,7 +14,6 @@ import {
   useWriteMagicSwapV2RouterSwapTokensForExactTokens,
   useWriteMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
-import { useStore } from "~/hooks/useStore";
 import { useWaitForTransaction } from "~/hooks/useWaitForTransaction";
 import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
@@ -50,7 +49,7 @@ export const useSwap = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
   const routerAddress = useMagicSwapV2RouterAddress();
-  const state = useStore(useSettingsStore, (state) => state);
+  const state = useSettingsStore();
   const [statusHeader, setStatusHeader] = useState<React.ReactNode>("");
 
   const isEnabled = enabled && !!address && !!tokenOut;

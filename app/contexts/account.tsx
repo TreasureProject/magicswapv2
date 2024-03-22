@@ -1,8 +1,7 @@
-import { useFetcher, useSubmit } from "@remix-run/react";
+import { useFetcher } from "@remix-run/react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
-import type { ConnectorEventMap } from "wagmi";
-import { useAccountEffect, useAccount as wagmiUseAccount } from "wagmi";
+import { useAccount as wagmiUseAccount } from "wagmi";
 
 import type { AddressString, Optional } from "~/types";
 
@@ -32,44 +31,15 @@ export const useAccount = () => {
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { submit } = useFetcher();
-  const { isConnected, address, connector } = wagmiUseAccount();
+  const { isConnected, address } = wagmiUseAccount();
 
-  // TODO: Also fix this. its causing an infinite loop for now
-  // useAccountEffect({
-  //   onConnect: ({ address }) => {
-  //     if (address) {
-  //       submit({ address }, { method: "put", action: "/resources/session" });
-  //     } else {
-  //       submit({}, { method: "delete", action: "/resources/session" });
-  //     }
-  //   },
-  //   onDisconnect: () => {
-  //     submit({}, { method: "delete", action: "/resources/session" });
-  //   },
-  // });
-
-  // TODO: fix this
-  // useEffect(() => {
-  //   const handleConnectorUpdate = ({
-  //     accounts,
-  //   }: ConnectorEventMap["change"]) => {
-  //     if (accounts && accounts[0]) {
-  //       submit(
-  //         { address: accounts[0] },
-  //         { method: "put", action: "/resources/session" }
-  //       );
-  //     }
-  //   };
-
-  //   if (connector) {
-  //     console.log(connector);
-  //     connector.emitter.on("change", handleConnectorUpdate);
-  //   }
-
-  //   return () => {
-  //     connector?.emitter.off("change", handleConnectorUpdate);
-  //   };
-  // }, [connector, submit]);
+  useEffect(() => {
+    if (address) {
+      submit({ address }, { method: "put", action: "/resources/session" });
+    } else {
+      submit({}, { method: "delete", action: "/resources/session" });
+    }
+  }, [address, submit]);
 
   return (
     <Context.Provider

@@ -41,7 +41,7 @@ export const useAddLiquidity = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
   const routerAddress = useMagicSwapV2RouterAddress();
-  const deadline = useStore(useSettingsStore, (state) => state.deadline);
+  const deadline = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;
   const deadlineBN = BigInt(

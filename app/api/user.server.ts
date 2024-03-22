@@ -11,7 +11,7 @@ export const fetchUser = async (address: string) => {
   })) as ExecutionResult<getUserQuery>;
   const { user } = result.data ?? {};
   if (!user) {
-    return undefined;
+    return null;
   }
 
   return {

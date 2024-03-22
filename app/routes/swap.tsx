@@ -22,7 +22,6 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { formatUnits } from "viem";
-import { useBalance, useReadContract } from "wagmi";
 
 import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
@@ -120,6 +119,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       tokenIn,
       tokenOut,
       tokenInNFTBalance: null,
+      address,
     });
   }
 
@@ -129,6 +129,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tokenIn,
     tokenOut,
     tokenInNFTBalance: fetchUserCollectionBalance(tokenIn.urlSlug, address),
+    address,
   });
 }
 
@@ -181,22 +182,22 @@ export default function SwapPage() {
     (!tokenOut?.isNFT || limitNFTsOut === amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
-  const { data: tokenInBalance, refetch: refetchTokenInBalance } = useBalance({
-    address,
-    token: tokenIn.id as AddressString,
-    query: {
-      enabled: isConnected && !tokenIn.isNFT,
-    },
-  });
-  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } = useBalance(
-    {
-      address,
-      token: tokenOut?.id as AddressString,
+  const { data: tokenInBalance, refetch: refetchTokenInBalance } =
+    useReadErc20BalanceOf({
+      address: tokenIn.id as AddressString,
+      args: [address as AddressString],
+      query: {
+        enabled: isConnected && !tokenIn.isNFT,
+      },
+    });
+  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
+    useReadErc20BalanceOf({
+      address: tokenOut?.id as AddressString,
+      args: [address as AddressString],
       query: {
         enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
       },
-    }
-  );
+    });
 
   const {
     isApproved: isTokenInApproved,
@@ -292,7 +293,7 @@ export default function SwapPage() {
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
-          balance={tokenInBalance?.value}
+          balance={tokenInBalance}
           amount={
             isExactOut
               ? tokenIn.isNFT
@@ -351,7 +352,7 @@ export default function SwapPage() {
           token={tokenOut}
           otherToken={tokenIn}
           isOut
-          balance={tokenOutBalance?.value}
+          balance={tokenOutBalance}
           amount={
             isExactOut
               ? amount

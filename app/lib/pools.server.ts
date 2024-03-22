@@ -4,6 +4,8 @@ import { createPoolToken } from "./tokens.server";
 import type { NumberString, Pair, TroveCollectionMapping } from "~/types";
 
 const getPoolAPY = (volume1w: number, reserveUSD: number) => {
+  // returns NaN if reserveUSD is 0.
+  if (reserveUSD === 0) return 0;
   const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
   return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
 };

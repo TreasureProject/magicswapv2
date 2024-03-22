@@ -103,10 +103,10 @@ export const Footer = () => {
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-6 w-auto sm:h-14" />
               <h1 className="max-w-xs text-lg font-bold text-night-500 sm:text-2xl">
-                {/* <Balancer> */}
-                The gateway to the cross-game{" "}
-                <span className="text-night-100">economy</span>
-                {/* </Balancer> */}
+                <Balancer>
+                  The gateway to the cross-game{" "}
+                  <span className="text-night-100">economy</span>
+                </Balancer>
               </h1>
             </div>
             <div className="flex max-w-min items-center divide-x-[1px] divide-night-700 overflow-hidden rounded-lg border border-night-700 text-night-600">

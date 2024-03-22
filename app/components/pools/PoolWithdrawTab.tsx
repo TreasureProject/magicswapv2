@@ -11,7 +11,6 @@ import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
-import { useStore } from "~/hooks/useStore";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
@@ -28,7 +27,7 @@ type Props = {
 
 export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const { address } = useAccount();
-  const slippage = useStore(useSettingsStore, (state) => state.slippage);
+  const slippage = useSettingsStore((state) => state.slippage);
   const [{ amount: rawAmount, nftsA, nftsB }, setTransaction] = useState({
     amount: "0",
     nftsA: [] as TroveTokenWithQuantity[],

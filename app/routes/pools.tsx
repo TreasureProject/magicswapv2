@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { defer } from "@remix-run/node";
+import { defer, json } from "@remix-run/node";
 import type { MetaFunction } from "@remix-run/react";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Suspense, useState } from "react";
@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
 
   if (!address) {
-    return defer({
+    return json({
       pools: await fetchPools(),
       user: null,
     });

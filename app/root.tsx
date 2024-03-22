@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { ShouldRevalidateFunction } from "@remix-run/react";
 import {
@@ -25,6 +25,7 @@ import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
 import { getDomainUrl } from "./lib/seo";
 import { cn } from "./lib/utils";
+import { useSettingsStore } from "./store/settings";
 import "./styles/nprogress.css";
 import "./styles/tailwind.css";
 
@@ -97,6 +98,10 @@ export default function App() {
     if (state === "loading") NProgress.start();
     if (state === "idle") NProgress.done();
   }, [state, transition.state]);
+
+  useEffect(() => {
+    useSettingsStore.persist.rehydrate();
+  }, []);
 
   return (
     <html lang="en" className="h-full">
