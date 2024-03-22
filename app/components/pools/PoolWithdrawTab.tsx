@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { parseEther } from "viem";
 
 import { SelectionPopup } from "../item_selection/SelectionPopup";
@@ -87,10 +87,10 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
     nftsA,
     nftsB,
     enabled: !!address && isApproved && hasAmount,
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       setTransaction({ amount: "0", nftsA: [], nftsB: [] });
       onSuccess?.();
-    },
+    }, [onSuccess]),
   });
 
   useEffect(() => {

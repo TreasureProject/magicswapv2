@@ -30,6 +30,7 @@ export const useApprove = ({
   const collectionAddress = isFullToken
     ? (token.collectionId as AddressString)
     : undefined;
+
   const isERC721 = isFullToken && token.type === "ERC721";
   const isERC1155 = isFullToken && token.type === "ERC1155";
   const statusHeader =

@@ -1,6 +1,6 @@
 import { HelpCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import Balancer from "react-wrap-balancer";
+import { useCallback, useEffect, useState } from "react";
+import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 
 import Table from "../Table";
@@ -141,7 +141,7 @@ export const PoolDepositTab = ({
     nftsA,
     nftsB,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       setTransaction({
         amount: "0",
         nftsA: [],
@@ -152,7 +152,7 @@ export const PoolDepositTab = ({
       refetchQuoteTokenBalance();
       setCheckedTerms(false);
       onSuccess?.();
-    },
+    }, [onSuccess, refetchBaseTokenBalance, refetchQuoteTokenBalance]),
   });
 
   const estimatedLp = getLpCountForTokens(
@@ -365,6 +365,7 @@ export const PoolDepositTab = ({
             if (!isQuoteTokenApproved) {
               return approveQuoteToken?.();
             }
+            console.log("here");
             return addLiquidity?.();
           }}
         >

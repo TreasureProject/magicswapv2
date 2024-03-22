@@ -1,7 +1,7 @@
 import { ExternalLinkIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import Balancer from "react-wrap-balancer";
+import { Balancer } from "react-wrap-balancer";
 import type { useWriteContract } from "wagmi";
 import { useWaitForTransactionReceipt as useWaitForTransactionWagmi } from "wagmi";
 

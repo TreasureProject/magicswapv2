@@ -1,5 +1,5 @@
 import { HelpCircle } from "lucide-react";
-import Balancer from "react-wrap-balancer";
+import { Balancer } from "react-wrap-balancer";
 
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
 
