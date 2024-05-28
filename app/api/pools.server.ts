@@ -1,15 +1,13 @@
 import type { ExecutionResult } from "graphql";
 
-import type {
-  getPairQuery,
-  getPairTransactionsQuery,
-  getPairsQuery,
-} from "../../.graphclient";
 import {
   execute,
-  getPairDocument,
-  getPairTransactionsDocument,
-  getPairsDocument,
+  GetPairDocument,
+  GetPairTransactionsDocument,
+  GetPairsDocument,
+  type GetPairQuery,
+  type GetPairTransactionsQuery,
+  type GetPairsQuery,
 } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
@@ -32,9 +30,9 @@ const getPairCollectionAddresses = (pair: Pair) => [
 ];
 
 export const fetchTransactions = async (pool: Pool) => {
-  const result = (await execute(getPairTransactionsDocument, {
+  const result = (await execute(GetPairTransactionsDocument, {
     id: pool.id,
-  })) as ExecutionResult<getPairTransactionsQuery>;
+  })) as ExecutionResult<GetPairTransactionsQuery>;
   const { transactions = [] } = result.data ?? {};
 
   const tokens = await fetchTroveTokens([
@@ -95,17 +93,17 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
 
 export const fetchPools = async () => {
   const result = (await execute(
-    getPairsDocument,
+    GetPairsDocument,
     {}
-  )) as ExecutionResult<getPairsQuery>;
+  )) as ExecutionResult<GetPairsQuery>;
   const { pairs = [] } = result.data ?? {};
   return createPoolsFromPairs(pairs);
 };
 
 export const fetchPool = async (id: string) => {
-  const result = (await execute(getPairDocument, {
+  const result = (await execute(GetPairDocument, {
     id,
-  })) as ExecutionResult<getPairQuery>;
+  })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;
   if (!pair) {
     return undefined;

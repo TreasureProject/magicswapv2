@@ -1,8 +1,8 @@
-import type { getPairsQuery } from ".graphclient";
+import type { GetPairsQuery } from ".graphclient";
 
 /** Environment and helpers */
 export type EnvVar =
-  | "PUBLIC_ALCHEMY_KEY"
+  | "PUBLIC_THIRDWEB_CLIENT_ID"
   | "PUBLIC_NODE_ENV"
   | "PUBLIC_ENABLE_TESTNETS"
   | "MAGICSWAPV2_API_URL"
@@ -23,7 +23,7 @@ export type NumberString = `${number}`;
 
 /** Data Transfer Objects */
 // Subgraph
-export type Pair = getPairsQuery["pairs"][number];
+export type Pair = GetPairsQuery["pairs"][number];
 export type Token = Pair["token0"];
 export type Collection = NonNullable<
   Token["vaultCollections"]

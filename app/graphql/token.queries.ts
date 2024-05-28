@@ -20,7 +20,7 @@ export const TOKEN_FRAGMENT = gql`
 
 export const getToken = gql`
   ${TOKEN_FRAGMENT}
-  query getToken($id: ID!) {
+  query GetToken($id: ID!) {
     token(id: $id) {
       ...TokenFragment
     }
@@ -29,7 +29,7 @@ export const getToken = gql`
 
 export const getTokens = gql`
   ${TOKEN_FRAGMENT}
-  query getTokens {
+  query GetTokens {
     tokens {
       ...TokenFragment
     }

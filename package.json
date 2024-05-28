@@ -1,24 +1,21 @@
 {
   "name": "magicswapv2",
   "private": true,
-  "description": "",
-  "license": "",
   "type": "module",
   "sideEffects": false,
   "scripts": {
+    "dev": "remix vite:dev",
+    "generate": "graphclient build && wagmi generate",
     "build": "remix vite:build",
     "deploy": "fly deploy --remote-only",
-    "dev": "remix vite:dev",
-    "start": "remix-serve ./build/server/index.js",
-    "test": "vitest --run",
-    "test:watch": "vitest",
+    "format": "eslint --fix --quiet . && prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run",
     "typecheck": "tsc",
-    "codegen": "graphclient build && wagmi generate",
-    "lint": "prettier --write 'app/**/{*.ts,*.tsx}' && eslint --fix --no-error-on-unmatched-pattern 'app/**/{*.ts,*.tsx}'",
+    "start": "remix-serve ./build/server/index.js",
     "prepare": "husky install"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "^5.7.0",
     "@radix-ui/react-accordion": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.0.3",
     "@radix-ui/react-dialog": "^1.0.3",
@@ -64,7 +61,7 @@
     "zustand": "^4.3.8"
   },
   "devDependencies": {
-    "@graphprotocol/client-cli": "^2.2.21",
+    "@graphprotocol/client-cli": "^3.0.3",
     "@remix-run/dev": "2.8.1",
     "@remix-run/eslint-config": "2.8.1",
     "@savvywombat/tailwindcss-grid-areas": "^3.0.1",
@@ -92,19 +89,6 @@
     "vite": "^5.2.2",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.4.0"
-  },
-  "peerDependencies": {
-    "@graphql-mesh/cache-localforage": "0.7.20",
-    "@graphql-mesh/cross-helpers": "^0.3.4",
-    "@graphql-mesh/graphql": "0.34.17",
-    "@graphql-mesh/http": "0.3.29",
-    "@graphql-mesh/merger-bare": "0.16.25",
-    "@graphql-mesh/runtime": "^0.46.24",
-    "@graphql-mesh/store": "^0.9.20",
-    "@graphql-mesh/types": "^0.91.15",
-    "@graphql-mesh/utils": "^0.43.23",
-    "@graphql-typed-document-node/core": "3.2.0",
-    "@whatwg-node/fetch": "^0.8.3"
   },
   "engines": {
     "node": ">=18.15.0"

@@ -1,14 +1,13 @@
 import type { ExecutionResult } from "graphql";
 
 import { createPoolsFromPairs } from "./pools.server";
-import type { getUserQuery } from ".graphclient";
-import { execute, getUserDocument } from ".graphclient";
+import { execute, GetUserDocument, type GetUserQuery } from ".graphclient";
 import type { AccountDomains } from "~/types";
 
 export const fetchUser = async (address: string) => {
-  const result = (await execute(getUserDocument, {
+  const result = (await execute(GetUserDocument, {
     id: address,
-  })) as ExecutionResult<getUserQuery>;
+  })) as ExecutionResult<GetUserQuery>;
   const { user } = result.data ?? {};
   if (!user) {
     return null;

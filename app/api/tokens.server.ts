@@ -2,8 +2,7 @@ import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
-import type { getTokenQuery, getTokensQuery } from ".graphclient";
-import { execute, getTokenDocument, getTokensDocument } from ".graphclient";
+import { execute, GetTokenDocument, GetTokensDocument, type GetTokenQuery, type GetTokensQuery } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { cachified } from "~/lib/cache.server";
 import {
@@ -37,9 +36,9 @@ export const fetchTokens = async () =>
     key: "tokens",
     async getFreshValue() {
       const result = (await execute(
-        getTokensDocument,
+        GetTokensDocument,
         {}
-      )) as ExecutionResult<getTokensQuery>;
+      )) as ExecutionResult<GetTokensQuery>;
       const { tokens: rawTokens = [] } = result.data ?? {};
       const [collections, magicUSD] = await Promise.all([
         fetchTroveCollections([
@@ -59,9 +58,9 @@ export const fetchToken = async (id: string) =>
   cachified({
     key: `token-${id}`,
     async getFreshValue() {
-      const result = (await execute(getTokenDocument, {
+      const result = (await execute(GetTokenDocument, {
         id,
-      })) as ExecutionResult<getTokenQuery>;
+      })) as ExecutionResult<GetTokenQuery>;
       const { token: rawToken } = result.data ?? {};
 
       if (!rawToken) {
