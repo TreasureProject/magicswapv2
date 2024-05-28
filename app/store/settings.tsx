@@ -21,6 +21,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings",
+      skipHydration: true,
     }
   )
 );

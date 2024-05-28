@@ -1,20 +1,18 @@
 import type { ExecutionResult } from "graphql";
 
-import type {
-  getPairQuery,
-  getPairTransactionsQuery,
-  getPairsQuery,
-} from "../../.graphclient";
 import {
+  GetPairDocument,
+  type GetPairQuery,
+  GetPairTransactionsDocument,
+  type GetPairTransactionsQuery,
+  GetPairsDocument,
+  type GetPairsQuery,
   execute,
-  getPairDocument,
-  getPairTransactionsDocument,
-  getPairsDocument,
 } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
-import { uniswapV2PairABI } from "~/generated";
+import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
 import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
@@ -32,9 +30,9 @@ const getPairCollectionAddresses = (pair: Pair) => [
 ];
 
 export const fetchTransactions = async (pool: Pool) => {
-  const result = (await execute(getPairTransactionsDocument, {
+  const result = (await execute(GetPairTransactionsDocument, {
     id: pool.id,
-  })) as ExecutionResult<getPairTransactionsQuery>;
+  })) as ExecutionResult<GetPairTransactionsQuery>;
   const { transactions = [] } = result.data ?? {};
 
   const tokens = await fetchTroveTokens([
@@ -72,7 +70,7 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
     client.multicall({
       contracts: pairs.map(({ id }) => ({
         address: id as AddressString,
-        abi: uniswapV2PairABI,
+        abi: uniswapV2PairAbi,
         functionName: "getReserves",
       })),
     }),
@@ -95,17 +93,17 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
 
 export const fetchPools = async () => {
   const result = (await execute(
-    getPairsDocument,
+    GetPairsDocument,
     {}
-  )) as ExecutionResult<getPairsQuery>;
+  )) as ExecutionResult<GetPairsQuery>;
   const { pairs = [] } = result.data ?? {};
   return createPoolsFromPairs(pairs);
 };
 
 export const fetchPool = async (id: string) => {
-  const result = (await execute(getPairDocument, {
+  const result = (await execute(GetPairDocument, {
     id,
-  })) as ExecutionResult<getPairQuery>;
+  })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;
   if (!pair) {
     return undefined;

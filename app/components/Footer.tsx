@@ -1,6 +1,6 @@
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { Link } from "react-router-dom";
-import Balancer from "react-wrap-balancer";
+import { Balancer } from "react-wrap-balancer";
 
 import { DiscordIcon, TwitterIcon } from "~/components/Icons";
 import { media } from "~/consts";

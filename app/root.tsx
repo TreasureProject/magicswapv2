@@ -1,59 +1,38 @@
-import type { LinksFunction, LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { ShouldRevalidateFunction } from "@remix-run/react";
-import { useNavigation } from "@remix-run/react";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   useFetchers,
-  useLoaderData,
+  useNavigation,
 } from "@remix-run/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, resolveValue } from "react-hot-toast";
-import { WagmiConfig, createConfig } from "wagmi";
-import { arbitrum, arbitrumGoerli } from "wagmi/chains";
+import { WagmiProvider, createConfig, http } from "wagmi";
+import { arbitrum, arbitrumSepolia } from "wagmi/chains";
+import { injected } from "wagmi/connectors";
 
 import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
 import { getDomainUrl } from "./lib/seo";
 import { cn } from "./lib/utils";
-import nProgressStyles from "./styles/nprogress.css";
-import styles from "./styles/tailwind.css";
-import type { Env } from "./types";
+import { useSettingsStore } from "./store/settings";
+import "./styles/nprogress.css";
+import "./styles/tailwind.css";
 
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: styles },
-  { rel: "stylesheet", href: nProgressStyles },
-];
+const queryClient = new QueryClient();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const strictEntries = <T extends Record<string, any>>(
-  object: T
-): [keyof T, T[keyof T]][] => {
-  return Object.entries(object);
-};
-
-function getPublicKeys(env: Env) {
-  const publicKeys = {} as Env;
-  for (const [key, value] of strictEntries(env)) {
-    if (key.startsWith("PUBLIC_")) {
-      publicKeys[key] = value;
-    }
-  }
-  return publicKeys as Pick<Env, keyof Env & `PUBLIC_${string}`>;
-}
-
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({
-    ENV: getPublicKeys(process.env),
     requestInfo: {
       origin: getDomainUrl(request),
       path: new URL(request.url).pathname,
@@ -68,18 +47,32 @@ export const shouldRevalidate: ShouldRevalidateFunction = () => {
 export type RootLoader = typeof loader;
 
 export default function App() {
-  const { ENV } = useLoaderData<typeof loader>();
-
   const [client] = useState(() =>
     createConfig(
       getDefaultConfig({
         appName: "Magicswap",
-        alchemyId: ENV.PUBLIC_ALCHEMY_KEY,
-        walletConnectProjectId: ENV.PUBLIC_WALLET_CONNECT_KEY,
-        chains: [
-          ...(ENV.PUBLIC_ENABLE_TESTNETS === "true" ? [arbitrumGoerli] : []),
-          arbitrum,
+        connectors: [
+          injected({
+            target: "metaMask",
+          }),
         ],
+        transports: {
+          [arbitrum.id]: http(
+            `https://arb-mainnet.g.alchemy.com/v2/${
+              import.meta.env.VITE_ALCHEMY_KEY
+            }`
+          ),
+          [arbitrumSepolia.id]: http(
+            `https://arb-sepolia.g.alchemy.com/v2/${
+              import.meta.env.VITE_ALCHEMY_KEY
+            }`
+          ),
+        },
+        walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_KEY,
+        chains:
+          import.meta.env.VITE_ENABLE_TESTNETS === "true"
+            ? [arbitrumSepolia, arbitrum]
+            : [arbitrum],
       })
     )
   );
@@ -105,6 +98,10 @@ export default function App() {
     if (state === "loading") NProgress.start();
     if (state === "idle") NProgress.done();
   }, [state, transition.state]);
+
+  useEffect(() => {
+    useSettingsStore.persist.rehydrate();
+  }, []);
 
   return (
     <html lang="en" className="h-full">
@@ -136,15 +133,17 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full antialiased">
-        <WagmiConfig config={client}>
-          <ConnectKitProvider>
-            <Layout>
-              <AccountProvider>
-                <Outlet />
-              </AccountProvider>
-            </Layout>
-          </ConnectKitProvider>
-        </WagmiConfig>
+        <WagmiProvider config={client}>
+          <QueryClientProvider client={queryClient}>
+            <ConnectKitProvider>
+              <Layout>
+                <AccountProvider>
+                  <Outlet />
+                </AccountProvider>
+              </Layout>
+            </ConnectKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
         <Toaster
           position="top-right"
           reverseOrder={false}
@@ -192,7 +191,6 @@ export default function App() {
         </Toaster>
         <Scripts />
         <ScrollRestoration />
-        <LiveReload />
       </body>
     </html>
   );

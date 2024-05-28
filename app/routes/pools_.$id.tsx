@@ -1,8 +1,8 @@
 import { defer } from "@remix-run/node";
 import type {
-  LoaderArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
   SerializeFrom,
-  V2_MetaFunction,
 } from "@remix-run/node";
 import {
   Await,
@@ -29,9 +29,8 @@ import React, {
   useCallback,
   useState,
 } from "react";
-import { ClientOnly } from "remix-utils";
+import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
-import { useAccount, useBalance } from "wagmi";
 
 import type {
   PoolTransaction,
@@ -56,6 +55,8 @@ import { Button } from "~/components/ui/Button";
 import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
+import { useAccount } from "~/contexts/account";
+import { useReadErc20BalanceOf } from "~/generated";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
@@ -84,7 +85,7 @@ const Suspense = ({ children }: { children: React.ReactNode }) => (
   </ReactSuspense>
 );
 
-export const meta: V2_MetaFunction<
+export const meta: MetaFunction<
   typeof loader,
   {
     root: RootLoader;
@@ -106,7 +107,7 @@ export const meta: V2_MetaFunction<
   });
 };
 
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   invariant(params.id, "Pool ID required");
 
   const [pool, session] = await Promise.all([
@@ -166,13 +167,16 @@ export default function PoolDetailsPage() {
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
-  const { data: rawLpBalance, refetch: refetchLpBalance } = useBalance({
-    address,
-    token: pool.id as AddressString,
-    enabled: !!address,
-  });
+  const { data: rawLpBalance, refetch: refetchLpBalance } =
+    useReadErc20BalanceOf({
+      address: pool.id as AddressString,
+      args: [address as AddressString],
+      query: {
+        enabled: !!address,
+      },
+    });
 
-  const lpBalance = rawLpBalance?.value ?? BigInt(0);
+  const lpBalance = rawLpBalance ?? BigInt(0);
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
@@ -583,7 +587,7 @@ const PoolActivityTable = ({
   transactions: PoolTransaction[];
   filter?: PoolTransactionType;
 }) => {
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  // const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const showPerPage = 12;
   const [activePage, setActivePage] = useState<number>(0);
   const blockExplorer = useBlockExplorer();

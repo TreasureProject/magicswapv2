@@ -3,9 +3,9 @@ import { useCallback } from "react";
 import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useAccount } from "~/contexts/account";
 import {
-  useErc20Allowance,
-  useErc721IsApprovedForAll,
-  useErc1155IsApprovedForAll,
+  useReadErc20Allowance,
+  useReadErc721IsApprovedForAll,
+  useReadErc1155IsApprovedForAll,
 } from "~/generated";
 import type { PoolToken } from "~/lib/tokens.server";
 import type { AddressString } from "~/types";
@@ -33,28 +33,34 @@ export const useIsApproved = ({
   const isERC1155 = isFullToken && token.type === "ERC1155";
   const isEnabled = !!address && enabled;
 
-  const { data: allowance, refetch: refetchAllowance } = useErc20Allowance({
+  const { data: allowance, refetch: refetchAllowance } = useReadErc20Allowance({
     address: tokenAddress,
     args: [addressArg, operator],
-    enabled: isEnabled && !isERC721 && !isERC1155,
+    query: {
+      enabled: isEnabled && !isERC721 && !isERC1155,
+    },
   });
 
   const {
     data: erc721IsApprovedForAll,
     refetch: refetchERC721IsApprovedForAll,
-  } = useErc721IsApprovedForAll({
+  } = useReadErc721IsApprovedForAll({
     address: collectionAddress,
     args: [addressArg, operator],
-    enabled: isEnabled && !!collectionAddress && isERC721,
+    query: {
+      enabled: isEnabled && !!collectionAddress && isERC721,
+    },
   });
 
   const {
     data: erc1155IsApprovedForAll,
     refetch: refetchERC1155IsApprovedForAll,
-  } = useErc1155IsApprovedForAll({
+  } = useReadErc1155IsApprovedForAll({
     address: collectionAddress,
     args: [addressArg, operator],
-    enabled: isEnabled && !!collectionAddress && isERC1155,
+    query: {
+      enabled: isEnabled && !!collectionAddress && isERC1155,
+    },
   });
 
   const refetch = useCallback(() => {

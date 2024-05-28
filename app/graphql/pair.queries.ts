@@ -43,7 +43,7 @@ export const PAIR_FRAGMENT = gql`
 
 export const getPairTransactions = gql`
   ${TRANSACTION_ITEM_FRAGMENT}
-  query getPairTransactions($id: String!) {
+  query GetPairTransactions($id: String!) {
     transactions(
       where: { pair: $id }
       orderBy: timestamp
@@ -73,7 +73,7 @@ export const getPairTransactions = gql`
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query getPairs {
+  query GetPairs {
     pairs(orderBy: volumeUSD, orderDirection: desc) {
       ...PairFragment
     }
@@ -83,7 +83,7 @@ export const getPairs = gql`
 export const getPair = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query getPair($id: ID!) {
+  query GetPair($id: ID!) {
     pair(id: $id) {
       ...PairFragment
     }

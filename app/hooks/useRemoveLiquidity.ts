@@ -1,15 +1,14 @@
+import { useEffect } from "react";
+
 import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
-  useMagicSwapV2RouterRemoveLiquidity,
-  useMagicSwapV2RouterRemoveLiquidityNft,
-  useMagicSwapV2RouterRemoveLiquidityNftnft,
-  usePrepareMagicSwapV2RouterRemoveLiquidity,
-  usePrepareMagicSwapV2RouterRemoveLiquidityNft,
-  usePrepareMagicSwapV2RouterRemoveLiquidityNftnft,
+  useSimulateMagicSwapV2RouterRemoveLiquidity,
+  useSimulateMagicSwapV2RouterRemoveLiquidityNft,
+  useWriteMagicSwapV2RouterRemoveLiquidity,
+  useWriteMagicSwapV2RouterRemoveLiquidityNft,
 } from "~/generated";
-import { useStore } from "~/hooks/useStore";
 import type { Pool } from "~/lib/pools.server";
 import { DEFAULT_DEADLINE, useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
@@ -39,7 +38,7 @@ export const useRemoveLiquidity = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
   const routerAddress = useMagicSwapV2RouterAddress();
-  const deadline = useStore(useSettingsStore, (state) => state.deadline);
+  const deadline = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;
   const deadlineBN = BigInt(
@@ -48,8 +47,8 @@ export const useRemoveLiquidity = ({
   const statusHeader = propsStatusHeader ?? `Withdraw from ${pool.name} LP`;
 
   // ERC20-ERC20
-  const { config: tokenRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidity({
+  const { data: tokenRemoveLiquidityConfig } =
+    useSimulateMagicSwapV2RouterRemoveLiquidity({
       address: routerAddress,
       args: [
         pool.baseToken.id as AddressString,
@@ -60,30 +59,27 @@ export const useRemoveLiquidity = ({
         addressArg,
         deadlineBN,
       ],
-      enabled: isEnabled && !pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.hasNFT,
+      },
     });
-  const tokenRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidity(
-    tokenRemoveLiquidityConfig
-  );
-  useWaitForTransaction(
-    { ...tokenRemoveLiquidity.data, onSuccess },
-    tokenRemoveLiquidity.status,
-    statusHeader
-  );
+  const tokenRemoveLiquidity = useWriteMagicSwapV2RouterRemoveLiquidity();
+  const { data: removeLiquidityData, status: removeLiquidityStatus } =
+    useWaitForTransaction(
+      { hash: tokenRemoveLiquidity.data },
+      tokenRemoveLiquidity.status,
+      statusHeader
+    );
 
   // NFT-ERC20
-  const { config: nftRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidityNft({
+  const { data: nftRemoveLiquidityConfig } =
+    useSimulateMagicSwapV2RouterRemoveLiquidityNft({
       address: routerAddress,
       args: [
-        {
-          token: pool.baseToken.id as AddressString,
-          collection: nftsA.map(
-            ({ collectionAddr }) => collectionAddr as AddressString
-          ),
-          tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-          amount: nftsA.map(({ quantity }) => BigInt(quantity)),
-        },
+        nftsA.map(({ collectionAddr }) => collectionAddr as AddressString),
+        nftsA.map(({ tokenId }) => BigInt(tokenId)),
+        nftsA.map(({ quantity }) => BigInt(quantity)),
+        pool.baseToken.id as AddressString,
         pool.quoteToken.id as AddressString,
         amountLP,
         amountAMin,
@@ -92,63 +88,83 @@ export const useRemoveLiquidity = ({
         deadlineBN,
         true, // swapLeftover
       ],
-      enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      query: {
+        enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
+      },
     });
-  const nftRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidityNft(
-    nftRemoveLiquidityConfig
-  );
-  useWaitForTransaction(
-    { ...nftRemoveLiquidity.data, onSuccess },
-    nftRemoveLiquidity.status,
-    statusHeader
-  );
+  const nftRemoveLiquidity = useWriteMagicSwapV2RouterRemoveLiquidityNft();
+  const { data: removeLiquidityNftData, status: removeLiquidityNftStatus } =
+    useWaitForTransaction(
+      { hash: nftRemoveLiquidity.data },
+      nftRemoveLiquidity.status,
+      statusHeader
+    );
+
+  useEffect(() => {
+    if (
+      (removeLiquidityData && removeLiquidityStatus === "success") ||
+      (removeLiquidityNftData && removeLiquidityNftStatus === "success")
+    ) {
+      onSuccess();
+    }
+  }, [
+    onSuccess,
+    removeLiquidityData,
+    removeLiquidityNftData,
+    removeLiquidityNftStatus,
+    removeLiquidityStatus,
+  ]);
 
   // NFT-NFT
-  const { config: nftNFTRemoveLiquidityConfig } =
-    usePrepareMagicSwapV2RouterRemoveLiquidityNftnft({
-      address: routerAddress,
-      args: [
-        {
-          token: pool.baseToken.id as AddressString,
-          collection: nftsA.map(
-            ({ collectionAddr }) => collectionAddr as AddressString
-          ),
-          tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-          amount: nftsA.map(({ quantity }) => BigInt(quantity)),
-        },
-        {
-          token: pool.quoteToken.id as AddressString,
-          collection: nftsB.map(
-            ({ collectionAddr }) => collectionAddr as AddressString
-          ),
-          tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
-          amount: nftsB.map(({ quantity }) => BigInt(quantity)),
-        },
-        amountLP,
-        amountAMin,
-        amountBMin,
-        addressArg,
-        deadlineBN,
-      ],
-      enabled: isEnabled && pool.isNFTNFT,
-    });
-  const nftNFTRemoveLiquidity = useMagicSwapV2RouterRemoveLiquidityNftnft(
-    nftNFTRemoveLiquidityConfig
-  );
-  useWaitForTransaction(
-    { ...nftNFTRemoveLiquidity.data, onSuccess },
-    nftNFTRemoveLiquidity.status,
-    statusHeader
-  );
+  // const { data: nftNFTRemoveLiquidityConfig } =
+  //   useSimulateMagicSwapV2RouterRemoveLiquidityNftnft({
+  //     address: routerAddress,
+  //     args: [
+  //       {
+  //         token: pool.baseToken.id as AddressString,
+  //         collection: nftsA.map(
+  //           ({ collectionAddr }) => collectionAddr as AddressString
+  //         ),
+  //         tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
+  //         amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+  //       },
+  //       {
+  //         token: pool.quoteToken.id as AddressString,
+  //         collection: nftsB.map(
+  //           ({ collectionAddr }) => collectionAddr as AddressString
+  //         ),
+  //         tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
+  //         amount: nftsB.map(({ quantity }) => BigInt(quantity)),
+  //       },
+  //       amountLP,
+  //       amountAMin,
+  //       amountBMin,
+  //       addressArg,
+  //       deadlineBN,
+  //     ],
+  //     query: {
+  //       enabled: isEnabled && pool.isNFTNFT,
+  //     },
+  //   });
+  // const nftNFTRemoveLiquidity =
+  //   useWriteMagicSwapV2RouterRemoveLiquidityNftnft();
+  // useWaitForTransaction(
+  //   { hash: nftNFTRemoveLiquidity.data },
+  //   nftNFTRemoveLiquidity.status,
+  //   statusHeader
+  // );
 
   return {
     removeLiquidity: () => {
-      if (pool.isNFTNFT) {
-        nftNFTRemoveLiquidity.write?.();
-      } else if (pool.hasNFT) {
-        nftRemoveLiquidity.write?.();
-      } else {
-        tokenRemoveLiquidity.write?.();
+      // if (pool.isNFTNFT && nftNFTRemoveLiquidityConfig?.request) {
+      //   nftNFTRemoveLiquidity.writeContract(
+      //     nftNFTRemoveLiquidityConfig?.request
+      //   );
+      // } else
+      if (pool.hasNFT && nftRemoveLiquidityConfig?.request) {
+        nftRemoveLiquidity.writeContract(nftRemoveLiquidityConfig?.request);
+      } else if (tokenRemoveLiquidityConfig?.request) {
+        tokenRemoveLiquidity.writeContract(tokenRemoveLiquidityConfig?.request);
       }
     },
   };

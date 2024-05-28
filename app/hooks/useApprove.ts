@@ -1,11 +1,11 @@
 import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import {
-  useErc20Approve,
-  useErc721SetApprovalForAll,
-  useErc1155SetApprovalForAll,
-  usePrepareErc20Approve,
-  usePrepareErc721SetApprovalForAll,
-  usePrepareErc1155SetApprovalForAll,
+  useSimulateErc20Approve,
+  useSimulateErc721SetApprovalForAll,
+  useSimulateErc1155SetApprovalForAll,
+  useWriteErc20Approve,
+  useWriteErc721SetApprovalForAll,
+  useWriteErc1155SetApprovalForAll,
 } from "~/generated";
 import { useWaitForTransaction } from "~/hooks/useWaitForTransaction";
 import type { PoolToken } from "~/lib/tokens.server";
@@ -30,56 +30,63 @@ export const useApprove = ({
   const collectionAddress = isFullToken
     ? (token.collectionId as AddressString)
     : undefined;
+
   const isERC721 = isFullToken && token.type === "ERC721";
   const isERC1155 = isFullToken && token.type === "ERC1155";
   const statusHeader =
     propsStatusHeader ??
     (isFullToken ? `Approve ${token.symbol}` : "Approve token");
 
-  const { config: erc20ApproveConfig } = usePrepareErc20Approve({
+  const { data: erc20ApproveConfig } = useSimulateErc20Approve({
     address: tokenAddress,
     args: [operator, amount],
-    enabled: enabled && !isERC721 && !isERC1155,
+    query: {
+      enabled: enabled && !isERC721 && !isERC1155,
+    },
   });
-  const erc20Approve = useErc20Approve(erc20ApproveConfig);
+  const erc20Approve = useWriteErc20Approve();
   const { isSuccess: isERC20ApproveSuccess } = useWaitForTransaction(
-    erc20Approve.data,
+    { hash: erc20Approve.data },
     erc20Approve.status,
     statusHeader
   );
 
-  const { config: erc721ApproveConfig } = usePrepareErc721SetApprovalForAll({
+  const { data: erc721ApproveConfig } = useSimulateErc721SetApprovalForAll({
     address: collectionAddress,
     args: [operator, true],
-    enabled: enabled && isERC721,
+    query: {
+      enabled: enabled && isERC721,
+    },
   });
-  const erc721Approve = useErc721SetApprovalForAll(erc721ApproveConfig);
+  const erc721Approve = useWriteErc721SetApprovalForAll();
   const { isSuccess: isERC721ApproveSuccess } = useWaitForTransaction(
-    erc721Approve.data,
+    { hash: erc721Approve.data },
     erc721Approve.status,
     statusHeader
   );
 
-  const { config: erc1155ApproveConfig } = usePrepareErc1155SetApprovalForAll({
+  const { data: erc1155ApproveConfig } = useSimulateErc1155SetApprovalForAll({
     address: collectionAddress,
     args: [operator, true],
-    enabled: enabled && isERC1155,
+    query: {
+      enabled: enabled && isERC1155,
+    },
   });
-  const erc1155Approve = useErc1155SetApprovalForAll(erc1155ApproveConfig);
+  const erc1155Approve = useWriteErc1155SetApprovalForAll();
   const { isSuccess: isERC1155ApproveSuccess } = useWaitForTransaction(
-    erc1155Approve.data,
+    { hash: erc1155Approve.data },
     erc1155Approve.status,
     statusHeader
   );
 
   return {
     approve: () => {
-      if (isERC721) {
-        erc721Approve.write?.();
-      } else if (isERC1155) {
-        erc1155Approve.write?.();
-      } else {
-        erc20Approve.write?.();
+      if (isERC721 && erc721ApproveConfig?.request) {
+        erc721Approve.writeContract(erc721ApproveConfig?.request);
+      } else if (isERC1155 && erc1155ApproveConfig?.request) {
+        erc1155Approve.writeContract(erc1155ApproveConfig?.request);
+      } else if (erc20ApproveConfig?.request) {
+        erc20Approve.writeContract(erc20ApproveConfig?.request);
       }
     },
     isSuccess:

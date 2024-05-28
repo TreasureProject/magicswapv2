@@ -1,4 +1,4 @@
-import { ClientOnly } from "remix-utils";
+import { ClientOnly } from "remix-utils/client-only";
 
 import { LoaderIcon } from "./Icons";
 

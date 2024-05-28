@@ -1,12 +1,11 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { ShouldRevalidateFunction } from "@remix-run/react";
-import { notFound } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchCollectionOwnedByAddress } from "~/api/tokens.server";
 
-export const loader = async ({ request, params }: LoaderArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { slug } = params;
   invariant(slug, "Missing slug");
 
@@ -33,11 +32,9 @@ export const loader = async ({ request, params }: LoaderArgs) => {
       Number(offset ?? 0)
     );
 
-    return json({ tokens, traits: traitsArray, query });
-  } catch (e) {
-    throw notFound({
-      message: "Collection not found",
-    });
+    return json({ ok: true, tokens, traits: traitsArray, query } as const);
+  } catch (e: any) {
+    return json({ ok: false, error: e.message } as const);
   }
 };
 

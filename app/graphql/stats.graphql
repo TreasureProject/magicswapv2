@@ -1,14 +1,10 @@
-query getStats {
+query GetStats {
   factories {
     reserveNFT
     txCount
     magicUSD
   }
-  dayDatas(
-    orderBy: date
-    orderDirection: desc
-    first: 1
-  ) {
+  dayDatas(orderBy: date, orderDirection: desc, first: 1) {
     volumeUSD
   }
 }

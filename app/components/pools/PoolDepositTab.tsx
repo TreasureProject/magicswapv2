@@ -1,8 +1,7 @@
 import { HelpCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import Balancer from "react-wrap-balancer";
+import { useCallback, useEffect, useState } from "react";
+import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
-import { useAccount, useBalance } from "wagmi";
 
 import Table from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
@@ -14,10 +13,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { PoolImage } from "./PoolImage";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
 import { PoolTokenInput } from "./PoolTokenInput";
+import { useAccount } from "~/contexts/account";
+import { useReadErc20BalanceOf } from "~/generated";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
-import { useStore } from "~/hooks/useStore";
 import { formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
@@ -47,7 +47,8 @@ export const PoolDepositTab = ({
   onSuccess,
 }: Props) => {
   const { address } = useAccount();
-  const slippage = useStore(useSettingsStore, (state) => state.slippage);
+  const slippage = useSettingsStore((state) => state.slippage);
+
   const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
     useState({
       amount: "0",
@@ -79,16 +80,20 @@ export const PoolDepositTab = ({
   const hasAmount = amount > 0;
 
   const { data: baseTokenBalance, refetch: refetchBaseTokenBalance } =
-    useBalance({
-      address,
-      token: pool.baseToken.id as AddressString,
-      enabled: !!address && !pool.baseToken.isNFT,
+    useReadErc20BalanceOf({
+      address: pool.baseToken.id as AddressString,
+      args: [address as AddressString],
+      query: {
+        enabled: !!address && !pool.baseToken.isNFT,
+      },
     });
   const { data: quoteTokenBalance, refetch: refetchQuoteTokenBalance } =
-    useBalance({
-      address,
-      token: pool.quoteToken.id as AddressString,
-      enabled: !!address && !pool.quoteToken.isNFT,
+    useReadErc20BalanceOf({
+      address: pool.quoteToken.id as AddressString,
+      args: [address as AddressString],
+      query: {
+        enabled: !!address && !pool.quoteToken.isNFT,
+      },
     });
 
   const {
@@ -136,7 +141,7 @@ export const PoolDepositTab = ({
     nftsA,
     nftsB,
     enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       setTransaction({
         amount: "0",
         nftsA: [],
@@ -147,7 +152,7 @@ export const PoolDepositTab = ({
       refetchQuoteTokenBalance();
       setCheckedTerms(false);
       onSuccess?.();
-    },
+    }, [onSuccess, refetchBaseTokenBalance, refetchQuoteTokenBalance]),
   });
 
   const estimatedLp = getLpCountForTokens(
@@ -171,13 +176,13 @@ export const PoolDepositTab = ({
   const insufficientBalanceA = !pool.baseToken.isNFT
     ? parseFloat(
         isExactB ? formatUnits(amountA, pool.baseToken.decimals) : rawAmount
-      ) > parseFloat(formatEther(baseTokenBalance?.value || BigInt(0)))
+      ) > parseFloat(formatEther(baseTokenBalance || BigInt(0)))
     : false;
 
   const insufficientBalanceB = !pool.quoteToken.isNFT
     ? parseFloat(
         !isExactB ? formatUnits(amountB, pool.quoteToken.decimals) : rawAmount
-      ) > parseFloat(formatEther(quoteTokenBalance?.value || BigInt(0)))
+      ) > parseFloat(formatEther(quoteTokenBalance || BigInt(0)))
     : false;
 
   return (
@@ -259,7 +264,7 @@ export const PoolDepositTab = ({
         ) : (
           <PoolTokenInput
             token={pool.baseToken}
-            balance={baseTokenBalance?.value}
+            balance={baseTokenBalance}
             amount={
               isExactB
                 ? formatTokenAmount(amountA, pool.baseToken.decimals)
@@ -291,7 +296,7 @@ export const PoolDepositTab = ({
         ) : (
           <PoolTokenInput
             token={pool.quoteToken}
-            balance={quoteTokenBalance?.value}
+            balance={quoteTokenBalance}
             amount={
               isExactB
                 ? rawAmount
@@ -360,6 +365,7 @@ export const PoolDepositTab = ({
             if (!isQuoteTokenApproved) {
               return approveQuoteToken?.();
             }
+            console.log("here");
             return addLiquidity?.();
           }}
         >

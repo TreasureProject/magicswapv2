@@ -1,11 +1,10 @@
-import type { LoaderArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { notFound } from "remix-utils";
 import invariant from "tiny-invariant";
 
 import { fetchUserCollectionBalance } from "~/api/tokens.server";
 
-export const loader = async ({ request, params }: LoaderArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { slug } = params;
   invariant(slug, "Missing slug");
 
@@ -15,11 +14,9 @@ export const loader = async ({ request, params }: LoaderArgs) => {
 
   try {
     const balance = await fetchUserCollectionBalance(slug, address);
-    return json({ balance });
-  } catch (e) {
-    throw notFound({
-      message: "Collection not found",
-    });
+    return json({ ok: true, balance } as const);
+  } catch (e: any) {
+    return json({ ok: false, error: e.message } as const);
   }
 };
 

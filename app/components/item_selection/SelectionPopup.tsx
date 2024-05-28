@@ -29,6 +29,7 @@ import { countTokens, getTroveTokenQuantity } from "~/lib/tokens";
 import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.collections.$slug";
+import type { CollectionFiltersLoader } from "~/routes/resources.collections.$slug.filters";
 import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
@@ -172,8 +173,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const {
     load: loadFilters,
     state: filtersState,
-    data: filtersData = [],
-  } = useFetcher<TroveFilters>();
+    data: filtersData,
+  } = useFetcher<CollectionFiltersLoader>();
   const { address } = useAccount();
   const traitInfoRef = React.useRef<string>("");
   const queryFormRef = React.useRef<HTMLFormElement>(null);
@@ -197,8 +198,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     !props.viewOnly && props.limit
       ? totalQuantity < props.limit
       : selectedItems.length === 0
-      ? true
-      : false;
+        ? true
+        : false;
 
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {
@@ -258,7 +259,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
 
   if (!token) return null;
 
-  const filterWithValues = filtersData.filter((d) => d.values.length > 0);
+  const filteredList =
+    filtersData && filtersData.ok ? filtersData.filterList : [];
+
+  const filterWithValues = filteredList.filter((d) => d.values.length > 0);
+
+  const traits = data && data.ok ? data.traits : [];
+
+  const query = data && data.ok ? data.query : null;
+
+  const tokens = data && data.ok ? data.tokens : null;
 
   const HiddenInputs = (
     <>
@@ -362,9 +372,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             const formData = new FormData(e.currentTarget);
             const targetTrait = formData.getAll("deleteTrait")[0];
 
-            const filteredTraits = data?.traits.filter(
-              (t) => t !== targetTrait
-            );
+            const filteredTraits =
+              data && data.ok
+                ? data?.traits.filter((t) => t !== targetTrait)
+                : null;
 
             if (!filteredTraits) return;
 
@@ -391,7 +402,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     aria-hidden="true"
                   />
                   <span>Filters</span>
-                  <Badge>{data?.traits.length ?? 0}</Badge>
+                  <Badge>{traits.length}</Badge>
                   <ChevronDownIcon
                     className={cn(
                       "h-4 w-4 transition-transform",
@@ -401,10 +412,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 </Button>
               </PopoverTrigger>
               <div className="flex w-full items-center gap-3 overflow-x-auto pl-2">
-                {data &&
-                  data.traits.map((trait) => (
-                    <TraitFilterBadge trait={trait} key={trait} />
-                  ))}
+                {traits.map((trait) => (
+                  <TraitFilterBadge trait={trait} key={trait} />
+                ))}
               </div>
             </div>
             <PopoverContent
@@ -415,7 +425,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 <div className="flex h-full items-center justify-center">
                   <LoaderIcon className="h-8 w-8 " />
                 </div>
-              ) : filtersState === "idle" && filtersData.length > 0 ? (
+              ) : filtersState === "idle" && filteredList.length > 0 ? (
                 <div className="py-2">
                   {filterWithValues ? (
                     <div
@@ -444,7 +454,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                       id={`${filter.traitName}:${value.valueName}`}
                                       name="traits"
                                       defaultChecked={
-                                        data?.traits.includes(
+                                        traits.includes(
                                           `${filter.traitName}:${value.valueName}`
                                         ) || false
                                       }
@@ -474,7 +484,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             <div className="flex h-full items-center justify-center">
               <LoaderIcon className="h-8 w-8" />
             </div>
-          ) : state === "idle" && data ? (
+          ) : state === "idle" && data && data.ok ? (
             <div
               className={cn(
                 "grid gap-3",
@@ -521,16 +531,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             }}
           >
             {HiddenInputs}
-            {data?.traits && data?.traits.length > 0 && (
-              <input
-                type="hidden"
-                name="traits"
-                value={data.traits.join(",")}
-              />
+            {traits.length > 0 && (
+              <input type="hidden" name="traits" value={traits.join(",")} />
             )}
-            {data?.query && (
-              <input type="hidden" name="query" value={data.query} />
-            )}
+            {query && <input type="hidden" name="query" value={query} />}
 
             <Button
               variant="ghost"
@@ -556,32 +560,26 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             }}
           >
             {HiddenInputs}
-            {data?.tokens.nextPageKey && (
+            {tokens && tokens.nextPageKey && (
               <input
                 type="hidden"
                 name="nextPageKey"
-                value={data.tokens.nextPageKey}
+                value={tokens.nextPageKey}
               />
             )}
-            {data?.traits && data?.traits.length > 0 && (
-              <input
-                type="hidden"
-                name="traits"
-                value={data.traits.join(",")}
-              />
+            {traits.length > 0 && (
+              <input type="hidden" name="traits" value={traits.join(",")} />
             )}
-            {data?.query && (
-              <input type="hidden" name="query" value={data.query} />
-            )}
+            {query && <input type="hidden" name="query" value={query} />}
             <Button
               variant="ghost"
               type="submit"
               className="pl-3.5 pr-2"
               disabled={
                 loading ||
-                !data?.tokens.nextPageKey ||
+                !tokens?.nextPageKey ||
                 // sometimes the next page key is there but the next page is empty
-                data.tokens.tokens.length < ITEMS_PER_PAGE
+                tokens.tokens.length < ITEMS_PER_PAGE
               }
             >
               Next
