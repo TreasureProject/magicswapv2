@@ -23,7 +23,7 @@ RUN apt-get -y update && apt-get -y install curl
 
 # Install node modules
 COPY --link package*.json ./
-COPY patches ./patches
+# COPY patches ./patches
 
 RUN npm install --include=dev
 
