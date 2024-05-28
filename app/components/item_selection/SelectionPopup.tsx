@@ -198,8 +198,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     !props.viewOnly && props.limit
       ? totalQuantity < props.limit
       : selectedItems.length === 0
-      ? true
-      : false;
+        ? true
+        : false;
 
   // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
   React.useEffect(() => {

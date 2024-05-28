@@ -1,17 +1,13 @@
-# fly.toml app configuration file generated for smb2 on 2023-09-19T16:03:27+09:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "magicswapv2"
 primary_region = "lax"
 
 [build]
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1
   processes = ["app"]

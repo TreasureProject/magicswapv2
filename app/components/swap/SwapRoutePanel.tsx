@@ -113,5 +113,5 @@ const getPriceImpactClassName = (priceImpact: number) =>
   priceImpact >= 0.05
     ? "text-red-500"
     : priceImpact > 0.01
-    ? "text-amber-500"
-    : "text-honey-25";
+      ? "text-amber-500"
+      : "text-honey-25";

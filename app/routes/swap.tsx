@@ -357,8 +357,8 @@ export default function SwapPage() {
             isExactOut
               ? amount
               : tokenOut?.isNFT
-              ? limitNFTsOut.toString()
-              : formattedTokenOutAmount
+                ? limitNFTsOut.toString()
+                : formattedTokenOutAmount
           }
           selectedNfts={nftsOut}
           nftLimit={!isExactOut && amountNFTsIn > 0 ? limitNFTsOut : undefined}
@@ -878,8 +878,8 @@ const SwapTokenInput = ({
               {token.isNFT && isOut
                 ? "Vault"
                 : token.isNFT
-                ? "Inventory"
-                : "Balance"}
+                  ? "Inventory"
+                  : "Balance"}
               :
             </span>
             {token.isNFT ? (

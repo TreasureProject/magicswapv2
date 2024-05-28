@@ -1,8 +1,6 @@
 # syntax = docker/dockerfile:1
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=18.12.0
-FROM node:${NODE_VERSION}-slim as base
+FROM node:20-slim as base
 
 LABEL fly_launch_runtime="Remix"
 
@@ -32,7 +30,8 @@ RUN npm install --include=dev
 # Copy application code
 COPY --link . .
 
-RUN npm run codegen
+# Run code generation
+RUN npm run generate
 
 # Build application
 RUN --mount=type=secret,id=dotenv,dst=env \
@@ -41,7 +40,6 @@ RUN --mount=type=secret,id=dotenv,dst=env \
 
 # Remove development dependencies
 RUN npm prune --omit=dev
-
 
 # Final stage for app image
 FROM base
@@ -52,6 +50,3 @@ COPY --from=build /app /app
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 CMD [ "npm", "run", "start" ]
-# Install pnpm and curl for dependencies in @sushiswap/chains
-RUN npm install -g pnpm
-RUN apt-get -y update && apt-get -y install curl

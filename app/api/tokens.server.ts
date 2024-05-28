@@ -2,7 +2,13 @@ import type { ExecutionResult } from "graphql";
 
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
-import { execute, GetTokenDocument, GetTokensDocument, type GetTokenQuery, type GetTokensQuery } from ".graphclient";
+import {
+  GetTokenDocument,
+  type GetTokenQuery,
+  GetTokensDocument,
+  type GetTokensQuery,
+  execute,
+} from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { cachified } from "~/lib/cache.server";
 import {

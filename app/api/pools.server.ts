@@ -1,13 +1,13 @@
 import type { ExecutionResult } from "graphql";
 
 import {
-  execute,
   GetPairDocument,
-  GetPairTransactionsDocument,
-  GetPairsDocument,
   type GetPairQuery,
+  GetPairTransactionsDocument,
   type GetPairTransactionsQuery,
+  GetPairsDocument,
   type GetPairsQuery,
+  execute,
 } from "../../.graphclient";
 import { fetchTroveCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";

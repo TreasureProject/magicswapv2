@@ -1,7 +1,7 @@
 import type { ExecutionResult } from "graphql";
 
 import { createPoolsFromPairs } from "./pools.server";
-import { execute, GetUserDocument, type GetUserQuery } from ".graphclient";
+import { GetUserDocument, type GetUserQuery, execute } from ".graphclient";
 import type { AccountDomains } from "~/types";
 
 export const fetchUser = async (address: string) => {

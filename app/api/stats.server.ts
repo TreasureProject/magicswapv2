@@ -1,6 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
-import { execute, GetStatsDocument, type GetStatsQuery } from ".graphclient";
+import { GetStatsDocument, type GetStatsQuery, execute } from ".graphclient";
 
 export const fetchStats = async () => {
   const result = (await execute(

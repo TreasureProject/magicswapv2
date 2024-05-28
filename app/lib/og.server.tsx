@@ -15,7 +15,7 @@ const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
         weight,
         data: await res.arrayBuffer(),
         style: "normal",
-      } as const)
+      }) as const
   );
 
 export const HONEY_25 = "#FFFDF7";
