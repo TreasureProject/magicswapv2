@@ -20,7 +20,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const tokenIn = inputAddress
     ? await fetchToken(inputAddress)
-    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
+    : await fetchToken(import.meta.env.VITE_DEFAULT_TOKEN_ADDRESS);
 
   const tokenOut = await fetchToken(outputAddress);
 
@@ -74,7 +74,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     headers: {
       "Content-Type": "image/png",
       "cache-control":
-        process.env.NODE_ENV === "development"
+        import.meta.env.NODE_ENV === "development"
           ? "no-cache, no-store"
           : "public, immutable, no-transform, max-age=86400",
     },

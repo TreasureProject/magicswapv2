@@ -10,7 +10,7 @@ declare global {
 
 let lru: LRUCache<string, C.CacheEntry>;
 
-if (process.env.NODE_ENV === "production") {
+if (import.meta.env.NODE_ENV === "production") {
   lru = new LRUCache<string, C.CacheEntry>({ max: 1000 });
 } else {
   if (!global.__lruCache) {

@@ -1,21 +1,5 @@
 import type { GetPairsQuery } from ".graphclient";
 
-/** Environment and helpers */
-export type EnvVar =
-  | "PUBLIC_THIRDWEB_CLIENT_ID"
-  | "PUBLIC_NODE_ENV"
-  | "PUBLIC_ENABLE_TESTNETS"
-  | "MAGICSWAPV2_API_URL"
-  | "TROVE_API_URL"
-  | "TROVE_API_NETWORK"
-  | "TROVE_API_KEY"
-  | "PUBLIC_WALLET_CONNECT_KEY"
-  | "DEFAULT_TOKEN_ADDRESS";
-
-export type Env = {
-  [key in EnvVar]: string;
-};
-
 export type Optional<T> = T | undefined;
 
 export type AddressString = `0x${string}`;
