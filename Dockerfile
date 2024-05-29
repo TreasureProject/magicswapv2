@@ -7,7 +7,9 @@ LABEL fly_launch_runtime="Remix"
 # Remix app lives here
 WORKDIR /app
 
-# Set production environment
+# Set environment variables
+ARG MAGICSWAPV2_API_URL
+ENV MAGICSWAPV2_API_URL=${MAGICSWAPV2_API_URL}
 ENV NODE_ENV="production"
 
 # Throw-away build stage to reduce size of final image
