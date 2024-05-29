@@ -20,7 +20,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const tokenIn = inputAddress
     ? await fetchToken(inputAddress)
-    : await fetchToken(import.meta.env.VITE_DEFAULT_TOKEN_ADDRESS);
+    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
 
   const tokenOut = await fetchToken(outputAddress);
 
