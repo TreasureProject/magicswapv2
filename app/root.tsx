@@ -58,14 +58,10 @@ export default function App() {
         ],
         transports: {
           [arbitrum.id]: http(
-            `https://arb-mainnet.g.alchemy.com/v2/${
-              import.meta.env.VITE_ALCHEMY_KEY
-            }`
+            `https://${arbitrum.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
           ),
           [arbitrumSepolia.id]: http(
-            `https://arb-sepolia.g.alchemy.com/v2/${
-              import.meta.env.VITE_ALCHEMY_KEY
-            }`
+            `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
           ),
         },
         walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_KEY,

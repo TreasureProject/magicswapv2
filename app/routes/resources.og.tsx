@@ -15,7 +15,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     headers: {
       "Content-Type": "image/png",
       "cache-control":
-        process.env.NODE_ENV === "development"
+        import.meta.env.NODE_ENV === "development"
           ? "no-cache, no-store"
           : "public, immutable, no-transform, max-age=31536000",
     },
