@@ -1,2 +1,3 @@
-/app/generated.ts
+app/generated.ts
+build/
 tailwind.config.js

@@ -13,6 +13,10 @@ ENV NODE_ENV="production"
 # Throw-away build stage to reduce size of final image
 FROM base as build
 
+# Set environment variables
+ARG MAGICSWAPV2_API_URL
+ENV MAGICSWAPV2_API_URL=$MAGICSWAPV2_API_URL
+
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
   apt-get install -y build-essential pkg-config python-is-python3
@@ -37,9 +41,6 @@ RUN npm run generate
 RUN --mount=type=secret,id=dotenv,dst=env \
   tr ' ' '\n' < env > .env && \
   npm run build
-
-# Remove development dependencies
-RUN npm prune --omit=dev
 
 # Final stage for app image
 FROM base
