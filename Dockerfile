@@ -16,6 +16,7 @@ FROM base as build
 # Set environment variables
 ARG MAGICSWAPV2_API_URL
 ENV MAGICSWAPV2_API_URL=${MAGICSWAPV2_API_URL}
+RUN echo $MAGICSWAPV2_API_URL
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
