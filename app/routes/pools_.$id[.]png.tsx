@@ -165,14 +165,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         >
           <span>
             {formatAmount(
-              bigIntToNumber(
-                BigInt(token1?.reserve ?? "0"),
-                token1?.decimals
-              ) /
-                bigIntToNumber(
-                  BigInt(token0?.reserve ?? "0"),
-                  token0?.decimals
-                )
+              bigIntToNumber(BigInt(token1?.reserve ?? "0"), token1?.decimals) /
+                bigIntToNumber(BigInt(token0?.reserve ?? "0"), token0?.decimals)
             )}
           </span>
           <span

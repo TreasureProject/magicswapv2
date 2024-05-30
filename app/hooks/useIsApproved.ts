@@ -7,7 +7,7 @@ import {
   useReadErc721IsApprovedForAll,
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
-import type { PoolToken , AddressString } from "~/types";
+import type { AddressString, PoolToken } from "~/types";
 
 type Props = {
   token: PoolToken | string;

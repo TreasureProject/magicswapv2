@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
+
 import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
 import type { PoolToken } from "~/types";
 
@@ -12,7 +13,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const address = url.searchParams.get("address");
   invariant(address, "User address required");
 
-  const createErrorResponse = (error: string) => json({ ok: false, error } as const);
+  const createErrorResponse = (error: string) =>
+    json({ ok: false, error } as const);
 
   let token: PoolToken | null;
   try {

@@ -1,5 +1,10 @@
 import { createPoolTokenCollection } from "./collections.server";
-import type { PoolToken, Token, TroveCollectionMapping, TroveTokenMapping } from "~/types";
+import type {
+  PoolToken,
+  Token,
+  TroveCollectionMapping,
+  TroveTokenMapping,
+} from "~/types";
 
 type Item = {
   collection: {
@@ -53,7 +58,10 @@ export const createTokenName = (
 export const createTokenSymbol = (
   token: Token,
   collections: TroveCollectionMapping
-) => token.isNFT ? createTokenName(token, collections) : token.symbol.toUpperCase();
+) =>
+  token.isNFT
+    ? createTokenName(token, collections)
+    : token.symbol.toUpperCase();
 
 export const createPoolToken = (
   token: Token,

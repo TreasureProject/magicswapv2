@@ -1,9 +1,7 @@
 import type { MetaFunction } from "@remix-run/react";
 import { Link } from "@remix-run/react";
 import { motion } from "framer-motion";
-import {
-  ChevronRight as ChevronRightIcon,
-} from "lucide-react";
+import { ChevronRight as ChevronRightIcon } from "lucide-react";
 
 import collectionsImage from "../assets/collections.png";
 import magicIllustration from "../assets/magic_illustration.png";

@@ -25,10 +25,10 @@ import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
 import { countTokens, getTroveTokenQuantity } from "~/lib/tokens";
-import type { TroveToken, TroveTokenWithQuantity , PoolToken } from "~/types";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.collections.$slug";
 import type { CollectionFiltersLoader } from "~/routes/resources.collections.$slug.filters";
+import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
   selected,
@@ -51,7 +51,12 @@ const ItemCard = ({
   const disableUnselected = !selected && disabled;
 
   const innerCard = (
-    <div className={cn("w-full", disableUnselected && "cursor-not-allowed opacity-30")}>
+    <div
+      className={cn(
+        "w-full",
+        disableUnselected && "cursor-not-allowed opacity-30"
+      )}
+    >
       {selected && (
         <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
           <CheckIcon className="w-3" />
@@ -89,7 +94,9 @@ const ItemCard = ({
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View {item.metadata.name} in the marketplace</span>
+            <span className="sr-only">
+              View {item.metadata.name} in the marketplace
+            </span>
           </a>
         </div>
       ) : null}

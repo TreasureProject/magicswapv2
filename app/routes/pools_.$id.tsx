@@ -67,10 +67,10 @@ import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { getTroveTokenQuantity } from "~/lib/tokens";
-import type { PoolToken , AddressString, Optional, TroveToken } from "~/types";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
+import type { AddressString, Optional, PoolToken, TroveToken } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -330,8 +330,7 @@ export default function PoolDetailsPage() {
               </div>
               <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
                 <p className="justify-self-end text-night-400">
-                  <span className="text-night-100">1</span>{" "}
-                  {pool.token0.symbol}
+                  <span className="text-night-100">1</span> {pool.token0.symbol}
                 </p>
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">

@@ -133,7 +133,7 @@ export type PoolToken = Omit<Token, "decimals"> & {
   decimals: number;
   image: string;
   isMAGIC: boolean;
-  collections: PoolTokenCollection[],
+  collections: PoolTokenCollection[];
   urlSlug: string;
   collectionId: string;
   collectionTokenIds: string[];

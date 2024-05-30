@@ -23,13 +23,14 @@ import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
-import type { PoolToken ,
+import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
+import type {
   AddressString,
   NumberString,
   Optional,
+  PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
-import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 
 type Props = {
   pool: Pool;
@@ -63,37 +64,27 @@ export const PoolDepositTab = ({
     isExactB ? pool.token1.decimals : pool.token0.decimals
   );
   const amountA = isExactB
-    ? quote(
-        amount,
-        BigInt(pool.token1.reserve),
-        BigInt(pool.token0.reserve)
-      )
+    ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
   const amountB = isExactB
     ? amount
-    : quote(
-        amount,
-        BigInt(pool.token0.reserve),
-        BigInt(pool.token1.reserve)
-      );
+    : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
   const hasAmount = amount > 0;
 
-  const { data: balance0, refetch: refetchBalance0 } =
-    useReadErc20BalanceOf({
-      address: pool.token0.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address && !pool.token0.isNFT,
-      },
-    });
-  const { data: balance1, refetch: refetchBalance1 } =
-    useReadErc20BalanceOf({
-      address: pool.token1.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address && !pool.token1.isNFT,
-      },
-    });
+  const { data: balance0, refetch: refetchBalance0 } = useReadErc20BalanceOf({
+    address: pool.token0.id as AddressString,
+    args: [address as AddressString],
+    query: {
+      enabled: !!address && !pool.token0.isNFT,
+    },
+  });
+  const { data: balance1, refetch: refetchBalance1 } = useReadErc20BalanceOf({
+    address: pool.token1.id as AddressString,
+    args: [address as AddressString],
+    query: {
+      enabled: !!address && !pool.token1.isNFT,
+    },
+  });
 
   const {
     isApproved: isApproved0,
@@ -406,19 +397,11 @@ const TotalDisplay = ({
   );
 
   const amountA = isExactB
-    ? quote(
-        amount,
-        BigInt(pool.token1.reserve),
-        BigInt(pool.token0.reserve)
-      )
+    ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
   const amountB = isExactB
     ? amount
-    : quote(
-        amount,
-        BigInt(pool.token0.reserve),
-        BigInt(pool.token1.reserve)
-      );
+    : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
 
   const formattedTokenInAmount = formatTokenAmount(
     amountA,

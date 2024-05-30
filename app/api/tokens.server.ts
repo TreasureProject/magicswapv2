@@ -10,7 +10,12 @@ import {
   execute,
 } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
+import { sumArray } from "~/lib/array";
 import { cachified } from "~/lib/cache.server";
+import {
+  createPoolToken,
+  getTokenCollectionAddresses,
+} from "~/lib/tokens.server";
 import type {
   PoolToken,
   TraitsResponse,
@@ -18,11 +23,6 @@ import type {
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
-import {
-  createPoolToken,
-  getTokenCollectionAddresses,
-} from "~/lib/tokens.server";
-import { sumArray } from "~/lib/array";
 
 function filterNullValues(
   obj: Record<string, unknown>
@@ -187,26 +187,33 @@ export const fetchTroveTokens = async (
   });
   const result = (await response.json()) as TroveToken[];
   return result.reduce((acc, token) => {
-    const next = { ...acc };
-    const collection = (next[token.collectionAddr] ??= {});
+    const collection = (acc[token.collectionAddr] ??= {});
     collection[token.tokenId] = token;
-    return next;
+    return acc;
   }, {} as TroveTokenMapping);
 };
 
-export const fetchPoolTokenBalance = async (token: PoolToken, address: string) => {
+export const fetchPoolTokenBalance = async (
+  token: PoolToken,
+  address: string
+) => {
   const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
   url.searchParams.append("userAddress", address);
   url.searchParams.append("projection", "queryUserQuantityOwned");
 
-  const tokenIds = token.collections.flatMap(({ id, tokenIds }) => tokenIds.map((tokenId) => `${process.env.TROVE_API_NETWORK}/${id}/${tokenId}`));
+  const tokenIds = token.collections.flatMap(({ id, tokenIds }) =>
+    tokenIds.map(
+      (tokenId) => `${process.env.TROVE_API_NETWORK}/${id}/${tokenId}`
+    )
+  );
   if (tokenIds.length > 0) {
-    url.searchParams.append(
-      "ids", tokenIds.join(","));
+    url.searchParams.append("ids", tokenIds.join(","));
   } else {
     url.searchParams.append(
       "slugs",
-      token.collections.map(({ id }) => `${process.env.TROVE_API_NETWORK}/${id}`).join(","),
+      token.collections
+        .map(({ id }) => `${process.env.TROVE_API_NETWORK}/${id}`)
+        .join(",")
     );
   }
 

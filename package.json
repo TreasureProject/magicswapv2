@@ -7,7 +7,6 @@
     "dev": "remix vite:dev",
     "generate": "graphclient build && wagmi generate",
     "build": "remix vite:build",
-    "deploy": "fly deploy --remote-only",
     "format": "eslint --fix --quiet . && prettier --write .",
     "lint": "eslint .",
     "test": "vitest run",

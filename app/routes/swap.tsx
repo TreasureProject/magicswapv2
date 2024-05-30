@@ -51,6 +51,7 @@ import { useAccount } from "~/contexts/account";
 import { useReadErc20BalanceOf } from "~/generated";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
+import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
@@ -58,11 +59,15 @@ import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
-import type { PoolToken , AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
+import type {
+  AddressString,
+  Optional,
+  PoolToken,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 export const meta: MetaFunction<
   typeof loader,
@@ -99,7 +104,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const outputAddress = url.searchParams.get("out");
 
   const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(inputAddress ?? pools[0]?.token0.id ?? process.env.DEFAULT_TOKEN_ADDRESS),
+    fetchToken(
+      inputAddress ?? pools[0]?.token0.id ?? process.env.DEFAULT_TOKEN_ADDRESS
+    ),
     outputAddress ? fetchToken(outputAddress) : null,
   ]);
 
@@ -1108,7 +1115,9 @@ const Token = ({
           <LoaderIcon className="h-4 w-4" />
         ) : address ? (
           <p className="text-base-400 text-sm">
-            {typeof balance === "bigint" ? formatTokenAmount(balance, token.decimals) : formatNumber(balance)}
+            {typeof balance === "bigint"
+              ? formatTokenAmount(balance, token.decimals)
+              : formatNumber(balance)}
           </p>
         ) : null}
       </div>

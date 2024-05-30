@@ -1,7 +1,7 @@
 import type { RToken } from "@sushiswap/tines";
 
 import { sumArray } from "./array";
-import type { PoolToken , TroveToken, TroveTokenWithQuantity } from "~/types";
+import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
 
 export const tokenToRToken = ({
   name,

@@ -7,7 +7,7 @@ const getPoolAPY = (volume1w: number, reserveUSD: number) => {
   if (reserveUSD === 0) {
     return 0;
   }
-  
+
   const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
   return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
 };

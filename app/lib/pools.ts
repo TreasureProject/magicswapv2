@@ -8,7 +8,7 @@ import { parseUnits } from "viem";
 
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
-import type { PoolToken , AddressString, NumberString } from "~/types";
+import type { AddressString, NumberString, PoolToken } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);

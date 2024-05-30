@@ -1,4 +1,8 @@
-import type { Collection, PoolTokenCollection, TroveCollectionMapping } from "~/types";
+import type {
+  Collection,
+  PoolTokenCollection,
+  TroveCollectionMapping,
+} from "~/types";
 
 export const createPoolTokenCollection = (
   collection: Collection,

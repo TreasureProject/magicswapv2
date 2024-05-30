@@ -18,8 +18,13 @@ import { useWaitForTransaction } from "~/hooks/useWaitForTransaction";
 import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
-import type { PoolToken , AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
+import type {
+  AddressString,
+  Optional,
+  PoolToken,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 type Props = {
   tokenIn: PoolToken;

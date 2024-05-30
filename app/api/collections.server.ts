@@ -1,10 +1,7 @@
 import type { TroveCollection, TroveCollectionMapping } from "~/types";
 
-const getTroveCollections = async (
-  addresses: string[]
-): Promise<TroveCollection[]> => {
+export const fetchTroveCollections = async (addresses: string[]) => {
   const url = new URL(`${process.env.TROVE_API_URL}/batch-collections`);
-
   url.searchParams.set(
     "slugs",
     addresses
@@ -17,17 +14,9 @@ const getTroveCollections = async (
       "X-API-Key": process.env.TROVE_API_KEY,
     },
   });
-  return response.json();
-};
-
-export const fetchTroveCollections = async (addresses: string[]) => {
-  const collections = await getTroveCollections(addresses);
-
-  return collections.reduce(
-    (acc, collection) => ({
-      ...acc,
-      [collection.collectionAddr.toLowerCase()]: collection,
-    }),
-    {} as TroveCollectionMapping
-  );
+  const result = (await response.json()) as TroveCollection[];
+  return result.reduce((acc, collection) => {
+    acc[collection.collectionAddr.toLowerCase()] = collection;
+    return acc;
+  }, {} as TroveCollectionMapping);
 };

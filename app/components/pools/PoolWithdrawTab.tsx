@@ -55,12 +55,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const amountBMin = pool.token1.isNFT
     ? amountB
     : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE);
-  const amountALeftover = pool.token0.isNFT
-    ? rawAmountA - amountA
-    : BigInt(0);
-  const amountBLeftover = pool.token1.isNFT
-    ? rawAmountB - amountB
-    : BigInt(0);
+  const amountALeftover = pool.token0.isNFT ? rawAmountA - amountA : BigInt(0);
+  const amountBLeftover = pool.token1.isNFT ? rawAmountB - amountB : BigInt(0);
   const amountNFTsA = pool.token0.isNFT
     ? bigIntToNumber(amountAMin, pool.token0.decimals)
     : 0;
@@ -149,20 +145,14 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(
-                        amountALeftover,
-                        pool.token0.decimals
-                      )}
+                      {formatTokenAmount(amountALeftover, pool.token0.decimals)}
                     </span>
                     v{pool.token0.symbol}
                   </div>
                   and
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(
-                        amountBLeftover,
-                        pool.token1.decimals
-                      )}
+                      {formatTokenAmount(amountBLeftover, pool.token1.decimals)}
                     </span>
                     v{pool.token1.symbol}
                   </div>
@@ -176,11 +166,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                     <div className="flex items-center gap-1">
                       <PoolTokenImage
                         className="h-6 w-6"
-                        token={
-                          pool.token0.isNFT
-                            ? pool.token0
-                            : pool.token1
-                        }
+                        token={pool.token0.isNFT ? pool.token0 : pool.token1}
                       />
                       <span className="text-honey-25">
                         {formatTokenAmount(amountALeftover)}
@@ -193,11 +179,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                     <div className="flex items-center gap-1">
                       <PoolTokenImage
                         className="h-6 w-6"
-                        token={
-                          pool.token0.isNFT
-                            ? pool.token1
-                            : pool.token0
-                        }
+                        token={pool.token0.isNFT ? pool.token1 : pool.token0}
                       />
                       <span className="text-honey-25">
                         {formatTokenAmount(
