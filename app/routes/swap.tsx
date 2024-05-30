@@ -101,7 +101,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const outputAddress = url.searchParams.get("out");
 
   const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(inputAddress ?? process.env.DEFAULT_TOKEN_ADDRESS),
+    fetchToken(inputAddress ?? pools[0]?.token0.id ?? process.env.DEFAULT_TOKEN_ADDRESS),
     outputAddress ? fetchToken(outputAddress) : null,
   ]);
 
