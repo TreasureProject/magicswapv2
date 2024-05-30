@@ -25,11 +25,10 @@ import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
 import { countTokens, getTroveTokenQuantity } from "~/lib/tokens";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { TroveToken, TroveTokenWithQuantity , PoolToken } from "~/types";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.collections.$slug";
 import type { CollectionFiltersLoader } from "~/routes/resources.collections.$slug.filters";
-import type { TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
   selected,
@@ -307,7 +306,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               formData.set("query", formData.get("query") || "");
 
               submit(formData, {
-                replace: true,
                 action: resourcePath,
               });
 
@@ -359,7 +357,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             queryFormRef.current?.reset();
 
             submit(formData, {
-              replace: true,
               action: resourcePath,
             });
 
@@ -381,7 +378,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             formData.set("traits", filteredTraits.join(","));
 
             submit(formData, {
-              replace: true,
               action: resourcePath,
             });
 
@@ -524,7 +520,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               formData.set("offset", offsetRef.current.toString());
 
               submit(formData, {
-                replace: true,
                 action: resourcePath,
               });
             }}
@@ -553,7 +548,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               formData.set("offset", offsetRef.current.toString());
 
               submit(formData, {
-                replace: true,
                 action: resourcePath,
               });
             }}

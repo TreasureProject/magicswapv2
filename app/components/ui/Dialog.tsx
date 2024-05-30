@@ -12,16 +12,12 @@ const DialogTrigger = DialogPrimitive.Trigger;
 const DialogClose = DialogPrimitive.Close;
 
 export const DialogPortal = ({
-  className,
   children,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
   <DialogPrimitive.Portal {...props}>
     <div
-      className={cn(
-        "fixed inset-0 z-50 flex items-end justify-center sm:items-center",
-        className
-      )}
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
     >
       {children}
     </div>

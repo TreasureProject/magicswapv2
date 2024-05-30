@@ -30,8 +30,9 @@ export type TroveCollection = {
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
 
-type BasicTroveToken = {
+export type TroveToken = {
   collectionAddr: string;
+  contractType: "ERC721" | "ERC1155";
   tokenId: string;
   collectionUrlSlug: string;
   image: {
@@ -45,18 +46,8 @@ type BasicTroveToken = {
       display_type?: string;
     }[];
   };
-};
-
-type TroveTokenERC721 = BasicTroveToken & {
-  contractType: "ERC721";
-};
-
-type TroveTokenERC1155 = BasicTroveToken & {
-  contractType: "ERC1155";
   queryUserQuantityOwned?: number;
 };
-
-export type TroveToken = TroveTokenERC721 | TroveTokenERC1155;
 
 export type TroveTokenWithQuantity = TroveToken & {
   quantity: number;
@@ -124,4 +115,28 @@ export type AccountDomains = {
   smol?: DomainInfo;
   treasuretag?: DomainInfo;
   preferredDomainType?: DomainType;
+};
+
+/** Magicswap Objects */
+export type PoolTokenCollection = {
+  id: string;
+  urlSlug: string;
+  tokenIds: string[];
+  name: string;
+  symbol: string;
+  type: "ERC721" | "ERC1155";
+  image: string;
+};
+
+export type PoolToken = Omit<Token, "decimals"> & {
+  type?: "ERC721" | "ERC1155";
+  decimals: number;
+  image: string;
+  isMAGIC: boolean;
+  collections: PoolTokenCollection[],
+  urlSlug: string;
+  collectionId: string;
+  collectionTokenIds: string[];
+  priceUSD: number;
+  reserve: string;
 };

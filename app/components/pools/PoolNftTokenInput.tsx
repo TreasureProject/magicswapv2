@@ -6,9 +6,8 @@ import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount } from "~/lib/currency";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { PoolToken , TroveTokenWithQuantity } from "~/types";
 import { cn } from "~/lib/utils";
-import type { TroveTokenWithQuantity } from "~/types";
 
 export const PoolNftTokenInput = ({
   token,

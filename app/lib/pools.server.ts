@@ -4,8 +4,10 @@ import { createPoolToken } from "./tokens.server";
 import type { NumberString, Pair, TroveCollectionMapping } from "~/types";
 
 const getPoolAPY = (volume1w: number, reserveUSD: number) => {
-  // returns NaN if reserveUSD is 0.
-  if (reserveUSD === 0) return 0;
+  if (reserveUSD === 0) {
+    return 0;
+  }
+  
   const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
   return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
 };
@@ -16,26 +18,20 @@ export const createPoolFromPair = (
   magicUSD: number,
   reserves?: [bigint, bigint]
 ) => {
-  const token0 = createPoolToken(pair.token0, collections, magicUSD);
-  const token1 = createPoolToken(pair.token1, collections, magicUSD);
-  const poolToken0 = {
-    ...token0,
+  const token0 = {
+    ...createPoolToken(pair.token0, collections, magicUSD),
     reserve: (
       reserves?.[0] ??
-      parseUnits(pair.reserve0 as NumberString, token0.decimals)
+      parseUnits(pair.reserve0 as NumberString, Number(pair.token0.decimals))
     ).toString(),
   };
-  const poolToken1 = {
-    ...token1,
+  const token1 = {
+    ...createPoolToken(pair.token1, collections, magicUSD),
     reserve: (
       reserves?.[1] ??
-      parseUnits(pair.reserve1 as NumberString, token1.decimals)
+      parseUnits(pair.reserve1 as NumberString, Number(pair.token1.decimals))
     ).toString(),
   };
-  const switchTokens =
-    (!poolToken0.isNFT && poolToken1.isNFT) || poolToken0.isMAGIC;
-  const baseToken = switchTokens ? poolToken1 : poolToken0;
-  const quoteToken = switchTokens ? poolToken0 : poolToken1;
   const reserveUSD = Number(pair.reserveUSD);
   const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
   const volume1w = pair.dayData.reduce(
@@ -44,13 +40,11 @@ export const createPoolFromPair = (
   );
   return {
     ...pair,
-    name: `${baseToken.symbol} / ${quoteToken.symbol}`,
-    token0: poolToken0,
-    token1: poolToken1,
-    baseToken,
-    quoteToken,
-    hasNFT: baseToken.isNFT || quoteToken.isNFT,
-    isNFTNFT: baseToken.isNFT && quoteToken.isNFT,
+    name: `${token0.symbol} / ${token1.symbol}`,
+    token0,
+    token1,
+    hasNFT: token0.isNFT || token1.isNFT,
+    isNFTNFT: token0.isNFT && token1.isNFT,
     reserveUSD,
     volume24h,
     volume1w,

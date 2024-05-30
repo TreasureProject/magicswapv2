@@ -12,12 +12,12 @@ export const PoolImage = ({ pool, className, ...divProps }: Props) => {
   return (
     <div className="flex items-center">
       <PoolTokenImage
-        token={pool.baseToken}
+        token={pool.token0}
         className={cn("border-2 border-night-1100", className)}
         {...divProps}
       />
       <PoolTokenImage
-        token={pool.quoteToken}
+        token={pool.token1}
         className={cn("-translate-x-1/3 border-2 border-night-1100", className)}
         {...divProps}
       />

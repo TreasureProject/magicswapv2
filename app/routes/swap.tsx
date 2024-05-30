@@ -5,7 +5,6 @@ import type { MetaFunction } from "@remix-run/react";
 import {
   Await,
   Link,
-  useFetcher,
   useLoaderData,
   useLocation,
   useRevalidator,
@@ -23,12 +22,11 @@ import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { formatUnits } from "viem";
 
-import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
 import {
+  fetchPoolTokenBalance,
   fetchToken,
   fetchTokens,
-  fetchUserCollectionBalance,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
@@ -57,14 +55,14 @@ import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
-import { bigIntToNumber, floorBigInt } from "~/lib/number";
+import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { PoolToken , AddressString, Optional, TroveTokenWithQuantity } from "~/types";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
+import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 
 export const meta: MetaFunction<
   typeof loader,
@@ -128,7 +126,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tokens: fetchTokens(),
     tokenIn,
     tokenOut,
-    tokenInNFTBalance: fetchUserCollectionBalance(tokenIn.urlSlug, address),
+    tokenInNFTBalance: fetchPoolTokenBalance(tokenIn, address),
     address,
   });
 }
@@ -893,7 +891,7 @@ const SwapTokenInput = ({
                     }
                   >
                     <Await resolve={tokenInNFTBalance}>
-                      {(balance) => balance ?? 0}
+                      {(balance) => formatNumber(balance ?? 0)}
                     </Await>
                   </Suspense>
                 )}
@@ -957,7 +955,6 @@ const SwapTokenInput = ({
         disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
         onSelect={onSelect}
       />
-
       <DialogTrigger asChild>
         <button
           className={cn(
@@ -1088,40 +1085,8 @@ const Token = ({
   disabled: boolean;
   onSelect: (token: PoolToken) => void;
 }) => {
-  const { addressArg } = useAccount();
-  const {
-    load: loadNFTBalance,
-    state: nftBalanceStatus,
-    data,
-  } = useFetcher<FetchNFTBalanceLoader>();
-
-  const { data: balance, fetchStatus } = useReadErc20BalanceOf({
-    address: token.id as AddressString,
-    args: [addressArg],
-    query: {
-      enabled: !!addressArg && !token.isNFT,
-    },
-  });
-
-  useEffect(() => {
-    if (!token.urlSlug || !addressArg) {
-      return;
-    }
-
-    const params = new URLSearchParams({
-      address: addressArg,
-    });
-
-    loadNFTBalance(
-      `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
-    );
-  }, [addressArg, loadNFTBalance, token.urlSlug]);
-
-  const isLoading =
-    fetchStatus === "fetching" || nftBalanceStatus === "loading";
-
-  const nftBalance = data && data.ok ? data.balance : null;
-
+  const { address } = useAccount();
+  const { data: balance, isLoading } = usePoolTokenBalance({ token, address });
   return (
     <li
       className={cn(
@@ -1141,11 +1106,9 @@ const Token = ({
         </div>
         {isLoading ? (
           <LoaderIcon className="h-4 w-4" />
-        ) : addressArg ? (
+        ) : address ? (
           <p className="text-base-400 text-sm">
-            {token.isNFT
-              ? nftBalance
-              : formatTokenAmount(balance ?? BigInt(0), token.decimals)}
+            {typeof balance === "bigint" ? formatTokenAmount(balance, token.decimals) : formatNumber(balance)}
           </p>
         ) : null}
       </div>

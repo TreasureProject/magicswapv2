@@ -11,17 +11,18 @@ import {
 } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { cachified } from "~/lib/cache.server";
+import type {
+  PoolToken,
+  TraitsResponse,
+  TroveApiResponse,
+  TroveToken,
+  TroveTokenMapping,
+} from "~/types";
 import {
   createPoolToken,
   getTokenCollectionAddresses,
 } from "~/lib/tokens.server";
-import type {
-  TraitsResponse,
-  TroveApiResponse,
-  TroveCollection,
-  TroveToken,
-  TroveTokenMapping,
-} from "~/types";
+import { sumArray } from "~/lib/array";
 
 function filterNullValues(
   obj: Record<string, unknown>
@@ -193,19 +194,27 @@ export const fetchTroveTokens = async (
   }, {} as TroveTokenMapping);
 };
 
-export const fetchUserCollectionBalance = async (
-  slug: string,
-  address: string
-) => {
-  const url = new URL(`${process.env.TROVE_API_URL}/collections-for-user`);
-  url.searchParams.set("userAddress", address);
-  url.searchParams.set("slugs", slug);
+export const fetchPoolTokenBalance = async (token: PoolToken, address: string) => {
+  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  url.searchParams.append("userAddress", address);
+  url.searchParams.append("projection", "queryUserQuantityOwned");
 
-  const response = await fetch(url.toString(), {
+  const tokenIds = token.collections.flatMap(({ id, tokenIds }) => tokenIds.map((tokenId) => `${process.env.TROVE_API_NETWORK}/${id}/${tokenId}`));
+  if (tokenIds.length > 0) {
+    url.searchParams.append(
+      "ids", tokenIds.join(","));
+  } else {
+    url.searchParams.append(
+      "slugs",
+      token.collections.map(({ id }) => `${process.env.TROVE_API_NETWORK}/${id}`).join(","),
+    );
+  }
+
+  const response = await fetch(url, {
     headers: {
       "X-API-Key": process.env.TROVE_API_KEY,
     },
   });
-  const result = (await response.json()) as TroveCollection[];
-  return result[0]?.numTokensOwnedByUser ?? 0;
+  const result = (await response.json()) as TroveToken[];
+  return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
 };

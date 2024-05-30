@@ -1,6 +1,5 @@
 import { PoolTokenImage } from "../pools/PoolTokenImage";
-import type { PoolToken } from "~/lib/tokens.server";
-import type { Optional } from "~/types";
+import type { PoolToken , Optional } from "~/types";
 
 export const TotalDisplayInner = ({
   token,

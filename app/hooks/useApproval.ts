@@ -1,6 +1,6 @@
 import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { PoolToken } from "~/types";
 
 type Props = {
   token: PoolToken;

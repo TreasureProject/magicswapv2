@@ -4,8 +4,7 @@ import { multiplyArray, sumArray } from "~/lib/array";
 import { bigIntToNumber } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import type { PoolToken } from "~/lib/tokens.server";
-import type { AddressString, NumberString } from "~/types";
+import type { PoolToken , AddressString, NumberString } from "~/types";
 
 type Props = {
   tokenIn: PoolToken;
@@ -51,13 +50,13 @@ export const useSwapRoute = ({
       return {
         ...pool,
         tokenFrom:
-          pool.baseToken.id === tokenFrom.address
-            ? pool.baseToken
-            : pool.quoteToken,
+          pool.token0.id === tokenFrom.address
+            ? pool.token0
+            : pool.token1,
         tokenTo:
-          pool.baseToken.id === tokenTo.address
-            ? pool.baseToken
-            : pool.quoteToken,
+          pool.token0.id === tokenTo.address
+            ? pool.token0
+            : pool.token1,
       };
     })
     .filter((leg) => !!leg) as (Pool & {

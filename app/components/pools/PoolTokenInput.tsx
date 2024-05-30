@@ -3,7 +3,7 @@ import { DisabledInputPopover } from "../DisabledInputPopover";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
-import type { PoolToken } from "~/lib/tokens.server";
+import type { PoolToken } from "~/types";
 
 export const PoolTokenInput = ({
   token,
