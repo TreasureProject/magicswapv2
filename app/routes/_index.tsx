@@ -1,9 +1,8 @@
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/react";
 import { Link } from "@remix-run/react";
 import { motion } from "framer-motion";
 import {
   ChevronRight as ChevronRightIcon,
-  PlayCircle as PlayIcon,
 } from "lucide-react";
 
 import collectionsImage from "../assets/collections.png";
@@ -22,7 +21,7 @@ import type { RootLoader } from "~/root";
 //   });
 // }
 
-export const meta: V2_MetaFunction<
+export const meta: MetaFunction<
   unknown, // typeof loader,
   {
     root: RootLoader;

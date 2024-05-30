@@ -414,8 +414,6 @@ export default function PoolDetailsPage() {
             onSuccess={refresh}
           />
         </div>
-        {/*Here the pool & inventory start */}
-
         {pool.hasNFT ? (
           <div className="mt-12 space-y-3.5">
             {pool.baseToken.isNFT && baseVaultItems ? (
@@ -681,7 +679,7 @@ const PoolActivityTable = ({
                   return (
                     <Fragment key={tx.id}>
                       <tr className="border-b border-b-night-900 transition-colors">
-                        <td className="px-4 py-4 text-left uppercase sm:px-5">
+                        <td className="px-4 py-4 text-left sm:px-5">
                           <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
                             <div className="flex items-center gap-2.5">
                               <PoolTransactionImage

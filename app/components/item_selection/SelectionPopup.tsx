@@ -21,7 +21,6 @@ import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
-import type { TroveFilters } from "~/api/tokens.server";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
@@ -53,7 +52,7 @@ const ItemCard = ({
   const disableUnselected = !selected && disabled;
 
   const innerCard = (
-    <div className={cn(disableUnselected && "cursor-not-allowed opacity-30")}>
+    <div className={cn("w-full", disableUnselected && "cursor-not-allowed opacity-30")}>
       {selected && (
         <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
           <CheckIcon className="w-3" />
@@ -85,13 +84,13 @@ const ItemCard = ({
           <a
             target="_blank"
             rel="noopener noreferrer"
-            title={`View ${item.metadata.name} on Trove`}
+            title={`View ${item.metadata.name} in the marketplace`}
             className="text-night-400 transition-colors hover:text-night-100"
             href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View {item.metadata.name} on Trove</span>
+            <span className="sr-only">View {item.metadata.name} in the marketplace</span>
           </a>
         </div>
       ) : null}

@@ -846,7 +846,7 @@ const SwapTokenInput = ({
                           <a
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={`View ${nft.metadata.name} on Trove`}
+                            title={`View ${nft.metadata.name} in the marketplace`}
                             className="text-night-400 transition-colors hover:text-night-100"
                             href={createTokenUrl(
                               nft.collectionUrlSlug,
@@ -858,7 +858,7 @@ const SwapTokenInput = ({
                               aria-hidden="true"
                             />
                             <span className="sr-only">
-                              View {nft.metadata.name} on Trove
+                              View {nft.metadata.name} in the marketplace
                             </span>
                           </a>
                         </div>

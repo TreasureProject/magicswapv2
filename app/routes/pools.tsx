@@ -88,7 +88,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
               key={pool.id}
               className="cursor-pointer border-t border-night-900 transition-colors hover:bg-night-1000"
             >
-              <td className="px-4 py-4 text-left font-medium uppercase sm:px-5">
+              <td className="px-4 py-4 text-left font-medium sm:px-5">
                 <Link
                   to={`/pools/${pool.id}`}
                   prefetch="intent"

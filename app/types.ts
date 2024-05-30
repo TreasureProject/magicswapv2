@@ -20,11 +20,12 @@ export type TroveCollection = {
   displayName: string;
   thumbnailUri: string;
   urlSlug: string;
+  symbol: string;
   numTokensOwnedByUser: number;
-  tokenDisplayName: {
-    singular: string;
-    plural: string;
-  };
+  // tokenDisplayName: {
+  //   singular: string;
+  //   plural: string;
+  // };
 };
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;

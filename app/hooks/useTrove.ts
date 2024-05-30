@@ -8,8 +8,8 @@ export const useTrove = () => {
   const chainId = useChainId();
   const url =
     chainId === arbitrumSepolia.id
-      ? "https://trove-testnet.treasure.lol"
-      : "https://trove.treasure.lol";
+      ? "https://app-testnet.treasure.lol"
+      : "https://app.treasure.lol";
   return {
     url,
     createCollectionUrl: (slug: string) => createCollectionUrl(url, slug),

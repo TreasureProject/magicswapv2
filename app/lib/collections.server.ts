@@ -11,7 +11,7 @@ export const createPoolTokenCollection = (
     urlSlug: collectionData?.urlSlug ?? "",
     tokenIds,
     name: collectionData?.displayName ?? collection.id,
-    symbol: collectionData?.tokenDisplayName.singular ?? "?",
+    symbol: collectionData?.symbol ?? "?",
     type: collectionData?.contractType ?? "ERC721",
     image: collectionData?.thumbnailUri ?? "",
   };

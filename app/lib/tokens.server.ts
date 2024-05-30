@@ -53,20 +53,7 @@ export const createTokenName = (
 export const createTokenSymbol = (
   token: Token,
   collections: TroveCollectionMapping
-) => {
-  if (token.isNFT) {
-    const addresses = getTokenCollectionAddresses(token);
-    return addresses
-      .map(
-        (address) => collections[address]?.tokenDisplayName.singular ?? address
-      )
-      .sort()
-      .join(" / ")
-      .toUpperCase();
-  }
-
-  return token.symbol.toUpperCase();
-};
+) => token.isNFT ? createTokenName(token, collections) : token.symbol.toUpperCase();
 
 export const createPoolToken = (
   token: Token,

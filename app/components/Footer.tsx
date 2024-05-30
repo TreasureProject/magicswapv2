@@ -1,4 +1,4 @@
-import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
+import { MagicSwapLogo } from "@treasure-project/branding";
 import { Link } from "react-router-dom";
 import { Balancer } from "react-wrap-balancer";
 
@@ -26,7 +26,7 @@ const FooterPoints: {
       type: "external",
     },
     {
-      text: "Magic",
+      text: "MAGIC",
       href: "https://docs.treasure.lol/getting-started/what-is-magic",
       type: "external",
     },
@@ -88,15 +88,6 @@ export const Footer = () => {
   return (
     <div className="container bg-night-1200">
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-night-800 to-transparent" />
-      <div className="flex items-center justify-between py-6">
-        <MagicSwapLogoFull className="h-6 w-auto" />
-        {/* <div className="flex items-center gap-1">
-          <MagicIcon className="h-4 text-ruby-900" />
-          <p className="font-medium">
-            $1,724 <span className="text-night-600">USD</span>{" "}
-          </p>
-        </div> */}
-      </div>
       <div className="w-full border-t border-t-night-800">
         <div className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
           <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
