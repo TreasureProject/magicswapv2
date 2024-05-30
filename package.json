@@ -94,6 +94,6 @@
     "node": ">=18.15.0"
   },
   "lint-staged": {
-    "app/**/{*.ts,*.tsx}": "npm run lint"
+    "app/**/{*.ts,*.tsx}": "npm run format"
   }
 }
