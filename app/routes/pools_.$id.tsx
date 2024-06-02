@@ -40,7 +40,7 @@ import type {
 import { fetchPool, fetchTransactions } from "~/api/pools.server";
 import {
   fetchCollectionOwnedByAddress,
-  fetchUserCollectionBalance,
+  fetchPoolTokenBalance,
 } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -66,12 +66,10 @@ import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
-import { getTroveTokenQuantity } from "~/lib/tokens";
-import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, TroveToken } from "~/types";
+import type { AddressString, Optional, PoolToken, TroveToken } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -100,9 +98,9 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `${pool?.baseToken.symbol}/${pool?.quoteToken.symbol} Liquidity Pool`
+      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`
     ),
-    description: `Provide liquidity for ${pool?.baseToken.symbol}/${pool?.quoteToken.symbol} on Magicswap`,
+    description: `Provide liquidity for ${pool?.token0.symbol}/${pool?.token1.symbol} on Magicswap`,
     image: `${url}.png`,
   });
 };
@@ -122,12 +120,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  if (!address || (!pool.baseToken.isNFT && !pool.quoteToken.isNFT)) {
+  if (!address || (!pool.token0.isNFT && !pool.token1.isNFT)) {
     return defer({
       pool,
       transactions: fetchTransactions(pool),
-      baseVaultItems: null,
-      quoteVaultItems: null,
+      vaultItems0: null,
+      vaultItems1: null,
       nftBalance0: null,
       nftBalance1: null,
     });
@@ -136,31 +134,31 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return defer({
     pool,
     transactions: fetchTransactions(pool),
-    baseVaultItems: fetchCollectionOwnedByAddress(
-      pool.baseToken.id,
-      pool.baseToken.urlSlug,
+    vaultItems0: fetchCollectionOwnedByAddress(
+      pool.token0.id,
+      pool.token0.urlSlug,
       [],
-      pool.baseToken.collectionTokenIds,
+      pool.token0.collectionTokenIds,
       null,
       null,
       0
     ),
-    quoteVaultItems: fetchCollectionOwnedByAddress(
-      pool.quoteToken.id,
-      pool.quoteToken.urlSlug,
+    vaultItems1: fetchCollectionOwnedByAddress(
+      pool.token1.id,
+      pool.token1.urlSlug,
       [],
-      pool.quoteToken.collectionTokenIds,
+      pool.token1.collectionTokenIds,
       null,
       null,
       0
     ),
-    nftBalance0: fetchUserCollectionBalance(pool.baseToken.urlSlug, address),
-    nftBalance1: fetchUserCollectionBalance(pool.quoteToken.urlSlug, address),
+    nftBalance0: fetchPoolTokenBalance(pool.token0, address),
+    nftBalance1: fetchPoolTokenBalance(pool.token1, address),
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, baseVaultItems, quoteVaultItems, transactions } =
+  const { pool, vaultItems0, vaultItems1, transactions } =
     useLoaderData<typeof loader>();
   const { address } = useAccount();
 
@@ -251,7 +249,7 @@ export default function PoolDetailsPage() {
                         </p>
                       </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {[pool.baseToken, pool.quoteToken].map((token) => (
+                        {[pool.token0, pool.token1].map((token) => (
                           <div key={token.id} className="space-y-2">
                             <div className="flex items-center gap-2 text-sm">
                               <p className="font-medium text-night-100">
@@ -331,26 +329,25 @@ export default function PoolDetailsPage() {
               </div>
               <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
                 <p className="justify-self-end text-night-400">
-                  <span className="text-night-100">1</span>{" "}
-                  {pool.baseToken.symbol}
+                  <span className="text-night-100">1</span> {pool.token0.symbol}
                 </p>
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
                     {formatAmount(
                       bigIntToNumber(
-                        BigInt(pool.quoteToken.reserve),
-                        pool.quoteToken.decimals
+                        BigInt(pool.token1.reserve),
+                        pool.token1.decimals
                       ) /
                         bigIntToNumber(
-                          BigInt(pool.baseToken.reserve),
-                          pool.baseToken.decimals
+                          BigInt(pool.token0.reserve),
+                          pool.token0.decimals
                         )
                     )}
                   </span>{" "}
-                  {pool.quoteToken.symbol}
+                  {pool.token1.symbol}
                 </p>
-                {[pool.baseToken, null, pool.quoteToken].map((token) => {
+                {[pool.token0, null, pool.token1].map((token) => {
                   if (!token) {
                     return <div className="hidden sm:block" key="empty" />;
                   }
@@ -414,29 +411,27 @@ export default function PoolDetailsPage() {
             onSuccess={refresh}
           />
         </div>
-        {/*Here the pool & inventory start */}
-
         {pool.hasNFT ? (
           <div className="mt-12 space-y-3.5">
-            {pool.baseToken.isNFT && baseVaultItems ? (
+            {pool.token0.isNFT && vaultItems0 ? (
               <Suspense>
-                <Await resolve={baseVaultItems}>
-                  {(baseVaultItems) => (
+                <Await resolve={vaultItems0}>
+                  {(vaultItems0) => (
                     <PoolTokenCollectionInventory
-                      token={pool.baseToken}
-                      items={baseVaultItems.tokens}
+                      token={pool.token0}
+                      items={vaultItems0.tokens}
                     />
                   )}
                 </Await>
               </Suspense>
             ) : null}
-            {pool.quoteToken.isNFT && quoteVaultItems ? (
+            {pool.token1.isNFT && vaultItems1 ? (
               <Suspense>
-                <Await resolve={quoteVaultItems}>
-                  {(quoteVaultItems) => (
+                <Await resolve={vaultItems1}>
+                  {(vaultItems1) => (
                     <PoolTokenCollectionInventory
-                      token={pool.quoteToken}
-                      items={quoteVaultItems.tokens}
+                      token={pool.token1}
+                      items={vaultItems1.tokens}
                     />
                   )}
                 </Await>
@@ -537,7 +532,7 @@ const PoolManagementView = ({
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <RepeatIcon className="h-5 w-5 text-night-400" />
-          <h1 className="text-lg font-semibold text-night-100 ">
+          <h1 className="text-lg font-semibold text-night-100">
             Add Liquidity
           </h1>
         </div>
@@ -618,7 +613,7 @@ const PoolActivityTable = ({
             <th className="px-4 py-2.5 text-left font-normal sm:px-5">
               Tokens
             </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Action
             </th>
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
@@ -663,8 +658,8 @@ const PoolActivityTable = ({
                       itemsB = tx.items0;
                     }
                   } else {
-                    tokenA = pool.baseToken;
-                    tokenB = pool.quoteToken;
+                    tokenA = pool.token0;
+                    tokenB = pool.token1;
                     if (tokenA.id === pool.token0.id) {
                       amountA = tx.amount0;
                       itemsA = tx.items0;
@@ -681,7 +676,7 @@ const PoolActivityTable = ({
                   return (
                     <Fragment key={tx.id}>
                       <tr className="border-b border-b-night-900 transition-colors">
-                        <td className="px-4 py-4 text-left uppercase sm:px-5">
+                        <td className="px-4 py-4 text-left sm:px-5">
                           <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
                             <div className="flex items-center gap-2.5">
                               <PoolTransactionImage
@@ -828,8 +823,12 @@ const PoolTokenCollectionInventory = ({
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
             <span className="font-medium">{token.name}</span>
-            <span className="h-3 w-[1px] bg-night-400" />
-            <span className="uppercase text-night-400">{token.symbol}</span>
+            {token.name !== token.symbol ? (
+              <>
+                <span className="h-3 w-[1px] bg-night-400" />
+                <span className="uppercase text-night-400">{token.symbol}</span>
+              </>
+            ) : null}
           </div>
           <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
             {items.map((item) => (
@@ -842,9 +841,9 @@ const PoolTokenCollectionInventory = ({
                   alt={item.metadata.name}
                   title={item.metadata.name}
                 />
-                {getTroveTokenQuantity(item) > 1 ? (
+                {(item.queryUserQuantityOwned ?? 1) > 1 ? (
                   <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
-                    {getTroveTokenQuantity(item)}x
+                    {formatNumber(item.queryUserQuantityOwned ?? 1)}x
                   </span>
                 ) : null}
               </div>
@@ -854,8 +853,15 @@ const PoolTokenCollectionInventory = ({
         <div className="h-[1px] bg-night-800" />
         <div className="flex items-center justify-between px-6 py-3">
           <span className="text-sm text-night-400">
-            Showing {sumArray(items.map(getTroveTokenQuantity))} of{" "}
-            {formatTokenAmount(BigInt(token.reserve), token.decimals)}
+            Showing{" "}
+            {formatNumber(
+              sumArray(
+                items.map(
+                  ({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1
+                )
+              )
+            )}{" "}
+            of {formatTokenAmount(BigInt(token.reserve), token.decimals)}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>

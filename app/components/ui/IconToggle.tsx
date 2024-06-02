@@ -27,13 +27,13 @@ const IconToggle = ({ icons, onChange }: IconToggleProps) => {
       {icons.map(({ id, icon: Icon }, index) => (
         <button
           className={cn(
-            "relative z-10 flex h-7  w-7 items-center justify-center text-night-600 hover:text-night-100",
+            "relative z-10 flex h-7 w-7 items-center justify-center text-night-600 hover:text-night-100",
             index === selected && "text-night-100"
           )}
           key={id}
           onClick={() => handleSelect(id, index)}
         >
-          <Icon className="h-4 w-4 " />
+          <Icon className="h-4 w-4" />
         </button>
       ))}
     </div>

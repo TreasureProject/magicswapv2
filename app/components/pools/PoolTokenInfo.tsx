@@ -1,9 +1,9 @@
 import { GlobeIcon } from "lucide-react";
-import { ClientOnly } from "remix-utils";
+import { ClientOnly } from "remix-utils/client-only";
 
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
-import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
+import type { PoolToken } from "~/types";
 
 type Props = {
   token: PoolToken;

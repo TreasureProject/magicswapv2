@@ -20,15 +20,14 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   invariant(params.id, "Missing pool id");
 
   const pool = await fetchPool(params.id);
-
-  const baseToken = pool?.baseToken;
-  const quoteToken = pool?.quoteToken;
+  const token0 = pool?.token0;
+  const token1 = pool?.token1;
 
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
       <div tw="flex justify-between flex-col">
         <MagicSwapLogoFull tw="w-72 h-14" />
-        <TokenDisplay token0={baseToken} token1={quoteToken} origin={origin} />
+        <TokenDisplay token0={token0} token1={token1} origin={origin} />
         <div tw="flex flex-col">
           <div
             tw="flex font-bold text-5xl"
@@ -36,9 +35,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
               color: NIGHT_100,
             }}
           >
-            <div tw="flex">{baseToken?.symbol}</div>
+            <div tw="flex">{token0?.symbol}</div>
             <div tw="flex mx-2">/</div>
-            <div tw="flex">{quoteToken?.symbol}</div>
+            <div tw="flex">{token1?.symbol}</div>
           </div>
           <div tw="flex mt-6">
             <div tw="flex flex-col">
@@ -49,8 +48,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                 }}
               >
                 {formatTokenAmount(
-                  BigInt(baseToken?.reserve ?? "0"),
-                  baseToken?.decimals
+                  BigInt(token0?.reserve ?? "0"),
+                  token0?.decimals
                 )}
               </div>
               <div
@@ -59,7 +58,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                 }}
                 tw="text-lg"
               >
-                {baseToken?.symbol}
+                {token0?.symbol}
               </div>
             </div>
             <div tw="flex ml-12 flex-col">
@@ -70,8 +69,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                 }}
               >
                 {formatTokenAmount(
-                  BigInt(quoteToken?.reserve ?? "0"),
-                  quoteToken?.decimals
+                  BigInt(token1?.reserve ?? "0"),
+                  token1?.decimals
                 )}
               </div>
               <div
@@ -80,7 +79,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                 }}
                 tw="text-lg"
               >
-                {quoteToken?.symbol}
+                {token1?.symbol}
               </div>
             </div>
             <div tw="flex ml-12 flex-col">
@@ -141,7 +140,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
               color: NIGHT_400,
             }}
           >
-            {baseToken?.symbol}
+            {token0?.symbol}
           </span>
         </div>
         <svg
@@ -166,14 +165,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         >
           <span>
             {formatAmount(
-              bigIntToNumber(
-                BigInt(quoteToken?.reserve ?? "0"),
-                quoteToken?.decimals
-              ) /
-                bigIntToNumber(
-                  BigInt(baseToken?.reserve ?? "0"),
-                  baseToken?.decimals
-                )
+              bigIntToNumber(BigInt(token1?.reserve ?? "0"), token1?.decimals) /
+                bigIntToNumber(BigInt(token0?.reserve ?? "0"), token0?.decimals)
             )}
           </span>
           <span
@@ -182,7 +175,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
               color: NIGHT_400,
             }}
           >
-            {quoteToken?.symbol}
+            {token1?.symbol}
           </span>
         </div>
       </div>

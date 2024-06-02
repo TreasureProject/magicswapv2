@@ -9,25 +9,15 @@ import {
   type GetPairsQuery,
   execute,
 } from "../../.graphclient";
-import { fetchTroveCollections } from "./collections.server";
+import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokens } from "./tokens.server";
 import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
 import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
-import {
-  getTokenCollectionAddresses,
-  itemToTroveTokenItem,
-} from "~/lib/tokens.server";
+import { itemToTroveTokenItem } from "~/lib/tokens.server";
 import type { AddressString, Pair } from "~/types";
-
-const getPairCollectionAddresses = (pair: Pair) => [
-  ...new Set([
-    ...getTokenCollectionAddresses(pair.token0),
-    ...getTokenCollectionAddresses(pair.token1),
-  ]),
-];
 
 export const fetchTransactions = async (pool: Pool) => {
   const result = (await execute(GetPairTransactionsDocument, {
@@ -62,19 +52,20 @@ export type PoolTransactionType = PoolTransaction["type"];
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
-  const [collections, magicUSD, reserves] = await Promise.all([
-    fetchTroveCollections([
-      ...new Set(pairs.flatMap((pair) => getPairCollectionAddresses(pair))),
-    ]),
-    fetchMagicUSD(),
-    client.multicall({
-      contracts: pairs.map(({ id }) => ({
-        address: id as AddressString,
-        abi: uniswapV2PairAbi,
-        functionName: "getReserves",
-      })),
-    }),
-  ]);
+  const [[collectionMapping, tokenMapping], magicUSD, reserves] =
+    await Promise.all([
+      fetchTokensCollections(
+        pairs.flatMap(({ token0, token1 }) => [token0, token1])
+      ),
+      fetchMagicUSD(),
+      client.multicall({
+        contracts: pairs.map(({ id }) => ({
+          address: id as AddressString,
+          abi: uniswapV2PairAbi,
+          functionName: "getReserves",
+        })),
+      }),
+    ]);
   return pairs.map((pair, i) => {
     const reserve = reserves[i] as {
       result: [bigint, bigint, number];
@@ -82,7 +73,8 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
     };
     return createPoolFromPair(
       pair,
-      collections,
+      collectionMapping,
+      tokenMapping,
       magicUSD,
       reserve?.status === "success"
         ? [reserve.result[0], reserve.result[1]]

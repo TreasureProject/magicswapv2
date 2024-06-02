@@ -53,8 +53,8 @@ export const useAddLiquidity = ({
     useSimulateMagicSwapV2RouterAddLiquidity({
       address: routerAddress,
       args: [
-        pool.baseToken.id as AddressString,
-        pool.quoteToken.id as AddressString,
+        pool.token0.id as AddressString,
+        pool.token1.id as AddressString,
         amountA,
         amountB,
         amountAMin,
@@ -83,8 +83,8 @@ export const useAddLiquidity = ({
         nftsA.map(({ collectionAddr }) => collectionAddr as AddressString),
         nftsA.map(({ tokenId }) => BigInt(tokenId)),
         nftsA.map(({ quantity }) => BigInt(quantity)),
-        pool.baseToken.id as AddressString,
-        pool.quoteToken.id as AddressString,
+        pool.token0.id as AddressString,
+        pool.token1.id as AddressString,
         amountB,
         amountBMin,
         addressArg,
@@ -125,7 +125,7 @@ export const useAddLiquidity = ({
   //     address: routerAddress,
   //     args: [
   //       {
-  //         token: pool.baseToken.id as AddressString,
+  //         token: pool.token0.id as AddressString,
   //         collection: nftsA.map(
   //           ({ collectionAddr }) => collectionAddr as AddressString
   //         ),
@@ -133,7 +133,7 @@ export const useAddLiquidity = ({
   //         amount: nftsA.map(({ quantity }) => BigInt(quantity)),
   //       },
   //       {
-  //         token: pool.quoteToken.id as AddressString,
+  //         token: pool.token1.id as AddressString,
   //         collection: nftsB.map(
   //           ({ collectionAddr }) => collectionAddr as AddressString
   //         ),

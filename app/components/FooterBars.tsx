@@ -18,7 +18,7 @@ export const DiscordSupportBar = () => {
       <img
         src={chatMessageImage}
         alt="Messages of discord users helping each other"
-        className="absolute left-[55%] top-1/2 w-[560px] -translate-x-1/2 -translate-y-1/2 opacity-25 lg:opacity-100 "
+        className="absolute left-[55%] top-1/2 w-[560px] -translate-x-1/2 -translate-y-1/2 opacity-25 lg:opacity-100"
       />
       <Button className="relative z-10 w-full px-4 md:w-max">
         <DiscordIcon className="w-6" />

@@ -58,7 +58,7 @@ const TrendingBox = ({ data }: { data: TrendingProps }) => {
       to={data.link}
       className="group flex w-full items-center justify-between rounded-lg bg-night-1100 p-4"
     >
-      <div className="flex items-center gap-4 ">
+      <div className="flex items-center gap-4">
         <img src={data.image} className="h-14 w-14" alt={data.name} />
         <div className="flex flex-col">
           <h1 className="text-xl font-bold text-night-100">{data.name}</h1>
@@ -188,7 +188,7 @@ const SearchPopup = ({ onClose }: SearchProps) => {
 
   return (
     <PopupOverlay onClose={onClose}>
-      <div className="z-[110]  w-full max-w-3xl flex-col">
+      <div className="z-[110] w-full max-w-3xl flex-col">
         <div className="mb-5 flex items-center justify-between">
           <p className="font-medium text-night-100">Quick Search</p>
           <CloseButton onClick={onClose} />
@@ -200,7 +200,7 @@ const SearchPopup = ({ onClose }: SearchProps) => {
           onChange={formHandler}
           value={search}
         />
-        <div className="mb-4 w-full ">
+        <div className="mb-4 w-full">
           <p className="mb-2 text-night-500">Trending Collections</p>
           <div className="flex flex-col gap-1.5">
             <TrendingBox data={exampleTrendingData} />

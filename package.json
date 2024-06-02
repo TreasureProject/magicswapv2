@@ -7,7 +7,6 @@
     "dev": "remix vite:dev",
     "generate": "graphclient build && wagmi generate",
     "build": "remix vite:build",
-    "deploy": "fly deploy --remote-only",
     "format": "eslint --fix --quiet . && prettier --write .",
     "lint": "eslint .",
     "test": "vitest run",
@@ -81,7 +80,7 @@
     "jsdom": "^24.1.0",
     "lint-staged": "^15.2.5",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.14",
+    "prettier-plugin-tailwindcss": "^0.6.1",
     "tailwind-scrollbar": "^3.0.4",
     "tailwindcss": "^3.2.7",
     "tailwindcss-animate": "^1.0.5",
@@ -94,6 +93,6 @@
     "node": ">=18.15.0"
   },
   "lint-staged": {
-    "app/**/{*.ts,*.tsx}": "npm run lint"
+    "app/**/{*.ts,*.tsx}": "npm run format"
   }
 }

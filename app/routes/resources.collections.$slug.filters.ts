@@ -23,8 +23,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
         },
       }
     );
-  } catch (e: any) {
-    return json({ ok: false, error: e.message } as const);
+  } catch (err) {
+    return json({ ok: false, error: (err as Error).message } as const);
   }
 };
 

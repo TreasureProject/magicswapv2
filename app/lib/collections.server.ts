@@ -1,18 +1,28 @@
-import type { Collection, TroveCollectionMapping } from "~/types";
+import type {
+  Collection,
+  PoolTokenCollection,
+  TroveCollectionMapping,
+} from "~/types";
 
 export const createPoolTokenCollection = (
   collection: Collection,
   tokenIds: string[],
-  collections: TroveCollectionMapping
-) => {
-  const collectionData = collections[collection.id];
+  collectionMapping: TroveCollectionMapping
+): PoolTokenCollection => {
+  const {
+    urlSlug = "",
+    displayName: name = collection.id,
+    symbol = "?",
+    contractType: type = "ERC721",
+    thumbnailUri: image = "",
+  } = collectionMapping[collection.id] ?? {};
   return {
     id: collection.id,
-    urlSlug: collectionData?.urlSlug ?? "",
+    urlSlug,
     tokenIds,
-    name: collectionData?.displayName ?? collection.id,
-    symbol: collectionData?.tokenDisplayName.singular ?? "?",
-    type: collectionData?.contractType ?? "ERC721",
-    image: collectionData?.thumbnailUri ?? "",
+    name,
+    symbol,
+    type,
+    image,
   };
 };

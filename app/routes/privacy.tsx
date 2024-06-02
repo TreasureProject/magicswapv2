@@ -33,12 +33,12 @@ const Privacy = () => {
           </a>
           ,{" "}
           <a
-            href="https://trove.treasure.lol"
+            href="https://app.treasure.lol"
             target="_blank"
             rel="noreferrer"
             className="text-ruby-700 underline"
           >
-            trove.treasure.lol
+            app.treasure.lol
           </a>
           , and any other website offered by us that links to this privacy
           policy (collectively the <span className="text-night-100">site</span>

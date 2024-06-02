@@ -23,12 +23,12 @@ import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
-import type { PoolToken } from "~/lib/tokens.server";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
   AddressString,
   NumberString,
   Optional,
+  PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
 
@@ -61,71 +61,61 @@ export const PoolDepositTab = ({
 
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.quoteToken.decimals : pool.baseToken.decimals
+    isExactB ? pool.token1.decimals : pool.token0.decimals
   );
   const amountA = isExactB
-    ? quote(
-        amount,
-        BigInt(pool.quoteToken.reserve),
-        BigInt(pool.baseToken.reserve)
-      )
+    ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
   const amountB = isExactB
     ? amount
-    : quote(
-        amount,
-        BigInt(pool.baseToken.reserve),
-        BigInt(pool.quoteToken.reserve)
-      );
+    : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
   const hasAmount = amount > 0;
 
-  const { data: baseTokenBalance, refetch: refetchBaseTokenBalance } =
-    useReadErc20BalanceOf({
-      address: pool.baseToken.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address && !pool.baseToken.isNFT,
-      },
-    });
-  const { data: quoteTokenBalance, refetch: refetchQuoteTokenBalance } =
-    useReadErc20BalanceOf({
-      address: pool.quoteToken.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address && !pool.quoteToken.isNFT,
-      },
-    });
+  const { data: balance0, refetch: refetchBalance0 } = useReadErc20BalanceOf({
+    address: pool.token0.id as AddressString,
+    args: [address as AddressString],
+    query: {
+      enabled: !!address && !pool.token0.isNFT,
+    },
+  });
+  const { data: balance1, refetch: refetchBalance1 } = useReadErc20BalanceOf({
+    address: pool.token1.id as AddressString,
+    args: [address as AddressString],
+    query: {
+      enabled: !!address && !pool.token1.isNFT,
+    },
+  });
 
   const {
-    isApproved: isBaseTokenApproved,
-    refetch: refetchBaseTokenApproval,
-    approvedAlready: isBaseTokenApprovedAlready,
+    isApproved: isApproved0,
+    refetch: refetchApproval0,
+    allowance: allowance0,
   } = useIsApproved({
-    token: pool.baseToken,
+    token: pool.token0,
     amount: amountA,
     enabled: hasAmount,
   });
   const {
-    isApproved: isQuoteTokenApproved,
-    refetch: refetchQuoteTokenApproval,
-    approvedAlready: isQuoteTokenApprovedAlready,
+    isApproved: isApproved1,
+    refetch: refetchApproval1,
+    allowance: allowance1,
   } = useIsApproved({
-    token: pool.quoteToken,
+    token: pool.token1,
     amount: amountB,
     enabled: hasAmount,
   });
 
-  const { approve: approveBaseToken, isSuccess: isApproveBaseTokenSuccess } =
+  const { approve: approveBaseToken, isSuccess: isApproveSuccess0 } =
     useApprove({
-      token: pool.baseToken,
+      token: pool.token0,
       amount: amountA,
-      enabled: !isBaseTokenApproved,
+      enabled: !isApproved0,
     });
-  const { approve: approveQuoteToken, isSuccess: isApproveQuoteTokenSuccess } =
+  const { approve: approveQuoteToken, isSuccess: isApproveSuccess1 } =
     useApprove({
-      token: pool.quoteToken,
+      token: pool.token1,
       amount: amountB,
-      enabled: !isQuoteTokenApproved,
+      enabled: !isApproved1,
     });
 
   const { addLiquidity } = useAddLiquidity({
@@ -140,7 +130,7 @@ export const PoolDepositTab = ({
       : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
     nftsA,
     nftsB,
-    enabled: isBaseTokenApproved && isQuoteTokenApproved && hasAmount,
+    enabled: isApproved0 && isApproved1 && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({
         amount: "0",
@@ -148,41 +138,41 @@ export const PoolDepositTab = ({
         nftsB: [],
         isExactB: false,
       });
-      refetchBaseTokenBalance();
-      refetchQuoteTokenBalance();
+      refetchBalance0();
+      refetchBalance1();
       setCheckedTerms(false);
       onSuccess?.();
-    }, [onSuccess, refetchBaseTokenBalance, refetchQuoteTokenBalance]),
+    }, [onSuccess, refetchBalance0, refetchBalance1]),
   });
 
   const estimatedLp = getLpCountForTokens(
     amount,
-    BigInt(pool.baseToken.reserve),
+    BigInt(pool.token0.reserve),
     BigInt(pool.totalSupply)
   );
 
   useEffect(() => {
-    if (isApproveBaseTokenSuccess) {
-      refetchBaseTokenApproval();
+    if (isApproveSuccess0) {
+      refetchApproval0();
     }
-  }, [isApproveBaseTokenSuccess, refetchBaseTokenApproval]);
+  }, [isApproveSuccess0, refetchApproval0]);
 
   useEffect(() => {
-    if (isApproveQuoteTokenSuccess) {
-      refetchQuoteTokenApproval();
+    if (isApproveSuccess1) {
+      refetchApproval1();
     }
-  }, [isApproveQuoteTokenSuccess, refetchQuoteTokenApproval]);
+  }, [isApproveSuccess1, refetchApproval1]);
 
-  const insufficientBalanceA = !pool.baseToken.isNFT
+  const insufficientBalanceA = !pool.token0.isNFT
     ? parseFloat(
-        isExactB ? formatUnits(amountA, pool.baseToken.decimals) : rawAmount
-      ) > parseFloat(formatEther(baseTokenBalance || BigInt(0)))
+        isExactB ? formatUnits(amountA, pool.token0.decimals) : rawAmount
+      ) > parseFloat(formatEther(balance0 || BigInt(0)))
     : false;
 
-  const insufficientBalanceB = !pool.quoteToken.isNFT
+  const insufficientBalanceB = !pool.token1.isNFT
     ? parseFloat(
-        !isExactB ? formatUnits(amountB, pool.quoteToken.decimals) : rawAmount
-      ) > parseFloat(formatEther(quoteTokenBalance || BigInt(0)))
+        !isExactB ? formatUnits(amountB, pool.token1.decimals) : rawAmount
+      ) > parseFloat(formatEther(balance1 || BigInt(0)))
     : false;
 
   return (
@@ -200,11 +190,11 @@ export const PoolDepositTab = ({
             type="inventory"
             token={selectingToken}
             selectedTokens={
-              selectingToken.id === pool.baseToken.id ? nftsA : nftsB
+              selectingToken.id === pool.token0.id ? nftsA : nftsB
             }
             onSubmit={(tokens) => {
               const amountTokens = countTokens(tokens);
-              const isSelectingB = selectingToken.id === pool.quoteToken.id;
+              const isSelectingB = selectingToken.id === pool.token1.id;
               setTransaction((curr) => {
                 const amountNFTsA = countTokens(curr.nftsA);
                 const amountNFTsB = countTokens(curr.nftsB);
@@ -249,12 +239,12 @@ export const PoolDepositTab = ({
             }}
           </SelectionPopup>
         ) : null}
-        {pool.baseToken.isNFT ? (
+        {pool.token0.isNFT ? (
           <PoolNftTokenInput
-            token={pool.baseToken}
+            token={pool.token0}
             amount={
               isExactB
-                ? bigIntToNumber(amountA, pool.baseToken.decimals)
+                ? bigIntToNumber(amountA, pool.token0.decimals)
                 : undefined
             }
             balance={nftBalance0}
@@ -263,14 +253,14 @@ export const PoolDepositTab = ({
           />
         ) : (
           <PoolTokenInput
-            token={pool.baseToken}
-            balance={baseTokenBalance}
+            token={pool.token0}
+            balance={balance0}
             amount={
               isExactB
-                ? formatTokenAmount(amountA, pool.baseToken.decimals)
+                ? formatTokenAmount(amountA, pool.token0.decimals)
                 : rawAmount
             }
-            disabled={pool.quoteToken.isNFT}
+            disabled={pool.token1.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
                 amount,
@@ -281,13 +271,13 @@ export const PoolDepositTab = ({
             }
           />
         )}
-        {pool.quoteToken.isNFT ? (
+        {pool.token1.isNFT ? (
           <PoolNftTokenInput
-            token={pool.quoteToken}
+            token={pool.token1}
             amount={
               isExactB
                 ? undefined
-                : bigIntToNumber(amountB, pool.quoteToken.decimals)
+                : bigIntToNumber(amountB, pool.token1.decimals)
             }
             balance={nftBalance1}
             selectedNfts={nftsB}
@@ -295,14 +285,14 @@ export const PoolDepositTab = ({
           />
         ) : (
           <PoolTokenInput
-            token={pool.quoteToken}
-            balance={quoteTokenBalance}
+            token={pool.token1}
+            balance={balance1}
             amount={
               isExactB
                 ? rawAmount
-                : formatTokenAmount(amountB, pool.quoteToken.decimals)
+                : formatTokenAmount(amountB, pool.token1.decimals)
             }
-            disabled={pool.baseToken.isNFT}
+            disabled={pool.token0.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
                 amount,
@@ -359,10 +349,10 @@ export const PoolDepositTab = ({
             (pool.hasNFT && !checkedTerms)
           }
           onClick={() => {
-            if (!isBaseTokenApproved) {
+            if (!isApproved0) {
               return approveBaseToken?.();
             }
-            if (!isQuoteTokenApproved) {
+            if (!isApproved1) {
               return approveQuoteToken?.();
             }
             console.log("here");
@@ -373,15 +363,15 @@ export const PoolDepositTab = ({
             "Enter Amount"
           ) : insufficientBalanceA || insufficientBalanceB ? (
             "Insufficient Balance"
-          ) : !isBaseTokenApproved ? (
+          ) : !isApproved0 ? (
             <div className="flex items-center">
-              <span>Approve {pool.baseToken.name}</span>
-              {isBaseTokenApprovedAlready ? <ApproveAgainInfoPopover /> : null}
+              <span>Approve {pool.token0.name}</span>
+              {allowance0 > 0n ? <ApproveAgainInfoPopover /> : null}
             </div>
-          ) : !isQuoteTokenApproved ? (
+          ) : !isApproved1 ? (
             <div className="flex items-center">
-              <span>Approve {pool.quoteToken.name}</span>
-              {isQuoteTokenApprovedAlready ? <ApproveAgainInfoPopover /> : null}
+              <span>Approve {pool.token1.name}</span>
+              {allowance1 > 0n ? <ApproveAgainInfoPopover /> : null}
             </div>
           ) : (
             "Add Liquidity"
@@ -403,36 +393,28 @@ const TotalDisplay = ({
 }) => {
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.quoteToken.decimals : pool.baseToken.decimals
+    isExactB ? pool.token1.decimals : pool.token0.decimals
   );
 
   const amountA = isExactB
-    ? quote(
-        amount,
-        BigInt(pool.quoteToken.reserve),
-        BigInt(pool.baseToken.reserve)
-      )
+    ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
   const amountB = isExactB
     ? amount
-    : quote(
-        amount,
-        BigInt(pool.baseToken.reserve),
-        BigInt(pool.quoteToken.reserve)
-      );
+    : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
 
   const formattedTokenInAmount = formatTokenAmount(
     amountA,
-    pool.baseToken.decimals
+    pool.token0.decimals
   );
   const formattedTokenOutAmount = formatTokenAmount(
     amountB,
-    pool.quoteToken?.decimals ?? 18
+    pool.token1?.decimals ?? 18
   );
 
   return (
     <TotalDisplayInner
-      token={isExactB ? pool.baseToken : pool.quoteToken}
+      token={isExactB ? pool.token0 : pool.token1}
       total={isExactB ? formattedTokenInAmount : formattedTokenOutAmount}
     />
   );

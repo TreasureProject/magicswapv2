@@ -5,7 +5,7 @@ import type { AddressString } from "~/types";
 
 const CONTRACT_ADDRESSES = {
   [arbitrumSepolia.id]: {
-    MagicSwapV2Router: "0x5c22f12214b7e4a6b7fe3428595b90e2388da26b",
+    MagicSwapV2Router: "0xd0a4fbcc5cde863a2be50c75b564efd942b03154",
   },
   [arbitrum.id]: {
     MagicSwapV2Router: "",

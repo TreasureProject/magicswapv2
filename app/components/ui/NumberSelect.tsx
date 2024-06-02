@@ -39,7 +39,7 @@ export const NumberSelect = ({
       >
         <MinusIcon className="w-4" />
       </button>
-      <p className="w-6 text-center text-sm font-medium leading-[160%] text-night-100 ">
+      <p className="w-6 text-center text-sm font-medium leading-[160%] text-night-100">
         {number}
       </p>
       <button

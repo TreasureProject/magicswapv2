@@ -5,7 +5,6 @@ import type { MetaFunction } from "@remix-run/react";
 import {
   Await,
   Link,
-  useFetcher,
   useLoaderData,
   useLocation,
   useRevalidator,
@@ -23,12 +22,11 @@ import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { formatUnits } from "viem";
 
-import type { FetchNFTBalanceLoader } from "./resources.collections.$slug.balance";
 import { fetchPools } from "~/api/pools.server";
 import {
+  fetchPoolTokenBalance,
   fetchToken,
   fetchTokens,
-  fetchUserCollectionBalance,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
@@ -53,18 +51,23 @@ import { useAccount } from "~/contexts/account";
 import { useReadErc20BalanceOf } from "~/generated";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
+import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
-import { bigIntToNumber, floorBigInt } from "~/lib/number";
+import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
-import type { PoolToken } from "~/lib/tokens.server";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, TroveTokenWithQuantity } from "~/types";
+import type {
+  AddressString,
+  Optional,
+  PoolToken,
+  TroveTokenWithQuantity,
+} from "~/types";
 
 export const meta: MetaFunction<
   typeof loader,
@@ -101,7 +104,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const outputAddress = url.searchParams.get("out");
 
   const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(inputAddress ?? process.env.DEFAULT_TOKEN_ADDRESS),
+    fetchToken(
+      inputAddress ?? pools[0]?.token0.id ?? process.env.DEFAULT_TOKEN_ADDRESS
+    ),
     outputAddress ? fetchToken(outputAddress) : null,
   ]);
 
@@ -128,7 +133,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tokens: fetchTokens(),
     tokenIn,
     tokenOut,
-    tokenInNFTBalance: fetchUserCollectionBalance(tokenIn.urlSlug, address),
+    tokenInNFTBalance: fetchPoolTokenBalance(tokenIn, address),
     address,
   });
 }
@@ -846,7 +851,7 @@ const SwapTokenInput = ({
                           <a
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={`View ${nft.metadata.name} on Trove`}
+                            title={`View ${nft.metadata.name} in the marketplace`}
                             className="text-night-400 transition-colors hover:text-night-100"
                             href={createTokenUrl(
                               nft.collectionUrlSlug,
@@ -858,7 +863,7 @@ const SwapTokenInput = ({
                               aria-hidden="true"
                             />
                             <span className="sr-only">
-                              View {nft.metadata.name} on Trove
+                              View {nft.metadata.name} in the marketplace
                             </span>
                           </a>
                         </div>
@@ -893,7 +898,7 @@ const SwapTokenInput = ({
                     }
                   >
                     <Await resolve={tokenInNFTBalance}>
-                      {(balance) => balance ?? 0}
+                      {(balance) => formatNumber(balance ?? 0)}
                     </Await>
                   </Suspense>
                 )}
@@ -957,7 +962,6 @@ const SwapTokenInput = ({
         disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
         onSelect={onSelect}
       />
-
       <DialogTrigger asChild>
         <button
           className={cn(
@@ -1088,40 +1092,8 @@ const Token = ({
   disabled: boolean;
   onSelect: (token: PoolToken) => void;
 }) => {
-  const { addressArg } = useAccount();
-  const {
-    load: loadNFTBalance,
-    state: nftBalanceStatus,
-    data,
-  } = useFetcher<FetchNFTBalanceLoader>();
-
-  const { data: balance, fetchStatus } = useReadErc20BalanceOf({
-    address: token.id as AddressString,
-    args: [addressArg],
-    query: {
-      enabled: !!addressArg && !token.isNFT,
-    },
-  });
-
-  useEffect(() => {
-    if (!token.urlSlug || !addressArg) {
-      return;
-    }
-
-    const params = new URLSearchParams({
-      address: addressArg,
-    });
-
-    loadNFTBalance(
-      `/resources/collections/${token.urlSlug}/balance?${params.toString()}`
-    );
-  }, [addressArg, loadNFTBalance, token.urlSlug]);
-
-  const isLoading =
-    fetchStatus === "fetching" || nftBalanceStatus === "loading";
-
-  const nftBalance = data && data.ok ? data.balance : null;
-
+  const { address } = useAccount();
+  const { data: balance, isLoading } = usePoolTokenBalance({ token, address });
   return (
     <li
       className={cn(
@@ -1141,11 +1113,11 @@ const Token = ({
         </div>
         {isLoading ? (
           <LoaderIcon className="h-4 w-4" />
-        ) : addressArg ? (
+        ) : address ? (
           <p className="text-base-400 text-sm">
-            {token.isNFT
-              ? nftBalance
-              : formatTokenAmount(balance ?? BigInt(0), token.decimals)}
+            {typeof balance === "bigint"
+              ? formatTokenAmount(balance, token.decimals)
+              : formatNumber(balance)}
           </p>
         ) : null}
       </div>

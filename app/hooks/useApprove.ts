@@ -8,8 +8,7 @@ import {
   useWriteErc1155SetApprovalForAll,
 } from "~/generated";
 import { useWaitForTransaction } from "~/hooks/useWaitForTransaction";
-import type { PoolToken } from "~/lib/tokens.server";
-import type { AddressString } from "~/types";
+import type { AddressString, PoolToken } from "~/types";
 
 type Props = {
   token: PoolToken | string;

@@ -105,7 +105,7 @@ const FaqCard = ({ title, content, link }: FaqProps) => (
       {content}
     </p>
     <div className="mt-4 flex items-center text-night-600 transition-colors group-hover:text-night-200">
-      <p className="font-sm ">Learn more</p>
+      <p className="font-sm">Learn more</p>
       <ChevronRightIcon className="w-4 transition-all group-hover:ml-1" />
     </div>
   </Link>

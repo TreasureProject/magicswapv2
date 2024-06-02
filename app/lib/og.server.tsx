@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
-import type { PoolToken } from "./tokens.server";
+import type { PoolToken } from "~/types";
 
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 600;

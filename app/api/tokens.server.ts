@@ -1,6 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
-import { fetchTroveCollections } from "./collections.server";
+import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import {
   GetTokenDocument,
@@ -10,15 +10,13 @@ import {
   execute,
 } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
+import { sumArray } from "~/lib/array";
 import { cachified } from "~/lib/cache.server";
-import {
-  createPoolToken,
-  getTokenCollectionAddresses,
-} from "~/lib/tokens.server";
+import { createPoolToken } from "~/lib/tokens.server";
 import type {
+  PoolToken,
   TraitsResponse,
   TroveApiResponse,
-  TroveCollection,
   TroveToken,
   TroveTokenMapping,
 } from "~/types";
@@ -46,16 +44,12 @@ export const fetchTokens = async () =>
         {}
       )) as ExecutionResult<GetTokensQuery>;
       const { tokens: rawTokens = [] } = result.data ?? {};
-      const [collections, magicUSD] = await Promise.all([
-        fetchTroveCollections([
-          ...new Set(
-            rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
-          ),
-        ]),
+      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+        fetchTokensCollections(rawTokens),
         fetchMagicUSD(),
       ]);
       return rawTokens.map((token) =>
-        createPoolToken(token, collections, magicUSD)
+        createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
       );
     },
   });
@@ -73,11 +67,16 @@ export const fetchToken = async (id: string) =>
         return null;
       }
 
-      const [collections, magicUSD] = await Promise.all([
-        fetchTroveCollections(getTokenCollectionAddresses(rawToken)),
+      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+        fetchTokensCollections([rawToken]),
         fetchMagicUSD(),
       ]);
-      return createPoolToken(rawToken, collections, magicUSD);
+      return createPoolToken(
+        rawToken,
+        collectionMapping,
+        tokenMapping,
+        magicUSD
+      );
     },
   });
 
@@ -186,26 +185,41 @@ export const fetchTroveTokens = async (
   });
   const result = (await response.json()) as TroveToken[];
   return result.reduce((acc, token) => {
-    const next = { ...acc };
-    const collection = (next[token.collectionAddr] ??= {});
+    const collection = (acc[token.collectionAddr.toLowerCase()] ??= {});
     collection[token.tokenId] = token;
-    return next;
+    return acc;
   }, {} as TroveTokenMapping);
 };
 
-export const fetchUserCollectionBalance = async (
-  slug: string,
+export const fetchPoolTokenBalance = async (
+  token: PoolToken,
   address: string
 ) => {
-  const url = new URL(`${process.env.TROVE_API_URL}/collections-for-user`);
-  url.searchParams.set("userAddress", address);
-  url.searchParams.set("slugs", slug);
+  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  url.searchParams.append("userAddress", address);
+  url.searchParams.append("projection", "queryUserQuantityOwned");
 
-  const response = await fetch(url.toString(), {
+  const tokenIds = token.collections.flatMap(({ id, tokenIds }) =>
+    tokenIds.map(
+      (tokenId) => `${process.env.TROVE_API_NETWORK}/${id}/${tokenId}`
+    )
+  );
+  if (tokenIds.length > 0) {
+    url.searchParams.append("ids", tokenIds.join(","));
+  } else {
+    url.searchParams.append(
+      "slugs",
+      token.collections
+        .map(({ id }) => `${process.env.TROVE_API_NETWORK}/${id}`)
+        .join(",")
+    );
+  }
+
+  const response = await fetch(url, {
     headers: {
       "X-API-Key": process.env.TROVE_API_KEY,
     },
   });
-  const result = (await response.json()) as TroveCollection[];
-  return result[0]?.numTokensOwnedByUser ?? 0;
+  const result = (await response.json()) as TroveToken[];
+  return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
 };

@@ -33,7 +33,7 @@ export const SwapRoutePanel = ({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border  border-night-800 text-sm text-night-400",
+        "overflow-hidden rounded-lg border border-night-800 text-sm text-night-400",
         className
       )}
     >

@@ -33,8 +33,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     );
 
     return json({ ok: true, tokens, traits: traitsArray, query } as const);
-  } catch (e: any) {
-    return json({ ok: false, error: e.message } as const);
+  } catch (err) {
+    return json({ ok: false, error: (err as Error).message } as const);
   }
 };
 

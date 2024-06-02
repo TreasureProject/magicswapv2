@@ -7,8 +7,7 @@ import {
   useReadErc721IsApprovedForAll,
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
-import type { PoolToken } from "~/lib/tokens.server";
-import type { AddressString } from "~/types";
+import type { AddressString, PoolToken } from "~/types";
 
 type Props = {
   token: PoolToken | string;
@@ -78,7 +77,7 @@ export const useIsApproved = ({
       !!erc721IsApprovedForAll ||
       !!erc1155IsApprovedForAll ||
       (!!allowance && allowance >= amount),
-    approvedAlready: !!allowance && allowance > BigInt(0),
+    allowance: allowance ?? 0n,
     refetch,
   };
 };
