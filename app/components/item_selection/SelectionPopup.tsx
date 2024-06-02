@@ -24,7 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
-import { countTokens, getTroveTokenQuantity } from "~/lib/tokens";
+import { formatNumber } from "~/lib/number";
+import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { CollectionLoader } from "~/routes/resources.collections.$slug";
 import type { CollectionFiltersLoader } from "~/routes/resources.collections.$slug.filters";
@@ -73,7 +74,7 @@ const ItemCard = ({
         />
         {quantity > 1 ? (
           <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
-            {quantity}x
+            {formatNumber(quantity)}x
           </span>
         ) : null}
       </div>
@@ -503,13 +504,19 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   )}
                   key={item.tokenId}
                   item={item}
-                  quantity={getTroveTokenQuantity(item)}
+                  quantity={item.queryUserQuantityOwned ?? 1}
                   viewOnly={props.viewOnly || false}
                   compact={isCompactMode}
                   onClick={() => {
                     selectionHandler({
                       ...item,
-                      quantity: 1,
+                      quantity:
+                        !props.viewOnly && props.limit
+                          ? Math.min(
+                              props.limit - totalQuantity,
+                              item.queryUserQuantityOwned ?? 1
+                            )
+                          : 1,
                     });
                   }}
                 />

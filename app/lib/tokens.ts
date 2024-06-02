@@ -1,7 +1,7 @@
 import type { RToken } from "@sushiswap/tines";
 
 import { sumArray } from "./array";
-import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
+import type { PoolToken, TroveTokenWithQuantity } from "~/types";
 
 export const tokenToRToken = ({
   name,
@@ -14,9 +14,6 @@ export const tokenToRToken = ({
   address,
   decimals,
 });
-
-export const getTroveTokenQuantity = (token: TroveToken) =>
-  "queryUserQuantityOwned" in token ? token.queryUserQuantityOwned ?? 1 : 1;
 
 export const countTokens = (tokens: TroveTokenWithQuantity[]) =>
   sumArray(tokens.map(({ quantity }) => quantity));

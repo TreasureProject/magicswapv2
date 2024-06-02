@@ -1,7 +1,12 @@
 import { parseUnits } from "viem";
 
 import { createPoolToken } from "./tokens.server";
-import type { NumberString, Pair, TroveCollectionMapping } from "~/types";
+import type {
+  NumberString,
+  Pair,
+  TroveCollectionMapping,
+  TroveTokenMapping,
+} from "~/types";
 
 const getPoolAPY = (volume1w: number, reserveUSD: number) => {
   if (reserveUSD === 0) {
@@ -14,19 +19,20 @@ const getPoolAPY = (volume1w: number, reserveUSD: number) => {
 
 export const createPoolFromPair = (
   pair: Pair,
-  collections: TroveCollectionMapping,
+  collectionMapping: TroveCollectionMapping,
+  tokenMapping: TroveTokenMapping,
   magicUSD: number,
   reserves?: [bigint, bigint]
 ) => {
   const token0 = {
-    ...createPoolToken(pair.token0, collections, magicUSD),
+    ...createPoolToken(pair.token0, collectionMapping, tokenMapping, magicUSD),
     reserve: (
       reserves?.[0] ??
       parseUnits(pair.reserve0 as NumberString, Number(pair.token0.decimals))
     ).toString(),
   };
   const token1 = {
-    ...createPoolToken(pair.token1, collections, magicUSD),
+    ...createPoolToken(pair.token1, collectionMapping, tokenMapping, magicUSD),
     reserve: (
       reserves?.[1] ??
       parseUnits(pair.reserve1 as NumberString, Number(pair.token1.decimals))

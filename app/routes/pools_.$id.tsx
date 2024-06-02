@@ -66,7 +66,6 @@ import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
-import { getTroveTokenQuantity } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -824,8 +823,12 @@ const PoolTokenCollectionInventory = ({
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
             <span className="font-medium">{token.name}</span>
-            <span className="h-3 w-[1px] bg-night-400" />
-            <span className="uppercase text-night-400">{token.symbol}</span>
+            {token.name !== token.symbol ? (
+              <>
+                <span className="h-3 w-[1px] bg-night-400" />
+                <span className="uppercase text-night-400">{token.symbol}</span>
+              </>
+            ) : null}
           </div>
           <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
             {items.map((item) => (
@@ -838,9 +841,9 @@ const PoolTokenCollectionInventory = ({
                   alt={item.metadata.name}
                   title={item.metadata.name}
                 />
-                {getTroveTokenQuantity(item) > 1 ? (
+                {(item.queryUserQuantityOwned ?? 1) > 1 ? (
                   <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
-                    {getTroveTokenQuantity(item)}x
+                    {formatNumber(item.queryUserQuantityOwned ?? 1)}x
                   </span>
                 ) : null}
               </div>
@@ -850,8 +853,15 @@ const PoolTokenCollectionInventory = ({
         <div className="h-[1px] bg-night-800" />
         <div className="flex items-center justify-between px-6 py-3">
           <span className="text-sm text-night-400">
-            Showing {sumArray(items.map(getTroveTokenQuantity))} of{" "}
-            {formatTokenAmount(BigInt(token.reserve), token.decimals)}
+            Showing{" "}
+            {formatNumber(
+              sumArray(
+                items.map(
+                  ({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1
+                )
+              )
+            )}{" "}
+            of {formatTokenAmount(BigInt(token.reserve), token.decimals)}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>

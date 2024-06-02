@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { countTokens, getTroveTokenQuantity } from "./tokens";
+import { countTokens } from "./tokens";
 
 const TEST_TOKEN = {
   collectionAddr: "0x0",
@@ -14,22 +14,6 @@ const TEST_TOKEN = {
     attributes: [],
   },
 };
-
-test("gets trove token quantity", () => {
-  expect(
-    getTroveTokenQuantity({
-      ...TEST_TOKEN,
-      contractType: "ERC721",
-    })
-  ).toBe(1);
-  expect(
-    getTroveTokenQuantity({
-      ...TEST_TOKEN,
-      contractType: "ERC1155",
-      queryUserQuantityOwned: 10,
-    })
-  ).toBe(10);
-});
 
 test("counts tokens with quantity", () => {
   expect(

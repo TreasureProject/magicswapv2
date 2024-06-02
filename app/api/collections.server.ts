@@ -1,6 +1,7 @@
-import type { TroveCollection, TroveCollectionMapping } from "~/types";
+import { fetchTroveTokens } from "./tokens.server";
+import type { Token, TroveCollection, TroveCollectionMapping } from "~/types";
 
-export const fetchTroveCollections = async (addresses: string[]) => {
+export const fetchCollections = async (addresses: string[]) => {
   const url = new URL(`${process.env.TROVE_API_URL}/batch-collections`);
   url.searchParams.set(
     "slugs",
@@ -19,4 +20,27 @@ export const fetchTroveCollections = async (addresses: string[]) => {
     acc[collection.collectionAddr.toLowerCase()] = collection;
     return acc;
   }, {} as TroveCollectionMapping);
+};
+
+export const fetchTokensCollections = async (tokens: Token[]) => {
+  const addresses = [
+    ...new Set(
+      tokens.flatMap(({ vaultCollections }) =>
+        vaultCollections.map(({ collection }) => collection.id)
+      )
+    ),
+  ];
+
+  const tokenIds = [
+    ...new Set(
+      tokens.flatMap(({ vaultCollections }) =>
+        vaultCollections.flatMap(
+          ({ collection: { id: address }, tokenIds }) =>
+            tokenIds?.map((tokenId) => `${address}/${tokenId}`) ?? []
+        )
+      )
+    ),
+  ];
+
+  return Promise.all([fetchCollections(addresses), fetchTroveTokens(tokenIds)]);
 };

@@ -7,16 +7,22 @@ import type {
 export const createPoolTokenCollection = (
   collection: Collection,
   tokenIds: string[],
-  collections: TroveCollectionMapping
+  collectionMapping: TroveCollectionMapping
 ): PoolTokenCollection => {
-  const collectionData = collections[collection.id];
+  const {
+    urlSlug = "",
+    displayName: name = collection.id,
+    symbol = "?",
+    contractType: type = "ERC721",
+    thumbnailUri: image = "",
+  } = collectionMapping[collection.id] ?? {};
   return {
     id: collection.id,
-    urlSlug: collectionData?.urlSlug ?? "",
+    urlSlug,
     tokenIds,
-    name: collectionData?.displayName ?? collection.id,
-    symbol: collectionData?.symbol ?? "?",
-    type: collectionData?.contractType ?? "ERC721",
-    image: collectionData?.thumbnailUri ?? "",
+    name,
+    symbol,
+    type,
+    image,
   };
 };

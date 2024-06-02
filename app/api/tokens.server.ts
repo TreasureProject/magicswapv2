@@ -1,6 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
-import { fetchTroveCollections } from "./collections.server";
+import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import {
   GetTokenDocument,
@@ -12,10 +12,7 @@ import {
 import { ITEMS_PER_PAGE } from "~/consts";
 import { sumArray } from "~/lib/array";
 import { cachified } from "~/lib/cache.server";
-import {
-  createPoolToken,
-  getTokenCollectionAddresses,
-} from "~/lib/tokens.server";
+import { createPoolToken } from "~/lib/tokens.server";
 import type {
   PoolToken,
   TraitsResponse,
@@ -47,16 +44,12 @@ export const fetchTokens = async () =>
         {}
       )) as ExecutionResult<GetTokensQuery>;
       const { tokens: rawTokens = [] } = result.data ?? {};
-      const [collections, magicUSD] = await Promise.all([
-        fetchTroveCollections([
-          ...new Set(
-            rawTokens.flatMap((token) => getTokenCollectionAddresses(token))
-          ),
-        ]),
+      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+        fetchTokensCollections(rawTokens),
         fetchMagicUSD(),
       ]);
       return rawTokens.map((token) =>
-        createPoolToken(token, collections, magicUSD)
+        createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
       );
     },
   });
@@ -74,11 +67,16 @@ export const fetchToken = async (id: string) =>
         return null;
       }
 
-      const [collections, magicUSD] = await Promise.all([
-        fetchTroveCollections(getTokenCollectionAddresses(rawToken)),
+      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+        fetchTokensCollections([rawToken]),
         fetchMagicUSD(),
       ]);
-      return createPoolToken(rawToken, collections, magicUSD);
+      return createPoolToken(
+        rawToken,
+        collectionMapping,
+        tokenMapping,
+        magicUSD
+      );
     },
   });
 
@@ -187,7 +185,7 @@ export const fetchTroveTokens = async (
   });
   const result = (await response.json()) as TroveToken[];
   return result.reduce((acc, token) => {
-    const collection = (acc[token.collectionAddr] ??= {});
+    const collection = (acc[token.collectionAddr.toLowerCase()] ??= {});
     collection[token.tokenId] = token;
     return acc;
   }, {} as TroveTokenMapping);

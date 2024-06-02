@@ -37,42 +37,82 @@ export const itemToTroveTokenItem = (
 
 export type TroveTokenItem = ReturnType<typeof itemToTroveTokenItem>;
 
-export const getTokenCollectionAddresses = (token: Token) =>
-  token.vaultCollections.map(({ collection }) => collection.id) ?? [];
-
-export const createTokenName = (
+const createTokenMetadata = (
   token: Token,
-  collections: TroveCollectionMapping
+  collectionMapping: TroveCollectionMapping,
+  tokenMapping: TroveTokenMapping
 ) => {
   if (token.isNFT) {
-    const addresses = getTokenCollectionAddresses(token);
-    return addresses
-      .map((address) => collections[address]?.displayName ?? address)
-      .sort()
-      .join(" & ");
+    const vaultCollectionAddresses = token.vaultCollections.map(
+      ({ collection: { id } }) => id
+    );
+    const vaultTokenIds = token.vaultCollections.flatMap(
+      ({ tokenIds }) => tokenIds ?? []
+    );
+    const vaultCollection = vaultCollectionAddresses[0]
+      ? collectionMapping[vaultCollectionAddresses[0]]
+      : undefined;
+    const vaultToken =
+      vaultCollectionAddresses[0] && vaultTokenIds[0]
+        ? tokenMapping[vaultCollectionAddresses[0]]?.[vaultTokenIds[0]]
+        : undefined;
+
+    // Vault is a single collection with a single token ID defined
+    if (
+      vaultCollectionAddresses.length === 1 &&
+      vaultTokenIds.length === 1 &&
+      vaultToken
+    ) {
+      return {
+        name: vaultToken.metadata.name,
+        image: vaultToken.image.uri,
+      };
+    }
+
+    // Vault is multiple collections with multiple token IDs defined
+    if (
+      vaultCollectionAddresses.length > 0 &&
+      vaultTokenIds.length > 1 &&
+      vaultToken
+    ) {
+      const type = vaultToken?.metadata.attributes.find(
+        ({ trait_type }) => trait_type.toLowerCase() === "type"
+      )?.value;
+      if (type) {
+        return {
+          name: `${type}s`,
+          image: vaultToken.image.uri,
+        };
+      }
+    }
+
+    return {
+      name: vaultCollectionAddresses
+        .map((address) => collectionMapping[address]?.displayName ?? address)
+        .join(" & "),
+      image: vaultCollection?.thumbnailUri,
+    };
   }
 
-  return token.name;
+  return { name: token.name, image: undefined };
 };
-
-export const createTokenSymbol = (
-  token: Token,
-  collections: TroveCollectionMapping
-) =>
-  token.isNFT
-    ? createTokenName(token, collections)
-    : token.symbol.toUpperCase();
 
 export const createPoolToken = (
   token: Token,
-  collections: TroveCollectionMapping,
+  collectionMapping: TroveCollectionMapping,
+  tokenMapping: TroveTokenMapping,
   magicUSD: number
 ): PoolToken => {
   const tokenCollections =
     token.vaultCollections.map(({ collection, tokenIds }) =>
-      createPoolTokenCollection(collection, tokenIds ?? [], collections)
+      createPoolTokenCollection(collection, tokenIds ?? [], collectionMapping)
     ) ?? [];
-  const symbol = createTokenSymbol(token, collections);
+  const { name, image } = createTokenMetadata(
+    token,
+    collectionMapping,
+    tokenMapping
+  );
+  const symbol = token.isNFT ? name : token.symbol.toUpperCase();
   return {
     ...token,
     ...(tokenCollections[0]?.type
@@ -80,11 +120,10 @@ export const createPoolToken = (
           type: tokenCollections[0]?.type,
         }
       : {}),
-    name: createTokenName(token, collections),
+    name,
     symbol,
     image:
-      tokenCollections[0]?.image ??
-      (token.isNFT ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
+      image ?? (token.isNFT ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
     decimals: Number(token.decimals),
     isMAGIC: symbol.toLowerCase() === "magic",
     collections: tokenCollections,

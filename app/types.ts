@@ -22,10 +22,6 @@ export type TroveCollection = {
   urlSlug: string;
   symbol: string;
   numTokensOwnedByUser: number;
-  // tokenDisplayName: {
-  //   singular: string;
-  //   plural: string;
-  // };
 };
 
 export type TroveCollectionMapping = Record<string, TroveCollection>;
