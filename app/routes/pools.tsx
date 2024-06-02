@@ -64,7 +64,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
             <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
               Name
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5 ">
+            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
               Volume (24h)
             </th>
             <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">

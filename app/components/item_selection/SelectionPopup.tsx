@@ -323,7 +323,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           >
             {HiddenInputs}
             <div className="flex w-full items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600">
-              <SearchIcon className="h-4 w-4 " />
+              <SearchIcon className="h-4 w-4" />
               <input
                 type="text"
                 name="query"
@@ -426,7 +426,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             >
               {filtersState === "loading" ? (
                 <div className="flex h-full items-center justify-center">
-                  <LoaderIcon className="h-8 w-8 " />
+                  <LoaderIcon className="h-8 w-8" />
                 </div>
               ) : filtersState === "idle" && filteredList.length > 0 ? (
                 <div className="py-2">

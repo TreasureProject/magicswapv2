@@ -532,7 +532,7 @@ const PoolManagementView = ({
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <RepeatIcon className="h-5 w-5 text-night-400" />
-          <h1 className="text-lg font-semibold text-night-100 ">
+          <h1 className="text-lg font-semibold text-night-100">
             Add Liquidity
           </h1>
         </div>
@@ -613,7 +613,7 @@ const PoolActivityTable = ({
             <th className="px-4 py-2.5 text-left font-normal sm:px-5">
               Tokens
             </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5 ">
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Action
             </th>
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">

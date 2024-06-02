@@ -80,7 +80,7 @@
     "jsdom": "^24.1.0",
     "lint-staged": "^15.2.5",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.14",
+    "prettier-plugin-tailwindcss": "^0.6.1",
     "tailwind-scrollbar": "^3.0.4",
     "tailwindcss": "^3.2.7",
     "tailwindcss-animate": "^1.0.5",

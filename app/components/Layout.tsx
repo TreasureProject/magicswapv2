@@ -56,7 +56,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-end gap-3 ">
+        <div className="flex flex-1 items-center justify-end gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" className="w-9 px-0">

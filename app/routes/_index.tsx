@@ -190,14 +190,14 @@ export default function Homepage() {
         transition={{ delay: 0.4 }}
       >
         <div className="flex flex-col items-center gap-6 md:max-w-md md:items-start">
-          <h1 className="text-center text-3xl font-bold leading-[160%] text-night-100  md:text-start">
+          <h1 className="text-center text-3xl font-bold leading-[160%] text-night-100 md:text-start">
             Universal Token Compatibility
           </h1>
-          <p className="text-md max-w-[80%] text-center leading-[160%] text-night-500 md:max-w-none md:text-start  lg:text-lg">
+          <p className="text-md max-w-[80%] text-center leading-[160%] text-night-500 md:max-w-none md:text-start lg:text-lg">
             Support pools for both ERC-20s and NFTs through a single router and
             enable trading of all items within game economies.
           </p>
-          <button className="flex  items-center gap-2 text-night-500 transition-colors hover:text-night-100 ">
+          <button className="flex items-center gap-2 text-night-500 transition-colors hover:text-night-100">
             Learn more
             <ChevronRightIcon className="w-5" />
           </button>
@@ -206,7 +206,7 @@ export default function Homepage() {
           <img
             src={tokenGraphicImage}
             alt="illustration of trading items on magicswap"
-            className="w-[460px] "
+            className="w-[460px]"
           />
         </div>
       </motion.div>
@@ -245,7 +245,7 @@ export default function Homepage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8 ">
+        <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8">
           <h1 className="relative z-10 text-3xl font-medium leading-[120%] text-night-100">
             Role of <span className="uppercase text-ruby-900">$MAGIC</span>
           </h1>
@@ -260,19 +260,19 @@ export default function Homepage() {
           <img
             src={magicIllustration}
             alt="Magic Illustration"
-            className="absolute right-12 top-4  box-border hidden h-[316px] w-[316px] opacity-10 md:block lg:opacity-100"
+            className="absolute right-12 top-4 box-border hidden h-[316px] w-[316px] opacity-10 md:block lg:opacity-100"
           />
-          <div className="absolute right-40 top-4 h-[490px] w-[490px] translate-x-1/2 rounded-full  bg-ruby-900 opacity-20 blur-[999px]" />
+          <div className="absolute right-40 top-4 h-[490px] w-[490px] translate-x-1/2 rounded-full bg-ruby-900 opacity-20 blur-[999px]" />
         </div>
       </motion.div>
-      <div className=" relative mt-8 overflow-hidden border-t border-t-night-1000 py-8 md:mt-16 md:py-16">
+      <div className="relative mt-8 overflow-hidden border-t border-t-night-1000 py-8 md:mt-16 md:py-16">
         <div className="container">
-          <div className="bordernight-800  relative flex w-full flex-col justify-between gap-6 overflow-hidden rounded-lg border bg-night-1100 p-6 sm:flex-row sm:items-center">
+          <div className="bordernight-800 relative flex w-full flex-col justify-between gap-6 overflow-hidden rounded-lg border bg-night-1100 p-6 sm:flex-row sm:items-center">
             <div className="gap-.5 relative z-10 flex flex-col">
               <h1 className="text-lg font-medium text-night-100">
                 Start trading today
               </h1>
-              <p className="max-w-[80%] text-sm text-night-400 sm:max-w-none ">
+              <p className="max-w-[80%] text-sm text-night-400 sm:max-w-none">
                 Explore our huge library of pools and get your desired NFTs!
               </p>
             </div>
@@ -283,7 +283,7 @@ export default function Homepage() {
             </Link>
             <img
               src={collectionsImage}
-              className="absolute left-1/4 top-1/2 w-[420px] -translate-y-1/2 opacity-25 sm:left-1/2 sm:w-64  md:opacity-100"
+              className="absolute left-1/4 top-1/2 w-[420px] -translate-y-1/2 opacity-25 sm:left-1/2 sm:w-64 md:opacity-100"
               alt="Different collections on magicswap"
             />
           </div>

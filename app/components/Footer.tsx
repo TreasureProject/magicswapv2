@@ -89,7 +89,7 @@ export const Footer = () => {
     <div className="container bg-night-1200">
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-night-800 to-transparent" />
       <div className="w-full border-t border-t-night-800">
-        <div className="flex flex-col justify-between gap-14 py-12  lg:flex-row lg:items-center lg:gap-0">
+        <div className="flex flex-col justify-between gap-14 py-12 lg:flex-row lg:items-center lg:gap-0">
           <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-6 w-auto sm:h-14" />
