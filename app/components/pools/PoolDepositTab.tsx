@@ -360,9 +360,9 @@ export const PoolDepositTab = ({
           }}
         >
           {!hasAmount ? (
-            "Enter Amount"
+            "Enter amount"
           ) : insufficientBalanceA || insufficientBalanceB ? (
-            "Insufficient Balance"
+            "Insufficient balance"
           ) : !isApproved0 ? (
             <div className="flex items-center">
               <span>Approve {pool.token0.name}</span>
@@ -374,7 +374,7 @@ export const PoolDepositTab = ({
               {allowance1 > 0n ? <ApproveAgainInfoPopover /> : null}
             </div>
           ) : (
-            "Add Liquidity"
+            "Add liquidity"
           )}
         </TransactionButton>
       </div>

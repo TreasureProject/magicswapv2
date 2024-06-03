@@ -693,7 +693,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   onClick={() => props.onSubmit(selectedItems)}
                 >
                   {props.limit && buttonDisabled
-                    ? `Add ${props.limit - totalQuantity} Item${
+                    ? `Add ${props.limit - totalQuantity} item${
                         props.limit - totalQuantity > 1 ? "s" : ""
                       }`
                     : "Save selections"}

@@ -6,6 +6,7 @@ import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
 import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount } from "~/lib/currency";
+import { formatNumber } from "~/lib/number";
 import { cn } from "~/lib/utils";
 import type { PoolToken, TroveTokenWithQuantity } from "~/types";
 
@@ -88,9 +89,9 @@ export const PoolNftTokenInput = ({
               >
                 {amount
                   ? amount === 1
-                    ? "Select Item"
-                    : `Select ${amount} Items`
-                  : "Select Items"}
+                    ? "Select item"
+                    : `Select ${formatNumber(amount)} items`
+                  : "Select items"}
               </Button>
             </DialogTrigger>
           )}
@@ -106,7 +107,9 @@ export const PoolNftTokenInput = ({
               <Suspense
                 fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}
               >
-                <Await resolve={balance}>{(balance) => balance ?? 0}</Await>
+                <Await resolve={balance}>
+                  {(balance) => formatNumber(balance ?? 0)}
+                </Await>
               </Suspense>
             )}
           </span>

@@ -767,11 +767,9 @@ const SwapTokenInput = ({
                       disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      {Number(amount)
-                        ? `Select ${amount} ${
-                            Number(amount) === 1 ? "Item" : "Items"
-                          }`
-                        : "Select Items"}
+                      {`Select ${amount} ${
+                        Number(amount) === 1 ? "item" : "items"
+                      }`}
                     </Button>
                   </>
                 )}
