@@ -653,6 +653,10 @@ const SwapTokenInput = ({
     token?.isNFT && !otherToken?.isNFT && !!routeState
   );
 
+  const collection = token?.collections.find(
+    ({ id }) => id === token?.collectionId
+  );
+
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -672,7 +676,7 @@ const SwapTokenInput = ({
                   {token.name} <ChevronDownIcon className="h-3 w-3" />
                 </span>
                 <span className="block text-xs text-night-600 sm:text-sm">
-                  {token.symbol}
+                  {collection?.name ?? token.symbol}
                 </span>
               </div>
             </button>
