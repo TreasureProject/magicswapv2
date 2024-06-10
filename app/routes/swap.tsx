@@ -657,6 +657,11 @@ const SwapTokenInput = ({
     ({ id }) => id === token?.collectionId
   );
 
+  const buttonText =
+    amount === "0"
+      ? "Select items"
+      : `Select ${amount} ${Number(amount) === 1 ? "item" : "items"}`;
+
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -771,9 +776,7 @@ const SwapTokenInput = ({
                       disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      {`Select ${amount} ${
-                        Number(amount) === 1 ? "item" : "items"
-                      }`}
+                      {buttonText}
                     </Button>
                   </>
                 )}
