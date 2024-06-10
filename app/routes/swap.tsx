@@ -653,6 +653,13 @@ const SwapTokenInput = ({
     token?.isNFT && !otherToken?.isNFT && !!routeState
   );
 
+  const collection = token?.collections[0];
+
+  const buttonText =
+    amount === "0"
+      ? "Select items"
+      : `Select ${amount} ${Number(amount) === 1 ? "item" : "items"}`;
+
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -671,9 +678,12 @@ const SwapTokenInput = ({
                 <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
                   {token.name} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                <span className="block text-xs text-night-600 sm:text-sm">
-                  {token.symbol}
-                </span>
+                {collection?.name ||
+                  (token.symbol != token.name && (
+                    <span className="block text-xs text-night-600 sm:text-sm">
+                      {collection?.name ?? token.symbol}
+                    </span>
+                  ))}
               </div>
             </button>
           </DialogTrigger>
@@ -767,9 +777,7 @@ const SwapTokenInput = ({
                       disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      {`Select ${amount} ${
-                        Number(amount) === 1 ? "item" : "items"
-                      }`}
+                      {buttonText}
                     </Button>
                   </>
                 )}
