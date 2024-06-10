@@ -653,9 +653,7 @@ const SwapTokenInput = ({
     token?.isNFT && !otherToken?.isNFT && !!routeState
   );
 
-  const collection = token?.collections.find(
-    ({ id }) => id === token?.collectionId
-  );
+  const collection = token?.collections[0];
 
   const buttonText =
     amount === "0"
@@ -680,9 +678,12 @@ const SwapTokenInput = ({
                 <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
                   {token.name} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                <span className="block text-xs text-night-600 sm:text-sm">
-                  {collection?.name ?? token.symbol}
-                </span>
+                {collection?.name ||
+                  (token.symbol != token.name && (
+                    <span className="block text-xs text-night-600 sm:text-sm">
+                      {collection?.name ?? token.symbol}
+                    </span>
+                  ))}
               </div>
             </button>
           </DialogTrigger>
