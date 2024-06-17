@@ -39,9 +39,17 @@ export const NumberSelect = ({
       >
         <MinusIcon className="w-4" />
       </button>
-      <p className="w-6 text-center text-sm font-medium leading-[160%] text-night-100">
-        {number}
-      </p>
+      <input
+        value={number}
+        min={0}
+        max={max}
+        onChange={(e) => {
+          const newValue = Number(e.target.value);
+          if (isNaN(newValue)) return;
+          setNumber(Math.min(newValue, max));
+        }}
+        className="center w-10 bg-transparent text-center text-sm font-medium text-night-100"
+      />
       <button
         className={cn(
           "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
