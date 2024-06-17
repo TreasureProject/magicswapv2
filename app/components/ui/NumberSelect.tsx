@@ -1,5 +1,4 @@
 import { Minus as MinusIcon, Plus as PlusIcon } from "lucide-react";
-import React, { useState } from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -12,42 +11,48 @@ export const NumberSelect = ({
   onChange: (num: number) => void;
   value: number;
 }) => {
-  const [number, setNumber] = useState<number>(value);
-
-  const updateNumber = (direction: "add" | "sub") => {
-    if (direction === "add" && number < max) {
-      return setNumber(number + 1);
+  const updateNumber = (direction: "add" | "sub" | "replace") => {
+    if (direction === "add" && value < max) {
+      onChange(value + 1);
     }
-    if (direction === "sub" && number > 0) {
-      return setNumber(number - 1);
+    if (direction === "sub" && value > 0) {
+      onChange(value - 1);
     }
   };
 
-  React.useEffect(() => {
-    onChange(number);
-  }, [number, onChange]);
+  const overrideNumber = (stringValue: string) => {
+    const newValue = Number(stringValue);
+    if (isNaN(newValue)) return;
+    onChange(Math.min(newValue, max));
+  };
 
   return (
     <div className="flex items-center gap-2 rounded-md bg-night-1100 p-2">
       <button
         className={cn(
           "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
-          number > 1 && "opacity-100 hover:bg-night-1000 hover:text-night-200"
+          value > 1 && "opacity-100 hover:bg-night-1000 hover:text-night-200"
         )}
-        disabled={number <= 1}
+        disabled={value <= 1}
         onClick={() => updateNumber("sub")}
       >
         <MinusIcon className="w-4" />
       </button>
-      <p className="w-6 text-center text-sm font-medium leading-[160%] text-night-100">
-        {number}
-      </p>
+      <input
+        value={value}
+        min={0}
+        max={max}
+        onChange={(e) => {
+          overrideNumber(e.target.value);
+        }}
+        className="center w-10 bg-transparent text-center text-sm font-medium text-night-100"
+      />
       <button
         className={cn(
           "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
-          number < max && "opacity-100 hover:bg-night-1000 hover:text-night-200"
+          value < max && "opacity-100 hover:bg-night-1000 hover:text-night-200"
         )}
-        disabled={number >= max}
+        disabled={value >= max}
         onClick={() => updateNumber("add")}
       >
         <PlusIcon className="w-4" />
