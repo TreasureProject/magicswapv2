@@ -205,17 +205,6 @@ export default function SwapPage() {
     });
 
   const {
-    isApproved: isTokenInApproved,
-    approve: approveTokenIn,
-    refetch: refetchTokenInApproval,
-    isSuccess: isApproveTokenInSuccess,
-  } = useApproval({
-    token: tokenIn,
-    amount: amountIn,
-    enabled: isConnected && hasAmounts,
-  });
-
-  const {
     amountInMax,
     amountOutMin,
     swap,
@@ -230,6 +219,17 @@ export default function SwapPage() {
     nftsOut,
     path,
     enabled: isConnected && !!tokenOut && hasAmounts,
+  });
+
+  const {
+    isApproved: isTokenInApproved,
+    approve: approveTokenIn,
+    refetch: refetchTokenInApproval,
+    isSuccess: isApproveTokenInSuccess,
+  } = useApproval({
+    token: tokenIn,
+    amount: amountInMax,
+    enabled: isConnected && hasAmounts,
   });
 
   useEffect(() => {
