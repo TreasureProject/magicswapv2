@@ -644,13 +644,10 @@ const SwapTokenInput = ({
     (token?.priceUSD ?? 0) *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
   const { tokenInNFTBalance } = useLoaderData<typeof loader>();
-  const { state: routeState } = useLocation();
   const [collapsed, setCollapsed] = useState(true);
   const [ref, bounds] = useMeasure();
   const { createTokenUrl } = useTrove();
-  const [openSelectionModal, setOpenSelectionModal] = useState(
-    token?.isNFT && !otherToken?.isNFT && !!routeState
-  );
+  const [openSelectionModal, setOpenSelectionModal] = useState(false);
 
   const buttonText =
     amount === "0"
@@ -744,9 +741,6 @@ const SwapTokenInput = ({
                     <Dialog
                       open={openSelectionModal}
                       onOpenChange={setOpenSelectionModal}
-                      defaultOpen={
-                        token?.isNFT && !otherToken?.isNFT && !!routeState
-                      }
                     >
                       {openSelectionModal ? (
                         <SelectionPopup
@@ -990,14 +984,11 @@ const TotalDisplay = ({
   isExactOut: boolean;
 }) => {
   const loaderData = useLoaderData<typeof loader>();
-
-  const swapRoute = useSwapRoute({
+  const { amountIn, amountOut, tokenIn, tokenOut } = useSwapRoute({
     ...loaderData,
     amount,
     isExactOut,
   });
-
-  const { amountIn, amountOut, tokenIn, tokenOut } = swapRoute;
 
   const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
   const formattedTokenOutAmount = formatTokenAmount(

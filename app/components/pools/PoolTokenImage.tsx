@@ -17,7 +17,7 @@ export const PoolTokenImage = ({ token, className, ...divProps }: Props) => (
     {...divProps}
   >
     {token && token.image ? (
-      <img src={token.image} title={token.name} alt="" />
+      <img src={token.image} title={token.name} alt={token.symbol} />
     ) : null}
   </div>
 );
