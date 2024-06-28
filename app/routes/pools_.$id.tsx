@@ -160,8 +160,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export default function PoolDetailsPage() {
   const { pool, vaultItems0, vaultItems1, transactions } =
     useLoaderData<typeof loader>();
+  const revalidator = useRevalidator();
   const { address } = useAccount();
-
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
@@ -174,11 +174,6 @@ export default function PoolDetailsPage() {
       },
     });
 
-  const lpShare =
-    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
-
-  const revalidator = useRevalidator();
-
   const refresh = useCallback(() => {
     if (revalidator.state === "idle") {
       revalidator.revalidate();
@@ -187,7 +182,14 @@ export default function PoolDetailsPage() {
     refetchLpBalance();
   }, [refetchLpBalance, revalidator]);
 
-  useFocusInterval(refresh, 5000);
+  useFocusInterval(refresh, 5_000);
+
+  const baseToken =
+    pool.token1.isNFT && !pool.isNFTNFT ? pool.token1 : pool.token0;
+  const quoteToken =
+    pool.token1.isNFT && !pool.isNFTNFT ? pool.token0 : pool.token1;
+  const lpShare =
+    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
   return (
     <main className="container">
@@ -328,25 +330,25 @@ export default function PoolDetailsPage() {
               </div>
               <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
                 <p className="justify-self-end text-night-400">
-                  <span className="text-night-100">1</span> {pool.token0.symbol}
+                  <span className="text-night-100">1</span> {baseToken.symbol}
                 </p>
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
                     {formatAmount(
                       bigIntToNumber(
-                        BigInt(pool.token1.reserve),
-                        pool.token1.decimals
+                        BigInt(quoteToken.reserve),
+                        quoteToken.decimals
                       ) /
                         bigIntToNumber(
-                          BigInt(pool.token0.reserve),
-                          pool.token0.decimals
+                          BigInt(baseToken.reserve),
+                          baseToken.decimals
                         )
                     )}
                   </span>{" "}
-                  {pool.token1.symbol}
+                  {quoteToken.symbol}
                 </p>
-                {[pool.token0, null, pool.token1].map((token) => {
+                {[baseToken, null, quoteToken].map((token) => {
                   if (!token) {
                     return <div className="hidden sm:block" key="empty" />;
                   }

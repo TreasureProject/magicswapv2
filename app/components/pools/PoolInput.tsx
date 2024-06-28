@@ -2,6 +2,7 @@ import { formatEther } from "viem";
 
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
+import { useAccount } from "~/contexts/account";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
@@ -17,6 +18,7 @@ export const PoolInput = ({
   amount: string;
   onUpdateAmount: (amount: string) => void;
 }) => {
+  const { isConnected } = useAccount();
   const parsedAmount = Number(amount);
   return (
     <div className="relative overflow-hidden rounded-lg bg-night-1100">
@@ -26,15 +28,21 @@ export const PoolInput = ({
           <p className="-ml-2 text-sm font-medium sm:text-xl">{pool.name}</p>
         </div>
         <div className="space-y-1 text-right">
-          <CurrencyInput value={amount} onChange={onUpdateAmount} />
-          <span className="block text-sm text-night-400">
-            {formatUSD(
-              (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply))) *
-                (Number.isNaN(parsedAmount) || parsedAmount === 0
-                  ? 1
-                  : Number(amount.replace(/,/g, "")))
-            )}
-          </span>
+          <CurrencyInput
+            value={amount}
+            onChange={onUpdateAmount}
+            disabled={!isConnected}
+          />
+          {pool.reserveUSD ? (
+            <span className="block text-sm text-night-400">
+              {formatUSD(
+                (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply))) *
+                  (Number.isNaN(parsedAmount) || parsedAmount === 0
+                    ? 1
+                    : Number(amount.replace(/,/g, "")))
+              )}
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="flex h-12 items-center justify-end bg-night-900 p-2">

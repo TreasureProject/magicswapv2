@@ -39,14 +39,16 @@ export const PoolTokenInput = ({
             disabled={disabled}
             onChange={onUpdateAmount}
           />
-          <span className="block text-[0.6rem] text-night-400 sm:text-sm">
-            {formatUSD(
-              token.priceUSD *
-                (Number.isNaN(parsedAmount) || parsedAmount === 0
-                  ? 1
-                  : Number(amount.replace(/,/g, "")))
-            )}
-          </span>
+          {token.priceUSD ? (
+            <span className="block text-[0.6rem] text-night-400 sm:text-sm">
+              {formatUSD(
+                token.priceUSD *
+                  (Number.isNaN(parsedAmount) || parsedAmount === 0
+                    ? 1
+                    : Number(amount.replace(/,/g, "")))
+              )}
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="flex items-center justify-between bg-night-900 p-3">
