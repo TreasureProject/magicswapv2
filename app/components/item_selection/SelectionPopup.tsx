@@ -618,10 +618,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                           <img
                             src={item.image.uri}
                             alt={item.metadata.name}
-                            className="h-10 w-10 rounded-[4px]"
+                            className="h-10 w-10 rounded"
                           />
                         ) : (
-                          <div className="h-10 w-10 rounded-[4px] bg-night-800" />
+                          <div className="h-10 w-10 rounded bg-night-800" />
                         )}
                         <div className="flex min-w-0 flex-1 flex-col">
                           <p className="truncate text-sm font-medium text-honey-25">

@@ -21,7 +21,7 @@ const IconToggle = ({ icons, onChange }: IconToggleProps) => {
   return (
     <div className="relative flex h-9 items-center rounded-md bg-night-1000 p-1">
       <div
-        className="z-5 absolute top-1/2 h-7 w-7 -translate-y-1/2 rounded-[4px] bg-night-700 transition-all"
+        className="z-5 absolute top-1/2 h-7 w-7 -translate-y-1/2 rounded bg-night-700 transition-all"
         style={{ left: selected * 28 + 4 }}
       />
       {icons.map(({ id, icon: Icon }, index) => (

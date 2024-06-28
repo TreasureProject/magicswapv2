@@ -639,7 +639,6 @@ const SwapTokenInput = ({
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
   className?: string;
 }) => {
-  const { isConnected } = useAccount();
   const parsedAmount = Number(amount);
   const amountPriceUSD =
     (token?.priceUSD ?? 0) *
@@ -652,8 +651,6 @@ const SwapTokenInput = ({
   const [openSelectionModal, setOpenSelectionModal] = useState(
     token?.isNFT && !otherToken?.isNFT && !!routeState
   );
-
-  const collection = token?.collections[0];
 
   const buttonText =
     amount === "0"
@@ -676,14 +673,13 @@ const SwapTokenInput = ({
               <PoolTokenImage className="h-12 w-12" token={token} />
               <div className="space-y-1">
                 <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
-                  {token.name} <ChevronDownIcon className="h-3 w-3" />
+                  {token.symbol} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                {collection?.name ||
-                  (token.symbol != token.name && (
-                    <span className="block text-xs text-night-600 sm:text-sm">
-                      {collection?.name ?? token.symbol}
-                    </span>
-                  ))}
+                {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
+                  <span className="block text-xs text-night-600 sm:text-sm">
+                    {token.name}
+                  </span>
+                ) : null}
               </div>
             </button>
           </DialogTrigger>
@@ -774,7 +770,6 @@ const SwapTokenInput = ({
                     <Button
                       variant="dark"
                       size="md"
-                      disabled={!isConnected}
                       onClick={() => setOpenSelectionModal(true)}
                     >
                       {buttonText}
@@ -790,11 +785,13 @@ const SwapTokenInput = ({
                   <CurrencyInput
                     value={amount}
                     onChange={onUpdateAmount}
-                    disabled={!!otherToken?.isNFT || !isConnected}
+                    disabled={!!otherToken?.isNFT}
                   />
-                  <span className="block text-sm text-night-400">
-                    {formatUSD(amountPriceUSD)}
-                  </span>
+                  {amountPriceUSD > 0 ? (
+                    <span className="block text-sm text-night-400">
+                      {formatUSD(amountPriceUSD)}
+                    </span>
+                  ) : null}
                 </>
               )}
             </ClientOnly>
@@ -1112,9 +1109,11 @@ const Token = ({
           <PoolTokenImage token={token} className="h-9 w-9" />
           <div className="text-left text-sm">
             <span className="block font-semibold text-honey-25">
-              {token.name}
+              {token.symbol}
             </span>
-            <span className="block text-night-600">{token.symbol}</span>
+            {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
+              <span className="block text-night-600">{token.name}</span>
+            ) : null}
           </div>
         </div>
         {isLoading ? (
