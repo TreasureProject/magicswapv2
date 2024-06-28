@@ -5,11 +5,9 @@ import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/user.server";
 
-export const loader = async (args: LoaderFunctionArgs) => {
-  const url = new URL(args.request.url);
-
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
   const address = url.searchParams.get("address");
-
   invariant(address, "Missing address");
 
   try {

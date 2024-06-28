@@ -7,10 +7,12 @@ import { Suspense, useState } from "react";
 import { fetchPools } from "~/api/pools.server";
 import { fetchUser } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
+import { ConnectButton } from "~/components/ConnectButton";
 import { LoaderIcon, PoolIcon } from "~/components/Icons";
 import { Tabs } from "~/components/Tabs";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Button } from "~/components/ui/Button";
+import { useAccount } from "~/contexts/account";
 import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
@@ -146,6 +148,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
 
 export default function PoolsListPage() {
   const { pools, user } = useLoaderData<typeof loader>();
+  const { isConnected } = useAccount();
   const [tab, setTab] = useState("all");
 
   return (
@@ -203,21 +206,24 @@ export default function PoolsListPage() {
         >
           <Await resolve={user}>
             {(user) => {
-              const positionCount = Number(user?.liquidityPositionCount ?? "0");
-              return (
+              return isConnected ? (
                 <>
-                  {positionCount === 0 ? (
-                    <div className="mt-4 grid grid-cols-2 gap-4 sm:mt-6 sm:gap-6">
-                      <div className="col-span-2 flex flex-col items-center justify-center space-y-6 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
-                        <p>You currently do not have any open positions.</p>
-                        <Button onClick={() => setTab("all")}>
-                          Create a new position
-                        </Button>
-                      </div>
+                  {user?.pools ? (
+                    <PoolsTable pools={user.pools} />
+                  ) : (
+                    <div className="col-span-2 mt-4 flex flex-col items-center justify-center space-y-6 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
+                      <p>You currently do not have any open positions.</p>
+                      <Button onClick={() => setTab("all")}>
+                        Create a new position
+                      </Button>
                     </div>
-                  ) : null}
-                  {user?.pools ? <PoolsTable pools={user.pools} /> : null}
+                  )}
                 </>
+              ) : (
+                <div className="col-span-2 mt-4 flex flex-col items-center justify-center space-y-6 rounded-lg bg-night-1100 px-4 py-8 text-center sm:py-10">
+                  <p>Connect your wallet to view your positions.</p>
+                  <ConnectButton />
+                </div>
               );
             }}
           </Await>
