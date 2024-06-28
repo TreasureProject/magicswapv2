@@ -51,11 +51,6 @@ export default function App() {
     createConfig(
       getDefaultConfig({
         appName: "Magicswap",
-        connectors: [
-          injected({
-            target: "metaMask",
-          }),
-        ],
         transports: {
           [arbitrum.id]: http(
             `https://${arbitrum.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
@@ -131,7 +126,7 @@ export default function App() {
       <body className="h-full antialiased">
         <WagmiProvider config={client}>
           <QueryClientProvider client={queryClient}>
-            <ConnectKitProvider>
+            <ConnectKitProvider theme="midnight">
               <Layout>
                 <AccountProvider>
                   <Outlet />
