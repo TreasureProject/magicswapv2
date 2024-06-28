@@ -2,7 +2,6 @@
 /// <reference types="@remix-run/node" />
 
 interface ImportMetaEnv {
-  readonly VITE_NODE_ENV: string;
   readonly VITE_ENABLE_TESTNETS: string;
   readonly VITE_THIRDWEB_CLIENT_ID: string;
   readonly VITE_WALLET_CONNECT_KEY: string;
