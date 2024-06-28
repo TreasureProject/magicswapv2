@@ -3,7 +3,7 @@ import { MagicSwapLogoFull } from "@treasure-project/branding";
 import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
-import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import {
   NIGHT_100,
@@ -11,6 +11,7 @@ import {
   TokenDisplay,
   generateOgImage,
 } from "~/lib/og.server";
+import { getPoolAPY, getPoolReserveDisplay } from "~/lib/pools";
 
 const PILL_BG = "rgba(64, 70, 82, 0.6)";
 
@@ -89,7 +90,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                {formatUSD(pool?.reserveUSD || 0)}
+                {pool ? getPoolReserveDisplay(pool) : 0}
               </div>
               <div
                 style={{
@@ -107,7 +108,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                {formatPercent(pool?.apy || 0)}
+                {formatPercent(pool ? getPoolAPY(pool) : 0)}
               </div>
               <div
                 style={{

@@ -13,8 +13,13 @@ import { Tabs } from "~/components/Tabs";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Button } from "~/components/ui/Button";
 import { useAccount } from "~/contexts/account";
-import { formatUSD } from "~/lib/currency";
 import { formatPercent } from "~/lib/number";
+import {
+  getPoolAPY,
+  getPoolFeesDisplay,
+  getPoolReserveDisplay,
+  getPoolVolume24hDisplay,
+} from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import type { RootLoader } from "~/root";
@@ -101,16 +106,16 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                 </Link>
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                {formatUSD(pool.volume24h)}
+                {getPoolVolume24hDisplay(pool)}
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                {formatPercent(pool.apy)}
+                {formatPercent(getPoolAPY(pool))}
               </td>
               <td className="px-4 py-4 text-right sm:px-5">
-                {formatUSD(pool.reserveUSD)}
+                {getPoolReserveDisplay(pool)}
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                {formatUSD(pool.feesUSD)}
+                {getPoolFeesDisplay(pool)}
               </td>
             </tr>
           ))}

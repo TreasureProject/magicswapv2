@@ -64,6 +64,11 @@ import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
+import {
+  getPoolAPY,
+  getPoolFees24hDisplay,
+  getPoolVolume24hDisplay,
+} from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { cn } from "~/lib/utils";
@@ -388,19 +393,19 @@ export default function PoolDetailsPage() {
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Volume (24h)</p>
                 <p className="font-medium text-night-100">
-                  {formatUSD(pool.volume24h)}
+                  {getPoolVolume24hDisplay(pool)}
                 </p>
               </div>
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">APR</p>
+                <p className="text-night-500">APY</p>
                 <p className="font-medium text-night-100">
-                  {formatPercent(pool.apy)}
+                  {formatPercent(getPoolAPY(pool))}
                 </p>
               </div>
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Fees (24h)</p>
                 <p className="font-medium text-night-100">
-                  {formatUSD(pool.fees24h)}
+                  {getPoolFees24hDisplay(pool)}
                 </p>
               </div>
             </div>

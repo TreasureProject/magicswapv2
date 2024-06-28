@@ -219,7 +219,7 @@ const SearchPopup = ({ onClose }: SearchProps) => {
                   <p className="text-md text-night-600">Volume(24h)</p>
                 </div>
                 <div className="flex w-1/3 justify-end">
-                  <p className="text-md text-night-600">APR</p>
+                  <p className="text-md text-night-600">APY</p>
                 </div>
                 <div className="flex w-1/3 justify-end">
                   <p className="text-md text-night-600">TVL</p>

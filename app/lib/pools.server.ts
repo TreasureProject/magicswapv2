@@ -8,15 +8,6 @@ import type {
   TroveTokenMapping,
 } from "~/types";
 
-const getPoolAPY = (volume1w: number, reserveUSD: number) => {
-  if (reserveUSD === 0) {
-    return 0;
-  }
-
-  const apr = ((volume1w / 7) * 365 * 0.0025) / reserveUSD;
-  return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
-};
-
 export const createPoolFromPair = (
   pair: Pair,
   collectionMapping: TroveCollectionMapping,
@@ -38,12 +29,12 @@ export const createPoolFromPair = (
       parseUnits(pair.reserve1 as NumberString, Number(pair.token1.decimals))
     ).toString(),
   };
+
   const reserveUSD = Number(pair.reserveUSD);
-  const volume24h = Number(pair.dayData[0]?.volumeUSD ?? 0);
-  const volume1w = pair.dayData.reduce(
-    (total, { volumeUSD }) => total + Number(volumeUSD),
-    0
-  );
+  const dayTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24;
+  const dayData = pair.dayData.find(({ date }) => Number(date) >= dayTime);
+  const weekTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7;
+  const weekData = pair.dayData.filter(({ date }) => Number(date) >= weekTime);
   return {
     ...pair,
     name: `${token0.symbol} / ${token1.symbol}`,
@@ -52,11 +43,24 @@ export const createPoolFromPair = (
     hasNFT: token0.isNFT || token1.isNFT,
     isNFTNFT: token0.isNFT && token1.isNFT,
     reserveUSD,
-    volume24h,
-    volume1w,
-    apy: getPoolAPY(volume1w, reserveUSD),
-    feesUSD: Number(pair.volumeUSD) * Number(pair.lpFee),
-    fees24h: volume24h * Number(pair.lpFee),
+    volume0: Number(pair.volume0),
+    volume1: Number(pair.volume1),
+    volumeUSD: Number(pair.volumeUSD),
+    volume24h0: Number(dayData?.volume0 ?? 0),
+    volume24h1: Number(dayData?.volume1 ?? 0),
+    volume24hUSD: Number(dayData?.volumeUSD ?? 0),
+    volume1w0: weekData.reduce(
+      (total, { volume0 }) => total + Number(volume0),
+      0
+    ),
+    volume1w1: weekData.reduce(
+      (total, { volume1 }) => total + Number(volume1),
+      0
+    ),
+    volume1wUSD: weekData.reduce(
+      (total, { volumeUSD }) => total + Number(volumeUSD),
+      0
+    ),
   };
 };
 
