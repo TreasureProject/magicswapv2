@@ -7,7 +7,7 @@ import type { PoolToken } from "~/types";
 
 export const PoolTokenInput = ({
   token,
-  balance = BigInt(0),
+  balance = 0n,
   amount,
   disabled = false,
   onUpdateAmount,

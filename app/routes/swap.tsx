@@ -618,7 +618,7 @@ const SwapTokenInput = ({
   token,
   otherToken,
   isOut,
-  balance = BigInt(0),
+  balance = 0n,
   amount,
   selectedNfts,
   nftLimit,

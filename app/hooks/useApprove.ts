@@ -19,7 +19,7 @@ type Props = {
 
 export const useApprove = ({
   token,
-  amount = BigInt(0),
+  amount = 0n,
   enabled = true,
   statusHeader: propsStatusHeader,
 }: Props) => {

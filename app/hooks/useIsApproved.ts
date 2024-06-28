@@ -17,7 +17,7 @@ type Props = {
 
 export const useIsApproved = ({
   token,
-  amount = BigInt(0),
+  amount = 0n,
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();

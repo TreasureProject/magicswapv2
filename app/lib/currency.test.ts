@@ -17,10 +17,10 @@ test("formats amounts", () => {
 });
 
 test("formats token amounts", () => {
-  expect(formatTokenAmount(BigInt("123456789990000000000000000"))).toBe(
+  expect(formatTokenAmount(123456789990000000000000000n)).toBe(
     "123,456,789.99"
   );
-  expect(formatTokenAmount(BigInt("123456000000000000000"))).toBe("123.45");
-  expect(formatTokenAmount(BigInt("1000000000000000000"))).toBe("1");
-  expect(formatTokenAmount(BigInt("123456780000000"))).toBe("0.000123");
+  expect(formatTokenAmount(123456000000000000000n)).toBe("123.45");
+  expect(formatTokenAmount(1000000000000000000n)).toBe("1");
+  expect(formatTokenAmount(123456780000000n)).toBe("0.000123");
 });

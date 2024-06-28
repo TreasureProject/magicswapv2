@@ -55,8 +55,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const amountBMin = pool.token1.isNFT
     ? amountB
     : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE);
-  const amountALeftover = pool.token0.isNFT ? rawAmountA - amountA : BigInt(0);
-  const amountBLeftover = pool.token1.isNFT ? rawAmountB - amountB : BigInt(0);
+  const amountALeftover = pool.token0.isNFT ? rawAmountA - amountA : 0n;
+  const amountBLeftover = pool.token1.isNFT ? rawAmountB - amountB : 0n;
   const amountNFTsA = pool.token0.isNFT
     ? bigIntToNumber(amountAMin, pool.token0.decimals)
     : 0;

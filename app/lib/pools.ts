@@ -11,25 +11,25 @@ import { tokenToRToken } from "./tokens";
 import type { AddressString, NumberString, PoolToken } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
-  reserveA > 0 ? (amountA * reserveB) / reserveA : BigInt(0);
+  reserveA > 0 ? (amountA * reserveB) / reserveA : 0n;
 
 export const getLpCountForTokens = (
   amount: bigint,
   reserve: bigint,
   totalSupply: bigint
-) => (reserve > 0 ? (amount * totalSupply) / reserve : BigInt(0));
+) => (reserve > 0 ? (amount * totalSupply) / reserve : 0n);
 
 export const getTokenCountForLp = (
   amount: bigint,
   reserve: bigint,
   totalSupply: bigint
-) => (totalSupply > 0 ? (amount * reserve) / totalSupply : BigInt(0));
+) => (totalSupply > 0 ? (amount * reserve) / totalSupply : 0n);
 
 export const getAmountMax = (amount: bigint, slippage: number) =>
-  amount + (amount * BigInt(Math.ceil(slippage * 1000))) / BigInt(1000);
+  amount + (amount * BigInt(Math.ceil(slippage * 1000))) / 1000n;
 
 export const getAmountMin = (amount: bigint, slippage: number) =>
-  amount - (amount * BigInt(Math.ceil(slippage * 1000))) / BigInt(1000);
+  amount - (amount * BigInt(Math.ceil(slippage * 1000))) / 1000n;
 
 export const createSwapRoute = (
   tokenIn: PoolToken,
@@ -51,8 +51,8 @@ export const createSwapRoute = (
         tokenToRToken(token0),
         tokenToRToken(token1),
         Number(totalFee ?? 0),
-        BigInt(parseUnits(reserve0 as NumberString, token0.decimals)),
-        BigInt(parseUnits(reserve1 as NumberString, token0.decimals))
+        parseUnits(reserve0 as NumberString, token0.decimals),
+        parseUnits(reserve1 as NumberString, token0.decimals)
       );
     }
   );
@@ -68,17 +68,15 @@ export const createSwapRoute = (
     },
   ];
 
-  const amountBN = BigInt(amount);
-
   if (isExactOut) {
     return findMultiRouteExactOut(
       rTokenIn,
       rTokenOut,
-      amountBN,
+      amount,
       rPools,
       networks
     );
   }
 
-  return findMultiRouteExactIn(rTokenIn, rTokenOut, amountBN, rPools, networks);
+  return findMultiRouteExactIn(rTokenIn, rTokenOut, amount, rPools, networks);
 };

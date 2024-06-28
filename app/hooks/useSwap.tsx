@@ -73,7 +73,7 @@ export const useSwap = ({
   );
   const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
-  const deadlineBN = BigInt(
+  const deadline = BigInt(
     Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60
   );
 
@@ -90,7 +90,7 @@ export const useSwap = ({
   const { data: swapExactTokensForTokensConfig } =
     useSimulateMagicSwapV2RouterSwapExactTokensForTokens({
       address: routerAddress,
-      args: [amountIn, amountOutMin, path, addressArg, deadlineBN],
+      args: [amountIn, amountOutMin, path, addressArg, deadline],
       query: {
         enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && !isExactOut,
       },
@@ -108,7 +108,7 @@ export const useSwap = ({
   const { data: swapTokensForExactTokensConfig } =
     useSimulateMagicSwapV2RouterSwapTokensForExactTokens({
       address: routerAddress,
-      args: [amountOut, amountInMax, path, addressArg, deadlineBN],
+      args: [amountOut, amountInMax, path, addressArg, deadline],
       query: {
         enabled: isEnabled && !tokenIn.isNFT && !tokenOut.isNFT && isExactOut,
       },
@@ -133,7 +133,7 @@ export const useSwap = ({
         amountInMax,
         path,
         addressArg,
-        deadlineBN,
+        deadline,
       ],
       query: {
         enabled: isEnabled && !tokenIn.isNFT && tokenOut.isNFT,
@@ -157,7 +157,7 @@ export const useSwap = ({
         amountOutMin,
         path,
         addressArg,
-        deadlineBN,
+        deadline,
       ],
       query: {
         enabled: isEnabled && tokenIn.isNFT && !tokenOut.isNFT,
@@ -183,7 +183,7 @@ export const useSwap = ({
         quantitiesOut,
         path,
         addressArg,
-        deadlineBN,
+        deadline,
       ],
       query: {
         enabled: isEnabled && tokenIn.isNFT && tokenOut.isNFT,

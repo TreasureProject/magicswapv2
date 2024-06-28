@@ -166,13 +166,13 @@ export const PoolDepositTab = ({
   const insufficientBalanceA = !pool.token0.isNFT
     ? parseFloat(
         isExactB ? formatUnits(amountA, pool.token0.decimals) : rawAmount
-      ) > parseFloat(formatEther(balance0 || BigInt(0)))
+      ) > parseFloat(formatEther(balance0 ?? 0n))
     : false;
 
   const insufficientBalanceB = !pool.token1.isNFT
     ? parseFloat(
         !isExactB ? formatUnits(amountB, pool.token1.decimals) : rawAmount
-      ) > parseFloat(formatEther(balance1 || BigInt(0)))
+      ) > parseFloat(formatEther(balance1 ?? 0n))
     : false;
 
   return (

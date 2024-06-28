@@ -165,7 +165,7 @@ export default function PoolDetailsPage() {
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
-  const { data: rawLpBalance, refetch: refetchLpBalance } =
+  const { data: lpBalance = 0n, refetch: refetchLpBalance } =
     useReadErc20BalanceOf({
       address: pool.id as AddressString,
       args: [address as AddressString],
@@ -174,7 +174,6 @@ export default function PoolDetailsPage() {
       },
     });
 
-  const lpBalance = rawLpBalance ?? BigInt(0);
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
@@ -221,7 +220,7 @@ export default function PoolDetailsPage() {
             >
               {() => (
                 <>
-                  {address && lpBalance > BigInt(0) ? (
+                  {address && lpBalance > 0 ? (
                     <div className="space-y-4 rounded-md bg-night-1100 p-4">
                       <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
                         <h3 className="font-medium">Your Positions</h3>

@@ -28,15 +28,15 @@ export const useSwapRoute = ({
   const isSampleRoute = amountBI <= 0;
 
   const {
-    amountInBI = BigInt(0),
-    amountOutBI = BigInt(0),
+    amountInBI = 0n,
+    amountOutBI = 0n,
     legs = [],
     priceImpact = 0,
   } = createSwapRoute(
     tokenIn,
     tokenOut,
     pools,
-    isSampleRoute ? BigInt(1) : amountBI,
+    isSampleRoute ? 1n : amountBI,
     isExactOut
   ) ?? {};
 
@@ -60,8 +60,8 @@ export const useSwapRoute = ({
   })[];
 
   return {
-    amountIn: BigInt(isSampleRoute ? 0 : amountInBI.toString()),
-    amountOut: BigInt(isSampleRoute ? 0 : amountOutBI.toString()),
+    amountIn: isSampleRoute ? 0n : amountInBI,
+    amountOut: isSampleRoute ? 0n : amountOutBI,
     tokenIn: poolLegs[0]?.tokenFrom ?? tokenIn,
     tokenOut: poolLegs[poolLegs.length - 1]?.tokenTo ?? tokenOut ?? undefined,
     legs,

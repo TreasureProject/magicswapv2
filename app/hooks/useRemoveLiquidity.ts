@@ -10,7 +10,7 @@ import {
   useWriteMagicSwapV2RouterRemoveLiquidityNft,
 } from "~/generated";
 import type { Pool } from "~/lib/pools.server";
-import { DEFAULT_DEADLINE, useSettingsStore } from "~/store/settings";
+import { useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 
 type Props = {
@@ -38,12 +38,10 @@ export const useRemoveLiquidity = ({
 }: Props) => {
   const { address, addressArg } = useAccount();
   const routerAddress = useMagicSwapV2RouterAddress();
-  const deadline = useSettingsStore((state) => state.deadline);
+  const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;
-  const deadlineBN = BigInt(
-    Math.floor(Date.now() / 1000) + (deadline || DEFAULT_DEADLINE) * 60
-  );
+  const deadline = BigInt(Math.floor(Date.now() / 1000) + deadlineMinutes * 60);
   const statusHeader = propsStatusHeader ?? `Withdraw from ${pool.name} LP`;
 
   // ERC20-ERC20
@@ -57,7 +55,7 @@ export const useRemoveLiquidity = ({
         amountAMin,
         amountBMin,
         addressArg,
-        deadlineBN,
+        deadline,
       ],
       query: {
         enabled: isEnabled && !pool.hasNFT,
@@ -85,7 +83,7 @@ export const useRemoveLiquidity = ({
         amountAMin,
         amountBMin,
         addressArg,
-        deadlineBN,
+        deadline,
         true, // swapLeftover
       ],
       query: {
@@ -140,7 +138,7 @@ export const useRemoveLiquidity = ({
   //       amountAMin,
   //       amountBMin,
   //       addressArg,
-  //       deadlineBN,
+  //       deadline,
   //     ],
   //     query: {
   //       enabled: isEnabled && pool.isNFTNFT,
