@@ -158,16 +158,11 @@ export default function PoolsListPage() {
 
   return (
     <main className="container">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold">Pools</h1>
-          <p className="text-night-200">
-            Use your game assets to earn rewards by providing liquidity.
-          </p>
-        </div>
-        <Button variant="dark" size="md">
-          Learn More
-        </Button>
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold">Pools</h1>
+        <p className="text-night-200">
+          Use your game assets to earn rewards by providing liquidity.
+        </p>
       </div>
       <Tabs
         className="mt-6 grid w-full grid-cols-2 border-b border-b-night-900 sm:mt-8 sm:flex"

@@ -53,68 +53,70 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         <div className="flex flex-1 items-center justify-end gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" className="w-9 px-0">
-                <MenuIcon className="w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  asChild
-                  className="font-medium text-night-200 hover:text-night-100"
-                >
-                  <Link to="/swap">
-                    <InfoIcon className="mr-2 h-4 w-4" />
-                    <span>Swap</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="font-medium text-night-200 hover:text-night-100"
-                >
-                  <Link to="/pools">
-                    <PlayIcon className="mr-2 h-4 w-4" />
-                    <span>Pools</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <span>Documentation</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Tutorials</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Articles</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Documentation</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Terms of Service</span>
-              </DropdownMenuItem>
-              <a
-                href="https://commonwealth.im/treasure-dao/discussions/MagicSwap"
-                target="_blank"
-                rel="noreferrer"
-              >
+          <div className="lg:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="w-9 px-0">
+                  <MenuIcon className="w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    asChild
+                    className="font-medium text-night-200 hover:text-night-100"
+                  >
+                    <Link to="/swap">
+                      <InfoIcon className="mr-2 h-4 w-4" />
+                      <span>Swap</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="font-medium text-night-200 hover:text-night-100"
+                  >
+                    <Link to="/pools">
+                      <PlayIcon className="mr-2 h-4 w-4" />
+                      <span>Pools</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <span>Governance Forum</span>
+                  <span>Documentation</span>
                 </DropdownMenuItem>
-              </a>
-              <div className="flex items-center gap-3 p-3">
-                <button>
-                  <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
-                </button>
-                <button>
-                  <TwitterIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
-                </button>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem>
+                  <span>Tutorials</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Articles</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Documentation</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Terms of Service</span>
+                </DropdownMenuItem>
+                <a
+                  href="https://commonwealth.im/treasure-dao/discussions/MagicSwap"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DropdownMenuItem>
+                    <span>Governance Forum</span>
+                  </DropdownMenuItem>
+                </a>
+                <div className="flex items-center gap-3 p-3">
+                  <button>
+                    <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
+                  </button>
+                  <button>
+                    <TwitterIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
+                  </button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <ConnectButton />
         </div>
       </header>

@@ -94,20 +94,16 @@ export const meta: MetaFunction<
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const [pools, session] = await Promise.all([
-    fetchPools(),
-    getSession(request.headers.get("Cookie")),
-  ]);
-
   const url = new URL(request.url);
-  const inputAddress = url.searchParams.get("in");
-  const outputAddress = url.searchParams.get("out");
+  const tokenInAddress =
+    url.searchParams.get("in") ?? process.env.DEFAULT_TOKEN_ADDRESS;
+  const tokenOutAddress = url.searchParams.get("out");
 
-  const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(
-      inputAddress ?? pools[0]?.token0.id ?? process.env.DEFAULT_TOKEN_ADDRESS
-    ),
-    outputAddress ? fetchToken(outputAddress) : null,
+  const [session, pools, tokenIn, tokenOut] = await Promise.all([
+    getSession(request.headers.get("Cookie")),
+    fetchPools(),
+    tokenInAddress ? fetchToken(tokenInAddress) : null,
+    tokenOutAddress ? fetchToken(tokenOutAddress) : null,
   ]);
 
   if (!tokenIn) {
