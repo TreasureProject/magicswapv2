@@ -11,7 +11,7 @@ import {
 } from ".graphclient";
 import { ITEMS_PER_PAGE } from "~/consts";
 import { sumArray } from "~/lib/array";
-import { cachified } from "~/lib/cache.server";
+import { getCachedValue } from "~/lib/cache.server";
 import { createPoolToken } from "~/lib/tokens.server";
 import type {
   PoolToken,
@@ -35,49 +35,38 @@ function filterNullValues(
   return filteredObj;
 }
 
-export const fetchTokens = async () =>
-  cachified({
-    key: "tokens",
-    async getFreshValue() {
-      const result = (await execute(
-        GetTokensDocument,
-        {}
-      )) as ExecutionResult<GetTokensQuery>;
-      const { tokens: rawTokens = [] } = result.data ?? {};
-      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-        fetchTokensCollections(rawTokens),
-        fetchMagicUSD(),
-      ]);
-      return rawTokens.map((token) =>
-        createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
-      );
-    },
+export const fetchTokens = () =>
+  getCachedValue("tokens", async () => {
+    const result = (await execute(
+      GetTokensDocument,
+      {}
+    )) as ExecutionResult<GetTokensQuery>;
+    const { tokens: rawTokens = [] } = result.data ?? {};
+    const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+      fetchTokensCollections(rawTokens),
+      fetchMagicUSD(),
+    ]);
+    return rawTokens.map((token) =>
+      createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
+    );
   });
 
-export const fetchToken = async (id: string) =>
-  cachified({
-    key: `token-${id}`,
-    async getFreshValue() {
-      const result = (await execute(GetTokenDocument, {
-        id,
-      })) as ExecutionResult<GetTokenQuery>;
-      const { token: rawToken } = result.data ?? {};
+export const fetchToken = (id: string) =>
+  getCachedValue(`token-${id}`, async () => {
+    const result = (await execute(GetTokenDocument, {
+      id,
+    })) as ExecutionResult<GetTokenQuery>;
+    const { token: rawToken } = result.data ?? {};
 
-      if (!rawToken) {
-        return null;
-      }
+    if (!rawToken) {
+      return null;
+    }
 
-      const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-        fetchTokensCollections([rawToken]),
-        fetchMagicUSD(),
-      ]);
-      return createPoolToken(
-        rawToken,
-        collectionMapping,
-        tokenMapping,
-        magicUSD
-      );
-    },
+    const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+      fetchTokensCollections([rawToken]),
+      fetchMagicUSD(),
+    ]);
+    return createPoolToken(rawToken, collectionMapping, tokenMapping, magicUSD);
   });
 
 export const fetchFilters = async (slug: string) => {
