@@ -5,35 +5,16 @@ import { fetchMagicUSD } from "./stats.server";
 import {
   GetTokenDocument,
   type GetTokenQuery,
+  GetTokenVaultReserveItemsDocument,
+  type GetTokenVaultReserveItemsQuery,
   GetTokensDocument,
   type GetTokensQuery,
   execute,
 } from ".graphclient";
-import { ITEMS_PER_PAGE } from "~/consts";
 import { sumArray } from "~/lib/array";
 import { getCachedValue } from "~/lib/cache.server";
 import { createPoolToken } from "~/lib/tokens.server";
-import type {
-  PoolToken,
-  TraitsResponse,
-  TroveApiResponse,
-  TroveToken,
-  TroveTokenMapping,
-} from "~/types";
-
-function filterNullValues(
-  obj: Record<string, unknown>
-): Record<string, unknown> {
-  const filteredObj: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== null) {
-      filteredObj[key] = value;
-    }
-  }
-
-  return filteredObj;
-}
+import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 
 export const fetchTokens = () =>
   getCachedValue("tokens", async () => {
@@ -69,99 +50,7 @@ export const fetchToken = (id: string) =>
     return createPoolToken(rawToken, collectionMapping, tokenMapping, magicUSD);
   });
 
-export const fetchFilters = async (slug: string) => {
-  const response = await fetch(
-    `${process.env.TROVE_API_URL}/collection/${process.env.TROVE_API_NETWORK}/${slug}/traits`,
-    {
-      headers: {
-        "X-API-Key": process.env.TROVE_API_KEY,
-      },
-    }
-  );
-
-  const { traitsMap } = (await response.json()) as TraitsResponse;
-
-  return Object.entries(traitsMap).map(([traitName, traitMetadata]) => {
-    const isNumeric =
-      "display_type" in traitMetadata &&
-      (traitMetadata.display_type === "numeric" ||
-        traitMetadata.display_type === "percentage");
-    const values = Object.entries(traitMetadata.valuesMap)
-      .map(([valueName, valueMetadata]) => {
-        return {
-          valueName,
-          count: valueMetadata.valueCount,
-          valuePriority: valueMetadata.valuePriority ?? 0,
-        };
-      })
-      .sort((a, b) => {
-        if (a.valuePriority !== b.valuePriority) {
-          return b.valuePriority - a.valuePriority;
-        }
-
-        return a.valueName.localeCompare(b.valueName, undefined, {
-          numeric: isNumeric || a.valueName.includes("%"),
-        });
-      });
-
-    return {
-      ...traitMetadata,
-      traitName,
-      values,
-    };
-  });
-};
-
-export type TroveFilters = ReturnType<typeof fetchFilters>;
-
-export const fetchCollectionOwnedByAddress = async (
-  address: string,
-  slug: string,
-  traits: string[],
-  tokenIds: string[],
-  query: string | null,
-  pageKey: string | null,
-  offset: number
-) => {
-  try {
-    const response = await fetch(
-      `${process.env.TROVE_API_URL}/tokens-for-user-page-fc`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": process.env.TROVE_API_KEY,
-        },
-        body: JSON.stringify(
-          filterNullValues({
-            userAddress: address,
-            ...(tokenIds.length > 0
-              ? {
-                  ids: tokenIds.map((tokenId) => `${slug}/${tokenId}`),
-                }
-              : {
-                  slugs: [slug],
-                }),
-            limit: ITEMS_PER_PAGE,
-            query,
-            traits,
-            pageKey,
-            offset,
-          })
-        ),
-      }
-    );
-    const result = (await response.json()) as TroveApiResponse;
-
-    return result;
-  } catch (e) {
-    throw new Error("Error fetching collection");
-  }
-};
-
-export const fetchTroveTokens = async (
-  ids: string[]
-): Promise<TroveTokenMapping> => {
+export const fetchTroveTokens = async (ids: string[]) => {
   const response = await fetch(`${process.env.TROVE_API_URL}/batch-tokens`, {
     method: "POST",
     headers: {
@@ -172,8 +61,13 @@ export const fetchTroveTokens = async (
       ids: ids.map((id) => `${process.env.TROVE_API_NETWORK}/${id}`),
     }),
   });
-  const result = (await response.json()) as TroveToken[];
-  return result.reduce((acc, token) => {
+  const results = (await response.json()) as TroveToken[];
+  return results;
+};
+
+export const fetchTroveTokenMapping = async (ids: string[]) => {
+  const tokens = await fetchTroveTokens(ids);
+  return tokens.reduce((acc, token) => {
     const collection = (acc[token.collectionAddr.toLowerCase()] ??= {});
     collection[token.tokenId] = token;
     return acc;
@@ -211,4 +105,92 @@ export const fetchPoolTokenBalance = async (
   });
   const result = (await response.json()) as TroveToken[];
   return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
+};
+
+export const fetchVaultUserInventory = async ({
+  id,
+  address,
+}: {
+  id: string;
+  address: string;
+}) => {
+  // Fetch vault data from subgraph
+  const result = (await execute(GetTokenDocument, {
+    id,
+  })) as ExecutionResult<GetTokenQuery>;
+  const { token } = result.data ?? {};
+  if (!token) {
+    throw new Error("Vault not found");
+  }
+
+  // Fetch user inventory
+  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  url.searchParams.append("userAddress", address);
+
+  const tokenIds =
+    token.vaultCollections.flatMap(
+      ({ collection: { id: collectionId }, tokenIds }) =>
+        tokenIds?.map(
+          (tokenId) =>
+            `${process.env.TROVE_API_NETWORK}/${collectionId}/${tokenId}`
+        ) ?? []
+    ) ?? [];
+  if (tokenIds.length > 0) {
+    url.searchParams.append("ids", tokenIds.join(","));
+  } else {
+    url.searchParams.append(
+      "slugs",
+      token.vaultCollections
+        .map(
+          ({ collection: { id: collectionId } }) =>
+            `${process.env.TROVE_API_NETWORK}/${collectionId}`
+        )
+        .join(",")
+    );
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      "X-API-Key": process.env.TROVE_API_KEY,
+    },
+  });
+  const results = (await response.json()) as TroveToken[];
+  return results;
+};
+
+export const fetchVaultReserveItems = async ({
+  id,
+  page = 1,
+  itemsPerPage = 25,
+}: {
+  id: string;
+  page?: number;
+  itemsPerPage?: number;
+}): Promise<TroveToken[]> => {
+  // Fetch vault reserve items from subgraph
+  const result = (await execute(GetTokenVaultReserveItemsDocument, {
+    id,
+    first: itemsPerPage,
+    skip: (page - 1) * itemsPerPage,
+  })) as ExecutionResult<GetTokenVaultReserveItemsQuery>;
+  const { vaultReserveItems = [] } = result.data ?? {};
+
+  // Create mapping of tokenIds to amount so we use the vault reserves instead of inventory balances
+  const amountsMapping = vaultReserveItems.reduce(
+    (acc, { collection: { id: collectionId }, tokenId, amount }) => {
+      acc[`${collectionId.toLowerCase()}/${tokenId}`] = amount;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  // Fetch token metadata
+  const items = await fetchTroveTokens(Object.keys(amountsMapping));
+  return items.map((item) => ({
+    ...item,
+    queryUserQuantityOwned:
+      amountsMapping[`${item.collectionAddr.toLowerCase()}/${item.tokenId}`] ??
+      item.queryUserQuantityOwned ??
+      0,
+  }));
 };

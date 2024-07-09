@@ -15,6 +15,10 @@ export const TOKEN_FRAGMENT = gql`
       }
       tokenIds
     }
+    vaultReserveItems {
+      tokenId
+      amount
+    }
   }
 `;
 
@@ -32,6 +36,28 @@ export const getTokens = gql`
   query GetTokens {
     tokens {
       ...TokenFragment
+    }
+  }
+`;
+
+export const getTokenVaultReserveItems = gql`
+  query GetTokenVaultReserveItems(
+    $id: String!
+    $first: Int = 50
+    $skip: Int = 0
+  ) {
+    vaultReserveItems(
+      first: $first
+      skip: $skip
+      where: { vault: $id }
+      orderBy: tokenId
+      orderDirection: ASC
+    ) {
+      collection {
+        id
+      }
+      tokenId
+      amount
     }
   }
 `;

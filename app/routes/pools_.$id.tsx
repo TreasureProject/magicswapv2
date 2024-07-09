@@ -39,8 +39,8 @@ import type {
 } from "~/api/pools.server";
 import { fetchPool, fetchTransactions } from "~/api/pools.server";
 import {
-  fetchCollectionOwnedByAddress,
   fetchPoolTokenBalance,
+  fetchVaultReserveItems,
 } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -125,7 +125,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  if (!address || (!pool.token0.isNFT && !pool.token1.isNFT)) {
+  if (!address || !pool.hasNFT) {
     return defer({
       pool,
       transactions: fetchTransactions(pool),
@@ -139,24 +139,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return defer({
     pool,
     transactions: fetchTransactions(pool),
-    vaultItems0: fetchCollectionOwnedByAddress(
-      pool.token0.id,
-      pool.token0.urlSlug,
-      [],
-      pool.token0.collectionTokenIds,
-      null,
-      null,
-      0
-    ),
-    vaultItems1: fetchCollectionOwnedByAddress(
-      pool.token1.id,
-      pool.token1.urlSlug,
-      [],
-      pool.token1.collectionTokenIds,
-      null,
-      null,
-      0
-    ),
+    vaultItems0: pool.token0.isNFT
+      ? fetchVaultReserveItems({
+          id: pool.token0.id,
+        })
+      : undefined,
+    vaultItems1: pool.token1.isNFT
+      ? fetchVaultReserveItems({
+          id: pool.token1.id,
+        })
+      : undefined,
     nftBalance0: fetchPoolTokenBalance(pool.token0, address),
     nftBalance1: fetchPoolTokenBalance(pool.token1, address),
   });
@@ -419,25 +411,25 @@ export default function PoolDetailsPage() {
         </div>
         {pool.hasNFT ? (
           <div className="mt-12 space-y-3.5">
-            {pool.token0.isNFT && vaultItems0 ? (
+            {vaultItems0 ? (
               <Suspense>
                 <Await resolve={vaultItems0}>
                   {(vaultItems0) => (
                     <PoolTokenCollectionInventory
                       token={pool.token0}
-                      items={vaultItems0.tokens}
+                      items={vaultItems0}
                     />
                   )}
                 </Await>
               </Suspense>
             ) : null}
-            {pool.token1.isNFT && vaultItems1 ? (
+            {vaultItems1 ? (
               <Suspense>
                 <Await resolve={vaultItems1}>
                   {(vaultItems1) => (
                     <PoolTokenCollectionInventory
                       token={pool.token1}
-                      items={vaultItems1.tokens}
+                      items={vaultItems1}
                     />
                   )}
                 </Await>

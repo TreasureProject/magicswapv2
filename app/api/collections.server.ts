@@ -1,4 +1,4 @@
-import { fetchTroveTokens } from "./tokens.server";
+import { fetchTroveTokenMapping } from "./tokens.server";
 import type { Token, TroveCollection, TroveCollectionMapping } from "~/types";
 
 export const fetchCollections = async (addresses: string[]) => {
@@ -42,5 +42,8 @@ export const fetchTokensCollections = async (tokens: Token[]) => {
     ),
   ];
 
-  return Promise.all([fetchCollections(addresses), fetchTroveTokens(tokenIds)]);
+  return Promise.all([
+    fetchCollections(addresses),
+    fetchTroveTokenMapping(tokenIds),
+  ]);
 };

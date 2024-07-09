@@ -1,34 +1,25 @@
-import { useFetcher } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronDownIcon,
-  ChevronRightIcon,
   TableIcon as ColumnIcon,
   ExternalLink,
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
-  SearchIcon,
   XIcon,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
-import { Badge } from "../Badge";
-import { CheckIcon, FilledFilterIcon, LoaderIcon } from "../Icons";
+import { CheckIcon, LoaderIcon } from "../Icons";
 import { PoolTokenImage } from "../pools/PoolTokenImage";
 import { Button } from "../ui/Button";
-import { LabeledCheckbox } from "../ui/Checkbox";
 import IconToggle from "../ui/IconToggle";
 import { NumberSelect } from "../ui/NumberSelect";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
-import { ITEMS_PER_PAGE } from "~/consts";
 import { useTrove } from "~/hooks/useTrove";
+import { useVaultItems } from "~/hooks/useVaultItems";
 import { formatNumber } from "~/lib/number";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
-import type { CollectionLoader } from "~/routes/resources.collections.$slug";
-import type { CollectionFiltersLoader } from "~/routes/resources.collections.$slug.filters";
 import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
 
 const ItemCard = ({
@@ -127,32 +118,8 @@ const ItemCard = ({
   );
 };
 
-const TraitFilterBadge = ({ trait }: { trait: string }) => {
-  const [key, value] = trait.split(":");
-
-  return (
-    <span
-      key={`${key}:${value}`}
-      className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border-transparent bg-night-800 py-1 pl-3 pr-1 text-sm font-medium text-night-500"
-    >
-      <p>
-        <span className="inline-block capitalize">{key}:</span>{" "}
-        <span className="inline-block capitalize text-night-100">{value}</span>
-      </p>
-      <input type="hidden" name="deleteTrait" value={`${key}:${value}`} />
-      <button
-        type="submit"
-        className="flex-shrink-0 rounded-md p-2 text-night-600 hover:bg-night-700 hover:text-night-200"
-      >
-        <span className="sr-only">Remove filter for {value}</span>
-        <XIcon className="h-4 w-4" />
-      </button>
-    </span>
-  );
-};
-
 type BaseProps = {
-  token?: PoolToken;
+  token: PoolToken;
   type: "vault" | "inventory";
 };
 
@@ -171,83 +138,28 @@ type EditableProps = BaseProps & {
 type Props = ViewOnlyProps | EditableProps;
 
 export const SelectionPopup = ({ token, type, ...props }: Props) => {
+  const { address } = useAccount();
+  const { items, isLoading, refetch } = useVaultItems({
+    id: token.id,
+    type: type === "vault" ? "reserves" : "inventory",
+    address,
+    enabled: token.isNFT,
+  });
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
     !props.viewOnly ? props.selectedTokens ?? [] : []
   );
-  const { load, Form, submit, formData, state, data } =
-    useFetcher<CollectionLoader>();
-  const {
-    load: loadFilters,
-    state: filtersState,
-    data: filtersData,
-  } = useFetcher<CollectionFiltersLoader>();
-  const { address } = useAccount();
-  const traitInfoRef = React.useRef<string>("");
-  const queryFormRef = React.useRef<HTMLFormElement>(null);
-  const offsetRef = React.useRef(0);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCompactMode, setIsCompactMode] = useState(false);
-  const collectionTokenIds = token?.collectionTokenIds.join(",");
-  const ownerAddress = type === "vault" && token?.id ? token.id : address;
-  const resourcePath = token?.isNFT
-    ? `/resources/collections/${token.urlSlug}`
-    : undefined;
 
-  const totalQuantity = selectedItems.reduce(
-    (acc, curr) => (acc += curr.quantity),
+  const selectedQuantity = selectedItems.reduce(
+    (acc, curr) => acc + curr.quantity,
     0
   );
-
   const selectionDisabled =
-    !props.viewOnly && props.limit ? totalQuantity >= props.limit : false;
+    !props.viewOnly && props.limit ? selectedQuantity >= props.limit : false;
   const buttonDisabled =
     !props.viewOnly && props.limit
-      ? totalQuantity < props.limit
-      : selectedItems.length === 0
-        ? true
-        : false;
-
-  // Save trait string info to a ref, so when a user clicks Refresh, we can use it to refetch the data with the same filters
-  React.useEffect(() => {
-    if (formData) {
-      const traitsInfo = formData.getAll("traits")[0];
-
-      if (typeof traitsInfo === "string") {
-        traitInfoRef.current = traitsInfo;
-      }
-    }
-  }, [formData]);
-
-  const fetchCollection = React.useCallback(() => {
-    if (!ownerAddress || !resourcePath) {
-      return;
-    }
-
-    offsetRef.current = 0;
-
-    const params = new URLSearchParams({
-      address: ownerAddress,
-    });
-
-    if (collectionTokenIds) {
-      params.set("tokenIds", collectionTokenIds);
-    }
-
-    if (traitInfoRef.current.length > 0) {
-      params.set("traits", traitInfoRef.current);
-    }
-
-    load(`${resourcePath}?${params.toString()}`);
-  }, [ownerAddress, load, resourcePath, collectionTokenIds]);
-
-  React.useEffect(() => {
-    if (!resourcePath) {
-      return;
-    }
-
-    fetchCollection();
-    loadFilters(`${resourcePath}/filters`);
-  }, [resourcePath, loadFilters, fetchCollection]);
+      ? selectedQuantity < props.limit
+      : selectedItems.length === 0;
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
@@ -262,28 +174,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       setSelectedItems([...selectedItems, item]);
     }
   };
-
-  if (!token) return null;
-
-  const filteredList =
-    filtersData && filtersData.ok ? filtersData.filterList : [];
-
-  const filterWithValues = filteredList.filter((d) => d.values.length > 0);
-
-  const traits = data && data.ok ? data.traits : [];
-
-  const query = data && data.ok ? data.query : null;
-
-  const tokens = data && data.ok ? data.tokens : null;
-
-  const HiddenInputs = (
-    <>
-      <input type="hidden" name="address" value={ownerAddress} />
-      <input type="hidden" name="tokenIds" value={collectionTokenIds} />
-    </>
-  );
-
-  const loading = state === "loading" || state === "submitting";
 
   return (
     <DialogContent
@@ -306,32 +196,6 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       </div>
       <div className="space-y-4 grid-in-misc">
         <div className="flex items-stretch gap-3">
-          <Form
-            ref={queryFormRef}
-            className="flex flex-1"
-            onChange={(e) => {
-              const formData = new FormData(e.currentTarget);
-              formData.set("query", formData.get("query") || "");
-
-              submit(formData, {
-                action: resourcePath,
-              });
-
-              offsetRef.current = 0;
-            }}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            {HiddenInputs}
-            <div className="flex w-full items-center gap-2 rounded-lg bg-night-1000 px-2 text-night-600">
-              <SearchIcon className="h-4 w-4" />
-              <input
-                type="text"
-                name="query"
-                className="w-full border-none bg-transparent text-sm outline-none"
-                placeholder="Search name or token ID"
-              />
-            </div>
-          </Form>
           <IconToggle
             icons={[
               {
@@ -346,7 +210,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             onChange={(id) => setIsCompactMode(id === "compact")}
           />
           <button
-            onClick={fetchCollection}
+            onClick={refetch}
             className="group rounded-md px-2 text-night-600 transition-colors hover:bg-night-1000 hover:text-night-100"
           >
             <RefreshIcon className="h-4 w-4 group-hover:animate-rotate-45" />
@@ -354,140 +218,12 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </div>
       </div>
       <div className="flex flex-col overflow-hidden rounded-lg grid-in-nft">
-        <Form
-          onChange={(e) => {
-            // called when user selects a filter
-            const formData = new FormData(e.currentTarget);
-            const traits = formData.getAll("traits");
-            const traitsString = traits.join(",");
-            formData.set("traits", traitsString);
-
-            queryFormRef.current?.reset();
-
-            submit(formData, {
-              action: resourcePath,
-            });
-
-            offsetRef.current = 0;
-          }}
-          onSubmit={(e) => {
-            // onSubmit is only called when a user removes a filter
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            const targetTrait = formData.getAll("deleteTrait")[0];
-
-            const filteredTraits =
-              data && data.ok
-                ? data?.traits.filter((t) => t !== targetTrait)
-                : null;
-
-            if (!filteredTraits) return;
-
-            formData.set("traits", filteredTraits.join(","));
-
-            submit(formData, {
-              action: resourcePath,
-            });
-
-            offsetRef.current = 0;
-          }}
-        >
-          {HiddenInputs}
-          <Popover onOpenChange={setIsFilterOpen}>
-            <div className="flex space-x-2 divide-x divide-night-800 bg-night-1000 px-4 py-2">
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="group flex flex-shrink-0 items-center gap-2 text-sm font-medium text-honey-25"
-                >
-                  <FilledFilterIcon
-                    className="h-4 w-4 text-night-100"
-                    aria-hidden="true"
-                  />
-                  <span>Filters</span>
-                  <Badge>{traits.length}</Badge>
-                  <ChevronDownIcon
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      isFilterOpen && "-rotate-180"
-                    )}
-                  />
-                </Button>
-              </PopoverTrigger>
-              <div className="flex w-full items-center gap-3 overflow-x-auto pl-2">
-                {traits.map((trait) => (
-                  <TraitFilterBadge trait={trait} key={trait} />
-                ))}
-              </div>
-            </div>
-            <PopoverContent
-              align="start"
-              className="h-96 overflow-auto sm:min-w-[45rem]"
-            >
-              {filtersState === "loading" ? (
-                <div className="flex h-full items-center justify-center">
-                  <LoaderIcon className="h-8 w-8" />
-                </div>
-              ) : filtersState === "idle" && filteredList.length > 0 ? (
-                <div className="py-2">
-                  {filterWithValues ? (
-                    <div
-                      className={cn(
-                        "grid grid-cols-2 gap-x-4 gap-y-12 px-4 sm:grid-cols-2",
-                        {
-                          "sm:grid-cols-3": filterWithValues.length === 3,
-                          "sm:grid-cols-4": filterWithValues.length > 3,
-                        }
-                      )}
-                    >
-                      {filterWithValues.map((filter) => {
-                        return (
-                          <fieldset key={filter.traitName}>
-                            <legend className="text-sm font-medium text-honey-25">
-                              {filter.traitName}
-                            </legend>
-                            <div className="space-y-2 pt-4">
-                              {filter.values.map((value) => {
-                                return (
-                                  <div
-                                    key={`${filter.traitName}:${value.valueName}`}
-                                    className="flex items-center"
-                                  >
-                                    <LabeledCheckbox
-                                      id={`${filter.traitName}:${value.valueName}`}
-                                      name="traits"
-                                      defaultChecked={
-                                        traits.includes(
-                                          `${filter.traitName}:${value.valueName}`
-                                        ) || false
-                                      }
-                                      value={`${filter.traitName}:${value.valueName}`}
-                                    >
-                                      <span className="cursor-pointer text-sm font-normal capitalize text-night-400">
-                                        {value.valueName}
-                                      </span>
-                                    </LabeledCheckbox>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </fieldset>
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </PopoverContent>
-          </Popover>
-        </Form>
-
         <div className="relative flex-1 overflow-auto bg-night-1100 p-4">
-          {loading ? (
+          {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <LoaderIcon className="h-8 w-8" />
             </div>
-          ) : state === "idle" && data && data.ok ? (
+          ) : (
             <div
               className={cn(
                 "grid gap-3",
@@ -496,7 +232,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   : "grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
               )}
             >
-              {data.tokens.tokens.map((item) => (
+              {items.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
                   selected={selectedItems.some(
@@ -513,7 +249,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                       quantity:
                         !props.viewOnly && props.limit
                           ? Math.min(
-                              props.limit - totalQuantity,
+                              props.limit - selectedQuantity,
                               item.queryUserQuantityOwned ?? 1
                             )
                           : 1,
@@ -522,77 +258,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 />
               ))}
             </div>
-          ) : null}
-        </div>
-        <div className="flex justify-between bg-night-1000 p-3">
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-
-              const formData = new FormData(e.currentTarget);
-              offsetRef.current -= ITEMS_PER_PAGE;
-              formData.set("offset", offsetRef.current.toString());
-
-              submit(formData, {
-                action: resourcePath,
-              });
-            }}
-          >
-            {HiddenInputs}
-            {traits.length > 0 && (
-              <input type="hidden" name="traits" value={traits.join(",")} />
-            )}
-            {query && <input type="hidden" name="query" value={query} />}
-
-            <Button
-              variant="ghost"
-              className="pl-2 pr-3.5"
-              disabled={offsetRef.current === 0 || loading}
-            >
-              <ChevronRightIcon className="w-4 rotate-180" />
-              Previous
-            </Button>
-          </Form>
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-
-              const formData = new FormData(e.currentTarget);
-              offsetRef.current += ITEMS_PER_PAGE;
-              formData.set("offset", offsetRef.current.toString());
-
-              submit(formData, {
-                action: resourcePath,
-              });
-            }}
-          >
-            {HiddenInputs}
-            {tokens && tokens.nextPageKey && (
-              <input
-                type="hidden"
-                name="nextPageKey"
-                value={tokens.nextPageKey}
-              />
-            )}
-            {traits.length > 0 && (
-              <input type="hidden" name="traits" value={traits.join(",")} />
-            )}
-            {query && <input type="hidden" name="query" value={query} />}
-            <Button
-              variant="ghost"
-              type="submit"
-              className="pl-3.5 pr-2"
-              disabled={
-                loading ||
-                !tokens?.nextPageKey ||
-                // sometimes the next page key is there but the next page is empty
-                tokens.tokens.length < ITEMS_PER_PAGE
-              }
-            >
-              Next
-              <ChevronRightIcon className="w-4" />
-            </Button>
-          </Form>
+          )}
         </div>
       </div>
       {!props.viewOnly && (
@@ -693,8 +359,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   onClick={() => props.onSubmit(selectedItems)}
                 >
                   {props.limit && buttonDisabled
-                    ? `Add ${props.limit - totalQuantity} item${
-                        props.limit - totalQuantity > 1 ? "s" : ""
+                    ? `Add ${props.limit - selectedQuantity} item${
+                        props.limit - selectedQuantity > 1 ? "s" : ""
                       }`
                     : "Save selections"}
                 </Button>
