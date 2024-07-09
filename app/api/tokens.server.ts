@@ -50,7 +50,7 @@ export const fetchToken = (id: string) =>
     return createPoolToken(rawToken, collectionMapping, tokenMapping, magicUSD);
   });
 
-export const fetchTroveTokens = async (ids: string[]) => {
+const fetchTroveTokens = async (ids: string[]) => {
   const response = await fetch(`${process.env.TROVE_API_URL}/batch-tokens`, {
     method: "POST",
     headers: {

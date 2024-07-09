@@ -14,7 +14,7 @@ const CONTRACT_ADDRESSES = {
 
 type Contract = keyof (typeof CONTRACT_ADDRESSES)[42161];
 
-export const useContractAddress = (contract: Contract) => {
+const useContractAddress = (contract: Contract) => {
   const chainId = useChainId();
   const addresses =
     CONTRACT_ADDRESSES[

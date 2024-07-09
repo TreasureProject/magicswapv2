@@ -1,5 +1,5 @@
+import { Link } from "@remix-run/react";
 import { ChevronRightIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 
 import { DiscordSupportBar } from "~/components/FooterBars";
 import { media } from "~/consts";
