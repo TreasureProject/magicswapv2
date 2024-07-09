@@ -1,6 +1,6 @@
+import { Link } from "@remix-run/react";
 import { SearchIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 // To-Do
 // Hover effect on cards

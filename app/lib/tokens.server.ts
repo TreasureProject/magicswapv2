@@ -35,8 +35,6 @@ export const itemToTroveTokenItem = (
   };
 };
 
-export type TroveTokenItem = ReturnType<typeof itemToTroveTokenItem>;
-
 const createTokenMetadata = (
   token: Token,
   collectionMapping: TroveCollectionMapping,

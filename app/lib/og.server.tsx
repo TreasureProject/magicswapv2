@@ -18,12 +18,7 @@ const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
       }) as const
   );
 
-export const HONEY_25 = "#FFFDF7";
-
 export const NIGHT_100 = "#E7E8E9";
-
-export const NIGHT_200 = "#CFD1D4";
-
 export const NIGHT_400 = "#9FA3A9";
 
 export const TokenDisplay = ({

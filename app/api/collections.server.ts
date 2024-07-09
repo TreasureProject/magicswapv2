@@ -1,7 +1,7 @@
-import { fetchTroveTokens } from "./tokens.server";
+import { fetchTroveTokenMapping } from "./tokens.server";
 import type { Token, TroveCollection, TroveCollectionMapping } from "~/types";
 
-export const fetchCollections = async (addresses: string[]) => {
+const fetchCollections = async (addresses: string[]) => {
   const url = new URL(`${process.env.TROVE_API_URL}/batch-collections`);
   url.searchParams.set(
     "slugs",
@@ -42,5 +42,8 @@ export const fetchTokensCollections = async (tokens: Token[]) => {
     ),
   ];
 
-  return Promise.all([fetchCollections(addresses), fetchTroveTokens(tokenIds)]);
+  return Promise.all([
+    fetchCollections(addresses),
+    fetchTroveTokenMapping(tokenIds),
+  ]);
 };

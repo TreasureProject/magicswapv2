@@ -51,52 +51,6 @@ export type TroveTokenWithQuantity = TroveToken & {
 
 export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;
 
-export type TroveApiResponse = {
-  tokens: TroveToken[];
-  nextPageKey: string | null;
-};
-
-type BaseTraitMetadata = {
-  traitCount: number;
-  valuesMap: Record<
-    string | number,
-    { valueCount: number; valuePriority?: number }
-  >;
-  display_order?: string;
-  superTrait?: string;
-  subTrait?: string;
-};
-
-type DefaultTraitMetadata = {
-  display_type?: "default";
-} & BaseTraitMetadata;
-
-type NumericTraitMetadata = {
-  display_type?: "numeric";
-  valueMin: number;
-  valueMax: number;
-  traitCount: number;
-  valueStep: number;
-} & BaseTraitMetadata;
-
-type PercentageTraitMetadata = {
-  display_type?: "percentage";
-} & BaseTraitMetadata;
-
-export type TraitMetadata =
-  | DefaultTraitMetadata
-  | NumericTraitMetadata
-  | PercentageTraitMetadata;
-
-export type TraitsResponse = {
-  traitsMap: Record<string, TraitMetadata>;
-};
-
-export type Traits = TraitMetadata & {
-  traitName: string;
-  values: { valueName: string; count: number }[];
-};
-
 type DomainType = "ens" | "smol" | "treasuretag" | "address";
 
 type DomainInfo = {

@@ -1,5 +1,5 @@
+import { Link } from "@remix-run/react";
 import { MagicSwapLogo } from "@treasure-project/branding";
-import { Link } from "react-router-dom";
 import { Balancer } from "react-wrap-balancer";
 
 import { DiscordIcon, TwitterIcon } from "~/components/Icons";
