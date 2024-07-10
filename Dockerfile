@@ -27,9 +27,9 @@ COPY --link . .
 # Install dependencies
 RUN npm install --include=dev
 
-# Create environment file
-RUN --mount=type=secret,id=dotenv,dst=env \
-    tr ' ' '\n' < env > .env
+# Set environment variables
+ARG MAGICSWAPV2_API_URL
+ENV MAGICSWAPV2_API_URL=${MAGICSWAPV2_API_URL}
 
 # Run code generation
 RUN npm run generate
