@@ -2,9 +2,9 @@ import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
 import { erc20Abi, erc721Abi } from "viem";
 
-import { erc1155ABI } from "./artifacts/ERC1155";
-import { magicSwapV2RouterABI } from "./artifacts/MagicSwapV2Router";
-import { uniswapV2PairABI } from "./artifacts/UniswapV2Pair";
+import { erc1155Abi } from "./artifacts/ERC1155";
+import { magicSwapV2RouterAbi } from "./artifacts/MagicSwapV2Router";
+import { uniswapV2PairAbi } from "./artifacts/UniswapV2Pair";
 
 export default defineConfig({
   out: "app/generated.ts",
@@ -19,15 +19,15 @@ export default defineConfig({
     },
     {
       name: "ERC1155",
-      abi: erc1155ABI,
+      abi: erc1155Abi,
     },
     {
       name: "UniswapV2Pair",
-      abi: uniswapV2PairABI,
+      abi: uniswapV2PairAbi,
     },
     {
       name: "MagicSwapV2Router",
-      abi: magicSwapV2RouterABI,
+      abi: magicSwapV2RouterAbi,
     },
   ],
   plugins: [react()],

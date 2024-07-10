@@ -112,23 +112,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  if (!address || !tokenIn.isNFT) {
-    return defer({
-      pools,
-      tokens: fetchTokens(),
-      tokenIn,
-      tokenOut,
-      tokenInNFTBalance: null,
-      address,
-    });
-  }
-
   return defer({
     pools,
     tokens: fetchTokens(),
     tokenIn,
     tokenOut,
-    tokenInNFTBalance: fetchPoolTokenBalance(tokenIn, address),
+    tokenInNFTBalance:
+      address && tokenIn.isNFT
+        ? fetchPoolTokenBalance(tokenIn, address)
+        : undefined,
     address,
   });
 }

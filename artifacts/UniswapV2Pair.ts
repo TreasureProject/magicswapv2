@@ -1,4 +1,4 @@
-export const uniswapV2PairABI = [
+export const uniswapV2PairAbi = [
   {
     inputs: [],
     stateMutability: "nonpayable",
