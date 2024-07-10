@@ -56,6 +56,7 @@ import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
@@ -96,7 +97,7 @@ export const meta: MetaFunction<
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const tokenInAddress =
-    url.searchParams.get("in") ?? process.env.DEFAULT_TOKEN_ADDRESS;
+    url.searchParams.get("in") ?? ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS;
   const tokenOutAddress = url.searchParams.get("out");
 
   const [session, pools, tokenIn, tokenOut] = await Promise.all([

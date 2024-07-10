@@ -1,18 +1,17 @@
 import { fetchTroveTokenMapping } from "./tokens.server";
+import { ENV } from "~/lib/env.server";
 import type { Token, TroveCollection, TroveCollectionMapping } from "~/types";
 
 const fetchCollections = async (addresses: string[]) => {
-  const url = new URL(`${process.env.TROVE_API_URL}/batch-collections`);
+  const url = new URL(`${ENV.TROVE_API_URL}/batch-collections`);
   url.searchParams.set(
     "slugs",
-    addresses
-      .map((address) => `${process.env.TROVE_API_NETWORK}/${address}`)
-      .join(",")
+    addresses.map((address) => `${ENV.TROVE_API_NETWORK}/${address}`).join(",")
   );
 
   const response = await fetch(url.toString(), {
     headers: {
-      "X-API-Key": process.env.TROVE_API_KEY,
+      "X-API-Key": ENV.TROVE_API_KEY,
     },
   });
   const result = (await response.json()) as TroveCollection[];
