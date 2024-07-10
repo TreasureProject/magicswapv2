@@ -1,4 +1,4 @@
-export const magicSwapV2RouterABI = [
+export const magicSwapV2RouterAbi = [
   {
     inputs: [
       { internalType: "address", name: "_factory", type: "address" },

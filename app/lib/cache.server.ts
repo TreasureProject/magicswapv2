@@ -35,7 +35,7 @@ export const getCachedValue = async <T>(
   cachified(
     {
       cache: lru,
-      ttl: 60_000, // 1 minute
+      ttl: 3_600_000, // 1 hour
       staleWhileRevalidate: 86_400_000, // 1 day
       key,
       getFreshValue: getValue,
