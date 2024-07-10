@@ -158,10 +158,6 @@ export const useAddLiquidity = ({
       //   nftNFTAddLiquidity.writeContract(nftNFTAddLiquidityConfig?.request);
       // } else
       if (pool.hasNFT && nftAddLiquidityConfig?.request) {
-        console.log(
-          "nftAddLiquidityConfig?.request",
-          nftAddLiquidityConfig?.request
-        );
         nftAddLiquidity.writeContract(nftAddLiquidityConfig?.request);
       } else if (tokenAddLiquidityConfig?.request) {
         tokenAddLiquidity.writeContract(tokenAddLiquidityConfig?.request);

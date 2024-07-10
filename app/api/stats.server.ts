@@ -2,19 +2,16 @@ import type { ExecutionResult } from "graphql";
 
 import { GetStatsDocument, type GetStatsQuery, execute } from ".graphclient";
 
-const fetchStats = async () => {
+export const fetchStats = async () => {
   const result = (await execute(
     GetStatsDocument,
     {}
   )) as ExecutionResult<GetStatsQuery>;
-  const { factories = [], dayDatas = [] } = result.data ?? {};
-  return {
-    global: factories[0],
-    day: dayDatas[0],
-  };
+  const { factories = [] } = result.data ?? {};
+  return factories[0];
 };
 
 export const fetchMagicUSD = async () => {
   const stats = await fetchStats();
-  return Number(stats.global?.magicUSD ?? 0);
+  return Number(stats?.magicUSD ?? 0);
 };
