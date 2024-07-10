@@ -1,9 +1,12 @@
 import { createPublicClient, http } from "viem";
-import { arbitrumSepolia } from "viem/chains";
+import { arbitrum, arbitrumSepolia } from "viem/chains";
+
+import { ENV } from "./env.server";
 
 export const client = createPublicClient({
-  chain: arbitrumSepolia,
+  chain:
+    ENV.PUBLIC_CHAIN_ID === arbitrumSepolia.id ? arbitrumSepolia : arbitrum,
   transport: http(
-    `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
+    `https://${ENV.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${ENV.PUBLIC_THIRDWEB_CLIENT_ID}`
   ),
 });

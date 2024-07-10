@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 
+import { ENV } from "~/lib/env.server";
 import { generateOgImage } from "~/lib/og.server";
 
 export const OG_IMAGE_WIDTH = 1200;
@@ -15,7 +16,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     headers: {
       "Content-Type": "image/png",
       "cache-control":
-        import.meta.env.NODE_ENV === "development"
+        ENV.NODE_ENV === "development"
           ? "no-cache, no-store"
           : "public, immutable, no-transform, max-age=31536000",
     },

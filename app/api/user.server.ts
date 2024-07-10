@@ -2,6 +2,7 @@ import type { ExecutionResult } from "graphql";
 
 import { createPoolsFromPairs } from "./pools.server";
 import { GetUserDocument, type GetUserQuery, execute } from ".graphclient";
+import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
 
 export const fetchUser = async (address: string) => {
@@ -22,9 +23,9 @@ export const fetchUser = async (address: string) => {
 };
 
 export const fetchDomain = async (address: string) => {
-  const res = await fetch(`${process.env.TROVE_API_URL}/domain/${address}`, {
+  const res = await fetch(`${ENV.TROVE_API_URL}/domain/${address}`, {
     headers: {
-      "X-API-Key": process.env.TROVE_API_KEY,
+      "X-API-Key": ENV.TROVE_API_KEY,
     },
   });
 

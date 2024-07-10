@@ -8,6 +8,7 @@ import {
   Scripts,
   ScrollRestoration,
   useFetchers,
+  useLoaderData,
   useNavigation,
 } from "@remix-run/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -22,6 +23,7 @@ import { arbitrum, arbitrumSepolia } from "wagmi/chains";
 import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
+import { ENV } from "./lib/env.server";
 import { getDomainUrl } from "./lib/seo";
 import { cn } from "./lib/utils";
 import { useSettingsStore } from "./store/settings";
@@ -36,6 +38,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       origin: getDomainUrl(request),
       path: new URL(request.url).pathname,
     },
+    env: {
+      PUBLIC_CHAIN_ID: ENV.PUBLIC_CHAIN_ID,
+      PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
+      PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+    },
   });
 };
 
@@ -46,23 +53,23 @@ export const shouldRevalidate: ShouldRevalidateFunction = () => {
 export type RootLoader = typeof loader;
 
 export default function App() {
+  const { env } = useLoaderData<RootLoader>();
+
   const [client] = useState(() =>
     createConfig(
       getDefaultConfig({
         appName: "Magicswap",
         transports: {
-          [arbitrum.id]: http(
-            `https://${arbitrum.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
-          ),
-          [arbitrumSepolia.id]: http(
-            `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${import.meta.env.VITE_THIRDWEB_CLIENT_ID}`
+          [env.PUBLIC_CHAIN_ID]: http(
+            `https://${env.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`
           ),
         },
-        walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_KEY,
-        chains:
-          import.meta.env.VITE_ENABLE_TESTNETS === "true"
-            ? [arbitrumSepolia, arbitrum]
-            : [arbitrum],
+        walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+        chains: [
+          env.PUBLIC_CHAIN_ID === arbitrumSepolia.id
+            ? arbitrumSepolia
+            : arbitrum,
+        ],
       })
     )
   );

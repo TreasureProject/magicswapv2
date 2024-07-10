@@ -13,6 +13,7 @@ import {
 } from ".graphclient";
 import { sumArray } from "~/lib/array";
 import { getCachedValue } from "~/lib/cache.server";
+import { ENV } from "~/lib/env.server";
 import { createPoolToken } from "~/lib/tokens.server";
 import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 
@@ -51,14 +52,14 @@ export const fetchToken = (id: string) =>
   });
 
 const fetchTroveTokens = async (ids: string[]) => {
-  const response = await fetch(`${process.env.TROVE_API_URL}/batch-tokens`, {
+  const response = await fetch(`${ENV.TROVE_API_URL}/batch-tokens`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-API-Key": process.env.TROVE_API_KEY,
+      "X-API-Key": ENV.TROVE_API_KEY,
     },
     body: JSON.stringify({
-      ids: ids.map((id) => `${process.env.TROVE_API_NETWORK}/${id}`),
+      ids: ids.map((id) => `${ENV.TROVE_API_NETWORK}/${id}`),
     }),
   });
   const results = (await response.json()) as TroveToken[];
@@ -78,14 +79,12 @@ export const fetchPoolTokenBalance = async (
   token: PoolToken,
   address: string
 ) => {
-  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  const url = new URL(`${ENV.TROVE_API_URL}/tokens-for-user`);
   url.searchParams.append("userAddress", address);
   url.searchParams.append("projection", "queryUserQuantityOwned");
 
   const tokenIds = token.collections.flatMap(({ id, tokenIds }) =>
-    tokenIds.map(
-      (tokenId) => `${process.env.TROVE_API_NETWORK}/${id}/${tokenId}`
-    )
+    tokenIds.map((tokenId) => `${ENV.TROVE_API_NETWORK}/${id}/${tokenId}`)
   );
   if (tokenIds.length > 0) {
     url.searchParams.append("ids", tokenIds.join(","));
@@ -93,14 +92,14 @@ export const fetchPoolTokenBalance = async (
     url.searchParams.append(
       "slugs",
       token.collections
-        .map(({ id }) => `${process.env.TROVE_API_NETWORK}/${id}`)
+        .map(({ id }) => `${ENV.TROVE_API_NETWORK}/${id}`)
         .join(",")
     );
   }
 
   const response = await fetch(url, {
     headers: {
-      "X-API-Key": process.env.TROVE_API_KEY,
+      "X-API-Key": ENV.TROVE_API_KEY,
     },
   });
   const result = (await response.json()) as TroveToken[];
@@ -124,15 +123,14 @@ export const fetchVaultUserInventory = async ({
   }
 
   // Fetch user inventory
-  const url = new URL(`${process.env.TROVE_API_URL}/tokens-for-user`);
+  const url = new URL(`${ENV.TROVE_API_URL}/tokens-for-user`);
   url.searchParams.append("userAddress", address);
 
   const tokenIds =
     token.vaultCollections.flatMap(
       ({ collection: { id: collectionId }, tokenIds }) =>
         tokenIds?.map(
-          (tokenId) =>
-            `${process.env.TROVE_API_NETWORK}/${collectionId}/${tokenId}`
+          (tokenId) => `${ENV.TROVE_API_NETWORK}/${collectionId}/${tokenId}`
         ) ?? []
     ) ?? [];
   if (tokenIds.length > 0) {
@@ -143,7 +141,7 @@ export const fetchVaultUserInventory = async ({
       token.vaultCollections
         .map(
           ({ collection: { id: collectionId } }) =>
-            `${process.env.TROVE_API_NETWORK}/${collectionId}`
+            `${ENV.TROVE_API_NETWORK}/${collectionId}`
         )
         .join(",")
     );
@@ -151,7 +149,7 @@ export const fetchVaultUserInventory = async ({
 
   const response = await fetch(url, {
     headers: {
-      "X-API-Key": process.env.TROVE_API_KEY,
+      "X-API-Key": ENV.TROVE_API_KEY,
     },
   });
   const results = (await response.json()) as TroveToken[];

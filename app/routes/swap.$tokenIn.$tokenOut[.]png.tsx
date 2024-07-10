@@ -3,6 +3,7 @@ import { MagicSwapLogoFull } from "@treasure-project/branding";
 import invariant from "tiny-invariant";
 
 import { fetchToken } from "~/api/tokens.server";
+import { ENV } from "~/lib/env.server";
 import {
   NIGHT_100,
   NIGHT_400,
@@ -13,23 +14,21 @@ import {
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
-  const inputAddress = params.tokenIn;
-  const outputAddress = params.tokenOut;
+  const tokenInAddress = params.tokenIn ?? ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS;
+  const tokenOutAddress = params.tokenOut;
 
-  invariant(outputAddress, "Missing output address");
+  invariant(tokenOutAddress, "Missing output address");
 
-  const tokenIn = inputAddress
-    ? await fetchToken(inputAddress)
-    : await fetchToken(process.env.DEFAULT_TOKEN_ADDRESS);
-
-  const tokenOut = await fetchToken(outputAddress);
+  const [tokenIn, tokenOut] = await Promise.all([
+    fetchToken(tokenInAddress),
+    fetchToken(tokenOutAddress),
+  ]);
 
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
       <div tw="flex justify-between flex-col">
         <MagicSwapLogoFull tw="w-72 h-14" />
         <TokenDisplay token0={tokenIn} token1={tokenOut} origin={origin} />
-
         <div tw="flex flex-col">
           <div
             style={{
@@ -65,7 +64,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         </div>
       </div>
     </div>,
-
     origin
   );
 
@@ -74,7 +72,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     headers: {
       "Content-Type": "image/png",
       "cache-control":
-        import.meta.env.NODE_ENV === "development"
+        ENV.NODE_ENV === "development"
           ? "no-cache, no-store"
           : "public, immutable, no-transform, max-age=86400",
     },
