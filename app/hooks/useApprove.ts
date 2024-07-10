@@ -1,4 +1,3 @@
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import {
   useSimulateErc20Approve,
   useSimulateErc721SetApprovalForAll,
@@ -9,6 +8,7 @@ import {
 } from "~/generated";
 import { useWaitForTransaction } from "~/hooks/useWaitForTransaction";
 import type { AddressString, PoolToken } from "~/types";
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 
 type Props = {
   token: PoolToken | string;
@@ -47,7 +47,7 @@ export const useApprove = ({
   const { isSuccess: isERC20ApproveSuccess } = useWaitForTransaction(
     { hash: erc20Approve.data },
     erc20Approve.status,
-    statusHeader
+    statusHeader,
   );
 
   const { data: erc721ApproveConfig } = useSimulateErc721SetApprovalForAll({
@@ -61,7 +61,7 @@ export const useApprove = ({
   const { isSuccess: isERC721ApproveSuccess } = useWaitForTransaction(
     { hash: erc721Approve.data },
     erc721Approve.status,
-    statusHeader
+    statusHeader,
   );
 
   const { data: erc1155ApproveConfig } = useSimulateErc1155SetApprovalForAll({
@@ -75,7 +75,7 @@ export const useApprove = ({
   const { isSuccess: isERC1155ApproveSuccess } = useWaitForTransaction(
     { hash: erc1155Approve.data },
     erc1155Approve.status,
-    statusHeader
+    statusHeader,
   );
 
   return {

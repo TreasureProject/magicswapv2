@@ -4,11 +4,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { LoaderIcon } from "./Icons";
-import { Button } from "./ui/Button";
 import { truncateEthAddress } from "~/lib/address";
 import type { DomainLoader } from "~/routes/resources.domain";
 import type { AddressString } from "~/types";
+import { LoaderIcon } from "./Icons";
+import { Button } from "./ui/Button";
 
 export const ConnectButton = () => (
   <ConnectKitButton.Custom>
@@ -29,7 +29,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   const [error, setError] = useState(false);
 
   const truncatedAddress = truncateEthAddress(address);
-  const domain = data && data.ok ? data.domain : null;
+  const domain = data?.ok ? data.domain : null;
   const preferredDomainType = domain?.preferredDomainType ?? "address";
   const domainType = domain?.[preferredDomainType];
   const name =
@@ -50,7 +50,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   return (
     <motion.div
       layout
-      className="relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+      className="relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-secondary font-medium text-secondary-foreground text-sm transition-colors hover:bg-secondary/80"
     >
       <div className="relative h-9 w-9">
         <Avatar size={36} address={address} radius={0} />
@@ -92,7 +92,11 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
         <ChevronDown className="h-4 w-4 text-night-400" />
       </div>
 
-      <button className="absolute inset-0 h-full w-full" onClick={openProfile}>
+      <button
+        type="button"
+        className="absolute inset-0 h-full w-full"
+        onClick={openProfile}
+      >
         <span className="sr-only">Open Profile</span>
       </button>
     </motion.div>

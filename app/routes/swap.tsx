@@ -84,7 +84,7 @@ export const meta: MetaFunction<
     title: generateTitle(
       data?.tokenOut
         ? `Swap ${data?.tokenIn.symbol} to ${data?.tokenOut.symbol}`
-        : "Swap"
+        : "Swap",
     ),
     image: data?.tokenOut
       ? `${url}/${data?.tokenIn.id}/${data?.tokenOut.id}.png`
@@ -164,7 +164,7 @@ export default function SwapPage() {
 
   const limitNFTsIn = Math.floor(bigIntToNumber(amountIn, tokenIn.decimals));
   const limitNFTsOut = Math.floor(
-    bigIntToNumber(amountOut, tokenOut?.decimals)
+    bigIntToNumber(amountOut, tokenOut?.decimals),
   );
 
   const hasAmounts =
@@ -235,8 +235,9 @@ export default function SwapPage() {
     }
   }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: tokenIn is not memoized
   useEffect(() => {
-    if (tokenIn?.isNFT) {
+    if (tokenIn.isNFT) {
       setTrade(DEFAULT_STATE);
     } else {
       setTrade((trade) => ({
@@ -244,8 +245,9 @@ export default function SwapPage() {
         nftsOut: [],
       }));
     }
-  }, [tokenIn.id, tokenIn.isNFT]);
+  }, [tokenIn.id]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: tokenOut is not memoized
   useEffect(() => {
     if (tokenOut?.isNFT) {
       setTrade(DEFAULT_STATE);
@@ -255,25 +257,25 @@ export default function SwapPage() {
         nftsOut: [],
       }));
     }
-  }, [tokenOut?.id, tokenOut?.isNFT]);
+  }, [tokenOut?.id]);
 
   useFocusInterval(
     useCallback(() => {
       revalidator.revalidate();
     }, [revalidator]),
-    5000
+    5000,
   );
 
   const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
   const formattedTokenOutAmount = formatTokenAmount(
     amountOut,
-    tokenOut?.decimals ?? 18
+    tokenOut?.decimals ?? 18,
   );
 
   return (
-    <main className="mx-auto max-w-xl px-4 pb-20 pt-12 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-xl px-4 pt-12 pb-20 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-3 text-night-600">
-        <div className="flex items-center gap-1.5 text-xl font-bold">
+        <div className="flex items-center gap-1.5 font-bold text-xl">
           <SwapIcon className="h-6 w-6" />
           <h1 className="text-night-100">Swap</h1>
         </div>
@@ -333,8 +335,8 @@ export default function SwapPage() {
           aria-disabled={!tokenOut?.id ? "true" : "false"}
           onClick={(e) => !tokenOut?.id && e.preventDefault()}
           className={cn(
-            "relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25",
-            !tokenOut?.id ? "cursor-not-allowed text-night-800" : "group"
+            "-my-2 relative z-10 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25",
+            !tokenOut?.id ? "cursor-not-allowed text-night-800" : "group",
           )}
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
@@ -468,7 +470,7 @@ export default function SwapPage() {
                                               alt={nft.metadata.name}
                                             />
                                             {tokenIn.type === "ERC1155" ? (
-                                              <p className="text-xs text-night-600">
+                                              <p className="text-night-600 text-xs">
                                                 {nft.quantity}x
                                               </p>
                                             ) : null}
@@ -478,7 +480,7 @@ export default function SwapPage() {
                                   </div>
                                   {nftsIn.length > 5 ? (
                                     <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
-                                      <p className="text-xs font-semibold text-night-500">
+                                      <p className="font-semibold text-night-500 text-xs">
                                         +{nftsIn.length - 5}
                                       </p>
                                     </div>
@@ -490,7 +492,7 @@ export default function SwapPage() {
                             )}
                           </div>
                         </div>
-                        <div className="relative z-10 -my-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25">
+                        <div className="-my-2 relative z-10 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25">
                           <ArrowDownIcon className="h-3.5 w-3.5" />
                         </div>
                         <div className="overflow-hidden rounded-lg bg-night-1100">
@@ -526,7 +528,7 @@ export default function SwapPage() {
                                               alt={nft.metadata.name}
                                             />
                                             {tokenOut?.type === "ERC1155" ? (
-                                              <p className="text-xs text-night-600">
+                                              <p className="text-night-600 text-xs">
                                                 {nft.quantity}x
                                               </p>
                                             ) : null}
@@ -536,7 +538,7 @@ export default function SwapPage() {
                                   </div>
                                   {nftsOut.length > 5 ? (
                                     <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
-                                      <p className="text-xs font-semibold text-night-500">
+                                      <p className="font-semibold text-night-500 text-xs">
                                         +{nftsOut.length - 5}
                                       </p>
                                     </div>
@@ -653,14 +655,14 @@ const SwapTokenInput = ({
           />
 
           <DialogTrigger asChild>
-            <button className="flex items-center gap-4 text-left">
+            <button type="button" className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
               <div className="space-y-1">
-                <span className="flex items-center gap-1.5 text-sm font-medium text-honey-25 sm:text-lg">
+                <span className="flex items-center gap-1.5 font-medium text-honey-25 text-sm sm:text-lg">
                   {token.symbol} <ChevronDownIcon className="h-3 w-3" />
                 </span>
                 {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
-                  <span className="block text-xs text-night-600 sm:text-sm">
+                  <span className="block text-night-600 text-xs sm:text-sm">
                     {token.name}
                   </span>
                 ) : null}
@@ -674,7 +676,7 @@ const SwapTokenInput = ({
               <div className="flex items-center space-x-2">
                 {selectedNfts.length > 5 ? (
                   <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
-                    <p className="text-xs font-semibold text-night-500">
+                    <p className="font-semibold text-night-500 text-xs">
                       +{selectedNfts.length - 5}
                     </p>
                   </div>
@@ -698,7 +700,7 @@ const SwapTokenInput = ({
                             alt={nft.metadata.name}
                           />
                           {token.type === "ERC1155" ? (
-                            <p className="text-xs text-night-600">
+                            <p className="text-night-600 text-xs">
                               {nft.quantity}x
                             </p>
                           ) : null}
@@ -713,7 +715,7 @@ const SwapTokenInput = ({
                   <ChevronDownIcon
                     className={cn(
                       "h-4 w-auto transition-transform will-change-transform",
-                      !collapsed && "-rotate-180"
+                      !collapsed && "-rotate-180",
                     )}
                   />
                   <span className="sr-only">
@@ -769,7 +771,7 @@ const SwapTokenInput = ({
                     disabled={!!otherToken?.isNFT}
                   />
                   {amountPriceUSD > 0 ? (
-                    <span className="block text-sm text-night-400">
+                    <span className="block text-night-400 text-sm">
                       {formatUSD(amountPriceUSD)}
                     </span>
                   ) : null}
@@ -818,14 +820,14 @@ const SwapTokenInput = ({
                             className="w-full"
                           />
                           {token.type === "ERC1155" ? (
-                            <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                            <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
                               {nft.quantity}x
                             </span>
                           ) : null}
                         </div>
                         <div className="flex items-start justify-between gap-2 p-2.5">
                           <div className="min-w-0 text-left">
-                            <p className="truncate text-xs font-medium text-honey-25">
+                            <p className="truncate font-medium text-honey-25 text-xs">
                               {nft.metadata.name}
                             </p>
                             <p className="truncate text-[0.6rem] text-night-400">
@@ -839,7 +841,7 @@ const SwapTokenInput = ({
                             className="text-night-400 transition-colors hover:text-night-100"
                             href={createTokenUrl(
                               nft.collectionUrlSlug,
-                              nft.tokenId
+                              nft.tokenId,
                             )}
                           >
                             <ExternalLink
@@ -948,9 +950,10 @@ const SwapTokenInput = ({
       />
       <DialogTrigger asChild>
         <button
+          type="button"
           className={cn(
-            "group flex w-full items-center gap-4 rounded-lg bg-night-1100 px-4 py-5 text-xl font-medium text-night-400 transition-colors hover:text-honey-25",
-            className
+            "group flex w-full items-center gap-4 rounded-lg bg-night-1100 px-4 py-5 font-medium text-night-400 text-xl transition-colors hover:text-honey-25",
+            className,
           )}
         >
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-night-800 text-night-600 transition-colors group-hover:text-honey-50">
@@ -980,7 +983,7 @@ const TotalDisplay = ({
   const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
   const formattedTokenOutAmount = formatTokenAmount(
     amountOut,
-    tokenOut?.decimals ?? 18
+    tokenOut?.decimals ?? 18,
   );
 
   return (
@@ -1012,9 +1015,10 @@ const TokenSelectDialog = ({
       <div className="rounded-lg bg-night-1100 p-4">
         <div className="grid grid-cols-2 gap-3">
           <button
+            type="button"
             className={cn(
-              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
-              tab === "tokens" && "border-night-800 bg-night-800 text-honey-25"
+              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+              tab === "tokens" && "border-night-800 bg-night-800 text-honey-25",
             )}
             onClick={() => setTab("tokens")}
           >
@@ -1022,10 +1026,11 @@ const TokenSelectDialog = ({
             Tokens
           </button>
           <button
+            type="button"
             className={cn(
-              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-medium text-night-500 transition-colors hover:text-honey-25",
+              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
               tab === "collections" &&
-                "border-night-800 bg-night-800 text-honey-25"
+                "border-night-800 bg-night-800 text-honey-25",
             )}
             onClick={() => setTab("collections")}
           >
@@ -1042,10 +1047,10 @@ const TokenSelectDialog = ({
         >
           <Await resolve={tokens}>
             {(tokens) => (
-              <ul className="mt-4 h-80 overflow-auto border-t border-night-900 pt-4">
+              <ul className="mt-4 h-80 overflow-auto border-night-900 border-t pt-4">
                 {tokens
                   .filter(({ isNFT }) =>
-                    tab === "collections" ? isNFT : !isNFT
+                    tab === "collections" ? isNFT : !isNFT,
                   )
                   .map((token) => (
                     <Token
@@ -1079,7 +1084,7 @@ const Token = ({
     <li
       className={cn(
         "relative rounded-lg px-3 py-2 hover:bg-night-900",
-        disabled && "pointer-events-none opacity-50"
+        disabled && "pointer-events-none opacity-50",
       )}
     >
       <div className="flex items-center justify-between">
@@ -1105,8 +1110,9 @@ const Token = ({
         ) : null}
       </div>
       <button
-        onClick={() => onSelect(token)}
+        type="button"
         className="absolute inset-0 h-full w-full"
+        onClick={() => onSelect(token)}
       />
     </li>
   );

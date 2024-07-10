@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
-import { useWaitForTransaction } from "./useWaitForTransaction";
 import { useAccount } from "~/contexts/account";
 import {
   useSimulateMagicSwapV2RouterAddLiquidity,
@@ -12,6 +10,8 @@ import {
 import type { Pool } from "~/lib/pools.server";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
+import { useWaitForTransaction } from "./useWaitForTransaction";
 
 type Props = {
   pool: Pool;
@@ -33,7 +33,7 @@ export const useAddLiquidity = ({
   amountAMin,
   amountBMin,
   nftsA,
-  nftsB,
+  // nftsB,
   enabled = true,
   statusHeader: propsStatusHeader,
   onSuccess,
@@ -70,7 +70,7 @@ export const useAddLiquidity = ({
     useWaitForTransaction(
       { hash: tokenAddLiquidity.data },
       tokenAddLiquidity.status,
-      statusHeader
+      statusHeader,
     );
 
   // NFT-ERC20
@@ -99,7 +99,7 @@ export const useAddLiquidity = ({
     useWaitForTransaction(
       { hash: nftAddLiquidity.data },
       nftAddLiquidity.status,
-      statusHeader
+      statusHeader,
     );
 
   useEffect(() => {

@@ -12,11 +12,11 @@ export const PoolTokenImage = ({ token, className, ...divProps }: Props) => (
     className={cn(
       "h-9 w-9 overflow-hidden border border-night-1000 bg-night-1000",
       token?.isNFT ? "rounded-lg" : "rounded-full",
-      className
+      className,
     )}
     {...divProps}
   >
-    {token && token.image ? (
+    {token?.image ? (
       <img src={token.image} title={token.name} alt={token.symbol} />
     ) : null}
   </div>

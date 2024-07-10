@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useAccount } from "~/contexts/account";
 import {
   useSimulateMagicSwapV2RouterSwapExactTokensForTokens,
@@ -25,6 +24,7 @@ import type {
   PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 
 type Props = {
   tokenIn: PoolToken;
@@ -64,17 +64,17 @@ export const useSwap = ({
     ? amountOut
     : getAmountMin(amountOut, state?.slippage || DEFAULT_SLIPPAGE);
   const collectionsIn = nftsIn.map(
-    ({ collectionAddr }) => collectionAddr as AddressString
+    ({ collectionAddr }) => collectionAddr as AddressString,
   );
   const tokenIdsIn = nftsIn.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesIn = nftsIn.map(({ quantity }) => BigInt(quantity));
   const collectionsOut = nftsOut.map(
-    ({ collectionAddr }) => collectionAddr as AddressString
+    ({ collectionAddr }) => collectionAddr as AddressString,
   );
   const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
   const deadline = BigInt(
-    Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60
+    Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60,
   );
 
   const updateStatusHeader = () => {
@@ -82,7 +82,7 @@ export const useSwap = ({
       propsStatusHeader ??
         `Swap ${formatAmount(bigIntToNumber(amountIn))} ${
           tokenIn.symbol
-        } for ${formatAmount(bigIntToNumber(amountOut))} ${tokenOut?.symbol}`
+        } for ${formatAmount(bigIntToNumber(amountOut))} ${tokenOut?.symbol}`,
     );
   };
 
@@ -101,7 +101,7 @@ export const useSwap = ({
     useWaitForTransaction(
       { hash: swapExactTokensForTokens.data },
       swapExactTokensForTokens.status,
-      statusHeader
+      statusHeader,
     );
 
   // ERC20-ERC20, exact out
@@ -119,7 +119,7 @@ export const useSwap = ({
     useWaitForTransaction(
       { hash: swapTokensForExactTokens.data },
       swapTokensForExactTokens.status,
-      statusHeader
+      statusHeader,
     );
 
   // ERC20-NFT
@@ -143,7 +143,7 @@ export const useSwap = ({
   const { isSuccess: isSwapTokensForNftSuccess } = useWaitForTransaction(
     { hash: swapTokensForNft.data },
     swapTokensForNft.status,
-    statusHeader
+    statusHeader,
   );
 
   // NFT-ERC20
@@ -167,7 +167,7 @@ export const useSwap = ({
   const { isSuccess: isSwapNftForTokensSuccess } = useWaitForTransaction(
     { hash: swapNftForTokens.data },
     swapNftForTokens.status,
-    statusHeader
+    statusHeader,
   );
 
   // NFT-NFT
@@ -193,7 +193,7 @@ export const useSwap = ({
   const { isSuccess: isSwapNftForNftSuccess } = useWaitForTransaction(
     { hash: swapNftForNft.data },
     swapNftForNft.status,
-    statusHeader
+    statusHeader,
   );
 
   return {
@@ -214,11 +214,11 @@ export const useSwap = ({
         swapTokensForNft.writeContract(swapTokensForNftConfig?.request);
       } else if (isExactOut && swapTokensForExactTokensConfig?.request) {
         swapTokensForExactTokens.writeContract(
-          swapTokensForExactTokensConfig?.request
+          swapTokensForExactTokensConfig?.request,
         );
       } else if (swapExactTokensForTokensConfig?.request) {
         swapExactTokensForTokens.writeContract(
-          swapExactTokensForTokensConfig?.request
+          swapExactTokensForTokensConfig?.request,
         );
       }
     },

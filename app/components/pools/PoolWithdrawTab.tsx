@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { parseEther } from "viem";
 
-import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { TransactionButton } from "../ui/Button";
-import { Dialog } from "../ui/Dialog";
-import { PoolInput } from "./PoolInput";
-import { PoolNftTokenInput } from "./PoolNftTokenInput";
-import { PoolTokenImage } from "./PoolTokenImage";
 import { useAccount } from "~/contexts/account";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
@@ -18,6 +12,12 @@ import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { NumberString, TroveTokenWithQuantity } from "~/types";
+import { SelectionPopup } from "../item_selection/SelectionPopup";
+import { TransactionButton } from "../ui/Button";
+import { Dialog } from "../ui/Dialog";
+import { PoolInput } from "./PoolInput";
+import { PoolNftTokenInput } from "./PoolNftTokenInput";
+import { PoolTokenImage } from "./PoolTokenImage";
 
 type Props = {
   pool: Pool;
@@ -40,12 +40,12 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const rawAmountA = getTokenCountForLp(
     amount,
     BigInt(pool.token0.reserve),
-    BigInt(pool.totalSupply)
+    BigInt(pool.totalSupply),
   );
   const rawAmountB = getTokenCountForLp(
     amount,
     BigInt(pool.token1.reserve),
-    BigInt(pool.totalSupply)
+    BigInt(pool.totalSupply),
   );
   const amountA = pool.token0.isNFT ? floorBigInt(rawAmountA) : rawAmountA;
   const amountB = pool.token1.isNFT ? floorBigInt(rawAmountB) : rawAmountB;
@@ -123,7 +123,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               </div>
               {formatUSD(
                 bigIntToNumber(amountAMin, pool.token0.decimals) *
-                  pool.token0.priceUSD
+                  pool.token0.priceUSD,
               )}
             </div>
             <div className="flex items-center justify-between gap-3">
@@ -136,7 +136,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               </div>
               {formatUSD(
                 bigIntToNumber(amountBMin, pool.token1.decimals) *
-                  pool.token1.priceUSD
+                  pool.token1.priceUSD,
               )}
             </div>
             {pool.isNFTNFT && (amountALeftover > 0 || amountBLeftover > 0) ? (
@@ -190,8 +190,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                               : BigInt(pool.token1.reserve),
                             pool.token0.isNFT
                               ? BigInt(pool.token1.reserve)
-                              : BigInt(pool.token0.reserve)
-                          )
+                              : BigInt(pool.token0.reserve),
+                          ),
                         )}
                       </span>
                       {pool.token0.isNFT
@@ -204,11 +204,11 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                       amountALeftover,
                       pool.token0.isNFT
                         ? pool.token0.decimals
-                        : pool.token1.decimals
+                        : pool.token1.decimals,
                     ) *
                       (pool.token0.isNFT
                         ? pool.token0.priceUSD
-                        : pool.token1.priceUSD)
+                        : pool.token1.priceUSD),
                   )}
                 </div>
               </>

@@ -25,14 +25,14 @@ export const meta: MetaFunction<
 
 export default function Page404() {
   return (
-    <main className="container relative mx-auto px-4 pb-20 pt-12 sm:px-6 lg:px-8">
-      <Grid className="absolute left-1/2 top-0 z-0 w-screen min-w-[1024px] -translate-x-1/2" />
+    <main className="container relative mx-auto px-4 pt-12 pb-20 sm:px-6 lg:px-8">
+      <Grid className="-translate-x-1/2 absolute top-0 left-1/2 z-0 w-screen min-w-[1024px]" />
       <div className="relative z-10 flex w-full flex-col items-start gap-14 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative flex max-w-lg flex-col items-center gap-6 sm:items-start sm:gap-11">
-          <h1 className="text-center text-4xl font-bold sm:text-start">
+          <h1 className="text-center font-bold text-4xl sm:text-start">
             This page can't be found
           </h1>
-          <p className="text-base-600 sm:text-md text-center text-sm leading-[160%] sm:text-start">
+          <p className="text-center text-base-600 text-sm leading-[160%] sm:text-start sm:text-md">
             The path you have entered no longer exists or has never existed,
             perhaps you've made a mistake.
           </p>
@@ -49,10 +49,10 @@ export default function Page404() {
               <SwapIcon className="w-10" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <h1 className="text-md font-bold sm:text-xl">Swap</h1>
+                  <h1 className="font-bold text-md sm:text-xl">Swap</h1>
                   <ChevronRightIcon className="w-5 text-night-400 transition-all group-hover:ml-1" />
                 </div>
-                <p className="tranistion-colors text-sm leading-[160%] text-night-400 group-hover:text-night-200">
+                <p className="tranistion-colors text-night-400 text-sm leading-[160%] group-hover:text-night-200">
                   Start trading your digital assets right now
                 </p>
               </div>
@@ -64,10 +64,10 @@ export default function Page404() {
               <PoolsIcon className="w-10" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <h1 className="text-md font-bold sm:text-xl">View Pools</h1>
+                  <h1 className="font-bold text-md sm:text-xl">View Pools</h1>
                   <ChevronRightIcon className="w-5 text-night-400 transition-all group-hover:ml-1" />
                 </div>
-                <p className="tranistion-colors text-sm leading-[160%] text-night-400 group-hover:text-night-200">
+                <p className="tranistion-colors text-night-400 text-sm leading-[160%] group-hover:text-night-200">
                   Start earning by providing liquidity to Magicswap
                 </p>
               </div>
@@ -81,10 +81,10 @@ export default function Page404() {
               <LearnIcon className="w-10" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <h1 className="text-md font-bold sm:text-xl">Learn More</h1>
+                  <h1 className="font-bold text-md sm:text-xl">Learn More</h1>
                   <ChevronRightIcon className="w-5 text-night-400 transition-all group-hover:ml-1" />
                 </div>
-                <p className="tranistion-colors text-sm leading-[160%] text-night-400 group-hover:text-night-200">
+                <p className="tranistion-colors text-night-400 text-sm leading-[160%] group-hover:text-night-200">
                   Read more about how Magicswap Works
                 </p>
               </div>

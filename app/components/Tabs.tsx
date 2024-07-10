@@ -26,10 +26,11 @@ export const Tabs = ({
       {tabs.map(({ id, title }) => (
         <li key={id} className="relative text-center">
           <button
+            type="button"
             onClick={() => onChange(id)}
             className={cn(
-              "w-full py-3 text-sm font-semibold text-night-200 transition-colors sm:w-auto sm:px-8",
-              activeTab === id && "text-white"
+              "w-full py-3 font-semibold text-night-200 text-sm transition-colors sm:w-auto sm:px-8",
+              activeTab === id && "text-white",
             )}
           >
             {title}
@@ -37,7 +38,7 @@ export const Tabs = ({
           {activeTab === id && (
             <motion.div
               layoutId="activeCategory"
-              className="absolute inset-x-0 -bottom-[1px] h-[2px] bg-white"
+              className="-bottom-[1px] absolute inset-x-0 h-[2px] bg-white"
             />
           )}
         </li>

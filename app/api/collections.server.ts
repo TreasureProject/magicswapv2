@@ -1,4 +1,3 @@
-import { fetchTroveTokenMapping } from "./tokens.server";
 import { getCachedValue } from "~/lib/cache.server";
 import { ENV } from "~/lib/env.server";
 import type {
@@ -7,6 +6,7 @@ import type {
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
+import { fetchTroveTokenMapping } from "./tokens.server";
 
 /**
  * Fetches NFT collection metadata
@@ -19,7 +19,7 @@ const fetchCollections = (addresses: string[]) =>
       "slugs",
       addresses
         .map((address) => `${ENV.TROVE_API_NETWORK}/${address}`)
-        .join(",")
+        .join(","),
     );
 
     const response = await fetch(url.toString(), {
@@ -32,13 +32,13 @@ const fetchCollections = (addresses: string[]) =>
   });
 
 export const fetchTokensCollections = async (
-  tokens: Token[]
+  tokens: Token[],
 ): Promise<[TroveCollectionMapping, TroveTokenMapping]> => {
   const addresses = [
     ...new Set(
       tokens.flatMap(({ vaultCollections }) =>
-        vaultCollections.map(({ collection }) => collection.id)
-      )
+        vaultCollections.map(({ collection }) => collection.id),
+      ),
     ),
   ];
 
@@ -47,9 +47,9 @@ export const fetchTokensCollections = async (
       tokens.flatMap(({ vaultCollections }) =>
         vaultCollections.flatMap(
           ({ collection: { id: address }, tokenIds }) =>
-            tokenIds?.map((tokenId) => `${address}/${tokenId}`) ?? []
-        )
-      )
+            tokenIds?.map((tokenId) => `${address}/${tokenId}`) ?? [],
+        ),
+      ),
     ),
   ];
 

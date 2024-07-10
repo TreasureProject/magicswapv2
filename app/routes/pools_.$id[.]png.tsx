@@ -51,7 +51,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
               >
                 {formatTokenAmount(
                   BigInt(token0?.reserve ?? 0),
-                  token0?.decimals
+                  token0?.decimals,
                 )}
               </div>
               <div
@@ -72,7 +72,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
               >
                 {formatTokenAmount(
                   BigInt(token1?.reserve ?? 0),
-                  token1?.decimals
+                  token1?.decimals,
                 )}
               </div>
               <div
@@ -168,7 +168,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
           <span>
             {formatAmount(
               bigIntToNumber(BigInt(token1?.reserve ?? 0), token1?.decimals) /
-                bigIntToNumber(BigInt(token0?.reserve ?? 0), token0?.decimals)
+                bigIntToNumber(BigInt(token0?.reserve ?? 0), token0?.decimals),
             )}
           </span>
           <span
@@ -182,7 +182,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         </div>
       </div>
     </div>,
-    origin
+    origin,
   );
 
   return new Response(png, {

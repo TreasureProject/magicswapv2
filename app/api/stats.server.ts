@@ -5,7 +5,7 @@ import { GetStatsDocument, type GetStatsQuery, execute } from ".graphclient";
 export const fetchStats = async () => {
   const result = (await execute(
     GetStatsDocument,
-    {}
+    {},
   )) as ExecutionResult<GetStatsQuery>;
   const { factories = [] } = result.data ?? {};
   return factories[0];

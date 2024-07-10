@@ -49,7 +49,7 @@ export const useVaultItems = ({
     } else if (data?.error) {
       setState({ ...DEFAULT_STATE, error: data.error });
     }
-  }, [data, page, itemsPerPage]);
+  }, [data, itemsPerPage]);
 
   useEffect(() => {
     if (enabled) {

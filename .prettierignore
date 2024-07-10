@@ -1,9 +1,0 @@
-.cache/
-.github/
-.graphclient/
-.husky/
-app/generated.ts
-node_modules/
-public/
-.dockerignore
-.prettierignore

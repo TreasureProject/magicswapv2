@@ -1,9 +1,9 @@
+import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import type { PoolToken } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { DisabledInputPopover } from "../DisabledInputPopover";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { PoolTokenImage } from "./PoolTokenImage";
-import { formatTokenAmount, formatUSD } from "~/lib/currency";
-import type { PoolToken } from "~/types";
 
 export const PoolTokenInput = ({
   token,
@@ -25,9 +25,9 @@ export const PoolTokenInput = ({
         <div className="flex items-center gap-4">
           <PoolTokenImage className="h-10 w-10" token={token} />
           <div className="space-y-1">
-            <p className="text-sm font-medium sm:text-xl">{token.name}</p>
+            <p className="font-medium text-sm sm:text-xl">{token.name}</p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
-              <p className="text-xs text-night-400 sm:text-sm">
+              <p className="text-night-400 text-xs sm:text-sm">
                 {token.symbol}
               </p>
             )}
@@ -45,14 +45,14 @@ export const PoolTokenInput = ({
                 token.priceUSD *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
                     ? 1
-                    : Number(amount.replace(/,/g, "")))
+                    : Number(amount.replace(/,/g, ""))),
               )}
             </span>
           ) : null}
         </div>
       </div>
       <div className="flex items-center justify-between bg-night-900 p-3">
-        <p className="flex items-center text-sm text-night-400">
+        <p className="flex items-center text-night-400 text-sm">
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
             <VisibleOnClient>

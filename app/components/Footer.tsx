@@ -85,7 +85,7 @@ export const Footer = () => {
           <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
             <div className="flex items-center gap-6">
               <MagicSwapLogo className="h-6 w-auto sm:h-14" />
-              <h1 className="max-w-xs text-lg font-bold text-night-500 sm:text-2xl">
+              <h1 className="max-w-xs font-bold text-lg text-night-500 sm:text-2xl">
                 <Balancer>
                   The gateway to the cross-game{" "}
                   <span className="text-night-100">economy</span>
@@ -115,7 +115,7 @@ export const Footer = () => {
           <div className="grid grid-cols-2 gap-4 gap-y-8 md:grid-cols-4">
             {Object.keys(FooterPoints).map((key: string) => (
               <div className="flex flex-col gap-3" key={key}>
-                <p className="text-sm font-medium">{key}</p>
+                <p className="font-medium text-sm">{key}</p>
                 <div className="flex flex-col gap-2 text-night-500">
                   {FooterPoints[key]?.map((link: LinkType) => (
                     <a
@@ -138,7 +138,7 @@ export const Footer = () => {
       </div>
       <div className="w-full border-t border-t-night-800">
         <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
-          <p className="base-500 text-center text-sm text-night-500 md:text-start">
+          <p className="base-500 text-center text-night-500 text-sm md:text-start">
             Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
             reserved.
           </p>

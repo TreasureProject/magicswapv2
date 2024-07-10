@@ -1,14 +1,14 @@
 import { Await } from "@remix-run/react";
 import { Suspense } from "react";
 
-import { LoaderIcon } from "../Icons";
-import { Button } from "../ui/Button";
-import { DialogTrigger } from "../ui/Dialog";
-import { PoolTokenImage } from "./PoolTokenImage";
 import { formatTokenAmount } from "~/lib/currency";
 import { formatNumber } from "~/lib/number";
 import { cn } from "~/lib/utils";
 import type { PoolToken, TroveTokenWithQuantity } from "~/types";
+import { LoaderIcon } from "../Icons";
+import { Button } from "../ui/Button";
+import { DialogTrigger } from "../ui/Dialog";
+import { PoolTokenImage } from "./PoolTokenImage";
 
 export const PoolNftTokenInput = ({
   token,
@@ -33,15 +33,15 @@ export const PoolNftTokenInput = ({
         <div
           className={cn(
             "flex flex-1 justify-between gap-3",
-            selectedNfts.length > 0 ? "items-start" : "items-center"
+            selectedNfts.length > 0 ? "items-start" : "items-center",
           )}
         >
           <div className="flex-1 space-y-1">
-            <p className="truncate text-sm font-medium sm:text-xl">
+            <p className="truncate font-medium text-sm sm:text-xl">
               {token.name}
             </p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
-              <p className="text-xs text-night-400 sm:text-sm">
+              <p className="text-night-400 text-xs sm:text-sm">
                 {token.symbol}
               </p>
             )}
@@ -50,7 +50,7 @@ export const PoolNftTokenInput = ({
             <div className="flex grow flex-wrap items-center justify-end space-x-2">
               {selectedNfts.length > 5 ? (
                 <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
-                  <p className="text-xs font-semibold text-night-500">
+                  <p className="font-semibold text-night-500 text-xs">
                     +{selectedNfts.length - 5}
                   </p>
                 </div>
@@ -71,7 +71,7 @@ export const PoolNftTokenInput = ({
                           alt={nft.metadata.name}
                         />
                         {token.type === "ERC1155" ? (
-                          <p className="text-xs text-night-600">
+                          <p className="text-night-600 text-xs">
                             {nft.quantity}x
                           </p>
                         ) : null}
@@ -98,7 +98,7 @@ export const PoolNftTokenInput = ({
         </div>
       </div>
       <div className="flex h-12 items-center justify-between bg-night-900 p-2 pr-4">
-        <p className="pl-2 text-sm text-night-400">
+        <p className="pl-2 text-night-400 text-sm">
           {isVault ? "Vault" : "Inventory"}:
           <span className="pl-1 font-medium text-night-100">
             {isVault ? (

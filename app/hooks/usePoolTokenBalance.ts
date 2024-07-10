@@ -35,7 +35,7 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
       address,
     });
     loadNFTBalance(
-      `/resources/vaults/${token.id}/balance?${params.toString()}`
+      `/resources/vaults/${token.id}/balance?${params.toString()}`,
     );
   }, [token.isNFT, token.id, address, loadNFTBalance]);
 

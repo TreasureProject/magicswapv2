@@ -18,7 +18,7 @@ test("formats amounts", () => {
 
 test("formats token amounts", () => {
   expect(formatTokenAmount(123456789990000000000000000n)).toBe(
-    "123,456,789.99"
+    "123,456,789.99",
   );
   expect(formatTokenAmount(123456000000000000000n)).toBe("123.45");
   expect(formatTokenAmount(1000000000000000000n)).toBe("1");

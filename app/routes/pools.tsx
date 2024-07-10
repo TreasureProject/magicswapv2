@@ -65,23 +65,23 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
       <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
         <thead>
           <tr>
-            <th className="px-4 py-2.5 text-left text-sm font-normal text-night-200 sm:px-5">
+            <th className="px-4 py-2.5 text-left font-normal text-night-200 text-sm sm:px-5">
               Name
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
               Volume (24h)
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
               <abbr title="Annual Percentage Rate" className="no-underline">
                 APY
               </abbr>
             </th>
-            <th className="px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:px-5">
+            <th className="px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:px-5">
               <abbr title="Total Value Locked" className="no-underline">
                 TVL
               </abbr>
             </th>
-            <th className="hidden px-4 py-2.5 text-right text-sm font-normal text-night-200 sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
               LP Fees
             </th>
           </tr>
@@ -90,7 +90,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
           {pools.map((pool) => (
             <tr
               key={pool.id}
-              className="cursor-pointer border-t border-night-900 transition-colors hover:bg-night-1000"
+              className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
             >
               <td className="px-4 py-4 text-left font-medium sm:px-5">
                 <Link
@@ -156,7 +156,7 @@ export default function PoolsListPage() {
   return (
     <main className="container">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold">Pools</h1>
+        <h1 className="font-bold text-3xl">Pools</h1>
         <p className="text-night-200">
           Use your game assets to earn rewards by providing liquidity.
         </p>

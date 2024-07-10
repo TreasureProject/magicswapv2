@@ -30,6 +30,6 @@ test("counts tokens with quantity", () => {
         queryUserQuantityOwned: 20,
         quantity: 5,
       },
-    ])
+    ]),
   ).toBe(6);
 });

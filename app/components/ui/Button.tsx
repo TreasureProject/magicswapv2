@@ -33,7 +33,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 interface ButtonProps
@@ -44,12 +44,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, ...props }, ref) => {
     return (
       <button
+        type="button"
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 
@@ -58,13 +59,14 @@ const CloseButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type="button"
         className="flex h-7 w-7 items-center justify-center rounded-full bg-night-900 text-night-600 transition-colors hover:bg-ruby-800 hover:text-night-100"
         {...props}
       >
         <XIcon className="w-4" />
       </button>
     );
-  }
+  },
 );
 
 CloseButton.displayName = "CloseButton";

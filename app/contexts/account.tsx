@@ -22,7 +22,7 @@ export const useAccount = () => {
 
   if (!context) {
     throw new Error(
-      "Must call `useAccount` within an `AccountProvider` component."
+      "Must call `useAccount` within an `AccountProvider` component.",
     );
   }
 

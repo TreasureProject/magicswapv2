@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useAccount } from "~/contexts/account";
 import {
   useReadErc20Allowance,
@@ -8,6 +7,7 @@ import {
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
 import type { AddressString, PoolToken } from "~/types";
+import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 
 type Props = {
   token: PoolToken | string;

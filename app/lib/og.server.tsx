@@ -12,7 +12,7 @@ const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
         weight,
         data: await res.arrayBuffer(),
         style: "normal",
-      }) as const
+      }) as const,
   );
 
 export const NIGHT_100 = "#E7E8E9";
@@ -65,7 +65,7 @@ export const TokenDisplay = ({
 
 export const generateOgImage = async (
   content: React.ReactNode,
-  origin: string
+  origin: string,
 ) => {
   const fontData = await Promise.all([
     loadFont(origin, "ABCWhyteVariable.woff", 500),
@@ -92,7 +92,7 @@ export const generateOgImage = async (
     >
       {content}
     </div>,
-    options
+    options,
   );
 
   const resvg = new Resvg(svg);

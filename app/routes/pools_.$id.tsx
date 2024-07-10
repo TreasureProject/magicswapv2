@@ -23,7 +23,8 @@ import {
   RepeatIcon,
   ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
-import React, {
+import type React from "react";
+import {
   Fragment,
   Suspense as ReactSuspense,
   useCallback,
@@ -101,7 +102,7 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`
+      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`,
     ),
     description: `Provide liquidity for ${pool?.token0.symbol}/${pool?.token1.symbol} on Magicswap`,
     image: `${url}.png`,
@@ -190,7 +191,7 @@ export default function PoolDetailsPage() {
     <main className="container">
       <Link
         to="/pools"
-        className="flex items-center text-xs text-night-400 transition-colors hover:text-night-100"
+        className="flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
       >
         <ChevronLeftIcon className="h-4" />
         All Pools
@@ -198,11 +199,11 @@ export default function PoolDetailsPage() {
       <div className="mt-6">
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
-            <div className="flex items-center -space-x-2">
+            <div className="-space-x-2 flex items-center">
               <PoolImage pool={pool} className="h-auto w-14" />
               <div className="flex flex-col text-2xl">
                 <span>{pool.name}</span>
-                <span className="text-sm text-night-400">
+                <span className="text-night-400 text-sm">
                   LP Fees: {formatPercent(pool.lpFee)}
                 </span>
               </div>
@@ -234,13 +235,13 @@ export default function PoolDetailsPage() {
                         ) : null}
                       </div>
                       <div className="flex flex-col space-y-2 px-2 py-4">
-                        <div className="flex items-center -space-x-1">
+                        <div className="-space-x-1 flex items-center">
                           <PoolImage pool={pool} className="h-10 w-10" />
                           <p className="text-3xl text-night-100">
                             {formatTokenAmount(lpBalance)}
                           </p>
                         </div>
-                        <p className="text-sm text-night-400">
+                        <p className="text-night-400 text-sm">
                           Current LP Token Balance
                         </p>
                       </div>
@@ -255,7 +256,7 @@ export default function PoolDetailsPage() {
                               token.symbol.toUpperCase() ? (
                                 <>
                                   <div className="h-3 w-[1px] bg-night-400" />
-                                  <p className="font-regular uppercase text-night-300">
+                                  <p className="font-regular text-night-300 uppercase">
                                     {token.symbol}
                                   </p>
                                 </>
@@ -272,20 +273,20 @@ export default function PoolDetailsPage() {
                                     lpShare *
                                       bigIntToNumber(
                                         BigInt(token.reserve),
-                                        token.decimals
-                                      )
+                                        token.decimals,
+                                      ),
                                   )}
                                 </p>
                               </div>
                               {token.priceUSD > 0 ? (
-                                <p className="text-xs text-night-500">
+                                <p className="text-night-500 text-xs">
                                   {formatUSD(
                                     lpShare *
                                       bigIntToNumber(
                                         BigInt(token.reserve),
-                                        token.decimals
+                                        token.decimals,
                                       ) *
-                                      token.priceUSD
+                                      token.priceUSD,
                                   )}
                                 </p>
                               ) : null}
@@ -333,12 +334,12 @@ export default function PoolDetailsPage() {
                     {formatAmount(
                       bigIntToNumber(
                         BigInt(quoteToken.reserve),
-                        quoteToken.decimals
+                        quoteToken.decimals,
                       ) /
                         bigIntToNumber(
                           BigInt(baseToken.reserve),
-                          baseToken.decimals
-                        )
+                          baseToken.decimals,
+                        ),
                     )}
                   </span>{" "}
                   {quoteToken.symbol}
@@ -360,16 +361,16 @@ export default function PoolDetailsPage() {
                         <p className="text-night-100">
                           {formatTokenAmount(
                             BigInt(token.reserve),
-                            token.decimals
+                            token.decimals,
                           )}
                         </p>
                         {token.priceUSD > 0 ? (
-                          <p className="text-xs text-night-400">
+                          <p className="text-night-400 text-xs">
                             {formatUSD(
                               bigIntToNumber(
                                 BigInt(token.reserve),
-                                token.decimals
-                              ) * token.priceUSD
+                                token.decimals,
+                              ) * token.priceUSD,
                             )}
                           </p>
                         ) : null}
@@ -463,9 +464,10 @@ export default function PoolDetailsPage() {
             ).map(({ label, value }) => (
               <button
                 key={label}
+                type="button"
                 className={cn(
-                  "text-sm capitalize text-night-400 hover:text-night-200",
-                  value === poolActivityFilter && "text-night-100"
+                  "text-night-400 text-sm capitalize hover:text-night-200",
+                  value === poolActivityFilter && "text-night-100",
                 )}
                 onClick={() => setPoolActivityFilter(value)}
               >
@@ -488,7 +490,7 @@ export default function PoolDetailsPage() {
       </div>
       <Sheet>
         <SheetTrigger asChild>
-          <div className="fixed bottom-12 left-0 right-0 flex justify-center lg:hidden">
+          <div className="fixed right-0 bottom-12 left-0 flex justify-center lg:hidden">
             <Button size="lg" className="rounded-full">
               My Positions
             </Button>
@@ -528,7 +530,7 @@ const PoolManagementView = ({
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <RepeatIcon className="h-5 w-5 text-night-400" />
-          <h1 className="text-lg font-semibold text-night-100">
+          <h1 className="font-semibold text-lg text-night-100">
             Add Liquidity
           </h1>
         </div>
@@ -605,7 +607,7 @@ const PoolActivityTable = ({
     <div>
       <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
         <thead className="border-b border-b-night-900">
-          <tr className="text-sm text-night-200">
+          <tr className="text-night-200 text-sm">
             <th className="px-4 py-2.5 text-left font-normal sm:px-5">
               Tokens
             </th>
@@ -673,7 +675,7 @@ const PoolActivityTable = ({
                     <Fragment key={tx.id}>
                       <tr className="border-b border-b-night-900 transition-colors">
                         <td className="px-4 py-4 text-left sm:px-5">
-                          <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-sm text-night-400">
+                          <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
                             <div className="flex items-center gap-2.5">
                               <PoolTransactionImage
                                 token={tokenA}
@@ -711,12 +713,12 @@ const PoolActivityTable = ({
                         <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td>
-                        <td className="hidden px-4 py-4 text-center text-sm text-night-400 sm:table-cell sm:px-5">
+                        <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                           {truncateEthAddress(tx.user.id)}
                         </td>
-                        <td className="hidden px-4 py-4 text-right text-sm text-night-400 sm:table-cell sm:px-5">
+                        <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
                           {new Date(
-                            Number(tx.timestamp) * 1000
+                            Number(tx.timestamp) * 1000,
                           ).toLocaleString()}
                         </td>
                         <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
@@ -777,7 +779,7 @@ const PoolActivityTable = ({
       <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
         <Button
           variant="ghost"
-          className="pl-2 pr-3.5"
+          className="pr-3.5 pl-2"
           onClick={() => handlePagination("prev")}
         >
           <ChevronLeftIcon className="w-4" />
@@ -795,7 +797,7 @@ const PoolActivityTable = ({
         </p>
         <Button
           variant="ghost"
-          className="pl-3.5 pr-2"
+          className="pr-2 pl-3.5"
           onClick={() => handlePagination("next")}
         >
           <p className="text-sm">Next</p>
@@ -822,7 +824,7 @@ const PoolTokenCollectionInventory = ({
             {token.name !== token.symbol ? (
               <>
                 <span className="h-3 w-[1px] bg-night-400" />
-                <span className="uppercase text-night-400">{token.symbol}</span>
+                <span className="text-night-400 uppercase">{token.symbol}</span>
               </>
             ) : null}
           </div>
@@ -838,7 +840,7 @@ const PoolTokenCollectionInventory = ({
                   title={item.metadata.name}
                 />
                 {(item.queryUserQuantityOwned ?? 1) > 1 ? (
-                  <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+                  <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
                     {formatNumber(item.queryUserQuantityOwned ?? 1)}x
                   </span>
                 ) : null}
@@ -848,14 +850,14 @@ const PoolTokenCollectionInventory = ({
         </div>
         <div className="h-[1px] bg-night-800" />
         <div className="flex items-center justify-between px-6 py-3">
-          <span className="text-sm text-night-400">
+          <span className="text-night-400 text-sm">
             Showing{" "}
             {formatNumber(
               sumArray(
                 items.map(
-                  ({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1
-                )
-              )
+                  ({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1,
+                ),
+              ),
             )}{" "}
             of {formatTokenAmount(BigInt(token.reserve), token.decimals)}
           </span>

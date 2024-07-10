@@ -1,14 +1,14 @@
 import { SettingsIcon } from "lucide-react";
 import { memo, useRef } from "react";
 
-import { NumberInput } from "./NumberInput";
-import { Button } from "./ui/Button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/Popover";
 import { useSettingsStore } from "~/store/settings";
+import { NumberInput } from "./NumberInput";
+import { Button } from "./ui/Button";
 
 export const SettingsDropdownMenu = memo(() => {
   const state = useSettingsStore();
@@ -62,7 +62,7 @@ export const SettingsDropdownMenu = memo(() => {
             errorCondition={(value) => value > 60}
           >
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-sm text-night-400">Minutes</span>
+              <span className="text-night-400 text-sm">Minutes</span>
             </div>
           </NumberInput>
         </div>

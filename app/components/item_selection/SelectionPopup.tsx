@@ -6,14 +6,10 @@ import {
   RotateCwIcon as RefreshIcon,
   XIcon,
 } from "lucide-react";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 
-import { CheckIcon, LoaderIcon } from "../Icons";
-import { PoolTokenImage } from "../pools/PoolTokenImage";
-import { Button } from "../ui/Button";
-import IconToggle from "../ui/IconToggle";
-import { NumberSelect } from "../ui/NumberSelect";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { useTrove } from "~/hooks/useTrove";
 import { useVaultItems } from "~/hooks/useVaultItems";
@@ -21,6 +17,11 @@ import { formatNumber } from "~/lib/number";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
+import { CheckIcon, LoaderIcon } from "../Icons";
+import { PoolTokenImage } from "../pools/PoolTokenImage";
+import { Button } from "../ui/Button";
+import IconToggle from "../ui/IconToggle";
+import { NumberSelect } from "../ui/NumberSelect";
 
 const ItemCard = ({
   selected,
@@ -46,11 +47,11 @@ const ItemCard = ({
     <div
       className={cn(
         "w-full",
-        disableUnselected && "cursor-not-allowed opacity-30"
+        disableUnselected && "cursor-not-allowed opacity-30",
       )}
     >
       {selected && (
-        <div className="absolute right-2 top-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
+        <div className="absolute top-2 right-2 z-20 flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-night-1200 bg-night-100 text-night-1200">
           <CheckIcon className="w-3" />
         </div>
       )}
@@ -60,11 +61,11 @@ const ItemCard = ({
           alt={item.tokenId}
           className={cn(
             "w-full",
-            !viewOnly && !disableUnselected && "group-hover:opacity-75"
+            !viewOnly && !disableUnselected && "group-hover:opacity-75",
           )}
         />
         {quantity > 1 ? (
-          <span className="absolute bottom-1.5 right-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 text-xs font-bold text-night-100">
+          <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
             {formatNumber(quantity)}x
           </span>
         ) : null}
@@ -72,10 +73,10 @@ const ItemCard = ({
       {!compact ? (
         <div className="flex items-start justify-between gap-2 p-2.5">
           <div className="text-left">
-            <p className="text-xs font-medium text-honey-25 sm:text-sm">
+            <p className="font-medium text-honey-25 text-xs sm:text-sm">
               {item.metadata.name}
             </p>
-            <p className="text-sm text-night-400">#{item.tokenId}</p>
+            <p className="text-night-400 text-sm">#{item.tokenId}</p>
           </div>
           <a
             target="_blank"
@@ -103,9 +104,10 @@ const ItemCard = ({
 
   return (
     <button
+      type="button"
       className={cn(
         "group relative flex items-start overflow-hidden rounded-lg bg-night-900",
-        selected && "ring-2 ring-night-100"
+        selected && "ring-2 ring-night-100",
       )}
       onClick={onClick}
       disabled={disableUnselected}
@@ -146,13 +148,13 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     enabled: token.isNFT,
   });
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
-    !props.viewOnly ? props.selectedTokens ?? [] : []
+    !props.viewOnly ? props.selectedTokens ?? [] : [],
   );
   const [isCompactMode, setIsCompactMode] = useState(false);
 
   const selectedQuantity = selectedItems.reduce(
     (acc, curr) => acc + curr.quantity,
-    0
+    0,
   );
   const selectionDisabled =
     !props.viewOnly && props.limit ? selectedQuantity >= props.limit : false;
@@ -164,7 +166,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const selectionHandler = (item: TroveTokenWithQuantity) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
       const itemIndex = selectedItems.findIndex(
-        (i) => i.tokenId === item.tokenId
+        (i) => i.tokenId === item.tokenId,
       );
       setSelectedItems([
         ...selectedItems.slice(0, itemIndex),
@@ -181,20 +183,20 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         "h-full [grid-template-rows:auto_auto_1fr_1fr_25%] sm:max-w-8xl",
         !props.viewOnly
           ? "grid-areas-nft-modal-mobile lg:grid-areas-nft-modal lg:[grid-template-columns:repeat(4,1fr)_25%]"
-          : "grid-areas-nft-modal-viewonly"
+          : "grid-areas-nft-modal-viewonly",
       )}
     >
-      <div className="flex items-center gap-2 text-xs grid-in-header sm:text-base">
+      <div className="grid-in-header flex items-center gap-2 text-xs sm:text-base">
         <p className="text-night-400">{props.viewOnly ? "View" : "Select"}</p>
         <PoolTokenImage className="h-6 w-6" token={token} />
-        <p className="text-md font-medium capitalize text-night-100">
+        <p className="font-medium text-md text-night-100 capitalize">
           {token.name}{" "}
-          <span className="normal-case text-night-400">
+          <span className="text-night-400 normal-case">
             from {type === "vault" ? "the Vault" : "your Inventory"}
           </span>
         </p>
       </div>
-      <div className="space-y-4 grid-in-misc">
+      <div className="grid-in-misc space-y-4">
         <div className="flex items-stretch gap-3">
           <IconToggle
             icons={[
@@ -210,6 +212,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             onChange={(id) => setIsCompactMode(id === "compact")}
           />
           <button
+            type="button"
             onClick={refetch}
             className="group rounded-md px-2 text-night-600 transition-colors hover:bg-night-1000 hover:text-night-100"
           >
@@ -217,7 +220,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
           </button>
         </div>
       </div>
-      <div className="flex flex-col overflow-hidden rounded-lg grid-in-nft">
+      <div className="grid-in-nft flex flex-col overflow-hidden rounded-lg">
         <div className="relative flex-1 overflow-auto bg-night-1100 p-4">
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
@@ -229,14 +232,14 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 "grid gap-3",
                 isCompactMode
                   ? "grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
-                  : "grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                  : "grid-cols-3 md:grid-cols-4 lg:grid-cols-5",
               )}
             >
               {items.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
                   selected={selectedItems.some(
-                    (i) => i.tokenId === item.tokenId
+                    (i) => i.tokenId === item.tokenId,
                   )}
                   key={item.tokenId}
                   item={item}
@@ -250,7 +253,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                         !props.viewOnly && props.limit
                           ? Math.min(
                               props.limit - selectedQuantity,
-                              item.queryUserQuantityOwned ?? 1
+                              item.queryUserQuantityOwned ?? 1,
                             )
                           : 1,
                     });
@@ -262,9 +265,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
         </div>
       </div>
       {!props.viewOnly && (
-        <div className="flex flex-col gap-4 rounded-lg bg-night-1100 p-3 grid-in-selection">
+        <div className="grid-in-selection flex flex-col gap-4 rounded-lg bg-night-1100 p-3">
           <div className="flex min-h-full flex-col">
-            <p className="text-sm leading-[160%] text-night-400">
+            <p className="text-night-400 text-sm leading-[160%]">
               Selected assets
             </p>
             {selectedItems.length > 0 ? (
@@ -290,10 +293,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                           <div className="h-10 w-10 rounded bg-night-800" />
                         )}
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <p className="truncate text-sm font-medium text-honey-25">
+                          <p className="truncate font-medium text-honey-25 text-sm">
                             {item.metadata.name}
                           </p>
-                          <p className="text-sm text-night-400">
+                          <p className="text-night-400 text-sm">
                             #{item.tokenId}
                           </p>
                         </div>
@@ -306,8 +309,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                 prev.map((i) =>
                                   i.tokenId === item.tokenId
                                     ? { ...i, quantity: num }
-                                    : i
-                                )
+                                    : i,
+                                ),
                               );
                             }}
                             value={item.quantity}
@@ -327,14 +330,14 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 </AnimatePresence>
               </div>
             ) : (
-              <p className="flex grow items-center justify-center text-xs text-night-600">
+              <p className="flex grow items-center justify-center text-night-600 text-xs">
                 You haven't selected any assets yet.
               </p>
             )}
             <div className="sticky bottom-0 mt-2 space-y-3 bg-night-1100/50 backdrop-blur-sm">
               <div className="flex rounded-lg bg-night-800 p-4">
                 <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="text-sm text-night-400">Total</span>
+                  <span className="text-night-400 text-sm">Total</span>
                   {!props.viewOnly &&
                     props.children &&
                     props.children({

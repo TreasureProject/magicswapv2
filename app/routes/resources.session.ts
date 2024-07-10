@@ -14,7 +14,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     case "PUT": {
       try {
         const { address } = putSchema.parse(
-          Object.fromEntries(await request.formData())
+          Object.fromEntries(await request.formData()),
         );
         session.set(SESSION_KEY_ADDRESS, address);
       } catch (err) {
@@ -36,6 +36,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       headers: {
         "Set-Cookie": await commitSession(session),
       },
-    }
+    },
   );
 };

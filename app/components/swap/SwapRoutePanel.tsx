@@ -33,11 +33,11 @@ export const SwapRoutePanel = ({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-night-800 text-sm text-night-400",
-        className
+        "overflow-hidden rounded-lg border border-night-800 text-night-400 text-sm",
+        className,
       )}
     >
-      <div className="flex items-center justify-between border border-b border-night-1000 p-4">
+      <div className="flex items-center justify-between border border-night-1000 border-b p-4">
         <span>
           <span className="font-medium text-honey-25">1</span>{" "}
           {tokenOut?.symbol} ={" "}
@@ -81,7 +81,7 @@ export const SwapRoutePanel = ({
                   isExactOut
                     ? amountIn - floorBigInt(amountIn)
                     : amountOut - floorBigInt(amountOut),
-                  isExactOut ? tokenIn.decimals : tokenOut.decimals
+                  isExactOut ? tokenIn.decimals : tokenOut.decimals,
                 )}{" "}
                 {isExactOut ? tokenIn.symbol : tokenOut.symbol}
               </span>

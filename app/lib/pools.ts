@@ -6,10 +6,10 @@ import {
 } from "@sushiswap/tines";
 import { parseUnits } from "viem";
 
+import type { AddressString, PoolToken } from "~/types";
 import { formatAmount, formatTokenAmount, formatUSD } from "./currency";
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
-import type { AddressString, PoolToken } from "~/types";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : 0n;
@@ -17,13 +17,13 @@ export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
 export const getLpCountForTokens = (
   amount: bigint,
   reserve: bigint,
-  totalSupply: bigint
+  totalSupply: bigint,
 ) => (reserve > 0 ? (amount * totalSupply) / reserve : 0n);
 
 export const getTokenCountForLp = (
   amount: bigint,
   reserve: bigint,
-  totalSupply: bigint
+  totalSupply: bigint,
 ) => (totalSupply > 0 ? (amount * reserve) / totalSupply : 0n);
 
 export const getAmountMax = (amount: bigint, slippage: number) =>
@@ -37,7 +37,7 @@ export const createSwapRoute = (
   tokenOut: PoolToken | null,
   pools: Pool[],
   amount: bigint,
-  isExactOut: boolean
+  isExactOut: boolean,
 ) => {
   if (amount <= 0 || !tokenOut) {
     return undefined;
@@ -53,9 +53,9 @@ export const createSwapRoute = (
         tokenToRToken(token1),
         Number(totalFee ?? 0),
         parseUnits(reserve0.toString(), token0.decimals),
-        parseUnits(reserve1.toString(), token0.decimals)
+        parseUnits(reserve1.toString(), token0.decimals),
       );
-    }
+    },
   );
   const networks: NetworkInfo[] = [
     {
@@ -75,7 +75,7 @@ export const createSwapRoute = (
       rTokenOut,
       amount,
       rPools,
-      networks
+      networks,
     );
   }
 
