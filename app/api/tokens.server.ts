@@ -17,55 +17,66 @@ import { ENV } from "~/lib/env.server";
 import { createPoolToken } from "~/lib/tokens.server";
 import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 
-export const fetchTokens = () =>
-  getCachedValue("tokens", async () => {
-    const result = (await execute(
-      GetTokensDocument,
-      {}
-    )) as ExecutionResult<GetTokensQuery>;
-    const { tokens: rawTokens = [] } = result.data ?? {};
-    const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-      fetchTokensCollections(rawTokens),
-      fetchMagicUSD(),
-    ]);
-    return rawTokens.map((token) =>
-      createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
-    );
-  });
-
-export const fetchToken = (id: string) =>
-  getCachedValue(`token-${id}`, async () => {
-    const result = (await execute(GetTokenDocument, {
-      id,
-    })) as ExecutionResult<GetTokenQuery>;
-    const { token: rawToken } = result.data ?? {};
-
-    if (!rawToken) {
-      return null;
-    }
-
-    const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-      fetchTokensCollections([rawToken]),
-      fetchMagicUSD(),
-    ]);
-    return createPoolToken(rawToken, collectionMapping, tokenMapping, magicUSD);
-  });
-
-const fetchTroveTokens = async (ids: string[]) => {
-  const response = await fetch(`${ENV.TROVE_API_URL}/batch-tokens`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": ENV.TROVE_API_KEY,
-    },
-    body: JSON.stringify({
-      ids: ids.map((id) => `${ENV.TROVE_API_NETWORK}/${id}`),
-    }),
-  });
-  const results = (await response.json()) as TroveToken[];
-  return results;
+/**
+ * Fetches tokens available for swapping with NFT metadata and USD prices
+ */
+export const fetchTokens = async () => {
+  const result = (await execute(
+    GetTokensDocument,
+    {}
+  )) as ExecutionResult<GetTokensQuery>;
+  const { tokens: rawTokens = [] } = result.data ?? {};
+  const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+    fetchTokensCollections(rawTokens),
+    fetchMagicUSD(),
+  ]);
+  return rawTokens.map((token) =>
+    createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
+  );
 };
 
+/**
+ * Fetches single token available for swapping with NFT metadata and USD prices
+ */
+export const fetchToken = async (id: string) => {
+  const result = (await execute(GetTokenDocument, {
+    id,
+  })) as ExecutionResult<GetTokenQuery>;
+  const { token: rawToken } = result.data ?? {};
+  if (!rawToken) {
+    return null;
+  }
+
+  const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+    fetchTokensCollections([rawToken]),
+    fetchMagicUSD(),
+  ]);
+  return createPoolToken(rawToken, collectionMapping, tokenMapping, magicUSD);
+};
+
+/**
+ * Fetches NFT metadata
+ */
+const fetchTroveTokens = async (ids: string[]) =>
+  // Cache this because it's relatively static NFT metadata
+  getCachedValue(`trove-tokens-${ids.join()}`, async () => {
+    const response = await fetch(`${ENV.TROVE_API_URL}/batch-tokens`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": ENV.TROVE_API_KEY,
+      },
+      body: JSON.stringify({
+        ids: ids.map((id) => `${ENV.TROVE_API_NETWORK}/${id}`),
+      }),
+    });
+    const results = (await response.json()) as TroveToken[];
+    return results;
+  });
+
+/**
+ * Fetches NFT metadata and transforms it into an object mapping
+ */
 export const fetchTroveTokenMapping = async (ids: string[]) => {
   const tokens = await fetchTroveTokens(ids);
   return tokens.reduce((acc, token) => {
@@ -75,6 +86,9 @@ export const fetchTroveTokenMapping = async (ids: string[]) => {
   }, {} as TroveTokenMapping);
 };
 
+/**
+ * Fetches user's balance for NFT vault
+ */
 export const fetchPoolTokenBalance = async (
   token: PoolToken,
   address: string
@@ -106,6 +120,9 @@ export const fetchPoolTokenBalance = async (
   return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
 };
 
+/**
+ * Fetches user's inventory with metadata for NFT vault
+ */
 export const fetchVaultUserInventory = async ({
   id,
   address,
@@ -156,6 +173,9 @@ export const fetchVaultUserInventory = async ({
   return results;
 };
 
+/**
+ * Fetches NFT vault's reserves with metadata
+ */
 export const fetchVaultReserveItems = async ({
   id,
   page = 1,
