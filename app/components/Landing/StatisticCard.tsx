@@ -5,18 +5,11 @@ import { cn } from "~/lib/utils";
 interface Props {
   Icon?: React.ElementType;
   iconClass?: string;
-  Background?: React.ElementType;
   value: string | number;
   title: string;
 }
 
-const StatisticCard = ({
-  Icon,
-  iconClass,
-  Background,
-  value,
-  title,
-}: Props) => {
+const StatisticCard = ({ Icon, iconClass, value, title }: Props) => {
   return (
     <div className="relative flex h-[88px] w-full flex-col justify-center overflow-hidden rounded-lg border-t border-t-night-800 bg-night-1000 px-6 shadow-xl lg:h-[110px] lg:px-8">
       <div className="relative z-10 flex items-center gap-2 lg:gap-3">
@@ -28,9 +21,6 @@ const StatisticCard = ({
       <p className="relative z-10 text-sm uppercase leading-[130%] text-night-400">
         {title}
       </p>
-      {!!Background && (
-        <Background className="absolute -bottom-[100px] -right-[80px] h-[132px] w-[132px] -translate-x-1/2 -translate-y-1/2 text-night-1100" />
-      )}
     </div>
   );
 };

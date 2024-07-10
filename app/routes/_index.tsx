@@ -1,26 +1,29 @@
 import type { MetaFunction } from "@remix-run/react";
-import { Link } from "@remix-run/react";
+import { Link, json, useLoaderData } from "@remix-run/react";
 import { motion } from "framer-motion";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
 
 import collectionsImage from "../assets/collections.png";
 import magicIllustration from "../assets/magic_illustration.png";
 import tokenGraphicImage from "../assets/token_graphic.png";
+import { fetchStats } from "~/api/stats.server";
 import { PoolIcon, RoyaltiesIcon, SweepIcon } from "~/assets/Svgs";
 import InfoCard from "~/components/Landing/InfoCard";
+import StatisticCard from "~/components/Landing/StatisticCard";
 import { Button } from "~/components/ui/Button";
+import { formatNumber } from "~/lib/number";
 import { generateUrl, getSocialMetas } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 
-// export async function loader() {
-//   const stats = await fetchStats();
-//   return json({
-//     stats,
-//   });
-// }
+export async function loader() {
+  const stats = await fetchStats();
+  return json({
+    stats,
+  });
+}
 
 export const meta: MetaFunction<
-  unknown, // typeof loader,
+  typeof loader,
   {
     root: RootLoader;
   }
@@ -34,6 +37,7 @@ export const meta: MetaFunction<
 };
 
 export default function Homepage() {
+  const { stats } = useLoaderData<typeof loader>();
   return (
     <div className="max-w-screen mb-24 overflow-x-hidden">
       <div className="ruby-glow h-[548px] w-screen border-b border-b-night-800">
@@ -63,12 +67,12 @@ export default function Homepage() {
                 y: 0,
               }}
               transition={{
-                delay: 0.2,
+                delay: 0.1,
               }}
             >
               Buy, sell, swap{" "}
               <span className="text-medium text-honey-800">any</span> token type
-              using Magicswap’s AMM
+              using Magicswap's AMM
             </motion.p>
           </div>
           <motion.div
@@ -82,7 +86,7 @@ export default function Homepage() {
               y: 0,
             }}
             transition={{
-              delay: 0.4,
+              delay: 0.2,
             }}
           >
             <Link to="/swap" prefetch="render">
@@ -98,28 +102,7 @@ export default function Homepage() {
           </motion.div>
         </div>
       </div>
-      {/* <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3  md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
-        <motion.div
-          className="div"
-          initial={{
-            opacity: 0,
-            y: -30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: 0.1,
-          }}
-        >
-          <StatisticCard
-            Icon={MagicLogo}
-            value={formatUSD(stats.global?.magicUSD ?? 0)}
-            title="MAGIC Price"
-            Background={FlatMagicIcon}
-          />
-        </motion.div>
+      <div className="container grid w-full -translate-y-1/4 grid-cols-2 gap-3 md:-translate-y-1/2 md:grid-cols-4 md:gap-6">
         <motion.div
           className="div"
           initial={{
@@ -134,11 +117,23 @@ export default function Homepage() {
             delay: 0.2,
           }}
         >
-          <StatisticCard
-            value={stats.global?.txCount ?? 0}
-            title="Transactions"
-            Background={ExchangeIcon}
-          />
+          <StatisticCard value={stats?.pairCount ?? 0} title="Trading Pairs" />
+        </motion.div>
+        <motion.div
+          className="div"
+          initial={{
+            opacity: 0,
+            y: -30,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.25,
+          }}
+        >
+          <StatisticCard value={stats?.userCount ?? 0} title="Traders" />
         </motion.div>
         <motion.div
           className="div"
@@ -155,9 +150,8 @@ export default function Homepage() {
           }}
         >
           <StatisticCard
-            value={formatUSD(stats.day?.volumeUSD ?? 0)}
-            title="Volume Today"
-            Background={ChartIcon}
+            value={formatNumber(stats?.reserveNFT ?? 0)}
+            title="NFTs Supplied"
           />
         </motion.div>
         <motion.div
@@ -171,20 +165,16 @@ export default function Homepage() {
             y: 0,
           }}
           transition={{
-            delay: 0.4,
+            delay: 0.35,
           }}
         >
-          <StatisticCard
-            value={formatNumber(stats.global?.reserveNFT ?? 0)}
-            title="NFTs Supplied"
-          />
+          <StatisticCard value={stats?.txCount ?? 0} title="Transactions" />
         </motion.div>
-      </div> */}
+      </div>
       <motion.div
         className="container mb-16 mt-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:mt-0 md:h-[556px] md:flex-row"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
       >
         <div className="flex flex-col items-center gap-6 md:max-w-md md:items-start">
           <h1 className="text-center text-3xl font-bold leading-[160%] text-night-100 md:text-start">
@@ -207,11 +197,7 @@ export default function Homepage() {
           />
         </div>
       </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <p className="mb-8 w-full text-center text-xl font-medium leading-[120%] text-night-400">
           What makes Magicswap special?
         </p>
@@ -240,7 +226,6 @@ export default function Homepage() {
         className="container"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
       >
         <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8">
           <h1 className="relative z-10 text-3xl font-medium leading-[120%] text-night-100">

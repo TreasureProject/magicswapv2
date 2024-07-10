@@ -1,12 +1,10 @@
 import { Link, NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { MenuIcon } from "lucide-react";
-import { useState } from "react";
 
 import { ConnectButton } from "./ConnectButton";
 import { Footer } from "./Footer";
 import { DiscordIcon, TwitterIcon } from "./Icons";
-import SearchPopup from "./SearchPopup";
 import { Button } from "./ui/Button";
 import {
   DropdownMenu,
@@ -32,8 +30,6 @@ const Pages = [
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [showSearchPopup, setShowSearchPopup] = useState(false);
-
   return (
     <div className="flex min-h-full flex-col">
       <header className="container flex h-24 items-center">
@@ -140,9 +136,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </header>
       <div className="relative flex-1">{children}</div>
       <Footer />
-      {showSearchPopup && (
-        <SearchPopup onClose={() => setShowSearchPopup(false)} />
-      )}
     </div>
   );
 };

@@ -352,10 +352,11 @@ export const PoolDepositTab = ({
             if (!isApproved0) {
               return approveBaseToken?.();
             }
+
             if (!isApproved1) {
               return approveQuoteToken?.();
             }
-            console.log("here");
+
             return addLiquidity?.();
           }}
         >
