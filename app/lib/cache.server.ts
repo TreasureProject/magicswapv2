@@ -15,7 +15,7 @@ const lru: Cache = {
   set<T>(key: string, value: CacheEntry<T>) {
     const ttl = totalTtl(value?.metadata);
     return lruInstance.set(key, value, {
-      ttl: ttl === Infinity ? undefined : ttl,
+      ttl: ttl === Number.POSITIVE_INFINITY ? undefined : ttl,
       start: value?.metadata?.createdTime,
     });
   },
@@ -30,7 +30,7 @@ const lru: Cache = {
 export const getCachedValue = async <T>(
   key: string,
   getValue: GetFreshValue<T>,
-  options?: CachifiedOptions<T>
+  options?: CachifiedOptions<T>,
 ) =>
   cachified(
     {
@@ -41,5 +41,5 @@ export const getCachedValue = async <T>(
       getFreshValue: getValue,
       ...options,
     },
-    verboseReporter()
+    verboseReporter(),
   );

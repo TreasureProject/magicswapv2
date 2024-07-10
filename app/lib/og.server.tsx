@@ -4,9 +4,6 @@ import satori from "satori";
 
 import type { PoolToken } from "~/types";
 
-export const OG_IMAGE_WIDTH = 1200;
-export const OG_IMAGE_HEIGHT = 600;
-
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
     async (res) =>
@@ -15,7 +12,7 @@ const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
         weight,
         data: await res.arrayBuffer(),
         style: "normal",
-      }) as const
+      }) as const,
   );
 
 export const NIGHT_100 = "#E7E8E9";
@@ -68,7 +65,7 @@ export const TokenDisplay = ({
 
 export const generateOgImage = async (
   content: React.ReactNode,
-  origin: string
+  origin: string,
 ) => {
   const fontData = await Promise.all([
     loadFont(origin, "ABCWhyteVariable.woff", 500),
@@ -77,8 +74,8 @@ export const generateOgImage = async (
   ]).then((fonts) => fonts.flat());
 
   const options: SatoriOptions = {
-    width: OG_IMAGE_WIDTH,
-    height: OG_IMAGE_HEIGHT,
+    width: 1200,
+    height: 600,
     fonts: fontData,
   };
 
@@ -95,7 +92,7 @@ export const generateOgImage = async (
     >
       {content}
     </div>,
-    options
+    options,
   );
 
   const resvg = new Resvg(svg);

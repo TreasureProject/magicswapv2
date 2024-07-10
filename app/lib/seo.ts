@@ -8,18 +8,6 @@ export function getDomainUrl(request: Request) {
   return `${protocol}://${host}`;
 }
 
-function removeTrailingSlash(s: string) {
-  return s.endsWith("/") ? s.slice(0, -1) : s;
-}
-
-export function getUrl(requestInfo?: { origin: string; path: string }) {
-  return removeTrailingSlash(
-    `${requestInfo?.origin ?? "https://magicswap.lol"}${
-      requestInfo?.path ?? ""
-    }`
-  );
-}
-
 export const generateUrl = (origin = "https://v2.magicswap.lol", path = "/") =>
   origin + path;
 

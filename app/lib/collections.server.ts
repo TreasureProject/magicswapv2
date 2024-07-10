@@ -7,7 +7,7 @@ import type {
 export const createPoolTokenCollection = (
   collection: Collection,
   tokenIds: string[],
-  collectionMapping: TroveCollectionMapping
+  collectionMapping: TroveCollectionMapping,
 ): PoolTokenCollection => {
   const {
     urlSlug = "",

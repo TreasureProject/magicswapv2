@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -24,22 +24,23 @@ export const MultiSelect = ({
     <div
       className={cn(
         "flex h-max w-full items-center justify-between rounded-full bg-night-1100 p-1",
-        className
+        className,
       )}
     >
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          type="button"
           className={cn(
-            "flex w-full items-center justify-center gap-3 rounded-full py-2 text-sm font-medium leading-[160%] text-night-400 transition-colors sm:text-base",
-            activeTab === tab.id && "bg-night-800 text-night-100"
+            "flex w-full items-center justify-center gap-3 rounded-full py-2 font-medium text-night-400 text-sm leading-[160%] transition-colors sm:text-base",
+            activeTab === tab.id && "bg-night-800 text-night-100",
           )}
           onClick={() => setActiveTab(tab.id)}
         >
           {tab.icon && <tab.icon className="w-5" />}
           {tab.name}
           {!!tab.amount && tab.amount > 0 && (
-            <p className="rounded-full bg-night-700 px-3 py-1 text-xs font-medium">
+            <p className="rounded-full bg-night-700 px-3 py-1 font-medium text-xs">
               {tab.amount}
             </p>
           )}

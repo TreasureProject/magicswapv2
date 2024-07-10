@@ -10,12 +10,14 @@ type SessionFlashData = {
   error: string;
 };
 
-const { getSession, commitSession, destroySession } =
-  createCookieSessionStorage<SessionData, SessionFlashData>({
-    cookie: {
-      name: "__session",
-      secure: true,
-    },
-  });
+const { getSession, commitSession } = createCookieSessionStorage<
+  SessionData,
+  SessionFlashData
+>({
+  cookie: {
+    name: "__session",
+    secure: true,
+  },
+});
 
-export { getSession, commitSession, destroySession };
+export { getSession, commitSession };

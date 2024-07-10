@@ -7,8 +7,10 @@
     "dev": "remix vite:dev",
     "generate": "graphclient build && wagmi generate",
     "build": "remix vite:build",
-    "format": "eslint --fix --quiet . && prettier --write .",
-    "lint": "eslint .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "fix": "biome check --write --unsafe .",
+    "knip": "knip",
     "test": "vitest run",
     "typecheck": "tsc",
     "start": "remix-serve ./build/server/index.js",
@@ -58,27 +60,21 @@
     "zustand": "^4.3.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.8.0",
     "@graphprotocol/client-cli": "^3.0.3",
     "@remix-run/dev": "^2.9.2",
-    "@remix-run/eslint-config": "^2.9.2",
     "@savvywombat/tailwindcss-grid-areas": "^4.0.0",
     "@treasure-project/tailwind-config": "^2.1.0",
-    "@trivago/prettier-plugin-sort-imports": "^4.1.1",
     "@types/nprogress": "^0.2.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
-    "@typescript-eslint/parser": "^5.54.1",
     "@vitejs/plugin-react": "^4.2.1",
     "@wagmi/cli": "^2.1.3",
     "autoprefixer": "^10.4.19",
-    "eslint": "^8.35.0",
-    "eslint-config-prettier": "^8.7.0",
     "husky": "^9.0.11",
     "jsdom": "^24.1.0",
+    "knip": "^5.25.1",
     "lint-staged": "^15.2.5",
-    "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.6.1",
     "tailwind-scrollbar": "^3.0.4",
     "tailwindcss": "^3.2.7",
     "tailwindcss-animate": "^1.0.5",
@@ -91,6 +87,6 @@
     "node": ">=20"
   },
   "lint-staged": {
-    "app/**/{*.ts,*.tsx}": "npm run format"
+    "app/**/{*.ts,*.tsx}": "npm run fix"
   }
 }

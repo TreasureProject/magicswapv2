@@ -64,7 +64,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         </div>
       </div>
     </div>,
-    origin
+    origin,
   );
 
   return new Response(png, {

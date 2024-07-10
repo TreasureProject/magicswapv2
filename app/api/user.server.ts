@@ -1,10 +1,10 @@
 import type { ExecutionResult } from "graphql";
 
-import { createPoolsFromPairs } from "./pools.server";
-import { GetUserDocument, type GetUserQuery, execute } from ".graphclient";
 import { getCachedValue } from "~/lib/cache.server";
 import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
+import { createPoolsFromPairs } from "./pools.server";
+import { GetUserDocument, type GetUserQuery, execute } from ".graphclient";
 
 export const fetchUser = async (address: string) => {
   const result = (await execute(GetUserDocument, {
@@ -18,7 +18,7 @@ export const fetchUser = async (address: string) => {
   return {
     ...user,
     pools: await createPoolsFromPairs(
-      user.liquidityPositions.map(({ pair }) => pair)
+      user.liquidityPositions.map(({ pair }) => pair),
     ),
   };
 };

@@ -1,5 +1,10 @@
 import type { ExecutionResult } from "graphql";
 
+import { sumArray } from "~/lib/array";
+import { getCachedValue } from "~/lib/cache.server";
+import { ENV } from "~/lib/env.server";
+import { createPoolToken } from "~/lib/tokens.server";
+import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import {
@@ -11,11 +16,6 @@ import {
   type GetTokensQuery,
   execute,
 } from ".graphclient";
-import { sumArray } from "~/lib/array";
-import { getCachedValue } from "~/lib/cache.server";
-import { ENV } from "~/lib/env.server";
-import { createPoolToken } from "~/lib/tokens.server";
-import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 
 /**
  * Fetches tokens available for swapping with NFT metadata and USD prices
@@ -23,7 +23,7 @@ import type { PoolToken, TroveToken, TroveTokenMapping } from "~/types";
 export const fetchTokens = async () => {
   const result = (await execute(
     GetTokensDocument,
-    {}
+    {},
   )) as ExecutionResult<GetTokensQuery>;
   const { tokens: rawTokens = [] } = result.data ?? {};
   const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
@@ -31,7 +31,7 @@ export const fetchTokens = async () => {
     fetchMagicUSD(),
   ]);
   return rawTokens.map((token) =>
-    createPoolToken(token, collectionMapping, tokenMapping, magicUSD)
+    createPoolToken(token, collectionMapping, tokenMapping, magicUSD),
   );
 };
 
@@ -80,8 +80,12 @@ const fetchTroveTokens = async (ids: string[]) =>
 export const fetchTroveTokenMapping = async (ids: string[]) => {
   const tokens = await fetchTroveTokens(ids);
   return tokens.reduce((acc, token) => {
-    const collection = (acc[token.collectionAddr.toLowerCase()] ??= {});
-    collection[token.tokenId] = token;
+    const address = token.collectionAddr.toLowerCase();
+    if (!acc[address]) {
+      acc[address] = {};
+    }
+
+    acc[address][token.tokenId] = token;
     return acc;
   }, {} as TroveTokenMapping);
 };
@@ -91,14 +95,14 @@ export const fetchTroveTokenMapping = async (ids: string[]) => {
  */
 export const fetchPoolTokenBalance = async (
   token: PoolToken,
-  address: string
+  address: string,
 ) => {
   const url = new URL(`${ENV.TROVE_API_URL}/tokens-for-user`);
   url.searchParams.append("userAddress", address);
   url.searchParams.append("projection", "queryUserQuantityOwned");
 
   const tokenIds = token.collections.flatMap(({ id, tokenIds }) =>
-    tokenIds.map((tokenId) => `${ENV.TROVE_API_NETWORK}/${id}/${tokenId}`)
+    tokenIds.map((tokenId) => `${ENV.TROVE_API_NETWORK}/${id}/${tokenId}`),
   );
   if (tokenIds.length > 0) {
     url.searchParams.append("ids", tokenIds.join(","));
@@ -107,7 +111,7 @@ export const fetchPoolTokenBalance = async (
       "slugs",
       token.collections
         .map(({ id }) => `${ENV.TROVE_API_NETWORK}/${id}`)
-        .join(",")
+        .join(","),
     );
   }
 
@@ -147,8 +151,8 @@ export const fetchVaultUserInventory = async ({
     token.vaultCollections.flatMap(
       ({ collection: { id: collectionId }, tokenIds }) =>
         tokenIds?.map(
-          (tokenId) => `${ENV.TROVE_API_NETWORK}/${collectionId}/${tokenId}`
-        ) ?? []
+          (tokenId) => `${ENV.TROVE_API_NETWORK}/${collectionId}/${tokenId}`,
+        ) ?? [],
     ) ?? [];
   if (tokenIds.length > 0) {
     url.searchParams.append("ids", tokenIds.join(","));
@@ -158,9 +162,9 @@ export const fetchVaultUserInventory = async ({
       token.vaultCollections
         .map(
           ({ collection: { id: collectionId } }) =>
-            `${ENV.TROVE_API_NETWORK}/${collectionId}`
+            `${ENV.TROVE_API_NETWORK}/${collectionId}`,
         )
-        .join(",")
+        .join(","),
     );
   }
 
@@ -199,7 +203,7 @@ export const fetchVaultReserveItems = async ({
       acc[`${collectionId.toLowerCase()}/${tokenId}`] = amount;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   // Fetch token metadata

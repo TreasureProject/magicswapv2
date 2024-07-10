@@ -6,12 +6,12 @@ const Privacy = () => {
   return (
     <div className="mt-14 flex flex-col gap-16">
       <div className="flex max-w-3xl flex-col gap-6">
-        <h1 className="text-3xl font-bold">Privacy Policy</h1>
-        <p className="leading-[160%] text-night-300">
+        <h1 className="font-bold text-3xl">Privacy Policy</h1>
+        <p className="text-night-300 leading-[160%]">
           Effective Date:{" "}
           <span className="text-night-100">February 16, 2023</span>
         </p>
-        <p className="leading-[160%] text-night-400">
+        <p className="text-night-400 leading-[160%]">
           Treasure Project Ltd ("
           <span className="text-night-100">Treasure</span>", "
           <span className="text-night-100">we</span>", "
@@ -44,7 +44,7 @@ const Privacy = () => {
           policy (collectively the <span className="text-night-100">site</span>
           ).
         </p>
-        <p className="leading-[160%] text-night-400">
+        <p className="text-night-400 leading-[160%]">
           <span className="font-medium text-night-100">
             {" "}
             PLEASE REVIEW THIS PRIVACY POLICY CAREFULLY
@@ -58,7 +58,7 @@ const Privacy = () => {
           </Link>
           .
         </p>
-        <p className="leading-[160%] text-night-400">
+        <p className="text-night-400 leading-[160%]">
           <span className="font-medium text-night-100">
             Personal Information:
           </span>{" "}
@@ -70,11 +70,11 @@ const Privacy = () => {
         </p>
       </div>
       <div className="flex max-w-3xl flex-col gap-6">
-        <h1 className="text-xl font-bold">
+        <h1 className="font-bold text-xl">
           1. Information Voluntarily Provided By You
         </h1>
 
-        <p className="leading-[160%] text-night-400">
+        <p className="text-night-400 leading-[160%]">
           We collect information about you when you use the certain aspects of
           the Site, including information you provide when you link a digital
           wallet, make a purchase, or contact our support team. Such information
@@ -82,7 +82,7 @@ const Privacy = () => {
         </p>
         <ul className="flex flex-col gap-2">
           <li className="flex items-center gap-2">
-            <div className="bg-base-100 h-[4px] w-[4px] rounded-full"></div>
+            <div className="h-[4px] w-[4px] rounded-full bg-base-100" />
             <p className="text-night-400">
               <span className="font-medium text-night-100">Contact Data:</span>{" "}
               in the form of your email address and other contact information
@@ -90,7 +90,7 @@ const Privacy = () => {
             </p>
           </li>
           <li className="flex items-center gap-2">
-            <div className="bg-base-100 h-[4px] w-[4px] rounded-full"></div>
+            <div className="h-[4px] w-[4px] rounded-full bg-base-100" />
             <p className="text-night-400">
               <span className="font-medium text-night-100">
                 Profile information:
@@ -100,7 +100,7 @@ const Privacy = () => {
             </p>
           </li>
           <li className="flex items-center gap-2">
-            <div className="bg-base-100 h-[4px] w-[4px] rounded-full"></div>
+            <div className="h-[4px] w-[4px] rounded-full bg-base-100" />
             <p className="text-night-400">
               <span className="font-medium text-night-100">
                 Digital Wallet Information:
@@ -109,7 +109,7 @@ const Privacy = () => {
             </p>
           </li>
           <li className="flex items-center gap-2">
-            <div className="bg-base-100 h-[4px] w-[4px] rounded-full"></div>
+            <div className="h-[4px] w-[4px] rounded-full bg-base-100" />
             <p className="text-night-400">
               <span className="font-medium text-night-100">
                 Transaction Event Data:
@@ -120,13 +120,13 @@ const Privacy = () => {
             </p>
           </li>
           <li className="flex items-center gap-2">
-            <div className="bg-base-100 h-[4px] w-[4px] rounded-full"></div>
+            <div className="h-[4px] w-[4px] rounded-full bg-base-100" />
             <p className="text-night-400">
               <span className="font-medium text-night-100">Content:</span>{" "}
               including any content in messages you may send to us.
             </p>
           </li>
-          <p className="leading-[160%] text-night-400">
+          <p className="text-night-400 leading-[160%]">
             You may choose to voluntarily provide other information to us that
             we do not request, and, in such instances, we have no control over
             what categories of personal information such disclosure may include.

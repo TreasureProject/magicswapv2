@@ -1,5 +1,5 @@
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
-import React from "react";
+import type React from "react";
 
 interface Props {
   Icon: React.ElementType;
@@ -9,15 +9,15 @@ interface Props {
   className?: string;
 }
 
-const InfoCard = ({ Icon, title, description, link, className }: Props) => {
+export const InfoCard = ({ Icon, title, description, link }: Props) => {
   return (
     <div className="flex w-full flex-col rounded-xl bg-night-1100">
       <div className="flex flex-col gap-4 p-8 md:min-h-[264px]">
         <Icon className="w-[42px]" />
-        <h1 className="text-xl font-bold leading-[160%] text-night-100">
+        <h1 className="font-bold text-night-100 text-xl leading-[160%]">
           {title}
         </h1>
-        <p className="leading-[160%] text-night-400">{description}</p>
+        <p className="text-night-400 leading-[160%]">{description}</p>
       </div>
       {!!link && (
         <a
@@ -33,5 +33,3 @@ const InfoCard = ({ Icon, title, description, link, className }: Props) => {
     </div>
   );
 };
-
-export default InfoCard;

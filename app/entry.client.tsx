@@ -10,7 +10,7 @@ function hydrate() {
       document,
       // disable StrictMode for react-aria - https://github.com/adobe/react-spectrum/issues/4281
       // <StrictMode>
-      <RemixBrowser />
+      <RemixBrowser />,
       // </StrictMode>
     );
   });

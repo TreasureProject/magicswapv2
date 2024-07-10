@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from "react";
 
-import { Input } from "./ui/Input";
 import { cn } from "~/lib/utils";
+import { Input } from "./ui/Input";
 
 type Props = Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -31,7 +31,7 @@ export const CurrencyInput = ({
       type="text"
       className={cn(
         "h-auto border-none p-0 text-right text-base focus-visible:ring-0 focus-visible:ring-offset-0",
-        className
+        className,
       )}
       placeholder="0.00"
       value={value === "0" ? "" : value}

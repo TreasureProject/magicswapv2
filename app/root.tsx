@@ -17,7 +17,7 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, resolveValue } from "react-hot-toast";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { http, WagmiProvider, createConfig } from "wagmi";
 import { arbitrum, arbitrumSepolia } from "wagmi/chains";
 
 import { LoaderIcon } from "./components/Icons";
@@ -61,7 +61,7 @@ export default function App() {
         appName: "Magicswap",
         transports: {
           [env.PUBLIC_CHAIN_ID]: http(
-            `https://${env.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`
+            `https://${env.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
           ),
         },
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
@@ -70,8 +70,8 @@ export default function App() {
             ? arbitrumSepolia
             : arbitrum,
         ],
-      })
-    )
+      }),
+    ),
   );
 
   const transition = useNavigation();
@@ -87,14 +87,14 @@ export default function App() {
       if (states.every((state) => state === "idle")) return "idle";
       return "loading";
     },
-    [transition.state, fetchers]
+    [transition.state, fetchers],
   );
 
   // slim loading bars on top of the page, for page transitions
   useEffect(() => {
     if (state === "loading") NProgress.start();
     if (state === "idle") NProgress.done();
-  }, [state, transition.state]);
+  }, [state]);
 
   useEffect(() => {
     useSettingsStore.persist.rehydrate();
@@ -145,21 +145,21 @@ export default function App() {
           position="top-right"
           reverseOrder={false}
           gutter={18}
-          toastOptions={{ duration: Infinity }}
+          toastOptions={{ duration: Number.POSITIVE_INFINITY }}
         >
           {(t) => {
             return (
               <div
                 className={cn(
                   "relative box-border w-[356px] rounded-lg border border-night-1000 bg-night-1100 shadow-lg",
-                  t.visible ? "animate-toast-enter" : "animate-toast-leave"
+                  t.visible ? "animate-toast-enter" : "animate-toast-leave",
                 )}
               >
                 <div className="relative p-4">
-                  <div className="space-y-1 text-sm font-medium text-night-100">
+                  <div className="space-y-1 font-medium text-night-100 text-sm">
                     {resolveValue(t.message, t)}
                   </div>
-                  <div className="absolute right-4 top-4 flex-shrink-0">
+                  <div className="absolute top-4 right-4 flex-shrink-0">
                     {(() => {
                       switch (t.type) {
                         case "success":

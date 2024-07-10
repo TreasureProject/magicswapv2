@@ -1,19 +1,19 @@
 import { parseUnits } from "viem";
 
-import { createPoolToken } from "./tokens.server";
 import type {
   NumberString,
   Pair,
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
+import { createPoolToken } from "./tokens.server";
 
 export const createPoolFromPair = (
   pair: Pair,
   collectionMapping: TroveCollectionMapping,
   tokenMapping: TroveTokenMapping,
   magicUSD: number,
-  reserves?: [bigint, bigint]
+  reserves?: [bigint, bigint],
 ) => {
   const token0 = {
     ...createPoolToken(pair.token0, collectionMapping, tokenMapping, magicUSD),
@@ -51,15 +51,15 @@ export const createPoolFromPair = (
     volume24hUSD: Number(dayData?.volumeUSD ?? 0),
     volume1w0: weekData.reduce(
       (total, { volume0 }) => total + Number(volume0),
-      0
+      0,
     ),
     volume1w1: weekData.reduce(
       (total, { volume1 }) => total + Number(volume1),
-      0
+      0,
     ),
     volume1wUSD: weekData.reduce(
       (total, { volumeUSD }) => total + Number(volumeUSD),
-      0
+      0,
     ),
   };
 };

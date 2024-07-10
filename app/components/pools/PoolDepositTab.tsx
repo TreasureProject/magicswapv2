@@ -3,16 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 
-import Table from "../Table";
-import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { TotalDisplayInner } from "../item_selection/TotalDisplayInner";
-import { TransactionButton } from "../ui/Button";
-import { LabeledCheckbox } from "../ui/Checkbox";
-import { Dialog } from "../ui/Dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
-import { PoolImage } from "./PoolImage";
-import { PoolNftTokenInput } from "./PoolNftTokenInput";
-import { PoolTokenInput } from "./PoolTokenInput";
 import { useAccount } from "~/contexts/account";
 import { useReadErc20BalanceOf } from "~/generated";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
@@ -31,6 +21,16 @@ import type {
   PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
+import { Table } from "../Table";
+import { SelectionPopup } from "../item_selection/SelectionPopup";
+import { TotalDisplayInner } from "../item_selection/TotalDisplayInner";
+import { TransactionButton } from "../ui/Button";
+import { LabeledCheckbox } from "../ui/Checkbox";
+import { Dialog } from "../ui/Dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
+import { PoolImage } from "./PoolImage";
+import { PoolNftTokenInput } from "./PoolNftTokenInput";
+import { PoolTokenInput } from "./PoolTokenInput";
 
 type Props = {
   pool: Pool;
@@ -61,7 +61,7 @@ export const PoolDepositTab = ({
 
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.token1.decimals : pool.token0.decimals
+    isExactB ? pool.token1.decimals : pool.token0.decimals,
   );
   const amountA = isExactB
     ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
@@ -148,7 +148,7 @@ export const PoolDepositTab = ({
   const estimatedLp = getLpCountForTokens(
     amount,
     BigInt(pool.token0.reserve),
-    BigInt(pool.totalSupply)
+    BigInt(pool.totalSupply),
   );
 
   useEffect(() => {
@@ -164,15 +164,15 @@ export const PoolDepositTab = ({
   }, [isApproveSuccess1, refetchApproval1]);
 
   const insufficientBalanceA = !pool.token0.isNFT
-    ? parseFloat(
-        isExactB ? formatUnits(amountA, pool.token0.decimals) : rawAmount
-      ) > parseFloat(formatEther(balance0 ?? 0n))
+    ? Number.parseFloat(
+        isExactB ? formatUnits(amountA, pool.token0.decimals) : rawAmount,
+      ) > Number.parseFloat(formatEther(balance0 ?? 0n))
     : false;
 
   const insufficientBalanceB = !pool.token1.isNFT
-    ? parseFloat(
-        !isExactB ? formatUnits(amountB, pool.token1.decimals) : rawAmount
-      ) > parseFloat(formatEther(balance1 ?? 0n))
+    ? Number.parseFloat(
+        !isExactB ? formatUnits(amountB, pool.token1.decimals) : rawAmount,
+      ) > Number.parseFloat(formatEther(balance1 ?? 0n))
     : false;
 
   return (
@@ -309,7 +309,7 @@ export const PoolDepositTab = ({
           {
             label: "Estimated LP Tokens",
             value: (
-              <div className="flex items-center -space-x-1">
+              <div className="-space-x-1 flex items-center">
                 <PoolImage className="h-5 w-5" pool={pool} />
                 <span>{formatTokenAmount(estimatedLp)}</span>
               </div>
@@ -322,7 +322,7 @@ export const PoolDepositTab = ({
                 ? bigIntToNumber(estimatedLp) /
                     (bigIntToNumber(BigInt(pool.totalSupply)) +
                       bigIntToNumber(estimatedLp))
-                : 0
+                : 0,
             ),
           },
         ]}
@@ -394,7 +394,7 @@ const TotalDisplay = ({
 }) => {
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.token1.decimals : pool.token0.decimals
+    isExactB ? pool.token1.decimals : pool.token0.decimals,
   );
 
   const amountA = isExactB
@@ -406,11 +406,11 @@ const TotalDisplay = ({
 
   const formattedTokenInAmount = formatTokenAmount(
     amountA,
-    pool.token0.decimals
+    pool.token0.decimals,
   );
   const formattedTokenOutAmount = formatTokenAmount(
     amountB,
-    pool.token1?.decimals ?? 18
+    pool.token1?.decimals ?? 18,
   );
 
   return (
@@ -424,12 +424,16 @@ const TotalDisplay = ({
 const ApproveAgainInfoPopover = () => (
   <Popover>
     <PopoverTrigger asChild>
-      <button className="group ml-1" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        className="group ml-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         <HelpCircle className="h-4 w-4 transition-colors group-hover:text-night-100" />
       </button>
     </PopoverTrigger>
     <PopoverContent align="center" className="w-72 text-left">
-      <p className="text-xs text-night-300">
+      <p className="text-night-300 text-xs">
         <Balancer>
           You will need to approve again because the amount you entered exceeds
           the amount you previously approved.

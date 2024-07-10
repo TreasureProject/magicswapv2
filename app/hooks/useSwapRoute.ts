@@ -23,7 +23,7 @@ export const useSwapRoute = ({
 }: Props) => {
   const amountBI = parseUnits(
     amount as NumberString,
-    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals
+    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals,
   );
   const isSampleRoute = amountBI <= 0;
 
@@ -37,7 +37,7 @@ export const useSwapRoute = ({
     tokenOut,
     pools,
     isSampleRoute ? 1n : amountBI,
-    isExactOut
+    isExactOut,
   ) ?? {};
 
   const poolLegs = legs
@@ -68,22 +68,22 @@ export const useSwapRoute = ({
     path: poolLegs.flatMap(({ tokenFrom, tokenTo }, i) =>
       i === poolLegs.length - 1
         ? [tokenFrom.id as AddressString, tokenTo.id as AddressString]
-        : (tokenFrom.id as AddressString)
+        : (tokenFrom.id as AddressString),
     ),
     priceImpact,
     derivedValue: multiplyArray(
       poolLegs.map(
         ({ tokenFrom, tokenTo }) =>
           bigIntToNumber(BigInt(tokenFrom.reserve), tokenFrom.decimals) /
-          bigIntToNumber(BigInt(tokenTo.reserve), tokenTo.decimals)
-      )
+          bigIntToNumber(BigInt(tokenTo.reserve), tokenTo.decimals),
+      ),
     ),
     lpFee: sumArray(poolLegs.map(({ lpFee }) => Number(lpFee))),
     protocolFee: sumArray(
-      poolLegs.map(({ protocolFee }) => Number(protocolFee))
+      poolLegs.map(({ protocolFee }) => Number(protocolFee)),
     ),
     royaltiesFee: sumArray(
-      poolLegs.map(({ royaltiesFee }) => Number(royaltiesFee))
+      poolLegs.map(({ royaltiesFee }) => Number(royaltiesFee)),
     ),
   };
 };

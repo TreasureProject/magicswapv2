@@ -19,8 +19,8 @@ jobs:
           MAGICSWAPV2_API_URL: ${{ vars.MAGICSWAPV2_API_URL }}
       - name: Lint code
         run: npm run lint
-      # - name: Analyze code
-      #   run: npm run knip
+      - name: Analyze code
+        run: npm run knip
       - name: Test code
         run: npm test
       - name: Check types

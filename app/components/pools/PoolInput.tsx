@@ -1,11 +1,11 @@
 import { formatEther } from "viem";
 
-import { CurrencyInput } from "../CurrencyInput";
-import { PoolImage } from "./PoolImage";
 import { useAccount } from "~/contexts/account";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import type { Pool } from "~/lib/pools.server";
+import { CurrencyInput } from "../CurrencyInput";
+import { PoolImage } from "./PoolImage";
 
 export const PoolInput = ({
   pool,
@@ -25,7 +25,7 @@ export const PoolInput = ({
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center">
           <PoolImage pool={pool} />
-          <p className="-ml-2 text-sm font-medium sm:text-xl">{pool.name}</p>
+          <p className="-ml-2 font-medium text-sm sm:text-xl">{pool.name}</p>
         </div>
         <div className="space-y-1 text-right">
           <CurrencyInput
@@ -34,12 +34,12 @@ export const PoolInput = ({
             disabled={!isConnected}
           />
           {pool.reserveUSD ? (
-            <span className="block text-sm text-night-400">
+            <span className="block text-night-400 text-sm">
               {formatUSD(
                 (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply))) *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
                     ? 1
-                    : Number(amount.replace(/,/g, "")))
+                    : Number(amount.replace(/,/g, ""))),
               )}
             </span>
           ) : null}
@@ -49,12 +49,13 @@ export const PoolInput = ({
         {[0.25, 0.5, 0.75, 1].map((percent) => (
           <button
             key={percent}
-            className="rounded-lg px-3 py-1.5 text-sm text-night-400 transition-colors hover:bg-night-800 hover:text-night-100"
+            type="button"
+            className="rounded-lg px-3 py-1.5 text-night-400 text-sm transition-colors hover:bg-night-800 hover:text-night-100"
             onClick={() =>
               onUpdateAmount(
                 percent === 1
                   ? formatEther(balance)
-                  : formatAmount(bigIntToNumber(balance) * percent, false)
+                  : formatAmount(bigIntToNumber(balance) * percent, false),
               )
             }
           >

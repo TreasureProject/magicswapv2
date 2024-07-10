@@ -1,5 +1,11 @@
 import type { ExecutionResult } from "graphql";
 
+import { uniswapV2PairAbi } from "~/generated";
+import { client } from "~/lib/chain.server";
+import type { Pool } from "~/lib/pools.server";
+import { createPoolFromPair } from "~/lib/pools.server";
+import { itemToTroveTokenItem } from "~/lib/tokens.server";
+import type { AddressString, Pair } from "~/types";
 import {
   GetPairDocument,
   type GetPairQuery,
@@ -12,12 +18,6 @@ import {
 import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokenMapping } from "./tokens.server";
-import { uniswapV2PairAbi } from "~/generated";
-import { client } from "~/lib/chain.server";
-import type { Pool } from "~/lib/pools.server";
-import { createPoolFromPair } from "~/lib/pools.server";
-import { itemToTroveTokenItem } from "~/lib/tokens.server";
-import type { AddressString, Pair } from "~/types";
 
 export const fetchTransactions = async (pool: Pool) => {
   const result = (await execute(GetPairTransactionsDocument, {
@@ -29,10 +29,10 @@ export const fetchTransactions = async (pool: Pool) => {
     ...new Set([
       ...transactions.flatMap((transaction) => [
         ...(transaction.items0?.map(
-          ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+          ({ collection, tokenId }) => `${collection.id}/${tokenId}`,
         ) ?? []),
         ...(transaction.items1?.map(
-          ({ collection, tokenId }) => `${collection.id}/${tokenId}`
+          ({ collection, tokenId }) => `${collection.id}/${tokenId}`,
         ) ?? []),
       ]),
     ]),
@@ -55,7 +55,7 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
   const [[collectionMapping, tokenMapping], magicUSD, reserves] =
     await Promise.all([
       fetchTokensCollections(
-        pairs.flatMap(({ token0, token1 }) => [token0, token1])
+        pairs.flatMap(({ token0, token1 }) => [token0, token1]),
       ),
       fetchMagicUSD(),
       client.multicall({
@@ -78,7 +78,7 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
       magicUSD,
       reserve?.status === "success"
         ? [reserve.result[0], reserve.result[1]]
-        : undefined
+        : undefined,
     );
   });
 };
@@ -86,7 +86,7 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
 export const fetchPools = async () => {
   const result = (await execute(
     GetPairsDocument,
-    {}
+    {},
   )) as ExecutionResult<GetPairsQuery>;
   const { pairs = [] } = result.data ?? {};
   return createPoolsFromPairs(pairs);

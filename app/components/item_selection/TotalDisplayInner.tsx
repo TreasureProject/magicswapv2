@@ -1,5 +1,5 @@
-import { PoolTokenImage } from "../pools/PoolTokenImage";
 import type { Optional, PoolToken } from "~/types";
+import { PoolTokenImage } from "../pools/PoolTokenImage";
 
 export const TotalDisplayInner = ({
   token,
@@ -10,6 +10,6 @@ export const TotalDisplayInner = ({
 }) => (
   <span className="flex items-center gap-1">
     <PoolTokenImage token={token} className="h-4 w-4 flex-shrink-0" />
-    <span className="truncate text-sm font-medium text-honey-25">{total}</span>
+    <span className="truncate font-medium text-honey-25 text-sm">{total}</span>
   </span>
 );
