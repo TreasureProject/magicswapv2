@@ -11,7 +11,7 @@ const DialogTrigger = DialogPrimitive.Trigger;
 
 const DialogClose = DialogPrimitive.Close;
 
-export const DialogPortal = ({
+const DialogPortal = ({
   children,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
@@ -129,7 +129,6 @@ export {
   DialogTrigger,
   DialogContent,
   DialogHeader,
-  DialogFooter,
   DialogTitle,
   DialogDescription,
   DialogClose,

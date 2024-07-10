@@ -9,13 +9,12 @@ interface SettingsState {
 }
 
 export const DEFAULT_SLIPPAGE = 0.005;
-export const DEFAULT_DEADLINE = 30;
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       slippage: DEFAULT_SLIPPAGE,
-      deadline: DEFAULT_DEADLINE,
+      deadline: 30,
       updateSlippage: (slippage: number) => set({ slippage }),
       updateDeadline: (deadline: number) => set({ deadline }),
     }),

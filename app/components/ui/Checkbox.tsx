@@ -60,4 +60,4 @@ const LabeledCheckbox = ({
   </div>
 );
 
-export { Checkbox, LabeledCheckbox };
+export { LabeledCheckbox };

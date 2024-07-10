@@ -44,7 +44,7 @@ import {
 } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
-import Table from "~/components/Table";
+import { Table } from "~/components/Table";
 import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
@@ -70,7 +70,7 @@ import {
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import { generateTitle, generateUrl, getSocialMetas, getUrl } from "~/lib/seo";
+import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";

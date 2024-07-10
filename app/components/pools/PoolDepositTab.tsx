@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 
-import Table from "../Table";
+import { Table } from "../Table";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { TotalDisplayInner } from "../item_selection/TotalDisplayInner";
 import { TransactionButton } from "../ui/Button";

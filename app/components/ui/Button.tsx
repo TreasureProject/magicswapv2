@@ -124,4 +124,4 @@ export const TransactionButton = React.forwardRef<
 
 TransactionButton.displayName = "TransactionButton";
 
-export { Button, buttonVariants, CloseButton };
+export { Button };
