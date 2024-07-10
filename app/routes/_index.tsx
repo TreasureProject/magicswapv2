@@ -9,7 +9,7 @@ import tokenGraphicImage from "../assets/token_graphic.png";
 import { PoolIcon, RoyaltiesIcon, SweepIcon } from "~/assets/Svgs";
 import InfoCard from "~/components/Landing/InfoCard";
 import { Button } from "~/components/ui/Button";
-import { getSocialMetas, getUrl } from "~/lib/seo";
+import { generateUrl, getSocialMetas } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 
 // export async function loader() {
@@ -24,15 +24,12 @@ export const meta: MetaFunction<
   {
     root: RootLoader;
   }
-> = ({ matches }) => {
+> = ({ matches, location }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
-
-  const url = getUrl(requestInfo);
-
   return getSocialMetas({
-    url,
-    image: "/img/default_banner.png",
+    url: generateUrl(requestInfo?.origin, location.pathname),
+    image: generateUrl(requestInfo?.origin, "/img/default_banner.png"),
   });
 };
 
@@ -184,7 +181,7 @@ export default function Homepage() {
         </motion.div>
       </div> */}
       <motion.div
-        className="container mb-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:h-[556px] md:flex-row"
+        className="container mb-16 mt-16 flex flex-col items-center justify-between gap-8 md:mb-0 md:mt-0 md:h-[556px] md:flex-row"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}

@@ -1,6 +1,6 @@
 import { Link, NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
-import { InfoIcon, MenuIcon, PlayIcon } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import { useState } from "react";
 
 import { ConnectButton } from "./ConnectButton";
@@ -16,6 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/Dropdown";
+import {
+  DISCORD_URL,
+  DOCS_URL,
+  GOVERNANCE_FORUM_URL,
+  PRIVACY_POLICY_URL,
+  TERMS_OF_SERVICE_URL,
+  TWITTER_URL,
+} from "~/consts";
 import { cn } from "~/lib/utils";
 
 const Pages = [
@@ -66,53 +74,63 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     asChild
                     className="font-medium text-night-200 hover:text-night-100"
                   >
-                    <Link to="/swap">
-                      <InfoIcon className="mr-2 h-4 w-4" />
-                      <span>Swap</span>
-                    </Link>
+                    <Link to="/swap">Swap</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     asChild
                     className="font-medium text-night-200 hover:text-night-100"
                   >
-                    <Link to="/pools">
-                      <PlayIcon className="mr-2 h-4 w-4" />
-                      <span>Pools</span>
-                    </Link>
+                    <Link to="/pools">Pools</Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <span>Documentation</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Tutorials</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Articles</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Documentation</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Terms of Service</span>
-                </DropdownMenuItem>
-                <a
-                  href="https://commonwealth.im/treasure-dao/discussions/MagicSwap"
+                <Link to={DOCS_URL} target="_blank" rel="noopener noreferrer">
+                  <DropdownMenuItem>
+                    <span>Documentation</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link
+                  to={TERMS_OF_SERVICE_URL}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
+                >
+                  <DropdownMenuItem>
+                    <span>Terms of Service</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link
+                  to={PRIVACY_POLICY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <DropdownMenuItem>
+                    <span>Privacy Policy</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link
+                  to={GOVERNANCE_FORUM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <DropdownMenuItem>
                     <span>Governance Forum</span>
                   </DropdownMenuItem>
-                </a>
+                </Link>
                 <div className="flex items-center gap-3 p-3">
-                  <button>
+                  <Link
+                    to={DISCORD_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
-                  </button>
-                  <button>
-                    <TwitterIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
-                  </button>
+                  </Link>
+                  <Link
+                    to={TWITTER_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <TwitterIcon className="w-4 text-night-600 transition-colors hover:text-night-100" />
+                  </Link>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>

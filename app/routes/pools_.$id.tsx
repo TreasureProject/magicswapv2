@@ -70,7 +70,7 @@ import {
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { generateTitle, generateUrl, getSocialMetas, getUrl } from "~/lib/seo";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -93,13 +93,11 @@ export const meta: MetaFunction<
   {
     root: RootLoader;
   }
-> = ({ data, matches }) => {
+> = ({ data, matches, location }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
   const pool = data?.pool;
-
-  const url = getUrl(requestInfo);
-
+  const url = generateUrl(requestInfo?.origin, location.pathname);
   return getSocialMetas({
     url,
     title: generateTitle(

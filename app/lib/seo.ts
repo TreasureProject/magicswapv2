@@ -20,6 +20,9 @@ export function getUrl(requestInfo?: { origin: string; path: string }) {
   );
 }
 
+export const generateUrl = (origin = "https://v2.magicswap.lol", path = "/") =>
+  origin + path;
+
 export function generateTitle(title?: string) {
   return title ? `${title} | Magicswap` : "Magicswap";
 }

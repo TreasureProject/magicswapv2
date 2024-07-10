@@ -1,15 +1,9 @@
-export const documentation = {
-  aboutTreasure: "https://docs.treasure.lol/about-treasure/readme",
-  team: "https://treasure.lol/team",
-  magic: "https://docs.treasure.lol/getting-started/what-is-magic",
-  documentation: "https://docs.treasure.lol/about-treasure/readme",
-  governanceForum: "https://docs.treasure.lol/about-treasure/governance",
-  ecosystem: "https://docs.treasure.lol/games/powered-by-treasure",
-};
+export const PRIVACY_POLICY_URL = "https://app.treasure.lol/privacy-policy";
+export const TERMS_OF_SERVICE_URL = "https://app.treasure.lol/terms-of-service";
 
-export const media = {
-  twitter: "https://twitter.com/MagicSwap_",
-  discord: "https://discord.com/invite/treasuredao",
-  github: "https://github.com/TreasureProject",
-  substack: "https://treasuredao.substack.com/",
-};
+export const DOCS_URL = "https://docs.treasure.lol";
+export const GOVERNANCE_FORUM_URL =
+  "https://commonwealth.im/treasure-dao/discussions/MagicSwap";
+
+export const DISCORD_URL = "https://discord.com/invite/treasuredao";
+export const TWITTER_URL = "https://twitter.com/MagicSwap_";

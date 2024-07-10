@@ -58,7 +58,7 @@ import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
-import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
@@ -75,12 +75,10 @@ export const meta: MetaFunction<
   {
     root: RootLoader;
   }
-> = ({ matches, data }) => {
+> = ({ matches, data, location }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
-
-  const url = getUrl(requestInfo);
-
+  const url = generateUrl(requestInfo?.origin, location.pathname);
   return getSocialMetas({
     url,
     title: generateTitle(
@@ -90,7 +88,7 @@ export const meta: MetaFunction<
     ),
     image: data?.tokenOut
       ? `${url}/${data?.tokenIn.id}/${data?.tokenOut.id}.png`
-      : "/img/default_banner.png",
+      : generateUrl(requestInfo?.origin, "/img/default_banner.png"),
   });
 };
 

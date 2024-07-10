@@ -3,7 +3,14 @@ import { MagicSwapLogo } from "@treasure-project/branding";
 import { Balancer } from "react-wrap-balancer";
 
 import { DiscordIcon, TwitterIcon } from "~/components/Icons";
-import { media } from "~/consts";
+import {
+  DISCORD_URL,
+  DOCS_URL,
+  GOVERNANCE_FORUM_URL,
+  PRIVACY_POLICY_URL,
+  TERMS_OF_SERVICE_URL,
+  TWITTER_URL,
+} from "~/consts";
 
 interface LinkType {
   text: string;
@@ -17,7 +24,7 @@ const FooterPoints: {
   Treasure: [
     {
       text: "About Treasure",
-      href: "https://treasure.lol/about",
+      href: "https://docs.treasure.lol/introduction",
       type: "external",
     },
     {
@@ -27,59 +34,44 @@ const FooterPoints: {
     },
     {
       text: "MAGIC",
-      href: "https://docs.treasure.lol/getting-started/what-is-magic",
-      type: "external",
-    },
-    {
-      text: "Documentation",
-      href: "https://docs.treasure.lol/about-treasure/readme",
+      href: "https://docs.treasure.lol/magic/introduction",
       type: "external",
     },
     {
       text: "Governance Forum",
-      href: "https://commonwealth.im/treasure-dao/discussions/MagicSwap",
+      href: GOVERNANCE_FORUM_URL,
       type: "external",
     },
   ],
   Legal: [
     {
       text: "Terms of Service",
-      href: "treasure.lol",
+      href: "https://app.treasure.lol/terms-of-service",
       type: "external",
     },
     {
       text: "Privacy Policy",
-      href: "/privacy",
-      type: "internal",
+      href: "https://app.treasure.lol/privacy-policy",
+      type: "external",
     },
   ],
   Developers: [
     {
       text: "Documentation",
-      href: "treasure.lol",
+      href: DOCS_URL,
       type: "external",
     },
     {
       text: "GitHub",
-      href: "treasure.lol",
-      type: "external",
-    },
-    {
-      text: "Ecosystem",
-      href: "treasure.lol",
+      href: "https://github.com/TreasureProject",
       type: "external",
     },
   ],
-  Assistance: [
-    {
-      text: "Support",
-      href: "treasure.lol",
-      type: "external",
-    },
+  Support: [
     {
       text: "FAQ",
-      href: "/faq",
-      type: "internal",
+      href: "https://docs.treasure.lol",
+      type: "external",
     },
   ],
 };
@@ -103,7 +95,7 @@ export const Footer = () => {
             <div className="flex max-w-min items-center divide-x-[1px] divide-night-700 overflow-hidden rounded-lg border border-night-700 text-night-600">
               <a
                 className="px-3.5 py-2 transition-colors hover:bg-night-1000 hover:text-night-100"
-                href={media.discord}
+                href={DISCORD_URL}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -112,11 +104,11 @@ export const Footer = () => {
 
               <a
                 className="px-3.5 py-2 transition-colors hover:bg-night-1100 hover:text-night-100"
-                href={media.twitter}
+                href={TWITTER_URL}
                 target="_blank"
                 rel="noreferrer"
               >
-                <TwitterIcon className="h-8" />
+                <TwitterIcon className="h-5" />
               </a>
             </div>
           </div>
@@ -132,7 +124,7 @@ export const Footer = () => {
                       className="transition-colors hover:text-night-400"
                       {...(link.type === "external" && {
                         target: "_blank",
-                        rel: "noreferrer",
+                        rel: "noopener noreferrer",
                       })}
                     >
                       {link.text}
@@ -151,10 +143,20 @@ export const Footer = () => {
             reserved.
           </p>
           <div className="flex gap-5 text-night-500">
-            <Link to="/tos" className="transition-colors hover:text-night-400">
+            <Link
+              to={TERMS_OF_SERVICE_URL}
+              className="transition-colors hover:text-night-400"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Terms of Service
             </Link>
-            <Link to="/tos" className="transition-colors hover:text-night-400">
+            <Link
+              to={PRIVACY_POLICY_URL}
+              className="transition-colors hover:text-night-400"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Privacy Policy
             </Link>
           </div>

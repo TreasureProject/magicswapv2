@@ -21,7 +21,7 @@ import {
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
-import { generateTitle, getSocialMetas, getUrl } from "~/lib/seo";
+import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 
@@ -47,16 +47,13 @@ export const meta: MetaFunction<
   {
     root: RootLoader;
   }
-> = ({ matches }) => {
+> = ({ matches, location }) => {
   const requestInfo = matches.find((match) => match.id === "root")?.data
     .requestInfo;
-
-  const url = getUrl(requestInfo);
-
   return getSocialMetas({
-    url,
+    url: generateUrl(requestInfo?.origin, location.pathname),
     title: generateTitle("Liquidity Pools"),
-    image: "/img/pools_banner.png",
+    image: generateUrl(requestInfo?.origin, "/img/pools_banner.png"),
   });
 };
 
