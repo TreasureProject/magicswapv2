@@ -51,7 +51,7 @@ export const getTokenVaultReserveItems = gql`
       skip: $skip
       where: { vault: $id }
       orderBy: tokenId
-      orderDirection: ASC
+      orderDirection: asc
     ) {
       collection {
         id

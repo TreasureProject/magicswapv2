@@ -18,7 +18,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Toaster, resolveValue } from "react-hot-toast";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { arbitrum, arbitrumSepolia } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
 
 import { LoaderIcon } from "./components/Icons";
 import { Layout } from "./components/Layout";
