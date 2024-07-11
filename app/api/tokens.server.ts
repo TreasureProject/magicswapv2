@@ -18,19 +18,32 @@ import {
 } from ".graphclient";
 
 /**
- * Fetches tokens available for swapping with NFT metadata and USD prices
+ * Fetches tokens available for swapping
  */
 export const fetchTokens = async () => {
-  const result = (await execute(
+  const { data, errors } = (await execute(
     GetTokensDocument,
     {},
   )) as ExecutionResult<GetTokensQuery>;
-  const { tokens: rawTokens = [] } = result.data ?? {};
+  if (errors) {
+    throw new Error(
+      `Error fetching tokens: ${errors.map((error) => error.message).join(", ")}`,
+    );
+  }
+
+  return data?.tokens ?? [];
+};
+
+/**
+ * Fetches tokens available for swapping with NFT metadata and USD prices
+ */
+export const fetchTokensWithMetadata = async () => {
+  const tokens = await fetchTokens();
   const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-    fetchTokensCollections(rawTokens),
+    fetchTokensCollections(tokens),
     fetchMagicUSD(),
   ]);
-  return rawTokens.map((token) =>
+  return tokens.map((token) =>
     createPoolToken(token, collectionMapping, tokenMapping, magicUSD),
   );
 };

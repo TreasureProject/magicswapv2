@@ -27,6 +27,7 @@ import {
   fetchPoolTokenBalance,
   fetchToken,
   fetchTokens,
+  fetchTokensWithMetadata,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
@@ -114,7 +115,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   return defer({
     pools,
-    tokens: fetchTokens(),
+    tokens: fetchTokensWithMetadata(),
     tokenIn,
     tokenOut,
     tokenInNFTBalance:
