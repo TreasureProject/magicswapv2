@@ -15,6 +15,8 @@ import { useWaitForTransaction } from "./useWaitForTransaction";
 
 type Props = {
   pool: Pool;
+  tokenA: AddressString;
+  tokenB: AddressString;
   amountA: bigint;
   amountB: bigint;
   amountAMin: bigint;
@@ -28,6 +30,8 @@ type Props = {
 
 export const useAddLiquidity = ({
   pool,
+  tokenA,
+  tokenB,
   amountA,
   amountB,
   amountAMin,
@@ -51,8 +55,8 @@ export const useAddLiquidity = ({
     useSimulateMagicSwapV2RouterAddLiquidity({
       address: routerAddress,
       args: [
-        pool.token0.id as AddressString,
-        pool.token1.id as AddressString,
+        tokenA,
+        tokenB,
         amountA,
         amountB,
         amountAMin,
@@ -78,11 +82,15 @@ export const useAddLiquidity = ({
     useSimulateMagicSwapV2RouterAddLiquidityNft({
       address: routerAddress,
       args: [
-        nftsA.map(({ collectionAddr }) => collectionAddr as AddressString),
-        nftsA.map(({ tokenId }) => BigInt(tokenId)),
-        nftsA.map(({ quantity }) => BigInt(quantity)),
-        pool.token0.id as AddressString,
-        pool.token1.id as AddressString,
+        {
+          token: tokenA,
+          collection: nftsA.map(
+            ({ collectionAddr }) => collectionAddr as AddressString,
+          ),
+          tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
+          amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+        },
+        tokenB,
         amountB,
         amountBMin,
         addressArg,
@@ -92,7 +100,6 @@ export const useAddLiquidity = ({
         enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
       },
     });
-
   const nftAddLiquidity = useWriteMagicSwapV2RouterAddLiquidityNft();
 
   const { data: nftAddLiquidityData, status: nftAddLiquidityStatus } =
@@ -158,9 +165,9 @@ export const useAddLiquidity = ({
       //   nftNFTAddLiquidity.writeContract(nftNFTAddLiquidityConfig?.request);
       // } else
       if (pool.hasNFT && nftAddLiquidityConfig?.request) {
-        nftAddLiquidity.writeContract(nftAddLiquidityConfig?.request);
+        nftAddLiquidity.writeContract(nftAddLiquidityConfig.request);
       } else if (tokenAddLiquidityConfig?.request) {
-        tokenAddLiquidity.writeContract(tokenAddLiquidityConfig?.request);
+        tokenAddLiquidity.writeContract(tokenAddLiquidityConfig.request);
       }
     },
   };

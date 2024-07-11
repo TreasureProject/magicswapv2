@@ -49,28 +49,29 @@ export const PoolDepositTab = ({
   const { address } = useAccount();
   const slippage = useSettingsStore((state) => state.slippage);
 
-  const [{ amount: rawAmount, nftsA, nftsB, isExactB }, setTransaction] =
+  const [{ amount: rawAmount, nfts0, nfts1, isExact1 }, setTransaction] =
     useState({
       amount: "0",
-      nftsA: [] as TroveTokenWithQuantity[],
-      nftsB: [] as TroveTokenWithQuantity[],
-      isExactB: false,
+      nfts0: [] as TroveTokenWithQuantity[],
+      nfts1: [] as TroveTokenWithQuantity[],
+      isExact1: false,
     });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
 
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.token1.decimals : pool.token0.decimals,
+    isExact1 ? pool.token1.decimals : pool.token0.decimals,
   );
-  const amountA = isExactB
+  const amount0 = isExact1
     ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
-  const amountB = isExactB
+  const amount1 = isExact1
     ? amount
     : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
   const hasAmount = amount > 0;
 
+  // Fetch balance of token0 if it's an ERC20
   const { data: balance0, refetch: refetchBalance0 } = useReadErc20BalanceOf({
     address: pool.token0.id as AddressString,
     args: [address as AddressString],
@@ -78,6 +79,8 @@ export const PoolDepositTab = ({
       enabled: !!address && !pool.token0.isNFT,
     },
   });
+
+  // Fetch balance of token1 if it's an ERC20
   const { data: balance1, refetch: refetchBalance1 } = useReadErc20BalanceOf({
     address: pool.token1.id as AddressString,
     args: [address as AddressString],
@@ -86,40 +89,55 @@ export const PoolDepositTab = ({
     },
   });
 
+  // Check for approval of token0
   const {
     isApproved: isApproved0,
     refetch: refetchApproval0,
     allowance: allowance0,
   } = useIsApproved({
     token: pool.token0,
-    amount: amountA,
+    amount: amount0,
     enabled: hasAmount,
   });
+
+  // Check for approval of token1
   const {
     isApproved: isApproved1,
     refetch: refetchApproval1,
     allowance: allowance1,
   } = useIsApproved({
     token: pool.token1,
-    amount: amountB,
+    amount: amount1,
     enabled: hasAmount,
   });
 
+  // Prep approval transaction for token0
   const { approve: approveBaseToken, isSuccess: isApproveSuccess0 } =
     useApprove({
       token: pool.token0,
-      amount: amountA,
+      amount: amount0,
       enabled: !isApproved0,
     });
+
+  // Prep approval transaction for token1
   const { approve: approveQuoteToken, isSuccess: isApproveSuccess1 } =
     useApprove({
       token: pool.token1,
-      amount: amountB,
+      amount: amount1,
       enabled: !isApproved1,
     });
 
+  const amountA = pool.token1.isNFT ? amount1 : amount0;
+  const amountB = pool.token1.isNFT ? amount0 : amount1;
+  const isExactB = isExact1 && !pool.token1.isNFT;
   const { addLiquidity } = useAddLiquidity({
     pool,
+    tokenA: (pool.token1.isNFT
+      ? pool.token1.id
+      : pool.token0.id) as AddressString,
+    tokenB: (pool.token1.isNFT
+      ? pool.token0.id
+      : pool.token1.id) as AddressString,
     amountA,
     amountB,
     amountAMin: isExactB
@@ -128,15 +146,15 @@ export const PoolDepositTab = ({
     amountBMin: isExactB
       ? amountB
       : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
-    nftsA,
-    nftsB,
+    nftsA: pool.token1.isNFT ? nfts1 : nfts0,
+    nftsB: pool.token1.isNFT ? nfts0 : nfts1,
     enabled: isApproved0 && isApproved1 && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({
         amount: "0",
-        nftsA: [],
-        nftsB: [],
-        isExactB: false,
+        nfts0: [],
+        nfts1: [],
+        isExact1: false,
       });
       refetchBalance0();
       refetchBalance1();
@@ -165,13 +183,13 @@ export const PoolDepositTab = ({
 
   const insufficientBalanceA = !pool.token0.isNFT
     ? Number.parseFloat(
-        isExactB ? formatUnits(amountA, pool.token0.decimals) : rawAmount,
+        isExact1 ? formatUnits(amount0, pool.token0.decimals) : rawAmount,
       ) > Number.parseFloat(formatEther(balance0 ?? 0n))
     : false;
 
   const insufficientBalanceB = !pool.token1.isNFT
     ? Number.parseFloat(
-        !isExactB ? formatUnits(amountB, pool.token1.decimals) : rawAmount,
+        !isExact1 ? formatUnits(amount1, pool.token1.decimals) : rawAmount,
       ) > Number.parseFloat(formatEther(balance1 ?? 0n))
     : false;
 
@@ -190,38 +208,38 @@ export const PoolDepositTab = ({
             type="inventory"
             token={selectingToken}
             selectedTokens={
-              selectingToken.id === pool.token0.id ? nftsA : nftsB
+              selectingToken.id === pool.token0.id ? nfts0 : nfts1
             }
             onSubmit={(tokens) => {
               const amountTokens = countTokens(tokens);
-              const isSelectingB = selectingToken.id === pool.token1.id;
+              const isSelecting1 = selectingToken.id === pool.token1.id;
               setTransaction((curr) => {
-                const amountNFTsA = countTokens(curr.nftsA);
-                const amountNFTsB = countTokens(curr.nftsB);
+                const amountNFTs0 = countTokens(curr.nfts0);
+                const amountNFTs1 = countTokens(curr.nfts1);
                 // Determine if we should treat this seleciton as a new transaction
                 if (
-                  (amountNFTsA === 0 && amountNFTsB === 0) || // user hasn't selecting anything previously
-                  (isSelectingB &&
-                    amountNFTsB > 0 &&
-                    amountNFTsB !== amountTokens) || // user previously selected NFTs B, but changed the amount
-                  (!isSelectingB &&
-                    amountNFTsA > 0 &&
-                    amountNFTsA !== amountTokens) // user previously selected NFTs A, but changed the amount
+                  (amountNFTs0 === 0 && amountNFTs1 === 0) || // user hasn't selecting anything previously
+                  (isSelecting1 &&
+                    amountNFTs1 > 0 &&
+                    amountNFTs1 !== amountTokens) || // user previously selected NFTs B, but changed the amount
+                  (!isSelecting1 &&
+                    amountNFTs0 > 0 &&
+                    amountNFTs0 !== amountTokens) // user previously selected NFTs A, but changed the amount
                 ) {
                   return {
                     amount: amountTokens.toString(),
-                    nftsA: isSelectingB ? [] : tokens,
-                    nftsB: isSelectingB ? tokens : [],
-                    isExactB: isSelectingB,
+                    nfts0: isSelecting1 ? [] : tokens,
+                    nfts1: isSelecting1 ? tokens : [],
+                    isExact1: isSelecting1,
                   };
                 }
 
                 // Not a new transaction, treat this simply as an NFT selection
                 const next = { ...curr };
-                if (isSelectingB) {
-                  next.nftsB = tokens;
+                if (isSelecting1) {
+                  next.nfts1 = tokens;
                 } else {
-                  next.nftsA = tokens;
+                  next.nfts0 = tokens;
                 }
 
                 return next;
@@ -232,7 +250,7 @@ export const PoolDepositTab = ({
               return (
                 <TotalDisplay
                   rawAmount={amount}
-                  isExactB={isExactB}
+                  isExactB={isExact1}
                   pool={pool}
                 />
               );
@@ -243,12 +261,12 @@ export const PoolDepositTab = ({
           <PoolNftTokenInput
             token={pool.token0}
             amount={
-              isExactB
-                ? bigIntToNumber(amountA, pool.token0.decimals)
+              isExact1
+                ? bigIntToNumber(amount0, pool.token0.decimals)
                 : undefined
             }
             balance={nftBalance0}
-            selectedNfts={nftsA}
+            selectedNfts={nfts0}
             onOpenSelect={setSelectingToken}
           />
         ) : (
@@ -256,17 +274,17 @@ export const PoolDepositTab = ({
             token={pool.token0}
             balance={balance0}
             amount={
-              isExactB
-                ? formatTokenAmount(amountA, pool.token0.decimals)
+              isExact1
+                ? formatTokenAmount(amount0, pool.token0.decimals)
                 : rawAmount
             }
             disabled={pool.token1.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
                 amount,
-                nftsA: [],
-                nftsB: [],
-                isExactB: false,
+                nfts0: [],
+                nfts1: [],
+                isExact1: false,
               })
             }
           />
@@ -275,12 +293,12 @@ export const PoolDepositTab = ({
           <PoolNftTokenInput
             token={pool.token1}
             amount={
-              isExactB
+              isExact1
                 ? undefined
-                : bigIntToNumber(amountB, pool.token1.decimals)
+                : bigIntToNumber(amount1, pool.token1.decimals)
             }
             balance={nftBalance1}
-            selectedNfts={nftsB}
+            selectedNfts={nfts1}
             onOpenSelect={setSelectingToken}
           />
         ) : (
@@ -288,17 +306,17 @@ export const PoolDepositTab = ({
             token={pool.token1}
             balance={balance1}
             amount={
-              isExactB
+              isExact1
                 ? rawAmount
-                : formatTokenAmount(amountB, pool.token1.decimals)
+                : formatTokenAmount(amount1, pool.token1.decimals)
             }
             disabled={pool.token0.isNFT}
             onUpdateAmount={(amount) =>
               setTransaction({
                 amount,
-                nftsA: [],
-                nftsB: [],
-                isExactB: true,
+                nfts0: [],
+                nfts1: [],
+                isExact1: true,
               })
             }
           />
