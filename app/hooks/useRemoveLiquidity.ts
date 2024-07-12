@@ -74,10 +74,14 @@ export const useRemoveLiquidity = ({
     useSimulateMagicSwapV2RouterRemoveLiquidityNft({
       address: routerAddress,
       args: [
-        nftsA.map(({ collectionAddr }) => collectionAddr as AddressString),
-        nftsA.map(({ tokenId }) => BigInt(tokenId)),
-        nftsA.map(({ quantity }) => BigInt(quantity)),
-        pool.token0.id as AddressString,
+        {
+          token: pool.token0.id as AddressString,
+          collection: nftsA.map(
+            ({ collectionAddr }) => collectionAddr as AddressString,
+          ),
+          tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
+          amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+        },
         pool.token1.id as AddressString,
         amountLP,
         amountAMin,
