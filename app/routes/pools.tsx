@@ -53,7 +53,7 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
     title: generateTitle("Liquidity Pools"),
-    image: generateUrl(requestInfo?.origin, "/img/pools_banner.png"),
+    image: generateUrl(requestInfo?.origin, "/img/seo-banner-pools.png"),
   });
 };
 
