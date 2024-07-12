@@ -154,7 +154,7 @@ export default function PoolsListPage() {
   const [tab, setTab] = useState("all");
 
   return (
-    <main className="container">
+    <main className="container py-5 md:py-7">
       <div className="space-y-1">
         <h1 className="font-bold text-3xl">Pools</h1>
         <p className="text-night-200">

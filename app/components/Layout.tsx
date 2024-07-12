@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/Dropdown";
 
-const Pages = [
+const NAV = [
   { name: "Swap", href: "/swap" },
   { name: "Pools", href: "/pools" },
 ];
@@ -40,8 +40,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <MagicSwapLogo className="h-8 md:hidden" />
             </Link>
             <div className="hidden items-center lg:flex">
-              {Pages.map((page) => (
+              {NAV.map(({ name, href }) => (
                 <NavLink
+                  key={name}
                   prefetch="intent"
                   className={({ isActive }) =>
                     cn(
@@ -49,10 +50,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                       isActive && "text-honey-25 hover:text-honey-25",
                     )
                   }
-                  to={page.href}
-                  key={page.name}
+                  to={href}
                 >
-                  {page.name}
+                  {name}
                 </NavLink>
               ))}
             </div>

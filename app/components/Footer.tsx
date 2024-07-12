@@ -5,6 +5,7 @@ import { Balancer } from "react-wrap-balancer";
 
 import { DiscordIcon, MagicTextLogo, TwitterIcon } from "~/components/Icons";
 import {
+  BUY_MAGIC_URL,
   DISCORD_URL,
   DOCS_URL,
   GOVERNANCE_FORUM_URL,
@@ -126,9 +127,11 @@ export const Footer = () => {
             ))}
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Button size="md" className="flex items-center gap-1">
-              Buy <MagicTextLogo className="h-4" />
-            </Button>
+            <Link to={BUY_MAGIC_URL} target="_blank" rel="noopener noreferrer">
+              <Button size="md" className="flex items-center gap-1">
+                Buy <MagicTextLogo className="h-4" />
+              </Button>
+            </Link>
             <button
               type="button"
               className="flex items-center gap-1 py-4 pl-4 font-semibold text-honey-25 text-sm transition-colors hover:text-white"

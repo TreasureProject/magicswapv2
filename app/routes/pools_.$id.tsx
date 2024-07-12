@@ -188,7 +188,7 @@ export default function PoolDetailsPage() {
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
   return (
-    <main className="container">
+    <main className="container py-5 md:py-7">
       <Link
         to="/pools"
         className="flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
