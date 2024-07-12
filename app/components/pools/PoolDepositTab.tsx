@@ -250,7 +250,7 @@ export const PoolDepositTab = ({
               return (
                 <TotalDisplay
                   rawAmount={amount}
-                  isExactB={isExact1}
+                  isExact1={isExact1}
                   pool={pool}
                 />
               );
@@ -404,21 +404,21 @@ export const PoolDepositTab = ({
 const TotalDisplay = ({
   rawAmount,
   pool,
-  isExactB,
+  isExact1,
 }: {
   rawAmount: string;
   pool: Pool;
-  isExactB: boolean;
+  isExact1: boolean;
 }) => {
   const amount = parseUnits(
     rawAmount as NumberString,
-    isExactB ? pool.token1.decimals : pool.token0.decimals,
+    isExact1 ? pool.token1.decimals : pool.token0.decimals,
   );
 
-  const amountA = isExactB
+  const amountA = isExact1
     ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
     : amount;
-  const amountB = isExactB
+  const amountB = isExact1
     ? amount
     : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
 
@@ -433,8 +433,8 @@ const TotalDisplay = ({
 
   return (
     <TotalDisplayInner
-      token={isExactB ? pool.token0 : pool.token1}
-      total={isExactB ? formattedTokenInAmount : formattedTokenOutAmount}
+      token={isExact1 ? pool.token0 : pool.token1}
+      total={isExact1 ? formattedTokenInAmount : formattedTokenOutAmount}
     />
   );
 };

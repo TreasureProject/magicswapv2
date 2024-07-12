@@ -11,7 +11,11 @@ import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { NumberString, TroveTokenWithQuantity } from "~/types";
+import type {
+  AddressString,
+  NumberString,
+  TroveTokenWithQuantity,
+} from "~/types";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
@@ -28,40 +32,40 @@ type Props = {
 export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const { address } = useAccount();
   const slippage = useSettingsStore((state) => state.slippage);
-  const [{ amount: rawAmount, nftsA, nftsB }, setTransaction] = useState({
+  const [{ amount: rawAmount, nfts0, nfts1 }, setTransaction] = useState({
     amount: "0",
-    nftsA: [] as TroveTokenWithQuantity[],
-    nftsB: [] as TroveTokenWithQuantity[],
+    nfts0: [] as TroveTokenWithQuantity[],
+    nfts1: [] as TroveTokenWithQuantity[],
   });
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
 
-  const rawAmountA = getTokenCountForLp(
+  const rawAmount0 = getTokenCountForLp(
     amount,
     BigInt(pool.token0.reserve),
     BigInt(pool.totalSupply),
   );
-  const rawAmountB = getTokenCountForLp(
+  const rawAmount1 = getTokenCountForLp(
     amount,
     BigInt(pool.token1.reserve),
     BigInt(pool.totalSupply),
   );
-  const amountA = pool.token0.isNFT ? floorBigInt(rawAmountA) : rawAmountA;
-  const amountB = pool.token1.isNFT ? floorBigInt(rawAmountB) : rawAmountB;
-  const amountAMin = pool.token0.isNFT
-    ? amountA
-    : getAmountMin(amountA, slippage || DEFAULT_SLIPPAGE);
-  const amountBMin = pool.token1.isNFT
-    ? amountB
-    : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE);
-  const amountALeftover = pool.token0.isNFT ? rawAmountA - amountA : 0n;
-  const amountBLeftover = pool.token1.isNFT ? rawAmountB - amountB : 0n;
-  const amountNFTsA = pool.token0.isNFT
-    ? bigIntToNumber(amountAMin, pool.token0.decimals)
+  const amount0 = pool.token0.isNFT ? floorBigInt(rawAmount0) : rawAmount0;
+  const amount1 = pool.token1.isNFT ? floorBigInt(rawAmount1) : rawAmount1;
+  const amount0Min = pool.token0.isNFT
+    ? amount0
+    : getAmountMin(amount0, slippage || DEFAULT_SLIPPAGE);
+  const amount1Min = pool.token1.isNFT
+    ? amount1
+    : getAmountMin(amount1, slippage || DEFAULT_SLIPPAGE);
+  const amount0Leftover = pool.token0.isNFT ? rawAmount0 - amount0 : 0n;
+  const amount1Leftover = pool.token1.isNFT ? rawAmount1 - amount1 : 0n;
+  const amountNFTs0 = pool.token0.isNFT
+    ? bigIntToNumber(amount0Min, pool.token0.decimals)
     : 0;
-  const amountNFTsB = pool.token1.isNFT
-    ? bigIntToNumber(amountBMin, pool.token1.decimals)
+  const amountNFTs1 = pool.token1.isNFT
+    ? bigIntToNumber(amount1Min, pool.token1.decimals)
     : 0;
 
   const { isApproved, refetch: refetchApproval } = useIsApproved({
@@ -77,14 +81,20 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
 
   const { removeLiquidity } = useRemoveLiquidity({
     pool,
+    tokenA: (pool.token1.isNFT
+      ? pool.token1.id
+      : pool.token0.id) as AddressString,
+    tokenB: (pool.token1.isNFT
+      ? pool.token0.id
+      : pool.token1.id) as AddressString,
     amountLP: amount,
-    amountAMin,
-    amountBMin,
-    nftsA,
-    nftsB,
+    amountAMin: pool.token1.isNFT ? amount1Min : amount0Min,
+    amountBMin: pool.token1.isNFT ? amount0Min : amount1Min,
+    nftsA: pool.token1.isNFT ? nfts1 : nfts0,
+    nftsB: pool.token1.isNFT ? nfts0 : nfts1,
     enabled: !!address && isApproved && hasAmount,
     onSuccess: useCallback(() => {
-      setTransaction({ amount: "0", nftsA: [], nftsB: [] });
+      setTransaction({ amount: "0", nfts0: [], nfts1: [] });
       onSuccess?.();
     }, [onSuccess]),
   });
@@ -104,8 +114,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
         onUpdateAmount={(amount) =>
           setTransaction({
             amount,
-            nftsA: [],
-            nftsB: [],
+            nfts0: [],
+            nfts1: [],
           })
         }
       />
@@ -117,48 +127,52 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token0} />
                 <span className="text-honey-25">
-                  {formatTokenAmount(amountAMin)}
+                  {formatTokenAmount(amount0Min)}
                 </span>
                 {pool.token0.symbol}
               </div>
-              {formatUSD(
-                bigIntToNumber(amountAMin, pool.token0.decimals) *
-                  pool.token0.priceUSD,
-              )}
+              {pool.token0.priceUSD
+                ? formatUSD(
+                    bigIntToNumber(amount0Min, pool.token0.decimals) *
+                      pool.token0.priceUSD,
+                  )
+                : null}
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token1} />
                 <span className="text-honey-25">
-                  {formatTokenAmount(amountBMin)}
+                  {formatTokenAmount(amount1Min)}
                 </span>
                 {pool.token1.symbol}
               </div>
-              {formatUSD(
-                bigIntToNumber(amountBMin, pool.token1.decimals) *
-                  pool.token1.priceUSD,
-              )}
+              {pool.token1.priceUSD
+                ? formatUSD(
+                    bigIntToNumber(amount1Min, pool.token1.decimals) *
+                      pool.token1.priceUSD,
+                  )
+                : null}
             </div>
-            {pool.isNFTNFT && (amountALeftover > 0 || amountBLeftover > 0) ? (
+            {pool.isNFTNFT && (amount0Leftover > 0 || amount1Leftover > 0) ? (
               <>
                 <p>And leftover vault tokens:</p>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(amountALeftover, pool.token0.decimals)}
+                      {formatTokenAmount(amount0Leftover, pool.token0.decimals)}
                     </span>
                     v{pool.token0.symbol}
                   </div>
                   and
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(amountBLeftover, pool.token1.decimals)}
+                      {formatTokenAmount(amount1Leftover, pool.token1.decimals)}
                     </span>
                     v{pool.token1.symbol}
                   </div>
                 </div>
               </>
-            ) : pool.hasNFT && amountALeftover > 0 ? (
+            ) : pool.hasNFT && amount0Leftover > 0 ? (
               <>
                 <p>And swap leftover tokens:</p>
                 <div className="flex items-center justify-between gap-3">
@@ -169,7 +183,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                         token={pool.token0.isNFT ? pool.token0 : pool.token1}
                       />
                       <span className="text-honey-25">
-                        {formatTokenAmount(amountALeftover)}
+                        {formatTokenAmount(amount0Leftover)}
                       </span>
                       {pool.token0.isNFT
                         ? pool.token0.symbol
@@ -184,7 +198,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                       <span className="text-honey-25">
                         {formatTokenAmount(
                           quote(
-                            amountALeftover,
+                            amount0Leftover,
                             pool.token0.isNFT
                               ? BigInt(pool.token0.reserve)
                               : BigInt(pool.token1.reserve),
@@ -201,7 +215,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                   </div>
                   {formatUSD(
                     bigIntToNumber(
-                      amountALeftover,
+                      amount0Leftover,
                       pool.token0.isNFT
                         ? pool.token0.decimals
                         : pool.token1.decimals,
@@ -214,47 +228,47 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               </>
             ) : null}
           </div>
-          {amountNFTsA > 0 ? (
+          {amountNFTs0 > 0 ? (
             <Dialog>
               <SelectionPopup
                 type="vault"
-                limit={amountNFTsA}
+                limit={amountNFTs0}
                 token={pool.token0}
-                selectedTokens={nftsA}
-                onSubmit={(nftsA) =>
+                selectedTokens={nfts0}
+                onSubmit={(nfts0) =>
                   setTransaction((transaction) => ({
                     ...transaction,
-                    nftsA,
+                    nfts0,
                   }))
                 }
               />
               <PoolNftTokenInput
                 token={pool.token0}
-                amount={amountNFTsA}
+                amount={amountNFTs0}
                 reserve={BigInt(pool.token0.reserve)}
-                selectedNfts={nftsA}
+                selectedNfts={nfts0}
               />
             </Dialog>
           ) : null}
-          {amountNFTsB > 0 ? (
+          {amountNFTs1 > 0 ? (
             <Dialog>
               <SelectionPopup
                 type="vault"
-                limit={amountNFTsB}
+                limit={amountNFTs1}
                 token={pool.token1}
-                selectedTokens={nftsB}
-                onSubmit={(nftsB) =>
+                selectedTokens={nfts1}
+                onSubmit={(nfts1) =>
                   setTransaction((transaction) => ({
                     ...transaction,
-                    nftsB,
+                    nfts1,
                   }))
                 }
               />
               <PoolNftTokenInput
                 token={pool.token1}
-                amount={amountNFTsB}
+                amount={amountNFTs1}
                 reserve={BigInt(pool.token1.reserve)}
-                selectedNfts={nftsB}
+                selectedNfts={nfts1}
               />
             </Dialog>
           ) : null}
@@ -277,8 +291,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               !address ||
               !isApproved ||
               !hasAmount ||
-              Number(amountNFTsA) !== countTokens(nftsA) ||
-              Number(amountNFTsB) !== countTokens(nftsB)
+              Number(amountNFTs0) !== countTokens(nfts0) ||
+              Number(amountNFTs1) !== countTokens(nfts1)
             }
             onClick={() => removeLiquidity?.()}
           >

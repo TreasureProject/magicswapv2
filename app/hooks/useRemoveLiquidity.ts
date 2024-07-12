@@ -15,6 +15,8 @@ import { useWaitForTransaction } from "./useWaitForTransaction";
 
 type Props = {
   pool: Pool;
+  tokenA: AddressString;
+  tokenB: AddressString;
   amountLP: bigint;
   amountAMin: bigint;
   amountBMin: bigint;
@@ -27,6 +29,8 @@ type Props = {
 
 export const useRemoveLiquidity = ({
   pool,
+  tokenA,
+  tokenB,
   amountLP,
   amountAMin,
   amountBMin,
@@ -49,8 +53,8 @@ export const useRemoveLiquidity = ({
     useSimulateMagicSwapV2RouterRemoveLiquidity({
       address: routerAddress,
       args: [
-        pool.token0.id as AddressString,
-        pool.token1.id as AddressString,
+        tokenA,
+        tokenB,
         amountLP,
         amountAMin,
         amountBMin,
@@ -75,14 +79,14 @@ export const useRemoveLiquidity = ({
       address: routerAddress,
       args: [
         {
-          token: pool.token0.id as AddressString,
+          token: tokenA,
           collection: nftsA.map(
             ({ collectionAddr }) => collectionAddr as AddressString,
           ),
           tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
           amount: nftsA.map(({ quantity }) => BigInt(quantity)),
         },
-        pool.token1.id as AddressString,
+        tokenB,
         amountLP,
         amountAMin,
         amountBMin,
