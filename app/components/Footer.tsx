@@ -1,8 +1,9 @@
 import { Link } from "@remix-run/react";
 import { MagicSwapLogo } from "@treasure-project/branding";
+import { ChevronUpIcon, ExternalLinkIcon } from "lucide-react";
 import { Balancer } from "react-wrap-balancer";
 
-import { DiscordIcon, TwitterIcon } from "~/components/Icons";
+import { DiscordIcon, MagicTextLogo, TwitterIcon } from "~/components/Icons";
 import {
   DISCORD_URL,
   DOCS_URL,
@@ -11,29 +12,16 @@ import {
   TERMS_OF_SERVICE_URL,
   TWITTER_URL,
 } from "~/consts";
+import { Button } from "./ui/Button";
 
-interface LinkType {
-  text: string;
-  href: string;
-  type: "external" | "internal";
-}
-
-const FooterPoints: {
-  [key: string]: LinkType[];
-} = {
+const FOOTER_LINKS = {
   Treasure: [
     {
-      text: "About Treasure",
+      text: "About",
       href: "https://docs.treasure.lol/introduction",
-      type: "external",
     },
     {
-      text: "Team",
-      href: "https://treasure.lol/team",
-      type: "external",
-    },
-    {
-      text: "MAGIC",
+      text: "What is MAGIC?",
       href: "https://docs.treasure.lol/magic/introduction",
       type: "external",
     },
@@ -43,19 +31,17 @@ const FooterPoints: {
       type: "external",
     },
   ],
-  Legal: [
+  Discover: [
     {
-      text: "Terms of Service",
-      href: "https://app.treasure.lol/terms-of-service",
-      type: "external",
+      text: "Games",
+      href: "https://app.treasure.lol",
     },
     {
-      text: "Privacy Policy",
-      href: "https://app.treasure.lol/privacy-policy",
-      type: "external",
+      text: "Marketplace",
+      href: "https://app.treasure.lol/trending",
     },
   ],
-  Developers: [
+  Resources: [
     {
       text: "Documentation",
       href: DOCS_URL,
@@ -67,101 +53,121 @@ const FooterPoints: {
       type: "external",
     },
   ],
-  Support: [
-    {
-      text: "FAQ",
-      href: "https://docs.treasure.lol",
-      type: "external",
-    },
-  ],
 };
 
 export const Footer = () => {
   return (
-    <div className="container bg-night-1200">
-      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-night-800 to-transparent" />
-      <div className="w-full border-t border-t-night-800">
-        <div className="flex flex-col justify-between gap-14 py-12 lg:flex-row lg:items-center lg:gap-0">
-          <div className="flex flex-col justify-between gap-6 sm:flex-row lg:flex-col lg:justify-normal">
-            <div className="flex items-center gap-6">
-              <MagicSwapLogo className="h-6 w-auto sm:h-14" />
-              <h1 className="max-w-xs font-bold text-lg text-night-500 sm:text-2xl">
-                <Balancer>
-                  The gateway to the cross-game{" "}
-                  <span className="text-night-100">economy</span>
-                </Balancer>
-              </h1>
-            </div>
-            <div className="flex max-w-min items-center divide-x-[1px] divide-night-700 overflow-hidden rounded-lg border border-night-700 text-night-600">
+    <footer className="border-night-900 border-t-2 bg-night-1200 p-16">
+      <div className="container space-y-14">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <MagicSwapLogo className="h-6 w-auto sm:h-14" />
+            <h1 className="max-w-xs font-semibold text-lg text-night-500 sm:text-2xl">
+              <Balancer>
+                The gateway to the cross-game{" "}
+                <span className="text-white">economy</span>.
+              </Balancer>
+            </h1>
+          </div>
+          <ul className="flex items-center gap-2.5">
+            <li>
               <a
-                className="px-3.5 py-2 transition-colors hover:bg-night-1000 hover:text-night-100"
+                className="text-night-100 transition-colors hover:text-honey-25"
                 href={DISCORD_URL}
                 target="_blank"
                 rel="noreferrer"
               >
                 <DiscordIcon className="h-8" />
               </a>
-
+            </li>
+            <li>
               <a
-                className="px-3.5 py-2 transition-colors hover:bg-night-1100 hover:text-night-100"
+                className="text-night-100 transition-colors hover:text-honey-25"
                 href={TWITTER_URL}
                 target="_blank"
                 rel="noreferrer"
               >
                 <TwitterIcon className="h-5" />
               </a>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 gap-y-8 md:grid-cols-4">
-            {Object.keys(FooterPoints).map((key: string) => (
-              <div className="flex flex-col gap-3" key={key}>
-                <p className="font-medium text-sm">{key}</p>
-                <div className="flex flex-col gap-2 text-night-500">
-                  {FooterPoints[key]?.map((link: LinkType) => (
-                    <a
-                      href={link.href}
-                      key={link.text}
-                      className="transition-colors hover:text-night-400"
-                      {...(link.type === "external" && {
-                        target: "_blank",
-                        rel: "noopener noreferrer",
-                      })}
-                    >
-                      {link.text}
-                    </a>
+            </li>
+          </ul>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-8">
+            {Object.entries(FOOTER_LINKS).map(([title, links]) => (
+              <div key={title} className="space-y-4">
+                <p className="font-semibold text-honey-25">{title}</p>
+                <ul className="space-y-4 text-night-500">
+                  {links.map(({ text, href }) => (
+                    <li key={text}>
+                      <a
+                        href={href}
+                        key={text}
+                        className="flex items-center gap-1 transition-colors hover:text-honey-25"
+                        {...(href.startsWith("https://")
+                          ? {
+                              target: "_blank",
+                              rel: "noopener noreferrer",
+                            }
+                          : undefined)}
+                      >
+                        {text}
+                        {href.startsWith("https://") ? (
+                          <ExternalLinkIcon className="h-3 w-3" />
+                        ) : null}
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             ))}
           </div>
+          <div className="flex flex-col items-end gap-2">
+            <Button size="md" className="flex items-center gap-1">
+              Buy <MagicTextLogo className="h-4" />
+            </Button>
+            <button
+              type="button"
+              className="flex items-center gap-1 py-4 pl-4 font-semibold text-honey-25 text-sm transition-colors hover:text-white"
+              onClick={() => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
+            >
+              Back to the top
+              <ChevronUpIcon className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="w-full border-t border-t-night-800">
-        <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
-          <p className="base-500 text-center text-night-500 text-sm md:text-start">
-            Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
-            reserved.
-          </p>
-          <div className="flex gap-5 text-night-500">
-            <Link
-              to={TERMS_OF_SERVICE_URL}
-              className="transition-colors hover:text-night-400"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              to={PRIVACY_POLICY_URL}
-              className="transition-colors hover:text-night-400"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Privacy Policy
-            </Link>
+        <div className="w-full border-night-900 border-t text-night-500 text-sm">
+          <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+            <p className="base-500 text-center md:text-start">
+              Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
+              reserved.
+            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                to={TERMS_OF_SERVICE_URL}
+                className="transition-colors hover:text-night-400"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Terms of Service
+              </Link>
+              <Link
+                to={PRIVACY_POLICY_URL}
+                className="transition-colors hover:text-night-400"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </footer>
   );
 };

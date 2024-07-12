@@ -1,6 +1,7 @@
 {
   "ignore": [
     "./artifacts/*",
+    "./app/components/StatisticCard.tsx",
     "./app/graphql/*",
     "./postcss.config.cjs",
     "./wagmi.config.ts"
