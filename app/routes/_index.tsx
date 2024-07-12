@@ -33,7 +33,7 @@ export default function Homepage() {
   return (
     <>
       <div className="h-[548px] bg-[url(/img/home/hero.png)] bg-bottom bg-cover">
-        <div className="container flex h-full flex-col items-center justify-center gap-8">
+        <div className="mx-auto h-full max-w-lg space-y-8 text-center">
           <div className="space-y-3">
             <motion.h1
               initial={{
@@ -44,12 +44,12 @@ export default function Homepage() {
                 opacity: 100,
                 y: 0,
               }}
-              className="max-w-lg text-center font-bold text-4xl text-honey-25 leading-[120%]"
+              className="font-bold text-4xl text-honey-25"
             >
               Magicswap Protocol
             </motion.h1>
             <motion.p
-              className="text-center text-night-300"
+              className="text-night-300"
               initial={{
                 opacity: 0,
                 y: -30,
@@ -67,7 +67,7 @@ export default function Homepage() {
             </motion.p>
           </div>
           <motion.div
-            className="flex max-w-md items-center justify-center gap-3 sm:w-full"
+            className="flex items-center justify-center gap-3"
             initial={{
               opacity: 0,
               y: -30,
