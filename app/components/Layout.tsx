@@ -37,7 +37,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center gap-7 divide-x divide-night-900">
             <Link to="/">
               <MagicSwapLogoFull className="hidden h-7 md:block" />
-              <MagicSwapLogo className="h-7 md:hidden" />
+              <MagicSwapLogo className="h-8 md:hidden" />
             </Link>
             <div className="hidden items-center lg:flex">
               {Pages.map((page) => (

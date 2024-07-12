@@ -32,8 +32,8 @@ export default function Homepage() {
   // const { stats } = useLoaderData<typeof loader>();
   return (
     <>
-      <div className="h-[548px] bg-[url(/img/home/hero.png)] bg-bottom bg-cover">
-        <div className="mx-auto h-full max-w-lg space-y-8 text-center">
+      <div className="h-auto bg-[url(/img/home/hero.png)] bg-bottom bg-cover py-24 md:h-[548px] md:py-0">
+        <div className="mx-auto flex h-full w-full max-w-[90%] flex-col items-center justify-center space-y-8 text-center md:max-w-lg">
           <div className="space-y-3">
             <motion.h1
               initial={{
@@ -44,7 +44,7 @@ export default function Homepage() {
                 opacity: 100,
                 y: 0,
               }}
-              className="font-bold text-4xl text-honey-25"
+              className="font-bold text-3xl text-honey-25 md:text-4xl"
             >
               Magicswap Protocol
             </motion.h1>
@@ -163,36 +163,40 @@ export default function Homepage() {
         </motion.div>
       </div> */}
       <motion.div
-        className="container mt-16 mb-16 flex flex-col items-center justify-between gap-8 md:mt-0 md:mb-0 md:h-[556px] md:flex-row"
+        className="container mt-12 flex flex-col items-center justify-between gap-8 md:mt-0 md:mb-0 md:h-[556px] md:flex-row"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="gap-6 space-y-10 md:max-w-md">
-          <div className="space-y-5">
-            <h1 className="text-center font-semibold text-4xl text-honey-25 md:text-left">
+        <div className="max-w-[90%] gap-6 space-y-6 md:max-w-md md:space-y-10">
+          <div className="space-y-5 text-center md:text-left">
+            <h1 className="font-semibold text-2xl text-honey-25 md:text-4xl">
               Universal Token Compatibility
             </h1>
-            <p className="text-center text-night-500 text-xl md:text-left">
+            <p className="text-night-500 md:text-xl">
               Support pools for both ERC-20s and NFTs through a single router
               and enable trading of all items within game economies.
             </p>
           </div>
           <button
             type="button"
-            className="flex items-center gap-1 text-night-500 text-xl transition-colors hover:text-night-100"
+            className="mx-auto flex items-center gap-1 text-night-500 transition-colors hover:text-night-100 md:mx-0 md:text-xl"
           >
             Learn more
             <ChevronRightIcon className="w-6" />
           </button>
         </div>
-        <img src="/img/home/universal-token.png" alt="" className="h-full" />
+        <img
+          src="/img/home/universal-token.png"
+          alt=""
+          className="w-full md:h-full md:w-auto"
+        />
       </motion.div>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="container grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-6 rounded-xl bg-night-1100 p-8">
+        <div className="container grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+          <div className="space-y-6 rounded-xl bg-night-1100 p-6 md:p-8">
             <img src="/img/home/lp-rewards.svg" className="w-[42px]" alt="" />
             <div className="space-y-1">
-              <h2 className="font-semibold text-2xl text-honey-25">
+              <h2 className="font-semibold text-honey-25 text-xl md:text-2xl">
                 Diverse LP rewards
               </h2>
               <p className="text-night-400">
@@ -201,14 +205,14 @@ export default function Homepage() {
               </p>
             </div>
           </div>
-          <div className="space-y-6 rounded-xl bg-night-1100 p-8">
+          <div className="space-y-6 rounded-xl bg-night-1100 p-6 md:p-8">
             <img
               src="/img/home/automated-royalties.svg"
               className="w-[42px]"
               alt=""
             />
             <div className="space-y-1">
-              <h2 className="font-semibold text-2xl text-honey-25">
+              <h2 className="font-semibold text-honey-25 text-xl md:text-2xl">
                 Automated royalties
               </h2>
               <p className="text-night-400">
@@ -217,14 +221,14 @@ export default function Homepage() {
               </p>
             </div>
           </div>
-          <div className="space-y-6 rounded-xl bg-night-1100 p-8">
+          <div className="space-y-6 rounded-xl bg-night-1100 p-6 md:p-8">
             <img
               src="/img/home/cheaper-trading.svg"
               className="w-[42px]"
               alt=""
             />
             <div className="space-y-1">
-              <h2 className="font-semibold text-2xl text-honey-25">
+              <h2 className="font-semibold text-honey-25 text-xl md:text-2xl">
                 Cheaper trading
               </h2>
               <p className="text-night-400">
@@ -240,12 +244,12 @@ export default function Homepage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="relative mt-8 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-8">
-          <h1 className="relative z-10 font-semibold text-2xl text-honey-25">
+        <div className="relative mt-4 flex flex-col gap-2 overflow-hidden rounded-xl bg-night-1100 p-6 md:mt-6 md:p-8">
+          <h1 className="relative z-10 font-semibold text-honey-25 text-xl md:text-2xl">
             <span className="text-ruby-900 uppercase">$MAGIC</span> and Fee
             Structure
           </h1>
-          <p className="relative z-10 max-w-3xl text-lg text-night-400">
+          <p className="relative z-10 max-w-3xl text-night-400 md:text-lg">
             Magicswap utilizes $MAGIC as the governance and fee token. The
             protocol collects a 0.3% baseline fee for transactions that can be
             overridden by pool. Additional fees may be set by the pool creator
@@ -254,9 +258,9 @@ export default function Homepage() {
           <img
             src="/img/home/magic.png"
             alt="Magic Illustration"
-            className="absolute top-0 right-10 h-full"
+            className="absolute top-0 right-10 hidden h-full opacity-20 md:block xl:opacity-100"
           />
-          <div className="absolute right-0 bottom-0 h-72 w-96 translate-y-3/4 rounded-full bg-ruby-900 opacity-20 blur-[999px]" />
+          <div className="absolute right-0 bottom-0 hidden h-72 w-96 translate-y-3/4 rounded-full bg-ruby-900 opacity-20 blur-[999px] md:block" />
         </div>
       </motion.div>
       <div className="relative mt-8 overflow-hidden border-t border-t-night-1000 py-8 md:mt-16 md:py-16">
@@ -278,7 +282,7 @@ export default function Homepage() {
             <img
               src="/img/home/collections.png"
               alt=""
-              className="absolute top-0 right-28 h-full"
+              className="absolute top-0 right-28 hidden h-full opacity-20 md:block xl:opacity-100"
             />
           </div>
         </div>

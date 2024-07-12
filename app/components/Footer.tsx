@@ -57,12 +57,12 @@ const FOOTER_LINKS = {
 
 export const Footer = () => {
   return (
-    <footer className="border-night-900 border-t-2 bg-night-1200 p-16">
-      <div className="container space-y-14">
-        <div className="flex items-center justify-between">
+    <footer className="border-night-900 border-t-2 bg-night-1200 px-4 py-6 md:p-16">
+      <div className="container space-y-8 md:space-y-14">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <MagicSwapLogo className="h-6 w-auto sm:h-14" />
-            <h1 className="max-w-xs font-semibold text-lg text-night-500 sm:text-2xl">
+            <MagicSwapLogo className="h-8 shrink-0 md:h-14" />
+            <h1 className="max-w-xs font-semibold text-night-500 md:text-2xl">
               <Balancer>
                 The gateway to the cross-game{" "}
                 <span className="text-white">economy</span>.
@@ -92,18 +92,21 @@ export const Footer = () => {
             </li>
           </ul>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-start gap-8">
+        <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
+          <div className="flex flex-wrap items-start justify-center gap-8">
             {Object.entries(FOOTER_LINKS).map(([title, links]) => (
-              <div key={title} className="space-y-4">
+              <div
+                key={title}
+                className="space-y-2 text-center md:space-y-4 md:text-left"
+              >
                 <p className="font-semibold text-honey-25">{title}</p>
-                <ul className="space-y-4 text-night-500">
+                <ul className="space-y-2 text-night-500 md:space-y-4">
                   {links.map(({ text, href }) => (
                     <li key={text}>
                       <a
                         href={href}
                         key={text}
-                        className="flex items-center gap-1 transition-colors hover:text-honey-25"
+                        className="flex items-center justify-center gap-1 transition-colors hover:text-honey-25 md:justify-start"
                         {...(href.startsWith("https://")
                           ? {
                               target: "_blank",
@@ -142,7 +145,7 @@ export const Footer = () => {
           </div>
         </div>
         <div className="w-full border-night-900 border-t text-night-500 text-sm">
-          <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 pt-6 sm:flex-row">
             <p className="base-500 text-center md:text-start">
               Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
               reserved.
