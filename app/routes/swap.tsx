@@ -89,7 +89,7 @@ export const meta: MetaFunction<
     ),
     image: data?.tokenOut
       ? `${url}/${data?.tokenIn.id}/${data?.tokenOut.id}.png`
-      : generateUrl(requestInfo?.origin, "/img/default_banner.png"),
+      : generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
 

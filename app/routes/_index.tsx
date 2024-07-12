@@ -24,7 +24,7 @@ export const meta: MetaFunction<
     .requestInfo;
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
-    image: generateUrl(requestInfo?.origin, "/img/default_banner.png"),
+    image: generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
 

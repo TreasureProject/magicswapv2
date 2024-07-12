@@ -16,7 +16,7 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
     title: generateTitle("Page Not Found"),
-    image: generateUrl(requestInfo?.origin, "/img/default_banner.png"),
+    image: generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
 
