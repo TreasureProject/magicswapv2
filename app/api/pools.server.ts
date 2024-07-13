@@ -2,7 +2,6 @@ import type { ExecutionResult } from "graphql";
 
 import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
-import type { Pool } from "~/lib/pools.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import { itemToTroveTokenItem } from "~/lib/tokens.server";
 import type { AddressString, Pair } from "~/types";
@@ -13,15 +12,31 @@ import {
   type GetPairTransactionsQuery,
   GetPairsDocument,
   type GetPairsQuery,
+  type TransactionType,
   execute,
 } from "../../.graphclient";
 import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokenMapping } from "./tokens.server";
 
-export const fetchTransactions = async (pool: Pool) => {
+export const fetchPoolTransactions = async ({
+  id,
+  page = 1,
+  resultsPerPage = 25,
+  type,
+}: {
+  id: string;
+  page?: number;
+  resultsPerPage?: number;
+  type?: TransactionType;
+}) => {
   const result = (await execute(GetPairTransactionsDocument, {
-    id: pool.id,
+    first: resultsPerPage,
+    skip: (page - 1) * resultsPerPage,
+    where: {
+      pair: id,
+      ...(type ? { type } : undefined),
+    },
   })) as ExecutionResult<GetPairTransactionsQuery>;
   const { transactions = [] } = result.data ?? {};
 
@@ -46,7 +61,7 @@ export const fetchTransactions = async (pool: Pool) => {
 };
 
 export type PoolTransaction = Awaited<
-  ReturnType<typeof fetchTransactions>
+  ReturnType<typeof fetchPoolTransactions>
 >[number];
 export type PoolTransactionType = PoolTransaction["type"];
 export type PoolTransactionItem = PoolTransaction["items0"][number];

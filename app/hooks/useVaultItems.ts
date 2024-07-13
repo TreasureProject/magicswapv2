@@ -8,12 +8,12 @@ type Props = {
   id: string;
   type: "reserves" | "inventory";
   address?: string;
-  itemsPerPage?: number;
+  resultsPerPage?: number;
   enabled?: boolean;
 };
 
 const DEFAULT_STATE = {
-  items: [],
+  results: [],
   page: 1,
   hasNextPage: false,
   isLoading: false,
@@ -24,39 +24,40 @@ export const useVaultItems = ({
   id,
   type,
   address,
-  itemsPerPage = 25,
+  resultsPerPage = 25,
   enabled = true,
 }: Props) => {
   const { load, state, data } = useFetcher<FetchVaultItems>();
-  const [{ items, page, hasNextPage, isLoading, error }, setState] = useState<{
-    items: TroveToken[];
-    page: number;
-    hasNextPage: boolean;
-    isLoading: boolean;
-    error: string | undefined;
-  }>(DEFAULT_STATE);
+  const [{ results, page, hasNextPage, isLoading, error }, setState] =
+    useState<{
+      results: TroveToken[];
+      page: number;
+      hasNextPage: boolean;
+      isLoading: boolean;
+      error: string | undefined;
+    }>(DEFAULT_STATE);
 
   useEffect(() => {
     if (data?.ok) {
       setState((curr) => ({
         ...curr,
-        items:
-          curr.page === 1 ? data.results : [...curr.items, ...data.results],
-        hasNextPage: data.results.length === itemsPerPage,
+        results:
+          curr.page === 1 ? data.results : [...curr.results, ...data.results],
+        hasNextPage: data.results.length === resultsPerPage,
         isLoading: false,
         error: undefined,
       }));
     } else if (data?.error) {
       setState({ ...DEFAULT_STATE, error: data.error });
     }
-  }, [data, itemsPerPage]);
+  }, [data, resultsPerPage]);
 
   useEffect(() => {
     if (enabled) {
       const params = new URLSearchParams({
         type,
         page: page.toString(),
-        itemsPerPage: itemsPerPage.toString(),
+        resultsPerPage: resultsPerPage.toString(),
       });
 
       if (type === "inventory" && address) {
@@ -68,11 +69,11 @@ export const useVaultItems = ({
     } else {
       setState(DEFAULT_STATE);
     }
-  }, [enabled, id, type, address, page, itemsPerPage, load]);
+  }, [enabled, id, type, address, page, resultsPerPage, load]);
 
   return {
     isLoading: isLoading || state === "loading",
-    items,
+    results,
     page,
     hasNextPage,
     loadNextPage: () =>

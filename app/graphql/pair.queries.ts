@@ -50,11 +50,19 @@ export const PAIR_FRAGMENT = gql`
 
 export const getPairTransactions = gql`
   ${TRANSACTION_ITEM_FRAGMENT}
-  query GetPairTransactions($id: String!) {
+  query GetPairTransactions(
+    $skip: Int = 0
+    $first: Int = 15
+    $where: Transaction_filter
+    $orderBy: Transaction_orderBy = timestamp
+    $orderDirection: OrderDirection = desc
+  ) {
     transactions(
-      where: { pair: $id }
-      orderBy: timestamp
-      orderDirection: desc
+      skip: $skip
+      first: $first
+      where: $where
+      orderBy: $orderBy
+      orderDirection: $orderDirection
     ) {
       id
       hash

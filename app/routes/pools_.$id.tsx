@@ -32,13 +32,14 @@ import {
 } from "react";
 import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
+import type { TransactionType } from ".graphclient";
 
 import type {
   PoolTransaction,
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
-import { fetchPool, fetchTransactions } from "~/api/pools.server";
+import { fetchPool, fetchPoolTransactions } from "~/api/pools.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
@@ -61,6 +62,7 @@ import { useReadErc20BalanceOf } from "~/generated";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
+import { usePoolTransactions } from "~/hooks/usePoolTransactions";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
@@ -124,20 +126,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  if (!address || !pool.hasNFT) {
-    return defer({
-      pool,
-      transactions: fetchTransactions(pool),
-      vaultItems0: null,
-      vaultItems1: null,
-      nftBalance0: null,
-      nftBalance1: null,
-    });
-  }
-
   return defer({
     pool,
-    transactions: fetchTransactions(pool),
     vaultItems0: pool.token0.isNFT
       ? fetchVaultReserveItems({
           id: pool.token0.id,
@@ -148,14 +138,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
           id: pool.token1.id,
         })
       : undefined,
-    nftBalance0: fetchPoolTokenBalance(pool.token0, address),
-    nftBalance1: fetchPoolTokenBalance(pool.token1, address),
+    nftBalance0:
+      pool.token0.isNFT && address
+        ? fetchPoolTokenBalance(pool.token0, address)
+        : undefined,
+    nftBalance1:
+      pool.token1.isNFT && address
+        ? fetchPoolTokenBalance(pool.token1, address)
+        : undefined,
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1, transactions } =
-    useLoaderData<typeof loader>();
+  const { pool, vaultItems0, vaultItems1 } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -476,17 +471,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <Suspense>
-          <Await resolve={transactions}>
-            {(transactions) => (
-              <PoolActivityTable
-                pool={pool}
-                transactions={transactions}
-                filter={poolActivityFilter}
-              />
-            )}
-          </Await>
-        </Suspense>
+        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
       </div>
       <Sheet>
         <SheetTrigger asChild>
@@ -573,30 +558,26 @@ const PoolManagementView = ({
 
 const PoolActivityTable = ({
   pool,
-  transactions,
   filter,
 }: {
   pool: Pool;
-  transactions: PoolTransaction[];
-  filter?: PoolTransactionType;
+  filter?: TransactionType;
 }) => {
+  const {
+    isLoading,
+    results: transactions,
+    page,
+    resultsPerPage,
+    hasPreviousPage,
+    hasNextPage,
+    goToPreviousPage,
+    goToNextPage,
+  } = usePoolTransactions({ id: pool.id });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const showPerPage = 12;
-  const [activePage, setActivePage] = useState<number>(0);
   const blockExplorer = useBlockExplorer();
 
-  const handlePagination = (direction: "next" | "prev") => {
-    if (direction === "next" && activePage < 1 / showPerPage - 1) {
-      setActivePage(activePage + 1);
-    }
-    if (direction === "prev" && activePage > 0) {
-      setActivePage(activePage - 1);
-    }
-  };
-
   const isMounted = useIsMounted();
-
-  if (!isMounted)
+  if (!isMounted || isLoading)
     return (
       <div className="flex h-96 items-center justify-center">
         <LoaderIcon className="h-10 w-10" />
@@ -614,9 +595,9 @@ const PoolActivityTable = ({
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Action
             </th>
-            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+            {/* <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Value
-            </th>
+            </th> */}
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               User
             </th>
@@ -710,9 +691,9 @@ const PoolActivityTable = ({
                         <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                           {tx.type}
                         </td>
-                        <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                        {/* <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
-                        </td>
+                        </td> */}
                         <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                           {truncateEthAddress(tx.user.id)}
                         </td>
@@ -780,17 +761,20 @@ const PoolActivityTable = ({
         <Button
           variant="ghost"
           className="pr-3.5 pl-2"
-          onClick={() => handlePagination("prev")}
+          disabled={!hasPreviousPage}
+          onClick={() => goToPreviousPage()}
         >
           <ChevronLeftIcon className="w-4" />
           <p className="text-sm">Previous</p>
         </Button>
         <p className="text-night-500">
           Showing{" "}
-          <span className="text-night-200">{activePage * showPerPage + 1}</span>{" "}
+          <span className="text-night-200">
+            {formatNumber((page - 1) * resultsPerPage + 1)}
+          </span>{" "}
           to{" "}
           <span className="text-night-200">
-            {formatNumber(transactions.length)}
+            {formatNumber((page - 1) * resultsPerPage + transactions.length)}
           </span>{" "}
           of{" "}
           <span className="text-night-200">{formatNumber(pool.txCount)}</span>
@@ -798,7 +782,8 @@ const PoolActivityTable = ({
         <Button
           variant="ghost"
           className="pr-2 pl-3.5"
-          onClick={() => handlePagination("next")}
+          disabled={!hasNextPage}
+          onClick={() => goToNextPage()}
         >
           <p className="text-sm">Next</p>
           <ChevronRightIcon className="w-4" />
