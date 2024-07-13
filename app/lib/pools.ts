@@ -117,10 +117,10 @@ export const getPoolVolume24hDisplay = (pool: Pool) => {
 export const getPoolReserveDisplay = (pool: Pool) => {
   if (!pool.reserveUSD) {
     if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatTokenAmount(BigInt(pool.token0.reserve))} ${pool.token0.symbol}`;
+      return `${formatTokenAmount(BigInt(pool.token0.reserve) * 2n)} ${pool.token0.symbol}`;
     }
 
-    return `${formatTokenAmount(BigInt(pool.token1.reserve))} ${pool.token1.symbol}`;
+    return `${formatTokenAmount(BigInt(pool.token1.reserve) * 2n)} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.reserveUSD);

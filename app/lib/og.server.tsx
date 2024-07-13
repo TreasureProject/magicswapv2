@@ -4,7 +4,7 @@ import satori from "satori";
 
 import type { PoolToken } from "~/types";
 
-const loadFont = (baseUrl: string, name: string, weight: 500 | 600 | 700) =>
+const loadFont = (baseUrl: string, name: string, weight: 500 | 600) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
     async (res) =>
       ({
@@ -70,7 +70,6 @@ export const generateOgImage = async (
   const fontData = await Promise.all([
     loadFont(origin, "ABCWhyteVariable.woff", 500),
     loadFont(origin, "ABCWhyte-Bold.otf", 600),
-    loadFont(origin, "ABCWhyte-Black.otf", 700),
   ]).then((fonts) => fonts.flat());
 
   const options: SatoriOptions = {
@@ -87,7 +86,7 @@ export const generateOgImage = async (
         height: options.height,
         fontFamily: "ABCWhyte",
         fontSize: 45,
-        backgroundImage: `url(${origin}/img/thumbnail.png)`,
+        backgroundImage: `url(${origin}/img/seo-banner-blank.png)`,
       }}
     >
       {content}
