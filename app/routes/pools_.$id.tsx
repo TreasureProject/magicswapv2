@@ -714,7 +714,7 @@ const PoolActivityTable = ({
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td>
                         <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
-                          {truncateEthAddress(tx.user.id)}
+                          {tx.user ? truncateEthAddress(tx.user.id) : "-"}
                         </td>
                         <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
                           {new Date(
