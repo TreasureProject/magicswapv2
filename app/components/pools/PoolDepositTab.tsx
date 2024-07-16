@@ -35,8 +35,8 @@ import { PoolTokenInput } from "./PoolTokenInput";
 type Props = {
   pool: Pool;
   nftBalances: {
-    nftBalance0: Promise<number> | null;
-    nftBalance1: Promise<number> | null;
+    nftBalance0: Promise<number> | undefined;
+    nftBalance1: Promise<number> | undefined;
   };
   onSuccess?: () => void;
 };

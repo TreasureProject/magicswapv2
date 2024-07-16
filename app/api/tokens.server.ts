@@ -196,17 +196,17 @@ export const fetchVaultUserInventory = async ({
 export const fetchVaultReserveItems = async ({
   id,
   page = 1,
-  itemsPerPage = 25,
+  resultsPerPage = 25,
 }: {
   id: string;
   page?: number;
-  itemsPerPage?: number;
+  resultsPerPage?: number;
 }): Promise<TroveToken[]> => {
   // Fetch vault reserve items from subgraph
   const result = (await execute(GetTokenVaultReserveItemsDocument, {
     id,
-    first: itemsPerPage,
-    skip: (page - 1) * itemsPerPage,
+    first: resultsPerPage,
+    skip: (page - 1) * resultsPerPage,
   })) as ExecutionResult<GetTokenVaultReserveItemsQuery>;
   const { vaultReserveItems = [] } = result.data ?? {};
 

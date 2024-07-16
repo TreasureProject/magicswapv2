@@ -141,7 +141,11 @@ type Props = ViewOnlyProps | EditableProps;
 
 export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const { address } = useAccount();
-  const { items, isLoading, refetch } = useVaultItems({
+  const {
+    results: vaultItems,
+    isLoading,
+    refetch,
+  } = useVaultItems({
     id: token.id,
     type: type === "vault" ? "reserves" : "inventory",
     address,
@@ -235,7 +239,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   : "grid-cols-3 md:grid-cols-4 lg:grid-cols-5",
               )}
             >
-              {items.map((item) => (
+              {vaultItems.map((item) => (
                 <ItemCard
                   disabled={selectionDisabled}
                   selected={selectedItems.some(
