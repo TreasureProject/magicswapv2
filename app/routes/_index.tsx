@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
 
 import { Button } from "~/components/ui/Button";
+import { DOCS_URL } from "~/consts";
 import { generateUrl, getSocialMetas } from "~/lib/seo";
 import type { RootLoader } from "~/root";
 
@@ -177,13 +178,15 @@ export default function Homepage() {
               and enable trading of all items within game economies.
             </p>
           </div>
-          <button
-            type="button"
+          <Link
+            to={DOCS_URL}
             className="mx-auto flex items-center gap-1 text-night-500 transition-colors hover:text-night-100 md:mx-0 md:text-xl"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Learn more
             <ChevronRightIcon className="w-6" />
-          </button>
+          </Link>
         </div>
         <img
           src="/img/home/universal-token.png"
