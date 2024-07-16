@@ -38,25 +38,30 @@ export const fetchPoolTransactions = async ({
       ...(type ? { type } : undefined),
     },
   })) as ExecutionResult<GetPairTransactionsQuery>;
-  const { transactions = [] } = result.data ?? {};
+  const { pair } = result.data ?? {};
+  if (!pair) {
+    throw new Error(`Pair not found: ${pool.id}`);
+  }
 
+  const transactions = pair.transactions;
   const tokens = await fetchTroveTokenMapping([
-    ...new Set([
-      ...transactions.flatMap((transaction) => [
-        ...(transaction.items0?.map(
-          ({ collection, tokenId }) => `${collection.id}/${tokenId}`,
-        ) ?? []),
-        ...(transaction.items1?.map(
-          ({ collection, tokenId }) => `${collection.id}/${tokenId}`,
-        ) ?? []),
-      ]),
-    ]),
+    ...new Set(
+      transactions.flatMap(({ items }) =>
+        items.map(({ collection, tokenId }) => `${collection.id}/${tokenId}`),
+      ),
+    ),
   ]);
 
-  return transactions.map(({ items0, items1, ...transaction }) => ({
+  return transactions.map(({ items, ...transaction }) => ({
     ...transaction,
-    items0: items0?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
-    items1: items1?.map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
+    items0:
+      items
+        ?.filter(({ vault }) => vault.id === pair.token0.id)
+        .map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
+    items1:
+      items
+        ?.filter(({ vault }) => vault.id === pair.token1.id)
+        .map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
   }));
 };
 

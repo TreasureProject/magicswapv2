@@ -5,6 +5,9 @@ import { TOKEN_FRAGMENT } from "./token.queries";
 const TRANSACTION_ITEM_FRAGMENT = gql`
   fragment TransactionItemFragment on TransactionItem {
     id
+    vault {
+      id
+    }
     collection {
       id
     }
@@ -51,35 +54,41 @@ export const PAIR_FRAGMENT = gql`
 export const getPairTransactions = gql`
   ${TRANSACTION_ITEM_FRAGMENT}
   query GetPairTransactions(
+    $pair: ID!
     $skip: Int = 0
     $first: Int = 15
     $where: Transaction_filter
     $orderBy: Transaction_orderBy = timestamp
     $orderDirection: OrderDirection = desc
   ) {
-    transactions(
-      skip: $skip
-      first: $first
-      where: $where
-      orderBy: $orderBy
-      orderDirection: $orderDirection
-    ) {
-      id
-      hash
-      timestamp
-      type
-      user {
+    pair(id: $pair) {
+      token0 {
         id
       }
-      amount0
-      amount1
-      amountUSD
-      isAmount1Out
-      items0 {
-        ...TransactionItemFragment
+      token1 {
+        id
       }
-      items1 {
-        ...TransactionItemFragment
+      transactions(
+        skip: $skip
+        first: $first
+        where: $where
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+      ) {
+        id
+        hash
+        timestamp
+        type
+        user {
+          id
+        }
+        amount0
+        amount1
+        amountUSD
+        isAmount1Out
+        items {
+          ...TransactionItemFragment
+        }
       }
     }
   }

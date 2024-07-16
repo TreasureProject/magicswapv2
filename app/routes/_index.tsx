@@ -32,7 +32,7 @@ export default function Homepage() {
   // const { stats } = useLoaderData<typeof loader>();
   return (
     <>
-      <div className="h-auto bg-[url(/img/home/hero.png)] bg-bottom bg-cover py-24 md:h-[548px] md:py-0">
+      <div className="h-auto bg-[url(/img/home/hero.png)] bg-bottom bg-cover bg-night-1100 py-24 md:h-[548px] md:py-0">
         <div className="mx-auto flex h-full w-full max-w-[90%] flex-col items-center justify-center space-y-8 text-center md:max-w-lg">
           <div className="space-y-3">
             <motion.h1
