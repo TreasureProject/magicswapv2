@@ -37,7 +37,10 @@ export const createPoolFromPair = (
   const weekData = pair.dayData.filter(({ date }) => Number(date) >= weekTime);
   return {
     ...pair,
-    name: `${token0.symbol} / ${token1.symbol}`,
+    name:
+      token0.isNFT && !token1.isNFT
+        ? `${token1.symbol} / ${token0.symbol}`
+        : `${token0.symbol} / ${token1.symbol}`,
     token0,
     token1,
     hasNFT: token0.isNFT || token1.isNFT,

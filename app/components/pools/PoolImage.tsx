@@ -9,15 +9,16 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const PoolImage = ({ pool, className, ...divProps }: Props) => {
+  const isToken1Base = pool.token0.isNFT && !pool.token1.isNFT;
   return (
     <div className="flex items-center">
       <PoolTokenImage
-        token={pool.token0}
+        token={isToken1Base ? pool.token1 : pool.token0}
         className={cn("border-2 border-night-1100", className)}
         {...divProps}
       />
       <PoolTokenImage
-        token={pool.token1}
+        token={isToken1Base ? pool.token0 : pool.token1}
         className={cn("-translate-x-1/3 border-2 border-night-1100", className)}
         {...divProps}
       />

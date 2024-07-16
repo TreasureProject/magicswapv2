@@ -1,3 +1,4 @@
+import { TOKEN_METADATA } from "~/consts";
 import type {
   PoolToken,
   Token,
@@ -5,6 +6,7 @@ import type {
   TroveTokenMapping,
 } from "~/types";
 import { createPoolTokenCollection } from "./collections.server";
+import { ENV } from "./env.server";
 
 type Item = {
   collection: {
@@ -40,6 +42,13 @@ const createTokenMetadata = (
   collectionMapping: TroveCollectionMapping,
   tokenMapping: TroveTokenMapping,
 ) => {
+  const metadata = TOKEN_METADATA[ENV.PUBLIC_CHAIN_ID].find(
+    ({ id }) => id.toLowerCase() === token.id.toLowerCase(),
+  );
+  if (metadata) {
+    return metadata;
+  }
+
   if (token.isNFT) {
     const vaultCollectionAddresses = token.vaultCollections.map(
       ({ collection: { id } }) => id,
@@ -63,6 +72,7 @@ const createTokenMetadata = (
     ) {
       return {
         name: vaultToken.metadata.name,
+        symbol: vaultToken.metadata.name,
         image: vaultToken.image.uri,
       };
     }
@@ -77,22 +87,30 @@ const createTokenMetadata = (
         ({ trait_type }) => trait_type.toLowerCase() === "type",
       )?.value;
       if (type) {
+        const name = `${type}s`;
         return {
-          name: `${type}s`,
+          name,
+          symbol: name,
           image: vaultToken.image.uri,
         };
       }
     }
 
+    const name = vaultCollectionAddresses
+      .map((address) => collectionMapping[address]?.displayName ?? address)
+      .join(" & ");
     return {
-      name: vaultCollectionAddresses
-        .map((address) => collectionMapping[address]?.displayName ?? address)
-        .join(" & "),
+      name,
+      symbol: name,
       image: vaultCollection?.thumbnailUri,
     };
   }
 
-  return { name: token.name, image: undefined };
+  return {
+    name: token.name,
+    symbol: token.symbol.toUpperCase(),
+    image: undefined,
+  };
 };
 
 export const createPoolToken = (
@@ -105,12 +123,11 @@ export const createPoolToken = (
     token.vaultCollections.map(({ collection, tokenIds }) =>
       createPoolTokenCollection(collection, tokenIds ?? [], collectionMapping),
     ) ?? [];
-  const { name, image } = createTokenMetadata(
+  const { name, symbol, image } = createTokenMetadata(
     token,
     collectionMapping,
     tokenMapping,
   );
-  const symbol = token.isNFT ? name : token.symbol.toUpperCase();
   return {
     ...token,
     ...(tokenCollections[0]?.type
@@ -120,10 +137,8 @@ export const createPoolToken = (
       : {}),
     name,
     symbol,
-    image:
-      image ?? (token.isNFT ? "" : `/img/tokens/${symbol.toLowerCase()}.png`),
+    image,
     decimals: Number(token.decimals),
-    isMAGIC: symbol.toLowerCase() === "magic",
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",
     collectionId: tokenCollections[0]?.id ?? "",
