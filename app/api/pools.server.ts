@@ -31,16 +31,14 @@ export const fetchPoolTransactions = async ({
   type?: TransactionType;
 }) => {
   const result = (await execute(GetPairTransactionsDocument, {
+    pair: id,
     first: resultsPerPage,
     skip: (page - 1) * resultsPerPage,
-    where: {
-      pair: id,
-      ...(type ? { type } : undefined),
-    },
+    ...(type ? { where: { type } } : undefined),
   })) as ExecutionResult<GetPairTransactionsQuery>;
   const { pair } = result.data ?? {};
   if (!pair) {
-    throw new Error(`Pair not found: ${pool.id}`);
+    throw new Error(`Pair not found: ${id}`);
   }
 
   const transactions = pair.transactions;
