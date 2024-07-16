@@ -123,11 +123,7 @@ export const createPoolToken = (
     token.vaultCollections.map(({ collection, tokenIds }) =>
       createPoolTokenCollection(collection, tokenIds ?? [], collectionMapping),
     ) ?? [];
-  const { name, symbol, image } = createTokenMetadata(
-    token,
-    collectionMapping,
-    tokenMapping,
-  );
+  const metadata = createTokenMetadata(token, collectionMapping, tokenMapping);
   return {
     ...token,
     ...(tokenCollections[0]?.type
@@ -135,9 +131,7 @@ export const createPoolToken = (
           type: tokenCollections[0]?.type,
         }
       : {}),
-    name,
-    symbol,
-    image,
+    ...metadata,
     decimals: Number(token.decimals),
     collections: tokenCollections,
     urlSlug: tokenCollections[0]?.urlSlug ?? "",

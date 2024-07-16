@@ -16,12 +16,14 @@ export const TOKEN_METADATA = {
       name: "MAGIC",
       symbol: "MAGIC",
       image: "/img/tokens/magic.png",
+      isMAGIC: true,
     },
     {
       id: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
       name: "Ether",
       symbol: "ETH",
       image: "/img/tokens/eth.png",
+      isETH: true,
     },
     {
       id: "0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9",
@@ -36,12 +38,14 @@ export const TOKEN_METADATA = {
       name: "MAGIC",
       symbol: "MAGIC",
       image: "/img/tokens/magic.png",
+      isMAGIC: true,
     },
     {
       id: "0x980b62da83eff3d4576c647993b0c1d7faf17c73",
       name: "Ether",
       symbol: "ETH",
       image: "/img/tokens/eth.png",
+      isETH: true,
     },
     {
       id: "0x23be0504127475387a459fe4b01e54f1e336ffae",

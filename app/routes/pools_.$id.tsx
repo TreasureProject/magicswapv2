@@ -35,11 +35,10 @@ import invariant from "tiny-invariant";
 import type { TransactionType } from ".graphclient";
 
 import type {
-  PoolTransaction,
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
-import { fetchPool, fetchPoolTransactions } from "~/api/pools.server";
+import { fetchPool } from "~/api/pools.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
@@ -58,11 +57,11 @@ import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useAccount } from "~/contexts/account";
-import { useReadErc20BalanceOf } from "~/generated";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
+import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
@@ -156,14 +155,10 @@ export default function PoolDetailsPage() {
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
 
-  const { data: lpBalance = 0n, refetch: refetchLpBalance } =
-    useReadErc20BalanceOf({
-      address: pool.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address,
-      },
-    });
+  const { data: lpBalance = 0n, refetch: refetchLpBalance } = useTokenBalance({
+    id: pool.id as AddressString,
+    address,
+  });
 
   const refresh = useCallback(() => {
     if (revalidator.state === "idle") {

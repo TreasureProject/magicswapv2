@@ -1,9 +1,9 @@
 import { useFetcher } from "@remix-run/react";
 import { useEffect } from "react";
 
-import { useReadErc20BalanceOf } from "~/generated";
 import type { FetchNFTVaultBalance } from "~/routes/resources.vaults.$id.balance";
 import type { AddressString, PoolToken } from "~/types";
+import { useTokenBalance } from "./useTokenBalance";
 
 type Props = {
   token: PoolToken;
@@ -17,14 +17,12 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
     data: nftBalance,
   } = useFetcher<FetchNFTVaultBalance>();
 
-  const { data: erc20Balance = 0n, fetchStatus: erc20BalanceStatus } =
-    useReadErc20BalanceOf({
-      address: token.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: !!address && !token.isNFT,
-      },
-    });
+  const { data: erc20Balance = 0n, isLoading } = useTokenBalance({
+    id: token.id as AddressString,
+    address,
+    isETH: token.isETH,
+    enabled: !token.isNFT,
+  });
 
   useEffect(() => {
     if (!token.isNFT || !address) {
@@ -45,7 +43,6 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
         ? nftBalance.balance
         : 0
       : erc20Balance,
-    isLoading:
-      erc20BalanceStatus === "fetching" || nftBalanceStatus === "loading",
+    isLoading: isLoading || nftBalanceStatus === "loading",
   };
 };

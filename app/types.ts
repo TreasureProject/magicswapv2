@@ -82,6 +82,8 @@ export type PoolToken = Omit<Token, "decimals"> & {
   type?: "ERC721" | "ERC1155";
   decimals: number;
   image?: string;
+  isMAGIC?: boolean;
+  isETH?: boolean;
   collections: PoolTokenCollection[];
   urlSlug: string;
   collectionId: string;

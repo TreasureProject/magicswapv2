@@ -4,10 +4,10 @@ import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 
 import { useAccount } from "~/contexts/account";
-import { useReadErc20BalanceOf } from "~/generated";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApprove } from "~/hooks/useApprove";
 import { useIsApproved } from "~/hooks/useIsApproved";
+import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
@@ -72,21 +72,19 @@ export const PoolDepositTab = ({
   const hasAmount = amount > 0;
 
   // Fetch balance of token0 if it's an ERC20
-  const { data: balance0, refetch: refetchBalance0 } = useReadErc20BalanceOf({
-    address: pool.token0.id as AddressString,
-    args: [address as AddressString],
-    query: {
-      enabled: !!address && !pool.token0.isNFT,
-    },
+  const { data: balance0, refetch: refetchBalance0 } = useTokenBalance({
+    id: pool.token0.id as AddressString,
+    address,
+    isETH: pool.token0.isETH,
+    enabled: !pool.token0.isNFT,
   });
 
   // Fetch balance of token1 if it's an ERC20
-  const { data: balance1, refetch: refetchBalance1 } = useReadErc20BalanceOf({
-    address: pool.token1.id as AddressString,
-    args: [address as AddressString],
-    query: {
-      enabled: !!address && !pool.token1.isNFT,
-    },
+  const { data: balance1, refetch: refetchBalance1 } = useTokenBalance({
+    id: pool.token1.id as AddressString,
+    address,
+    isETH: pool.token1.isETH,
+    enabled: !pool.token1.isNFT,
   });
 
   // Check for approval of token0

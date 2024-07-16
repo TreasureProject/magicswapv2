@@ -49,12 +49,12 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
-import { useReadErc20BalanceOf } from "~/generated";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
+import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useTrove } from "~/hooks/useTrove";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
@@ -176,20 +176,18 @@ export default function SwapPage() {
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } =
-    useReadErc20BalanceOf({
-      address: tokenIn.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: isConnected && !tokenIn.isNFT,
-      },
+    useTokenBalance({
+      id: tokenIn.id as AddressString,
+      address,
+      isETH: tokenIn.isETH,
+      enabled: !tokenIn.isNFT,
     });
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
-    useReadErc20BalanceOf({
-      address: tokenOut?.id as AddressString,
-      args: [address as AddressString],
-      query: {
-        enabled: isConnected && !!tokenOut && !tokenOut.isNFT,
-      },
+    useTokenBalance({
+      id: tokenOut?.id as AddressString,
+      address,
+      isETH: tokenOut?.isETH,
+      enabled: !tokenOut?.isNFT,
     });
 
   const {
