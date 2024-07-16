@@ -471,7 +471,7 @@ export default function PoolDetailsPage() {
             ))}
           </div>
         </div>
-        <PoolActivityTable pool={pool} filter={poolActivityFilter} />
+        <PoolActivityTable pool={pool} type={poolActivityFilter} />
       </div>
       <Sheet>
         <SheetTrigger asChild>
@@ -558,10 +558,10 @@ const PoolManagementView = ({
 
 const PoolActivityTable = ({
   pool,
-  filter,
+  type,
 }: {
   pool: Pool;
-  filter?: TransactionType;
+  type?: TransactionType;
 }) => {
   const {
     isLoading,
@@ -572,7 +572,7 @@ const PoolActivityTable = ({
     hasNextPage,
     goToPreviousPage,
     goToNextPage,
-  } = usePoolTransactions({ id: pool.id });
+  } = usePoolTransactions({ id: pool.id, type });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const blockExplorer = useBlockExplorer();
 
@@ -610,109 +610,105 @@ const PoolActivityTable = ({
         <AnimatePresence>
           <tbody className="transition-all">
             <>
-              {transactions
-                .filter(({ type }) => !filter || type === filter)
-                .map((tx) => {
-                  let tokenA: PoolToken;
-                  let amountA: string;
-                  let itemsA: PoolTransactionItem[];
-                  let tokenB: PoolToken;
-                  let amountB: string;
-                  let itemsB: PoolTransactionItem[];
-                  const isSwap = tx.type === "Swap";
-                  if (isSwap) {
-                    if (tx.isAmount1Out) {
-                      tokenA = pool.token0;
-                      amountA = tx.amount0;
-                      itemsA = tx.items0 ?? [];
-                      tokenB = pool.token1;
-                      amountB = tx.amount1;
-                      itemsB = tx.items1;
-                    } else {
-                      tokenA = pool.token1;
-                      amountA = tx.amount1;
-                      itemsA = tx.items1;
-                      tokenB = pool.token0;
-                      amountB = tx.amount0;
-                      itemsB = tx.items0;
-                    }
-                  } else {
+              {transactions.map((tx) => {
+                let tokenA: PoolToken;
+                let amountA: string;
+                let itemsA: PoolTransactionItem[];
+                let tokenB: PoolToken;
+                let amountB: string;
+                let itemsB: PoolTransactionItem[];
+                const isSwap = tx.type === "Swap";
+                if (isSwap) {
+                  if (tx.isAmount1Out) {
                     tokenA = pool.token0;
+                    amountA = tx.amount0;
+                    itemsA = tx.items0 ?? [];
                     tokenB = pool.token1;
-                    if (tokenA.id === pool.token0.id) {
-                      amountA = tx.amount0;
-                      itemsA = tx.items0;
-                      amountB = tx.amount1;
-                      itemsB = tx.items1;
-                    } else {
-                      amountA = tx.amount1;
-                      itemsA = tx.items1;
-                      amountB = tx.amount0;
-                      itemsB = tx.items0;
-                    }
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
+                  } else {
+                    tokenA = pool.token1;
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    tokenB = pool.token0;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
                   }
+                } else {
+                  tokenA = pool.token0;
+                  tokenB = pool.token1;
+                  if (tokenA.id === pool.token0.id) {
+                    amountA = tx.amount0;
+                    itemsA = tx.items0;
+                    amountB = tx.amount1;
+                    itemsB = tx.items1;
+                  } else {
+                    amountA = tx.amount1;
+                    itemsA = tx.items1;
+                    amountB = tx.amount0;
+                    itemsB = tx.items0;
+                  }
+                }
 
-                  return (
-                    <Fragment key={tx.id}>
-                      <tr className="border-b border-b-night-900 transition-colors">
-                        <td className="px-4 py-4 text-left sm:px-5">
-                          <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
-                            <div className="flex items-center gap-2.5">
-                              <PoolTransactionImage
-                                token={tokenA}
-                                items={itemsA}
-                              />
-                              <span>
-                                <span className="text-honey-25">
-                                  {formatAmount(amountA)}
-                                </span>{" "}
-                                {tokenA.symbol}
-                              </span>
-                            </div>
-                            {isSwap ? (
-                              <ArrowRightIcon className="h-6 w-6" />
-                            ) : (
-                              <PlusIcon className="h-6 w-6" />
-                            )}
-                            <div className="flex items-center gap-2.5">
-                              <PoolTransactionImage
-                                token={tokenB}
-                                items={itemsB}
-                              />
-                              <span>
-                                <span className="text-honey-25">
-                                  {formatAmount(amountB)}
-                                </span>{" "}
-                                {tokenB.symbol}
-                              </span>
-                            </div>
+                return (
+                  <Fragment key={tx.id}>
+                    <tr className="border-b border-b-night-900 transition-colors">
+                      <td className="px-4 py-4 text-left sm:px-5">
+                        <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
+                          <div className="flex items-center gap-2.5">
+                            <PoolTransactionImage
+                              token={tokenA}
+                              items={itemsA}
+                            />
+                            <span>
+                              <span className="text-honey-25">
+                                {formatAmount(amountA)}
+                              </span>{" "}
+                              {tokenA.symbol}
+                            </span>
                           </div>
-                        </td>
-                        <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
-                          {tx.type}
-                        </td>
-                        {/* <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                          {isSwap ? (
+                            <ArrowRightIcon className="h-6 w-6" />
+                          ) : (
+                            <PlusIcon className="h-6 w-6" />
+                          )}
+                          <div className="flex items-center gap-2.5">
+                            <PoolTransactionImage
+                              token={tokenB}
+                              items={itemsB}
+                            />
+                            <span>
+                              <span className="text-honey-25">
+                                {formatAmount(amountB)}
+                              </span>{" "}
+                              {tokenB.symbol}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                        {tx.type}
+                      </td>
+                      {/* <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td> */}
-                        <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
-                          {tx.user ? truncateEthAddress(tx.user.id) : "-"}
-                        </td>
-                        <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
-                          {new Date(
-                            Number(tx.timestamp) * 1000,
-                          ).toLocaleString()}
-                        </td>
-                        <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
-                          <a
-                            className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
-                            href={`${blockExplorer.url}/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={`View on ${blockExplorer.name}`}
-                          >
-                            <ExternalLinkIcon className="h-4 w-4" />
-                          </a>
-                          {/* <button
+                      <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
+                        {tx.user ? truncateEthAddress(tx.user.id) : "-"}
+                      </td>
+                      <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
+                        {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
+                      </td>
+                      <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                        <a
+                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                          href={`${blockExplorer.url}/tx/${tx.hash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`View on ${blockExplorer.name}`}
+                        >
+                          <ExternalLinkIcon className="h-4 w-4" />
+                        </a>
+                        {/* <button
                           className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
                           onClick={() =>
                             setExpandedRow(expandedRow === 0 ? null : 0)
@@ -725,9 +721,9 @@ const PoolActivityTable = ({
                             )}
                           />
                         </button> */}
-                        </td>
-                      </tr>
-                      {/* {expandedRow === 0 && (
+                      </td>
+                    </tr>
+                    {/* {expandedRow === 0 && (
                       <motion.div
                         initial={{ height: "0px", opacity: 0 }}
                         animate={{ height: "max", opacity: 1 }}
@@ -750,9 +746,9 @@ const PoolActivityTable = ({
                           )}
                       </motion.div>
                     )} */}
-                    </Fragment>
-                  );
-                })}
+                  </Fragment>
+                );
+              })}
             </>
           </tbody>
         </AnimatePresence>
@@ -776,8 +772,14 @@ const PoolActivityTable = ({
           <span className="text-night-200">
             {formatNumber((page - 1) * resultsPerPage + transactions.length)}
           </span>{" "}
-          of{" "}
-          <span className="text-night-200">{formatNumber(pool.txCount)}</span>
+          {!type ? (
+            <>
+              of{" "}
+              <span className="text-night-200">
+                {formatNumber(pool.txCount)}
+              </span>
+            </>
+          ) : null}
         </p>
         <Button
           variant="ghost"

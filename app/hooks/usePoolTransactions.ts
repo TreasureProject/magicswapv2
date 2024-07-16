@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PoolTransaction } from "~/api/pools.server";
 import type { FetchPoolTransactions } from "~/routes/resources.pools.$id.transactions";
 import type { TransactionType } from ".graphclient";
@@ -27,12 +27,18 @@ export const usePoolTransactions = ({
     page: number;
     isLoading: boolean;
   }>(DEFAULT_STATE);
+  const lastType = useRef<TransactionType | undefined>();
   const results = data?.ok ? data.results : [];
   const hasPreviousPage = page > 1;
   const hasNextPage = results.length === resultsPerPage;
 
   useEffect(() => {
     if (enabled) {
+      if (type !== lastType.current) {
+        lastType.current = type;
+        setState(DEFAULT_STATE);
+      }
+
       const params = new URLSearchParams({
         page: page.toString(),
         resultsPerPage: resultsPerPage.toString(),

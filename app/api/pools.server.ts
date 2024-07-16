@@ -66,7 +66,7 @@ export const fetchPoolTransactions = async ({
 export type PoolTransaction = Awaited<
   ReturnType<typeof fetchPoolTransactions>
 >[number];
-export type PoolTransactionType = PoolTransaction["type"];
+export type PoolTransactionType = NonNullable<PoolTransaction["type"]>;
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
 export const createPoolsFromPairs = async (pairs: Pair[]) => {
