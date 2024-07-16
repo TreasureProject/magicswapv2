@@ -36,13 +36,14 @@ export const PoolNftTokenInput = ({
             selectedNfts.length > 0 ? "items-start" : "items-center",
           )}
         >
-          <div className="flex-1 space-y-1">
+          <div className="flex-1">
             <p className="truncate font-medium text-sm sm:text-xl">
-              {token.name}
+              {token.symbol}
             </p>
-            {token.name.toUpperCase() !== token.symbol.toUpperCase() && (
+            {token.name.toUpperCase() !==
+              token.collections[0]?.name.toUpperCase() && (
               <p className="text-night-400 text-xs sm:text-sm">
-                {token.symbol}
+                {token.collections[0]?.name}
               </p>
             )}
           </div>

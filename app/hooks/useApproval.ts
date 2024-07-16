@@ -12,15 +12,15 @@ export const useApproval = ({ token, amount, enabled }: Props) => {
   const { isApproved, refetch } = useIsApproved({
     token,
     amount,
-    enabled,
+    enabled: enabled && !token.isETH,
   });
   const { approve, isSuccess } = useApprove({
     token,
     amount,
-    enabled: enabled && !isApproved,
+    enabled: enabled && !isApproved && !token.isETH,
   });
   return {
-    isApproved,
+    isApproved: isApproved || !!token.isETH,
     approve,
     refetch,
     isSuccess,
