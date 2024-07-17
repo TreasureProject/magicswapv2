@@ -9,7 +9,7 @@ type Props = {
 };
 
 export const useApproval = ({ token, amount, enabled }: Props) => {
-  const { isApproved, refetch } = useIsApproved({
+  const { isApproved, allowance, refetch } = useIsApproved({
     token,
     amount,
     enabled: enabled && !token.isETH,
@@ -21,6 +21,7 @@ export const useApproval = ({ token, amount, enabled }: Props) => {
   });
   return {
     isApproved: isApproved || !!token.isETH,
+    allowance,
     approve,
     refetch,
     isSuccess,

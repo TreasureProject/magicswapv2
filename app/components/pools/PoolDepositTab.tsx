@@ -5,8 +5,7 @@ import { formatEther, formatUnits, parseUnits } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
-import { useApprove } from "~/hooks/useApprove";
-import { useIsApproved } from "~/hooks/useIsApproved";
+import { useApproval } from "~/hooks/useApproval";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { formatTokenAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
@@ -92,7 +91,9 @@ export const PoolDepositTab = ({
     isApproved: isApproved0,
     refetch: refetchApproval0,
     allowance: allowance0,
-  } = useIsApproved({
+    approve: approve0,
+    isSuccess: isApproveSuccess0,
+  } = useApproval({
     token: pool.token0,
     amount: amount0,
     enabled: hasAmount,
@@ -103,49 +104,26 @@ export const PoolDepositTab = ({
     isApproved: isApproved1,
     refetch: refetchApproval1,
     allowance: allowance1,
-  } = useIsApproved({
+    approve: approve1,
+    isSuccess: isApproveSuccess1,
+  } = useApproval({
     token: pool.token1,
     amount: amount1,
     enabled: hasAmount,
   });
 
-  // Prep approval transaction for token0
-  const { approve: approveBaseToken, isSuccess: isApproveSuccess0 } =
-    useApprove({
-      token: pool.token0,
-      amount: amount0,
-      enabled: !isApproved0,
-    });
-
-  // Prep approval transaction for token1
-  const { approve: approveQuoteToken, isSuccess: isApproveSuccess1 } =
-    useApprove({
-      token: pool.token1,
-      amount: amount1,
-      enabled: !isApproved1,
-    });
-
-  const amountA = pool.token1.isNFT ? amount1 : amount0;
-  const amountB = pool.token1.isNFT ? amount0 : amount1;
-  const isExactB = isExact1 && !pool.token1.isNFT;
   const { addLiquidity } = useAddLiquidity({
     pool,
-    tokenA: (pool.token1.isNFT
-      ? pool.token1.id
-      : pool.token0.id) as AddressString,
-    tokenB: (pool.token1.isNFT
-      ? pool.token0.id
-      : pool.token1.id) as AddressString,
-    amountA,
-    amountB,
-    amountAMin: isExactB
-      ? getAmountMin(amountA, slippage || DEFAULT_SLIPPAGE)
-      : amountA,
-    amountBMin: isExactB
-      ? amountB
-      : getAmountMin(amountB, slippage || DEFAULT_SLIPPAGE),
-    nftsA: pool.token1.isNFT ? nfts1 : nfts0,
-    nftsB: pool.token1.isNFT ? nfts0 : nfts1,
+    amount0,
+    amount1,
+    amount0Min: isExact1
+      ? getAmountMin(amount0, slippage || DEFAULT_SLIPPAGE)
+      : amount0,
+    amount1Min: isExact1
+      ? amount1
+      : getAmountMin(amount1, slippage || DEFAULT_SLIPPAGE),
+    nfts0,
+    nfts1,
     enabled: isApproved0 && isApproved1 && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({
@@ -366,11 +344,11 @@ export const PoolDepositTab = ({
           }
           onClick={() => {
             if (!isApproved0) {
-              return approveBaseToken?.();
+              return approve0?.();
             }
 
             if (!isApproved1) {
-              return approveQuoteToken?.();
+              return approve1?.();
             }
 
             return addLiquidity?.();
