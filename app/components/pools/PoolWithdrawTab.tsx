@@ -11,11 +11,7 @@ import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  AddressString,
-  NumberString,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { NumberString, TroveTokenWithQuantity } from "~/types";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
@@ -81,17 +77,11 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
 
   const { removeLiquidity } = useRemoveLiquidity({
     pool,
-    tokenA: (pool.token1.isNFT
-      ? pool.token1.id
-      : pool.token0.id) as AddressString,
-    tokenB: (pool.token1.isNFT
-      ? pool.token0.id
-      : pool.token1.id) as AddressString,
     amountLP: amount,
-    amountAMin: pool.token1.isNFT ? amount1Min : amount0Min,
-    amountBMin: pool.token1.isNFT ? amount0Min : amount1Min,
-    nftsA: pool.token1.isNFT ? nfts1 : nfts0,
-    nftsB: pool.token1.isNFT ? nfts0 : nfts1,
+    amount0Min,
+    amount1Min,
+    nfts0,
+    nfts1,
     enabled: !!address && isApproved && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({ amount: "0", nfts0: [], nfts1: [] });
