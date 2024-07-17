@@ -24,7 +24,7 @@ type Props = {
   nfts0: TroveTokenWithQuantity[];
   nfts1: TroveTokenWithQuantity[];
   enabled?: boolean;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 export const useAddLiquidity = ({

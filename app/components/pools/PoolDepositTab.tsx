@@ -1,5 +1,5 @@
 import { HelpCircle } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
 import { formatEther, formatUnits, parseUnits } from "viem";
 
@@ -89,10 +89,8 @@ export const PoolDepositTab = ({
   // Check for approval of token0
   const {
     isApproved: isApproved0,
-    refetch: refetchApproval0,
     allowance: allowance0,
     approve: approve0,
-    isSuccess: isApproveSuccess0,
   } = useApproval({
     token: pool.token0,
     amount: amount0,
@@ -102,10 +100,8 @@ export const PoolDepositTab = ({
   // Check for approval of token1
   const {
     isApproved: isApproved1,
-    refetch: refetchApproval1,
     allowance: allowance1,
     approve: approve1,
-    isSuccess: isApproveSuccess1,
   } = useApproval({
     token: pool.token1,
     amount: amount1,
@@ -144,18 +140,6 @@ export const PoolDepositTab = ({
     BigInt(pool.token0.reserve),
     BigInt(pool.totalSupply),
   );
-
-  useEffect(() => {
-    if (isApproveSuccess0) {
-      refetchApproval0();
-    }
-  }, [isApproveSuccess0, refetchApproval0]);
-
-  useEffect(() => {
-    if (isApproveSuccess1) {
-      refetchApproval1();
-    }
-  }, [isApproveSuccess1, refetchApproval1]);
 
   const insufficientBalanceA = !pool.token0.isNFT
     ? Number.parseFloat(

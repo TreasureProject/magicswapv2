@@ -189,12 +189,7 @@ export default function SwapPage() {
       enabled: !tokenOut?.isNFT,
     });
 
-  const {
-    amountInMax,
-    amountOutMin,
-    swap,
-    isSuccess: isSwapSuccess,
-  } = useSwap({
+  const { amountInMax, amountOutMin, swap } = useSwap({
     tokenIn,
     tokenOut,
     amountIn,
@@ -204,34 +199,21 @@ export default function SwapPage() {
     nftsOut,
     path,
     enabled: isConnected && !!tokenOut && hasAmounts,
-  });
-
-  const {
-    isApproved: isTokenInApproved,
-    approve: approveTokenIn,
-    refetch: refetchTokenInApproval,
-    isSuccess: isApproveTokenInSuccess,
-  } = useApproval({
-    token: tokenIn,
-    amount: amountInMax,
-    enabled: isConnected && hasAmounts,
-  });
-
-  useEffect(() => {
-    if (isApproveTokenInSuccess) {
-      refetchTokenInApproval();
-    }
-  }, [isApproveTokenInSuccess, refetchTokenInApproval]);
-
-  useEffect(() => {
-    if (isSwapSuccess) {
+    onSuccess: () => {
       setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
       refetchTokenOutBalance();
       setSwapModalOpen(false);
       setPriceImpactOptIn(false);
-    }
-  }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
+    },
+  });
+
+  const { isApproved: isTokenInApproved, approve: approveTokenIn } =
+    useApproval({
+      token: tokenIn,
+      amount: amountInMax,
+      enabled: isConnected && hasAmounts,
+    });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: tokenIn is not memoized
   useEffect(() => {

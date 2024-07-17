@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
-import { useApprove } from "~/hooks/useApprove";
-import { useIsApproved } from "~/hooks/useIsApproved";
+import { useApproval } from "~/hooks/useApproval";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
@@ -64,15 +63,10 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
     ? bigIntToNumber(amount1Min, pool.token1.decimals)
     : 0;
 
-  const { isApproved, refetch: refetchApproval } = useIsApproved({
+  const { isApproved, approve } = useApproval({
     token: pool.id,
     amount,
     enabled: hasAmount,
-  });
-  const { approve, isSuccess: isApproveSuccess } = useApprove({
-    token: pool.id,
-    amount,
-    enabled: !isApproved && hasAmount,
   });
 
   const { removeLiquidity } = useRemoveLiquidity({
@@ -88,12 +82,6 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
       onSuccess?.();
     }, [onSuccess]),
   });
-
-  useEffect(() => {
-    if (isApproveSuccess) {
-      refetchApproval();
-    }
-  }, [isApproveSuccess, refetchApproval]);
 
   return (
     <div className="space-y-4">

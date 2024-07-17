@@ -3,27 +3,32 @@ import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
-  token: PoolToken;
+  token: PoolToken | string;
   amount?: bigint;
   enabled?: boolean;
+  onSuccess?: () => void;
 };
 
-export const useApproval = ({ token, amount, enabled }: Props) => {
+export const useApproval = ({ token, amount, enabled, onSuccess }: Props) => {
+  const isETH = typeof token !== "string" && !!token.isETH;
   const { isApproved, allowance, refetch } = useIsApproved({
     token,
     amount,
-    enabled: enabled && !token.isETH,
+    enabled: enabled && !isETH,
   });
-  const { approve, isSuccess } = useApprove({
+  const { approve } = useApprove({
     token,
     amount,
-    enabled: enabled && !isApproved && !token.isETH,
+    enabled: enabled && !isApproved && !isETH,
+    onSuccess: () => {
+      refetch();
+      onSuccess?.();
+    },
   });
   return {
-    isApproved: isApproved || !!token.isETH,
+    isApproved: isApproved || isETH,
     allowance,
     approve,
     refetch,
-    isSuccess,
   };
 };
