@@ -92,16 +92,26 @@ export const useRemoveLiquidity = ({
       removeLiquidityNFTNFTReceipt.isLoading,
     isSuccess,
     isError:
+      removeLiquidity.isError ||
       removeLiquidityReceipt.isError ||
+      removeLiquidityETH.isError ||
       removeLiquidityETHReceipt.isError ||
+      removeLiquidityNFT.isError ||
       removeLiquidityNFTReceipt.isError ||
+      removeLiquidityNFTETH.isError ||
       removeLiquidityNFTETHReceipt.isError ||
+      removeLiquidityNFTNFT.isError ||
       removeLiquidityNFTNFTReceipt.isError,
     errorDescription: (
+      removeLiquidity.error ||
       removeLiquidityReceipt.error ||
+      removeLiquidityETH.error ||
       removeLiquidityETHReceipt.error ||
+      removeLiquidityNFT.error ||
       removeLiquidityNFTReceipt.error ||
+      removeLiquidityNFTETH.error ||
       removeLiquidityNFTETHReceipt.error ||
+      removeLiquidityNFTNFT.error ||
       removeLiquidityNFTNFTReceipt.error
     )?.message,
   });

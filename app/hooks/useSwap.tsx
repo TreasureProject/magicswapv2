@@ -181,28 +181,50 @@ export const useSwap = ({
       swapNFTForNFTReceipt.isLoading,
     isSuccess,
     isError:
+      swapExactTokensForTokens.isError ||
       swapExactTokensForTokensReceipt.isError ||
+      swapTokensForExactTokens.isError ||
       swapTokensForExactTokensReceipt.isError ||
+      swapExactTokensForETH.isError ||
       swapExactTokensForETHReceipt.isError ||
+      swapTokensForExactETH.isError ||
       swapTokensForExactETHReceipt.isError ||
+      swapETHForExactTokens.isError ||
       swapETHForExactTokensReceipt.isError ||
+      swapExactETHForTokens.isError ||
       swapExactETHForTokensReceipt.isError ||
+      swapTokensForNFT.isError ||
       swapTokensForNFTReceipt.isError ||
+      swapNFTForTokens.isError ||
       swapNFTForTokensReceipt.isError ||
+      swapETHForNFT.isError ||
       swapETHForNFTReceipt.isError ||
+      swapNFTForETH.isError ||
       swapNFTForETHReceipt.isError ||
+      swapNFTForNFT.isError ||
       swapNFTForNFTReceipt.isError,
     errorDescription: (
+      swapExactTokensForTokens.error ||
       swapExactTokensForTokensReceipt.error ||
+      swapTokensForExactTokens.error ||
       swapTokensForExactTokensReceipt.error ||
+      swapExactTokensForETH.error ||
       swapExactTokensForETHReceipt.error ||
+      swapTokensForExactETH.error ||
       swapTokensForExactETHReceipt.error ||
+      swapETHForExactTokens.error ||
       swapETHForExactTokensReceipt.error ||
+      swapExactETHForTokens.error ||
       swapExactETHForTokensReceipt.error ||
+      swapTokensForNFT.error ||
       swapTokensForNFTReceipt.error ||
+      swapNFTForTokens.error ||
       swapNFTForTokensReceipt.error ||
+      swapETHForNFT.error ||
       swapETHForNFTReceipt.error ||
+      swapNFTForETH.error ||
       swapNFTForETHReceipt.error ||
+      swapNFTForNFT.error ||
       swapNFTForNFTReceipt.error
     )?.message,
   });
@@ -284,7 +306,7 @@ export const useSwap = ({
               addressArg,
               deadline,
             ],
-            value: amountIn,
+            value: amountInMax,
           });
         }
 
@@ -309,7 +331,7 @@ export const useSwap = ({
           return swapETHForExactTokens.writeContractAsync({
             address: routerAddress,
             args: [amountOut, path, addressArg, deadline],
-            value: amountIn,
+            value: amountInMax,
           });
         }
 

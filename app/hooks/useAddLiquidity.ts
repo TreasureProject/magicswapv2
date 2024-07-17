@@ -92,16 +92,26 @@ export const useAddLiquidity = ({
       addLiquidityNFTNFTReceipt.isLoading,
     isSuccess,
     isError:
+      addLiquidity.isError ||
       addLiquidityReceipt.isError ||
+      addLiquidityETH.isError ||
       addLiquidityETHReceipt.isError ||
+      addLiquidityNFT.isError ||
       addLiquidityNFTReceipt.isError ||
+      addLiquidityNFTETH.isError ||
       addLiquidityNFTETHReceipt.isError ||
+      addLiquidityNFTNFT.isError ||
       addLiquidityNFTNFTReceipt.isError,
     errorDescription: (
+      addLiquidity.error ||
       addLiquidityReceipt.error ||
+      addLiquidityETH.error ||
       addLiquidityETHReceipt.error ||
+      addLiquidityNFT.error ||
       addLiquidityNFTReceipt.error ||
+      addLiquidityNFTETH.error ||
       addLiquidityNFTETHReceipt.error ||
+      addLiquidityNFTNFT.error ||
       addLiquidityNFTNFTReceipt.error
     )?.message,
   });

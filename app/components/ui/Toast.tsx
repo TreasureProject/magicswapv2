@@ -50,7 +50,7 @@ export const showLoadingToast = ({
 }: ToastProps & ExternalToast) =>
   toast.loading(
     <>
-      <LoaderIcon className="h-6 w-6" />
+      <LoaderIcon className="h-6 w-6 animate-spin" />
       {renderToast({ title, description })}
     </>,
     props,
