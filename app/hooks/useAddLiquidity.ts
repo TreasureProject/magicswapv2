@@ -1,45 +1,41 @@
 import { useEffect } from "react";
 
+import { useWaitForTransactionReceipt } from "wagmi";
 import { useAccount } from "~/contexts/account";
 import {
-  useSimulateMagicSwapV2RouterAddLiquidity,
-  useSimulateMagicSwapV2RouterAddLiquidityNft,
   useWriteMagicSwapV2RouterAddLiquidity,
+  useWriteMagicSwapV2RouterAddLiquidityEth,
   useWriteMagicSwapV2RouterAddLiquidityNft,
+  useWriteMagicSwapV2RouterAddLiquidityNfteth,
+  useWriteMagicSwapV2RouterAddLiquidityNftnft,
 } from "~/generated";
 import type { Pool } from "~/lib/pools.server";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
 import { useMagicSwapV2RouterAddress } from "./useContractAddress";
-import { useWaitForTransaction } from "./useWaitForTransaction";
+import { useToast } from "./useToast";
 
 type Props = {
   pool: Pool;
-  tokenA: AddressString;
-  tokenB: AddressString;
-  amountA: bigint;
-  amountB: bigint;
-  amountAMin: bigint;
-  amountBMin: bigint;
-  nftsA: TroveTokenWithQuantity[];
-  nftsB: TroveTokenWithQuantity[];
+  amount0: bigint;
+  amount1: bigint;
+  amount0Min: bigint;
+  amount1Min: bigint;
+  nfts0: TroveTokenWithQuantity[];
+  nfts1: TroveTokenWithQuantity[];
   enabled?: boolean;
-  statusHeader?: React.ReactNode;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 export const useAddLiquidity = ({
   pool,
-  tokenA,
-  tokenB,
-  amountA,
-  amountB,
-  amountAMin,
-  amountBMin,
-  nftsA,
-  // nftsB,
+  amount0,
+  amount1,
+  amount0Min,
+  amount1Min,
+  nfts0,
+  nfts1,
   enabled = true,
-  statusHeader: propsStatusHeader,
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
@@ -48,127 +44,198 @@ export const useAddLiquidity = ({
 
   const isEnabled = enabled && !!address;
   const deadline = BigInt(Math.floor(Date.now() / 1000) + deadlineMinutes * 60);
-  const statusHeader = propsStatusHeader ?? `Deposit for ${pool.name} LP`;
 
-  // ERC20-ERC20
-  const { data: tokenAddLiquidityConfig } =
-    useSimulateMagicSwapV2RouterAddLiquidity({
-      address: routerAddress,
-      args: [
-        tokenA,
-        tokenB,
-        amountA,
-        amountB,
-        amountAMin,
-        amountBMin,
-        addressArg,
-        deadline,
-      ],
-      query: {
-        enabled: isEnabled && !pool.hasNFT,
-      },
-    });
-  const tokenAddLiquidity = useWriteMagicSwapV2RouterAddLiquidity();
+  const addLiquidity = useWriteMagicSwapV2RouterAddLiquidity();
+  const addLiquidityReceipt = useWaitForTransactionReceipt({
+    hash: addLiquidity.data,
+  });
 
-  const { data: tokenAddLiquidityData, status: tokenAddLiquidityStatus } =
-    useWaitForTransaction(
-      { hash: tokenAddLiquidity.data },
-      tokenAddLiquidity.status,
-      statusHeader,
-    );
+  const addLiquidityETH = useWriteMagicSwapV2RouterAddLiquidityEth();
+  const addLiquidityETHReceipt = useWaitForTransactionReceipt({
+    hash: addLiquidityETH.data,
+  });
 
-  // NFT-ERC20
-  const { data: nftAddLiquidityConfig } =
-    useSimulateMagicSwapV2RouterAddLiquidityNft({
-      address: routerAddress,
-      args: [
-        {
-          token: tokenA,
-          collection: nftsA.map(
-            ({ collectionAddr }) => collectionAddr as AddressString,
-          ),
-          tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-          amount: nftsA.map(({ quantity }) => BigInt(quantity)),
-        },
-        tokenB,
-        amountB,
-        amountBMin,
-        addressArg,
-        deadline,
-      ],
-      query: {
-        enabled: isEnabled && !pool.isNFTNFT && pool.hasNFT,
-      },
-    });
-  const nftAddLiquidity = useWriteMagicSwapV2RouterAddLiquidityNft();
+  const addLiquidityNFT = useWriteMagicSwapV2RouterAddLiquidityNft();
+  const addLiquidityNFTReceipt = useWaitForTransactionReceipt({
+    hash: addLiquidityNFT.data,
+  });
 
-  const { data: nftAddLiquidityData, status: nftAddLiquidityStatus } =
-    useWaitForTransaction(
-      { hash: nftAddLiquidity.data },
-      nftAddLiquidity.status,
-      statusHeader,
-    );
+  const addLiquidityNFTETH = useWriteMagicSwapV2RouterAddLiquidityNfteth();
+  const addLiquidityNFTETHReceipt = useWaitForTransactionReceipt({
+    hash: addLiquidityNFTETH.data,
+  });
+
+  const addLiquidityNFTNFT = useWriteMagicSwapV2RouterAddLiquidityNftnft();
+  const addLiquidityNFTNFTReceipt = useWaitForTransactionReceipt({
+    hash: addLiquidityNFTNFT.data,
+  });
+
+  const isSuccess =
+    addLiquidityReceipt.isSuccess ||
+    addLiquidityETHReceipt.isSuccess ||
+    addLiquidityNFTReceipt.isSuccess ||
+    addLiquidityNFTETHReceipt.isSuccess ||
+    addLiquidityNFTNFTReceipt.isSuccess;
+
+  useToast({
+    title: `Add liquidity to ${pool.name}`,
+    isLoading:
+      addLiquidity.isPending ||
+      addLiquidityReceipt.isLoading ||
+      addLiquidityETH.isPending ||
+      addLiquidityETHReceipt.isLoading ||
+      addLiquidityNFT.isPending ||
+      addLiquidityNFTReceipt.isLoading ||
+      addLiquidityNFTETH.isPending ||
+      addLiquidityNFTETHReceipt.isLoading ||
+      addLiquidityNFTNFT.isPending ||
+      addLiquidityNFTNFTReceipt.isLoading,
+    isSuccess,
+    isError:
+      addLiquidity.isError ||
+      addLiquidityReceipt.isError ||
+      addLiquidityETH.isError ||
+      addLiquidityETHReceipt.isError ||
+      addLiquidityNFT.isError ||
+      addLiquidityNFTReceipt.isError ||
+      addLiquidityNFTETH.isError ||
+      addLiquidityNFTETHReceipt.isError ||
+      addLiquidityNFTNFT.isError ||
+      addLiquidityNFTNFTReceipt.isError,
+    errorDescription: (
+      addLiquidity.error ||
+      addLiquidityReceipt.error ||
+      addLiquidityETH.error ||
+      addLiquidityETHReceipt.error ||
+      addLiquidityNFT.error ||
+      addLiquidityNFTReceipt.error ||
+      addLiquidityNFTETH.error ||
+      addLiquidityNFTETHReceipt.error ||
+      addLiquidityNFTNFT.error ||
+      addLiquidityNFTNFTReceipt.error
+    )?.message,
+  });
 
   useEffect(() => {
-    if (
-      (tokenAddLiquidityData && tokenAddLiquidityStatus === "success") ||
-      (nftAddLiquidityData && nftAddLiquidityStatus === "success")
-    ) {
-      onSuccess();
+    if (isSuccess) {
+      onSuccess?.();
     }
-  }, [
-    tokenAddLiquidityData,
-    tokenAddLiquidityStatus,
-    nftAddLiquidityData,
-    nftAddLiquidityStatus,
-    onSuccess,
-  ]);
+  }, [isSuccess, onSuccess]);
 
-  // NFT-NFT
-  // const { data: nftNFTAddLiquidityConfig } =
-  //   useSimulateMagicSwapV2RouterAddLiquidityNftnft({
-  //     address: routerAddress,
-  //     args: [
-  //       {
-  //         token: pool.token0.id as AddressString,
-  //         collection: nftsA.map(
-  //           ({ collectionAddr }) => collectionAddr as AddressString
-  //         ),
-  //         tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-  //         amount: nftsA.map(({ quantity }) => BigInt(quantity)),
-  //       },
-  //       {
-  //         token: pool.token1.id as AddressString,
-  //         collection: nftsB.map(
-  //           ({ collectionAddr }) => collectionAddr as AddressString
-  //         ),
-  //         tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
-  //         amount: nftsB.map(({ quantity }) => BigInt(quantity)),
-  //       },
-  //       addressArg,
-  //       deadline,
-  //     ],
-  //     query: {
-  //       enabled: isEnabled && pool.isNFTNFT,
-  //     },
-  //   });
-  // const nftNFTAddLiquidity = useWriteMagicSwapV2RouterAddLiquidityNftnft();
-  // useWaitForTransaction(
-  //   { hash: nftNFTAddLiquidity.data },
-  //   nftNFTAddLiquidity.status,
-  //   statusHeader
-  // );
-
+  const isTokenAToken1 =
+    pool.token1.isETH ||
+    (pool.token1.isNFT && !pool.isNFTNFT && !pool.token0.isETH);
+  const tokenA = (
+    isTokenAToken1 ? pool.token1.id : pool.token0.id
+  ) as AddressString;
+  const tokenB = (
+    isTokenAToken1 ? pool.token0.id : pool.token1.id
+  ) as AddressString;
+  const amountA = isTokenAToken1 ? amount1 : amount0;
+  const amountB = isTokenAToken1 ? amount0 : amount1;
+  const amountAMin = isTokenAToken1 ? amount1Min : amount0Min;
+  const amountBMin = isTokenAToken1 ? amount0Min : amount1Min;
+  const nftsA = isTokenAToken1 ? nfts1 : nfts0;
+  const nftsB = isTokenAToken1 ? nfts0 : nfts1;
   return {
     addLiquidity: () => {
-      // if (pool.isNFTNFT && nftNFTAddLiquidityConfig?.request) {
-      //   nftNFTAddLiquidity.writeContract(nftNFTAddLiquidityConfig?.request);
-      // } else
-      if (pool.hasNFT && nftAddLiquidityConfig?.request) {
-        nftAddLiquidity.writeContract(nftAddLiquidityConfig.request);
-      } else if (tokenAddLiquidityConfig?.request) {
-        tokenAddLiquidity.writeContract(tokenAddLiquidityConfig.request);
+      if (!isEnabled) {
+        return;
       }
+
+      if (pool.isNFTNFT) {
+        // NFT-NFT
+        return addLiquidityNFTNFT.writeContractAsync({
+          address: routerAddress,
+          args: [
+            {
+              token: tokenA,
+              collection: nftsA.map(
+                ({ collectionAddr }) => collectionAddr as AddressString,
+              ),
+              tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
+              amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+            },
+            {
+              token: tokenB,
+              collection: nftsB.map(
+                ({ collectionAddr }) => collectionAddr as AddressString,
+              ),
+              tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
+              amount: nftsB.map(({ quantity }) => BigInt(quantity)),
+            },
+            addressArg,
+            deadline,
+          ],
+        });
+      }
+
+      if (pool.hasNFT) {
+        if (pool.token0.isETH || pool.token1.isETH) {
+          // NFT-ETH
+          return addLiquidityNFTETH.writeContractAsync({
+            address: routerAddress,
+            args: [
+              {
+                token: tokenB,
+                collection: nftsB.map(
+                  ({ collectionAddr }) => collectionAddr as AddressString,
+                ),
+                tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
+                amount: nftsB.map(({ quantity }) => BigInt(quantity)),
+              },
+              amountA,
+              addressArg,
+              deadline,
+            ],
+            value: amountA,
+          });
+        }
+
+        // NFT-ERC20
+        return addLiquidityNFT.writeContractAsync({
+          address: routerAddress,
+          args: [
+            {
+              token: tokenA,
+              collection: nftsA.map(
+                ({ collectionAddr }) => collectionAddr as AddressString,
+              ),
+              tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
+              amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+            },
+            tokenB,
+            amountB,
+            amountBMin,
+            addressArg,
+            deadline,
+          ],
+        });
+      }
+
+      if (pool.token0.isETH || pool.token1.isETH) {
+        // ERC20-ETH
+        return addLiquidityETH.writeContractAsync({
+          address: routerAddress,
+          args: [tokenB, amountB, amountBMin, amountA, addressArg, deadline],
+          value: amountA,
+        });
+      }
+
+      // ERC20-ERC20
+      return addLiquidity.writeContractAsync({
+        address: routerAddress,
+        args: [
+          tokenA,
+          tokenB,
+          amountA,
+          amountB,
+          amountAMin,
+          amountBMin,
+          addressArg,
+          deadline,
+        ],
+      });
     },
   };
 };

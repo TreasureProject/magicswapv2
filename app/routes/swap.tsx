@@ -26,7 +26,6 @@ import { fetchPools } from "~/api/pools.server";
 import {
   fetchPoolTokenBalance,
   fetchToken,
-  fetchTokens,
   fetchTokensWithMetadata,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
@@ -190,12 +189,7 @@ export default function SwapPage() {
       enabled: !tokenOut?.isNFT,
     });
 
-  const {
-    amountInMax,
-    amountOutMin,
-    swap,
-    isSuccess: isSwapSuccess,
-  } = useSwap({
+  const { amountInMax, amountOutMin, swap } = useSwap({
     tokenIn,
     tokenOut,
     amountIn,
@@ -205,34 +199,21 @@ export default function SwapPage() {
     nftsOut,
     path,
     enabled: isConnected && !!tokenOut && hasAmounts,
-  });
-
-  const {
-    isApproved: isTokenInApproved,
-    approve: approveTokenIn,
-    refetch: refetchTokenInApproval,
-    isSuccess: isApproveTokenInSuccess,
-  } = useApproval({
-    token: tokenIn,
-    amount: amountInMax,
-    enabled: isConnected && hasAmounts,
-  });
-
-  useEffect(() => {
-    if (isApproveTokenInSuccess) {
-      refetchTokenInApproval();
-    }
-  }, [isApproveTokenInSuccess, refetchTokenInApproval]);
-
-  useEffect(() => {
-    if (isSwapSuccess) {
+    onSuccess: () => {
       setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
       refetchTokenOutBalance();
       setSwapModalOpen(false);
       setPriceImpactOptIn(false);
-    }
-  }, [isSwapSuccess, refetchTokenInBalance, refetchTokenOutBalance]);
+    },
+  });
+
+  const { isApproved: isTokenInApproved, approve: approveTokenIn } =
+    useApproval({
+      token: tokenIn,
+      amount: amountInMax,
+      enabled: isConnected && hasAmounts,
+    });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: tokenIn is not memoized
   useEffect(() => {
@@ -656,15 +637,28 @@ const SwapTokenInput = ({
           <DialogTrigger asChild>
             <button type="button" className="flex items-center gap-4 text-left">
               <PoolTokenImage className="h-12 w-12" token={token} />
-              <div className="space-y-1">
+              <div className="flex-1">
                 <span className="flex items-center gap-1.5 font-medium text-honey-25 text-sm sm:text-lg">
                   {token.symbol} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
-                  <span className="block text-night-600 text-xs sm:text-sm">
-                    {token.name}
-                  </span>
-                ) : null}
+                {token.isNFT ? (
+                  <>
+                    {token.name.toUpperCase() !==
+                      token.collections[0]?.name.toUpperCase() && (
+                      <p className="text-night-400 text-xs sm:text-sm">
+                        {token.collections[0]?.name}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
+                      <span className="block text-night-400 text-xs sm:text-sm">
+                        {token.name}
+                      </span>
+                    ) : null}
+                  </>
+                )}
               </div>
             </button>
           </DialogTrigger>

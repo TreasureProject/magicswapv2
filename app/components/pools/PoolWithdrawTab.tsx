@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
-import { useApprove } from "~/hooks/useApprove";
-import { useIsApproved } from "~/hooks/useIsApproved";
+import { useApproval } from "~/hooks/useApproval";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { formatTokenAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
@@ -11,11 +10,7 @@ import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  AddressString,
-  NumberString,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { NumberString, TroveTokenWithQuantity } from "~/types";
 import { SelectionPopup } from "../item_selection/SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
@@ -68,42 +63,25 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
     ? bigIntToNumber(amount1Min, pool.token1.decimals)
     : 0;
 
-  const { isApproved, refetch: refetchApproval } = useIsApproved({
+  const { isApproved, approve } = useApproval({
     token: pool.id,
     amount,
     enabled: hasAmount,
   });
-  const { approve, isSuccess: isApproveSuccess } = useApprove({
-    token: pool.id,
-    amount,
-    enabled: !isApproved && hasAmount,
-  });
 
   const { removeLiquidity } = useRemoveLiquidity({
     pool,
-    tokenA: (pool.token1.isNFT
-      ? pool.token1.id
-      : pool.token0.id) as AddressString,
-    tokenB: (pool.token1.isNFT
-      ? pool.token0.id
-      : pool.token1.id) as AddressString,
     amountLP: amount,
-    amountAMin: pool.token1.isNFT ? amount1Min : amount0Min,
-    amountBMin: pool.token1.isNFT ? amount0Min : amount1Min,
-    nftsA: pool.token1.isNFT ? nfts1 : nfts0,
-    nftsB: pool.token1.isNFT ? nfts0 : nfts1,
+    amount0Min,
+    amount1Min,
+    nfts0,
+    nfts1,
     enabled: !!address && isApproved && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({ amount: "0", nfts0: [], nfts1: [] });
       onSuccess?.();
     }, [onSuccess]),
   });
-
-  useEffect(() => {
-    if (isApproveSuccess) {
-      refetchApproval();
-    }
-  }, [isApproveSuccess, refetchApproval]);
 
   return (
     <div className="space-y-4">
