@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { defer, json } from "@remix-run/node";
 import type { MetaFunction } from "@remix-run/react";
-import { Await, Link, useLoaderData } from "@remix-run/react";
+import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense, useState } from "react";
 
 import { fetchPools } from "~/api/pools.server";
@@ -58,6 +58,8 @@ export const meta: MetaFunction<
 };
 
 const PoolsTable = ({ pools }: { pools: Pool[] }) => {
+  const navigate = useNavigate();
+
   if (pools.length === 0) return null;
 
   return (
@@ -88,15 +90,18 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
         </thead>
         <tbody>
           {pools.map((pool) => (
+            // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
             <tr
               key={pool.id}
               className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
+              onClick={() => navigate(`/pools/${pool.id}`)}
             >
               <td className="px-4 py-4 text-left font-medium sm:px-5">
                 <Link
                   to={`/pools/${pool.id}`}
                   prefetch="intent"
                   className="flex items-center"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <PoolImage pool={pool} />
                   <span className="-ml-2 sm:ml-0">{pool.name}</span>

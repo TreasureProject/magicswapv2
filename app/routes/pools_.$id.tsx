@@ -182,6 +182,7 @@ export default function PoolDetailsPage() {
       <Link
         to="/pools"
         className="flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
+        prefetch="intent"
       >
         <ChevronLeftIcon className="h-4" />
         All Pools
