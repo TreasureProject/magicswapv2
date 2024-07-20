@@ -322,16 +322,18 @@ export default function PoolDetailsPage() {
                 <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                 <p className="text-night-400">
                   <span className="text-night-100">
-                    {formatAmount(
-                      bigIntToNumber(
-                        BigInt(quoteToken.reserve),
-                        quoteToken.decimals,
-                      ) /
-                        bigIntToNumber(
-                          BigInt(baseToken.reserve),
-                          baseToken.decimals,
-                        ),
-                    )}
+                    {BigInt(baseToken.reserve) > 0
+                      ? formatAmount(
+                          bigIntToNumber(
+                            BigInt(quoteToken.reserve),
+                            quoteToken.decimals,
+                          ) /
+                            bigIntToNumber(
+                              BigInt(baseToken.reserve),
+                              baseToken.decimals,
+                            ),
+                        )
+                      : 0}
                   </span>{" "}
                   {quoteToken.symbol}
                 </p>
