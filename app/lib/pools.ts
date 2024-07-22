@@ -133,7 +133,7 @@ export const getPoolFeesDisplay = (pool: Pool) => {
       return `${formatAmount(pool.volume0 * fee)} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume0 * fee)}`;
+    return `${formatAmount(pool.volume1 * fee)} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.volumeUSD * fee);
@@ -146,7 +146,7 @@ export const getPoolFees24hDisplay = (pool: Pool) => {
       return `${formatAmount(pool.volume24h0 * fee)} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume24h1 * fee)}`;
+    return `${formatAmount(pool.volume24h1 * fee)} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.volume24hUSD * fee);
