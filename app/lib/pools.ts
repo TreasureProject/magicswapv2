@@ -8,6 +8,7 @@ import { parseUnits } from "viem";
 
 import type { AddressString, PoolToken } from "~/types";
 import { formatAmount, formatTokenAmount, formatUSD } from "./currency";
+import { bigIntToNumber } from "./number";
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
 
@@ -91,8 +92,8 @@ export const getPoolAPY = (pool: Pool) => {
   const reserve = pool.reserveUSD
     ? pool.reserveUSD
     : pool.isNFTNFT || !pool.token0.isNFT
-      ? Number(pool.token0.reserve)
-      : Number(pool.token1.reserve);
+      ? bigIntToNumber(BigInt(pool.token0.reserve))
+      : bigIntToNumber(BigInt(pool.token1.reserve));
 
   if (reserve === 0) {
     return 0;
