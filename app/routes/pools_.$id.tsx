@@ -803,12 +803,15 @@ const PoolTokenCollectionInventory = ({
   token: PoolToken;
   items: TroveToken[];
 }) => {
+  const numVaultItems = sumArray(
+    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1),
+  );
   return (
     <div key={token.id} className="rounded-lg bg-night-1100">
       <Dialog>
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
-            <span className="font-medium">{token.name}</span>
+            <span className="font-medium">{token.name} Vault</span>
             {token.name !== token.symbol ? (
               <>
                 <span className="h-3 w-[1px] bg-night-400" />
@@ -839,15 +842,8 @@ const PoolTokenCollectionInventory = ({
         <div className="h-[1px] bg-night-800" />
         <div className="flex items-center justify-between px-6 py-3">
           <span className="text-night-400 text-sm">
-            Showing{" "}
-            {formatNumber(
-              sumArray(
-                items.map(
-                  ({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1,
-                ),
-              ),
-            )}{" "}
-            of {formatTokenReserve(token)}
+            {formatNumber(numVaultItems)}{" "}
+            {numVaultItems === 1 ? "item" : "items"}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>
