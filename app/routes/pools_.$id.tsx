@@ -65,7 +65,12 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
-import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
+import {
+  bigIntToNumber,
+  floorBigInt,
+  formatNumber,
+  formatPercent,
+} from "~/lib/number";
 import {
   getPoolAPY,
   getPoolFees24hDisplay,
@@ -73,6 +78,7 @@ import {
 } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
+import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -352,10 +358,7 @@ export default function PoolDetailsPage() {
                       </div>
                       <div className="space-y-0.5 text-right">
                         <p className="text-night-100">
-                          {formatTokenAmount(
-                            BigInt(token.reserve),
-                            token.decimals,
-                          )}
+                          {formatTokenReserve(token)}
                         </p>
                         {token.priceUSD > 0 ? (
                           <p className="text-night-400 text-xs">
@@ -844,7 +847,7 @@ const PoolTokenCollectionInventory = ({
                 ),
               ),
             )}{" "}
-            of {formatTokenAmount(BigInt(token.reserve), token.decimals)}
+            of {formatTokenReserve(token)}
           </span>
           <DialogTrigger asChild>
             <Button variant="ghost">View All</Button>
