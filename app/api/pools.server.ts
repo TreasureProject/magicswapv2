@@ -18,6 +18,7 @@ import {
 import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
 import { fetchTroveTokenMapping } from "./tokens.server";
+import { fetchDomains } from "./user.server";
 
 export const fetchPoolTransactions = async ({
   id,
@@ -42,16 +43,20 @@ export const fetchPoolTransactions = async ({
   }
 
   const transactions = pair.transactions;
-  const tokens = await fetchTroveTokenMapping([
-    ...new Set(
-      transactions.flatMap(({ items }) =>
-        items.map(({ collection, tokenId }) => `${collection.id}/${tokenId}`),
+  const [tokens, domains] = await Promise.all([
+    fetchTroveTokenMapping([
+      ...new Set(
+        transactions.flatMap(({ items }) =>
+          items.map(({ collection, tokenId }) => `${collection.id}/${tokenId}`),
+        ),
       ),
-    ),
+    ]),
+    fetchDomains(transactions.map(({ user }) => user?.id ?? "")),
   ]);
 
   return transactions.map(({ items, ...transaction }) => ({
     ...transaction,
+    userDomain: transaction.user ? domains[transaction.user.id] : undefined,
     items0:
       items
         ?.filter(({ vault }) => vault.id === pair.token0.id)
@@ -63,7 +68,7 @@ export const fetchPoolTransactions = async ({
   }));
 };
 
-export type PoolTransaction = Awaited<
+type PoolTransaction = Awaited<
   ReturnType<typeof fetchPoolTransactions>
 >[number];
 export type PoolTransactionType = NonNullable<PoolTransaction["type"]>;

@@ -1,6 +1,5 @@
 import { useFetcher } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
-import type { PoolTransaction } from "~/api/pools.server";
 import type { FetchPoolTransactions } from "~/routes/resources.pools.$id.transactions";
 import type { TransactionType } from ".graphclient";
 
