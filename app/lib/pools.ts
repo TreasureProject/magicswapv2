@@ -7,6 +7,7 @@ import {
 import { parseUnits } from "viem";
 
 import type { AddressString, PoolToken } from "~/types";
+import { aprToApy } from "./apr";
 import { formatAmount, formatTokenAmount, formatUSD } from "./currency";
 import { bigIntToNumber } from "./number";
 import type { Pool } from "./pools.server";
@@ -99,8 +100,8 @@ export const getPoolAPY = (pool: Pool) => {
     return 0;
   }
 
-  const apr = ((volume1w / 7) * 365 * 0.0025) / reserve;
-  return ((1 + apr / 100 / 3650) ** 3650 - 1) * 100;
+  const apr = ((volume1w / 7) * 365 * Number(pool.lpFee)) / reserve;
+  return aprToApy(apr);
 };
 
 export const getPoolVolume24hDisplay = (pool: Pool) => {
