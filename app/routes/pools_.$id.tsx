@@ -34,6 +34,7 @@ import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
 import type { TransactionType } from ".graphclient";
 
+import { MagicLogo } from "@treasure-project/branding";
 import type {
   PoolTransactionItem,
   PoolTransactionType,
@@ -65,12 +66,7 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
-import {
-  bigIntToNumber,
-  floorBigInt,
-  formatNumber,
-  formatPercent,
-} from "~/lib/number";
+import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import {
   getPoolAPY,
   getPoolFees24hDisplay,
@@ -694,7 +690,16 @@ const PoolActivityTable = ({
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td> */}
                       <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
-                        {tx.user ? truncateEthAddress(tx.user.id) : "-"}
+                        {tx.userDomain?.treasuretag ? (
+                          <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
+                            <MagicLogo className="h-3 w-3" />
+                            {tx.userDomain.treasuretag.name}
+                          </span>
+                        ) : (
+                          <span className="font-mono">
+                            {tx.user ? truncateEthAddress(tx.user.id) : "-"}
+                          </span>
+                        )}
                       </td>
                       <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
                         {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
