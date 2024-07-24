@@ -7,7 +7,7 @@ import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApproval } from "~/hooks/useApproval";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
-import { formatTokenAmount } from "~/lib/currency";
+import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -235,7 +235,7 @@ export const PoolDepositTab = ({
             balance={balance0}
             amount={
               isExact1
-                ? formatTokenAmount(amount0, pool.token0.decimals)
+                ? formatAmount(amount0, { decimals: pool.token0.decimals })
                 : rawAmount
             }
             disabled={pool.token1.isNFT}
@@ -268,7 +268,7 @@ export const PoolDepositTab = ({
             amount={
               isExact1
                 ? rawAmount
-                : formatTokenAmount(amount1, pool.token1.decimals)
+                : formatAmount(amount1, { decimals: pool.token1.decimals })
             }
             disabled={pool.token0.isNFT}
             onUpdateAmount={(amount) =>
@@ -289,7 +289,7 @@ export const PoolDepositTab = ({
             value: (
               <div className="-space-x-1 flex items-center">
                 <PoolImage className="h-5 w-5" pool={pool} />
-                <span>{formatTokenAmount(estimatedLp)}</span>
+                <span>{formatAmount(estimatedLp)}</span>
               </div>
             ),
           },
@@ -382,14 +382,12 @@ const TotalDisplay = ({
     ? amount
     : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
 
-  const formattedTokenInAmount = formatTokenAmount(
-    amountA,
-    pool.token0.decimals,
-  );
-  const formattedTokenOutAmount = formatTokenAmount(
-    amountB,
-    pool.token1?.decimals ?? 18,
-  );
+  const formattedTokenInAmount = formatAmount(amountA, {
+    decimals: pool.token0.decimals,
+  });
+  const formattedTokenOutAmount = formatAmount(amountB, {
+    decimals: pool.token1?.decimals,
+  });
 
   return (
     <TotalDisplayInner

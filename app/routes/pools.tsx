@@ -64,27 +64,27 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
 
   return (
     <div>
-      <table className="mt-4 w-full rounded-md bg-night-1100 text-white sm:mt-6">
+      <table className="mt-4 w-full rounded-md bg-night-1100 sm:mt-6">
         <thead>
-          <tr>
-            <th className="px-4 py-2.5 text-left font-normal text-night-200 text-sm sm:px-5">
+          <tr className="text-night-100 text-sm">
+            <th className="px-4 py-2.5 text-left font-normal text-sm sm:px-5">
               Name
             </th>
-            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
               Volume (24h)
             </th>
-            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
-              <abbr title="Annual Percentage Rate" className="no-underline">
-                APY
-              </abbr>
-            </th>
-            <th className="px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:px-5">
+            <th className="px-4 py-2.5 text-right font-normal sm:px-5">
               <abbr title="Total Value Locked" className="no-underline">
                 TVL
               </abbr>
             </th>
-            <th className="hidden px-4 py-2.5 text-right font-normal text-night-200 text-sm sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
               LP Fees
+            </th>
+            <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
+              <abbr title="Annual Percentage Rate" className="no-underline">
+                APY
+              </abbr>
             </th>
           </tr>
         </thead>
@@ -96,7 +96,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
               className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
               onClick={() => navigate(`/pools/${pool.id}`)}
             >
-              <td className="px-4 py-4 text-left font-medium sm:px-5">
+              <td className="px-4 py-3.5 text-left font-medium text-white sm:px-5">
                 <Link
                   to={`/pools/${pool.id}`}
                   prefetch="intent"
@@ -107,17 +107,17 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                   <span className="-ml-2 sm:ml-0">{pool.name}</span>
                 </Link>
               </td>
-              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+              <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
                 {getPoolVolume24hDisplay(pool)}
               </td>
-              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
-                {formatPercent(getPoolAPY(pool))}
-              </td>
-              <td className="px-4 py-4 text-right sm:px-5">
+              <td className="px-4 py-3.5 text-right text-night-200 text-sm sm:px-5">
                 {getPoolReserveDisplay(pool)}
               </td>
-              <td className="hidden px-4 py-4 text-right sm:table-cell sm:px-5">
+              <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
                 {getPoolFeesDisplay(pool)}
+              </td>
+              <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
+                {formatPercent(getPoolAPY(pool))}
               </td>
             </tr>
           ))}

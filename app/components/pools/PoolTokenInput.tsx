@@ -1,4 +1,4 @@
-import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { DisabledInputPopover } from "../DisabledInputPopover";
@@ -54,7 +54,7 @@ export const PoolTokenInput = ({
           Balance:
           <span className="inline-block pl-1 font-medium text-night-100">
             <VisibleOnClient>
-              {formatTokenAmount(balance, token.decimals)}
+              {formatAmount(balance, { decimals: token.decimals })}
             </VisibleOnClient>
           </span>
         </p>

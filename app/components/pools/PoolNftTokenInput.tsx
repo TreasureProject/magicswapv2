@@ -1,7 +1,7 @@
 import { Await } from "@remix-run/react";
 import { Suspense } from "react";
 
-import { formatTokenAmount } from "~/lib/currency";
+import { formatAmount } from "~/lib/currency";
 import { formatNumber } from "~/lib/number";
 import { cn } from "~/lib/utils";
 import type { PoolToken, TroveTokenWithQuantity } from "~/types";
@@ -103,7 +103,7 @@ export const PoolNftTokenInput = ({
           {isVault ? "Vault" : "Inventory"}:
           <span className="pl-1 font-medium text-night-100">
             {isVault ? (
-              formatTokenAmount(reserve, token.decimals)
+              formatAmount(reserve, { decimals: token.decimals })
             ) : (
               <Suspense
                 fallback={<LoaderIcon className="inline-block h-3.5 w-3.5" />}

@@ -55,7 +55,7 @@ import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useTrove } from "~/hooks/useTrove";
-import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
@@ -246,11 +246,12 @@ export default function SwapPage() {
     5000,
   );
 
-  const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
-  const formattedTokenOutAmount = formatTokenAmount(
-    amountOut,
-    tokenOut?.decimals ?? 18,
-  );
+  const formattedTokenInAmount = formatAmount(amountIn, {
+    decimals: tokenIn.decimals,
+  });
+  const formattedTokenOutAmount = formatAmount(amountOut, {
+    decimals: tokenOut?.decimals,
+  });
 
   return (
     <main className="mx-auto max-w-xl px-4 pt-12 pb-20 sm:px-6 lg:px-8">
@@ -869,7 +870,9 @@ const SwapTokenInput = ({
             {token.isNFT ? (
               <>
                 {isOut ? (
-                  formatTokenAmount(BigInt(token.reserve), token.decimals)
+                  formatAmount(BigInt(token.reserve), {
+                    decimals: token.decimals,
+                  })
                 ) : (
                   <Suspense
                     fallback={
@@ -885,7 +888,7 @@ const SwapTokenInput = ({
             ) : (
               <VisibleOnClient>
                 <span className="font-semibold text-honey-25 sm:text-sm">
-                  {formatTokenAmount(balance, token.decimals)}
+                  {formatAmount(balance, { decimals: token.decimals })}
                 </span>
               </VisibleOnClient>
             )}
@@ -973,11 +976,12 @@ const TotalDisplay = ({
     isExactOut,
   });
 
-  const formattedTokenInAmount = formatTokenAmount(amountIn, tokenIn.decimals);
-  const formattedTokenOutAmount = formatTokenAmount(
-    amountOut,
-    tokenOut?.decimals ?? 18,
-  );
+  const formattedTokenInAmount = formatAmount(amountIn, {
+    decimals: tokenIn.decimals,
+  });
+  const formattedTokenOutAmount = formatAmount(amountOut, {
+    decimals: tokenOut?.decimals,
+  });
 
   return (
     <TotalDisplayInner
@@ -1096,9 +1100,7 @@ const Token = ({
           <LoaderIcon className="h-4 w-4" />
         ) : address ? (
           <p className="text-base-400 text-sm">
-            {typeof balance === "bigint"
-              ? formatTokenAmount(balance, token.decimals)
-              : formatNumber(balance)}
+            {formatAmount(balance, { decimals: token.decimals })}
           </p>
         ) : null}
       </div>

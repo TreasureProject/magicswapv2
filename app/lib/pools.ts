@@ -4,11 +4,11 @@ import {
   findMultiRouteExactIn,
   findMultiRouteExactOut,
 } from "@sushiswap/tines";
-import { parseUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 
 import type { AddressString, PoolToken } from "~/types";
 import { aprToApy } from "./apr";
-import { formatAmount, formatTokenAmount, formatUSD } from "./currency";
+import { formatAmount, formatUSD } from "./currency";
 import { bigIntToNumber } from "./number";
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
@@ -107,10 +107,10 @@ export const getPoolAPY = (pool: Pool) => {
 export const getPoolVolume24hDisplay = (pool: Pool) => {
   if (!pool.volume24hUSD) {
     if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatAmount(pool.volume24h0)} ${pool.token0.symbol}`;
+      return `${formatAmount(pool.volume24h0, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume24h1)} ${pool.token1.symbol}`;
+    return `${formatAmount(pool.volume24h1, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.volume24hUSD);
@@ -119,10 +119,10 @@ export const getPoolVolume24hDisplay = (pool: Pool) => {
 export const getPoolReserveDisplay = (pool: Pool) => {
   if (!pool.reserveUSD) {
     if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatTokenAmount(BigInt(pool.token0.reserve) * 2n)} ${pool.token0.symbol}`;
+      return `${formatAmount(BigInt(pool.token0.reserve) * 2n, { decimals: pool.token0.decimals, type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatTokenAmount(BigInt(pool.token1.reserve) * 2n)} ${pool.token1.symbol}`;
+    return `${formatAmount(BigInt(pool.token1.reserve) * 2n, { decimals: pool.token1.decimals, type: "compact" })} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.reserveUSD);
@@ -132,10 +132,10 @@ export const getPoolFeesDisplay = (pool: Pool) => {
   const fee = Number(pool.lpFee);
   if (!pool.volumeUSD) {
     if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatAmount(pool.volume0 * fee)} ${pool.token0.symbol}`;
+      return `${formatAmount(pool.volume0 * fee, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume1 * fee)} ${pool.token1.symbol}`;
+    return `${formatAmount(pool.volume1 * fee, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.volumeUSD * fee);
@@ -145,10 +145,10 @@ export const getPoolFees24hDisplay = (pool: Pool) => {
   const fee = Number(pool.lpFee);
   if (!pool.volume24hUSD) {
     if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatAmount(pool.volume24h0 * fee)} ${pool.token0.symbol}`;
+      return `${formatAmount(pool.volume24h0 * fee, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume24h1 * fee)} ${pool.token1.symbol}`;
+    return `${formatAmount(pool.volume24h1 * fee, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
   return formatUSD(pool.volume24hUSD * fee);

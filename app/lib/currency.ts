@@ -7,7 +7,18 @@ export const formatUSD = (value: number | string) =>
     maximumFractionDigits: 2,
   })}`;
 
-export const formatAmount = (value: string | number, toLocale = true) => {
+export const formatAmount = (
+  value: number | string | bigint,
+  params?: {
+    type?: "default" | "raw" | "compact";
+    decimals?: number;
+  },
+): string => {
+  const { type = "default", decimals = 18 } = params ?? {};
+  if (typeof value === "bigint") {
+    return formatAmount(formatUnits(value, decimals), { type });
+  }
+
   const decimal = new Decimal(value);
   let decimalPlaces: number;
   if (decimal.lt(1e-3)) {
@@ -21,15 +32,12 @@ export const formatAmount = (value: string | number, toLocale = true) => {
   }
 
   const rounded = decimal.toDecimalPlaces(decimalPlaces, Decimal.ROUND_DOWN);
-
-  if (toLocale) {
-    return rounded
-      .toNumber()
-      .toLocaleString("en-US", { maximumFractionDigits: decimalPlaces });
+  if (type !== "default" && type !== "compact") {
+    return rounded.toString();
   }
 
-  return rounded.toString();
+  return rounded.toNumber().toLocaleString("en-US", {
+    notation: type === "compact" ? "compact" : "standard",
+    maximumFractionDigits: decimalPlaces,
+  });
 };
-
-export const formatTokenAmount = (value: bigint, decimals = 18) =>
-  formatAmount(formatUnits(value, decimals));

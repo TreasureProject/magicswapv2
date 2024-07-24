@@ -65,7 +65,7 @@ import { usePoolTransactions } from "~/hooks/usePoolTransactions";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
-import { formatAmount, formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import {
   getPoolAPY,
@@ -227,11 +227,11 @@ export default function PoolDetailsPage() {
                           </span>
                         ) : null}
                       </div>
-                      <div className="flex flex-col space-y-2 px-2 py-4">
+                      <div className="flex flex-col space-y-2 px-2 py-3.5">
                         <div className="-space-x-1 flex items-center">
                           <PoolImage pool={pool} className="h-10 w-10" />
                           <p className="text-3xl text-night-100">
-                            {formatTokenAmount(lpBalance)}
+                            {formatAmount(lpBalance)}
                           </p>
                         </div>
                         <p className="text-night-400 text-sm">
@@ -380,15 +380,15 @@ export default function PoolDetailsPage() {
                 </p>
               </div>
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">APY</p>
-                <p className="font-medium text-night-100">
-                  {formatPercent(getPoolAPY(pool))}
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">Fees (24h)</p>
                 <p className="font-medium text-night-100">
                   {getPoolFees24hDisplay(pool)}
+                </p>
+              </div>
+              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                <p className="text-night-500">APY</p>
+                <p className="font-medium text-night-100">
+                  {formatPercent(getPoolAPY(pool))}
                 </p>
               </div>
             </div>
@@ -650,7 +650,7 @@ const PoolActivityTable = ({
                 return (
                   <Fragment key={tx.id}>
                     <tr className="border-b border-b-night-900 transition-colors">
-                      <td className="px-4 py-4 text-left sm:px-5">
+                      <td className="px-4 py-3.5 text-left sm:px-5">
                         <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
                           <div className="flex items-center gap-2.5">
                             <PoolTransactionImage
@@ -683,13 +683,13 @@ const PoolActivityTable = ({
                           </div>
                         </div>
                       </td>
-                      <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                      <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
                         {tx.type}
                       </td>
-                      {/* <td className="hidden px-4 py-4 text-center sm:table-cell sm:px-5">
+                      {/* <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
                           {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
                         </td> */}
-                      <td className="hidden px-4 py-4 text-center text-night-400 text-sm sm:table-cell sm:px-5">
+                      <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                         {tx.userDomain?.treasuretag ? (
                           <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
                             <MagicLogo className="h-3 w-3" />
@@ -701,10 +701,10 @@ const PoolActivityTable = ({
                           </span>
                         )}
                       </td>
-                      <td className="hidden px-4 py-4 text-right text-night-400 text-sm sm:table-cell sm:px-5">
+                      <td className="hidden px-4 py-3.5 text-right text-night-400 text-sm sm:table-cell sm:px-5">
                         {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
                       </td>
-                      <td className="flex items-center justify-end gap-2 px-4 py-4 text-end sm:px-5">
+                      <td className="flex items-center justify-end gap-2 px-4 py-3.5 text-end sm:px-5">
                         <a
                           className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
                           href={`${blockExplorer.url}/tx/${tx.hash}`}

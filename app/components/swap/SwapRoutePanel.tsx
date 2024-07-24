@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 
 import type { SwapRoute } from "~/hooks/useSwapRoute";
-import { formatAmount, formatTokenAmount } from "~/lib/currency";
+import { formatAmount } from "~/lib/currency";
 import { floorBigInt, formatPercent } from "~/lib/number";
 import { cn } from "~/lib/utils";
 
@@ -77,11 +77,13 @@ export const SwapRoutePanel = ({
             <li className="flex items-center justify-between">
               NFT dust sent to pool
               <span>
-                {formatTokenAmount(
+                {formatAmount(
                   isExactOut
                     ? amountIn - floorBigInt(amountIn)
                     : amountOut - floorBigInt(amountOut),
-                  isExactOut ? tokenIn.decimals : tokenOut.decimals,
+                  {
+                    decimals: isExactOut ? tokenIn.decimals : tokenOut.decimals,
+                  },
                 )}{" "}
                 {isExactOut ? tokenIn.symbol : tokenOut.symbol}
               </span>
@@ -90,7 +92,7 @@ export const SwapRoutePanel = ({
             <li className="flex items-center justify-between">
               Maximum spent
               <span>
-                {formatTokenAmount(amountInMax, tokenIn.decimals)}{" "}
+                {formatAmount(amountInMax, { decimals: tokenIn.decimals })}{" "}
                 {tokenIn.symbol}
               </span>
             </li>
@@ -98,7 +100,7 @@ export const SwapRoutePanel = ({
             <li className="flex items-center justify-between">
               Minimum received
               <span>
-                {formatTokenAmount(amountOutMin, tokenOut?.decimals)}{" "}
+                {formatAmount(amountOutMin, { decimals: tokenOut?.decimals })}{" "}
                 {tokenOut?.symbol}
               </span>
             </li>

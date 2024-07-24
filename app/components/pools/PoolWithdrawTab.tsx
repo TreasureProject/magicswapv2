@@ -4,7 +4,7 @@ import { parseEther } from "viem";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
-import { formatTokenAmount, formatUSD } from "~/lib/currency";
+import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -105,7 +105,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token0} />
                 <span className="text-honey-25">
-                  {formatTokenAmount(amount0Min)}
+                  {formatAmount(amount0Min)}
                 </span>
                 {pool.token0.symbol}
               </div>
@@ -120,7 +120,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token1} />
                 <span className="text-honey-25">
-                  {formatTokenAmount(amount1Min)}
+                  {formatAmount(amount1Min)}
                 </span>
                 {pool.token1.symbol}
               </div>
@@ -137,14 +137,18 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(amount0Leftover, pool.token0.decimals)}
+                      {formatAmount(amount0Leftover, {
+                        decimals: pool.token0.decimals,
+                      })}
                     </span>
                     v{pool.token0.symbol}
                   </div>
                   and
                   <div className="flex items-center gap-1">
                     <span className="text-honey-25">
-                      {formatTokenAmount(amount1Leftover, pool.token1.decimals)}
+                      {formatAmount(amount1Leftover, {
+                        decimals: pool.token1.decimals,
+                      })}
                     </span>
                     v{pool.token1.symbol}
                   </div>
@@ -161,7 +165,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                         token={pool.token0.isNFT ? pool.token0 : pool.token1}
                       />
                       <span className="text-honey-25">
-                        {formatTokenAmount(amount0Leftover)}
+                        {formatAmount(amount0Leftover)}
                       </span>
                       {pool.token0.isNFT
                         ? pool.token0.symbol
@@ -174,7 +178,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                         token={pool.token0.isNFT ? pool.token1 : pool.token0}
                       />
                       <span className="text-honey-25">
-                        {formatTokenAmount(
+                        {formatAmount(
                           quote(
                             amount0Leftover,
                             pool.token0.isNFT

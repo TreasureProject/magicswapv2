@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
-import { formatAmount, formatTokenAmount } from "~/lib/currency";
+import { formatAmount } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import {

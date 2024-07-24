@@ -2,7 +2,7 @@ import type { RToken } from "@sushiswap/tines";
 
 import type { PoolToken, TroveTokenWithQuantity } from "~/types";
 import { sumArray } from "./array";
-import { formatTokenAmount } from "./currency";
+import { formatAmount } from "./currency";
 import { floorBigInt } from "./number";
 
 export const tokenToRToken = ({
@@ -21,9 +21,9 @@ export const countTokens = (tokens: TroveTokenWithQuantity[]) =>
   sumArray(tokens.map(({ quantity }) => quantity));
 
 export const formatTokenReserve = (token: PoolToken) =>
-  formatTokenAmount(
+  formatAmount(
     token.isNFT
       ? floorBigInt(BigInt(token.reserve), token.decimals)
       : BigInt(token.reserve),
-    token.decimals,
+    { decimals: token.decimals },
   );
