@@ -31,10 +31,9 @@ import {
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { DisabledInputPopover } from "~/components/DisabledInputPopover";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
+import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
-import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
-import { TotalDisplayInner } from "~/components/item_selection/TotalDisplayInner";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { SwapRoutePanel } from "~/components/swap/SwapRoutePanel";
 import { Button, TransactionButton } from "~/components/ui/Button";
@@ -975,19 +974,22 @@ const TotalDisplay = ({
     amount,
     isExactOut,
   });
-
-  const formattedTokenInAmount = formatAmount(amountIn, {
-    decimals: tokenIn.decimals,
-  });
-  const formattedTokenOutAmount = formatAmount(amountOut, {
-    decimals: tokenOut?.decimals,
-  });
-
   return (
-    <TotalDisplayInner
-      token={isExactOut ? tokenIn : tokenOut}
-      total={isExactOut ? formattedTokenInAmount : formattedTokenOutAmount}
-    />
+    <span className="flex items-center gap-1">
+      <PoolTokenImage
+        token={isExactOut ? tokenIn : tokenOut}
+        className="h-4 w-4 flex-shrink-0"
+      />
+      <span className="truncate font-medium text-honey-25 text-sm">
+        {isExactOut
+          ? formatAmount(amountIn, {
+              decimals: tokenIn.decimals,
+            })
+          : formatAmount(amountOut, {
+              decimals: tokenOut?.decimals,
+            })}
+      </span>
+    </span>
   );
 };
 

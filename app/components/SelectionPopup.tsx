@@ -17,11 +17,11 @@ import { formatNumber } from "~/lib/number";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
-import { CheckIcon, LoaderIcon } from "../Icons";
-import { PoolTokenImage } from "../pools/PoolTokenImage";
-import { Button } from "../ui/Button";
-import IconToggle from "../ui/IconToggle";
-import { NumberSelect } from "../ui/NumberSelect";
+import { CheckIcon, LoaderIcon } from "./Icons";
+import { PoolTokenImage } from "./pools/PoolTokenImage";
+import { Button } from "./ui/Button";
+import IconToggle from "./ui/IconToggle";
+import { NumberSelect } from "./ui/NumberSelect";
 
 const ItemCard = ({
   selected,

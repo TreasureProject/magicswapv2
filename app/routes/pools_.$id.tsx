@@ -45,9 +45,9 @@ import {
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
 import { LoaderIcon } from "~/components/Icons";
+import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
-import { SelectionPopup } from "~/components/item_selection/SelectionPopup";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";

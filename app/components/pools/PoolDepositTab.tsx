@@ -20,15 +20,15 @@ import type {
   PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
+import { SelectionPopup } from "../SelectionPopup";
 import { Table } from "../Table";
-import { SelectionPopup } from "../item_selection/SelectionPopup";
-import { TotalDisplayInner } from "../item_selection/TotalDisplayInner";
 import { TransactionButton } from "../ui/Button";
 import { LabeledCheckbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 import { PoolImage } from "./PoolImage";
 import { PoolNftTokenInput } from "./PoolNftTokenInput";
+import { PoolTokenImage } from "./PoolTokenImage";
 import { PoolTokenInput } from "./PoolTokenInput";
 
 type Props = {
@@ -206,13 +206,42 @@ export const PoolDepositTab = ({
               });
             }}
           >
-            {({ amount }) => {
+            {({ amount: selectingAmount }) => {
+              const isSelectingToken1 = selectingToken.id === pool.token1.id;
+              const amount = parseUnits(
+                selectingAmount as NumberString,
+                isSelectingToken1 ? pool.token1.decimals : pool.token0.decimals,
+              );
+              const amount0 = isSelectingToken1
+                ? quote(
+                    amount,
+                    BigInt(pool.token1.reserve),
+                    BigInt(pool.token0.reserve),
+                  )
+                : amount;
+              const amount1 = isSelectingToken1
+                ? amount
+                : quote(
+                    amount,
+                    BigInt(pool.token0.reserve),
+                    BigInt(pool.token1.reserve),
+                  );
               return (
-                <TotalDisplay
-                  rawAmount={amount}
-                  isExact1={isExact1}
-                  pool={pool}
-                />
+                <span className="flex items-center gap-1">
+                  <PoolTokenImage
+                    token={isSelectingToken1 ? pool.token0 : pool.token1}
+                    className="h-4 w-4 flex-shrink-0"
+                  />
+                  <span className="truncate font-medium text-honey-25 text-sm">
+                    {isSelectingToken1
+                      ? formatAmount(amount0, {
+                          decimals: pool.token0.decimals,
+                        })
+                      : formatAmount(amount1, {
+                          decimals: pool.token1.decimals,
+                        })}
+                  </span>
+                </span>
               );
             }}
           </SelectionPopup>
@@ -358,42 +387,6 @@ export const PoolDepositTab = ({
         </TransactionButton>
       </div>
     </div>
-  );
-};
-
-const TotalDisplay = ({
-  rawAmount,
-  pool,
-  isExact1,
-}: {
-  rawAmount: string;
-  pool: Pool;
-  isExact1: boolean;
-}) => {
-  const amount = parseUnits(
-    rawAmount as NumberString,
-    isExact1 ? pool.token1.decimals : pool.token0.decimals,
-  );
-
-  const amountA = isExact1
-    ? quote(amount, BigInt(pool.token1.reserve), BigInt(pool.token0.reserve))
-    : amount;
-  const amountB = isExact1
-    ? amount
-    : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
-
-  const formattedTokenInAmount = formatAmount(amountA, {
-    decimals: pool.token0.decimals,
-  });
-  const formattedTokenOutAmount = formatAmount(amountB, {
-    decimals: pool.token1?.decimals,
-  });
-
-  return (
-    <TotalDisplayInner
-      token={isExact1 ? pool.token0 : pool.token1}
-      total={isExact1 ? formattedTokenInAmount : formattedTokenOutAmount}
-    />
   );
 };
 

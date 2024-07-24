@@ -11,7 +11,7 @@ import type { Pool } from "~/lib/pools.server";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { NumberString, TroveTokenWithQuantity } from "~/types";
-import { SelectionPopup } from "../item_selection/SelectionPopup";
+import { SelectionPopup } from "../SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { PoolInput } from "./PoolInput";
