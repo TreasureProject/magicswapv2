@@ -51,9 +51,7 @@ export const SwapRoutePanel = ({
         <ul className="mt-2.5 space-y-1 p-4 pt-0">
           <li className="flex items-center justify-between">
             Price impact
-            <span className={getPriceImpactClassName(priceImpact)}>
-              -{formatPercent(priceImpact)}
-            </span>
+            <span>-{formatPercent(priceImpact)}</span>
           </li>
           {lpFee > 0 && (
             <li className="flex items-center justify-between">
@@ -61,16 +59,16 @@ export const SwapRoutePanel = ({
               <span>{formatPercent(lpFee)}</span>
             </li>
           )}
-          {protocolFee > 0 && (
-            <li className="flex items-center justify-between">
-              Protocol fee
-              <span>{formatPercent(protocolFee)}</span>
-            </li>
-          )}
           {royaltiesFee > 0 && (
             <li className="flex items-center justify-between">
               Royalties fee
               <span>{formatPercent(royaltiesFee)}</span>
+            </li>
+          )}
+          {protocolFee > 0 && (
+            <li className="flex items-center justify-between">
+              Protocol fee
+              <span>{formatPercent(protocolFee)}</span>
             </li>
           )}
           {isNFTNFT ? (
@@ -111,9 +109,9 @@ export const SwapRoutePanel = ({
   );
 };
 
-const getPriceImpactClassName = (priceImpact: number) =>
-  priceImpact >= 0.05
-    ? "text-red-500"
-    : priceImpact > 0.01
-      ? "text-amber-500"
-      : "text-honey-25";
+// const getPriceImpactClassName = (priceImpact: number) =>
+//   priceImpact >= 0.05
+//     ? "text-red-500"
+//     : priceImpact > 0.01
+//       ? "text-amber-500"
+//       : "text-honey-25";

@@ -4,7 +4,7 @@ import {
   findMultiRouteExactIn,
   findMultiRouteExactOut,
 } from "@sushiswap/tines";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 
 import type { AddressString, PoolToken } from "~/types";
 import { aprToApy } from "./apr";
