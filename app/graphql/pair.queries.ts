@@ -97,8 +97,20 @@ export const getPairTransactions = gql`
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query GetPairs {
-    pairs(orderBy: volumeUSD, orderDirection: desc) {
+  query GetPairs(
+    $skip: Int = 0
+    $first: Int = 100
+    $where: Pair_filter = { reserve0_gt: 0 }
+    $orderBy: Pair_orderBy = reserveUSD
+    $orderDirection: OrderDirection = desc
+  ) {
+    pairs(
+      skip: $skip
+      first: $first
+      where: $where
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+    ) {
       ...PairFragment
     }
   }

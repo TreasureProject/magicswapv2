@@ -33,8 +33,18 @@ export const getToken = gql`
 
 export const getTokens = gql`
   ${TOKEN_FRAGMENT}
-  query GetTokens {
-    tokens {
+  query GetTokens(
+    $skip: Int = 0
+    $first: Int = 100
+    $orderBy: Token_orderBy = symbol
+    $orderDirection: OrderDirection = asc
+  ) {
+    tokens(
+      skip: $skip
+      first: $first
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+    ) {
       ...TokenFragment
     }
   }
@@ -43,15 +53,17 @@ export const getTokens = gql`
 export const getTokenVaultReserveItems = gql`
   query GetTokenVaultReserveItems(
     $id: String!
-    $first: Int = 50
     $skip: Int = 0
+    $first: Int = 50
+    $orderBy: VaultReserveItem_orderBy = tokenId
+    $orderDirection: OrderDirection = asc
   ) {
     vaultReserveItems(
       first: $first
       skip: $skip
       where: { vault: $id }
-      orderBy: tokenId
-      orderDirection: asc
+      orderBy: $orderBy
+      orderDirection: $orderDirection
     ) {
       collection {
         id
