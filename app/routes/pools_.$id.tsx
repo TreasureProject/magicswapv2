@@ -173,9 +173,11 @@ export default function PoolDetailsPage() {
   useFocusInterval(refresh, 5_000);
 
   const baseToken =
-    pool.token1.isNFT && !pool.isNFTNFT ? pool.token1 : pool.token0;
+    (pool.token1.isNFT && !pool.isNFTNFT) || pool.token1.isMAGIC
+      ? pool.token1
+      : pool.token0;
   const quoteToken =
-    pool.token1.isNFT && !pool.isNFTNFT ? pool.token0 : pool.token1;
+    baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
@@ -197,7 +199,7 @@ export default function PoolDetailsPage() {
               <div className="flex flex-col text-2xl">
                 <span>{pool.name}</span>
                 <span className="text-night-400 text-sm">
-                  LP Fees: {formatPercent(pool.lpFee)}
+                  LP Fees: {formatPercent(pool.lpFee, 3)}
                 </span>
               </div>
             </div>

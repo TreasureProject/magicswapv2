@@ -59,12 +59,16 @@ export const useSwapRoute = ({
     tokenTo: PoolToken;
   })[];
 
+  const isValid =
+    poolLegs.length > 0 &&
+    new Set(poolLegs.map(({ version }) => version)).size === 1;
   return {
+    isValid,
+    version: isValid ? poolLegs[0]?.version : undefined,
     amountIn: isSampleRoute ? 0n : amountInBI,
     amountOut: isSampleRoute ? 0n : amountOutBI,
     tokenIn: poolLegs[0]?.tokenFrom ?? tokenIn,
     tokenOut: poolLegs[poolLegs.length - 1]?.tokenTo ?? tokenOut ?? undefined,
-    legs,
     path: poolLegs.flatMap(({ tokenFrom, tokenTo }, i) =>
       i === poolLegs.length - 1
         ? [tokenFrom.id as AddressString, tokenTo.id as AddressString]

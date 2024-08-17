@@ -6,6 +6,7 @@ import { formatEther, formatUnits, parseUnits } from "viem";
 import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApproval } from "~/hooks/useApproval";
+import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
@@ -57,6 +58,7 @@ export const PoolDepositTab = ({
     });
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
+  const routerAddress = useRouterAddress(pool.version);
 
   const amount = parseUnits(
     rawAmount as NumberString,
@@ -92,6 +94,7 @@ export const PoolDepositTab = ({
     allowance: allowance0,
     approve: approve0,
   } = useApproval({
+    operator: routerAddress,
     token: pool.token0,
     amount: amount0,
     enabled: hasAmount,
@@ -103,6 +106,7 @@ export const PoolDepositTab = ({
     allowance: allowance1,
     approve: approve1,
   } = useApproval({
+    operator: routerAddress,
     token: pool.token1,
     amount: amount1,
     enabled: hasAmount,

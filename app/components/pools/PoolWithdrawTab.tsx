@@ -3,6 +3,7 @@ import { parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
+import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
@@ -32,6 +33,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
     nfts0: [] as TroveTokenWithQuantity[],
     nfts1: [] as TroveTokenWithQuantity[],
   });
+  const routerAddress = useRouterAddress(pool.version);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
@@ -64,6 +66,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
     : 0;
 
   const { isApproved, approve } = useApproval({
+    operator: routerAddress,
     token: pool.id,
     amount,
     enabled: hasAmount,

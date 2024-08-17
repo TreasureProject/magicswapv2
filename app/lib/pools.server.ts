@@ -32,13 +32,15 @@ export const createPoolFromPair = (
 
   const reserveUSD = Number(pair.reserveUSD);
   const dayTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24;
-  const dayData = pair.dayData.find(({ date }) => Number(date) >= dayTime);
+  const dayData =
+    pair.hourData?.filter(({ date }) => Number(date) >= dayTime) ?? [];
   const weekTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7;
-  const weekData = pair.dayData.filter(({ date }) => Number(date) >= weekTime);
+  const weekData =
+    pair.dayData?.filter(({ date }) => Number(date) >= weekTime) ?? [];
   return {
     ...pair,
     name:
-      token0.isNFT && !token1.isNFT
+      (token0.isNFT && !token1.isNFT) || token1.isMAGIC
         ? `${token1.symbol} / ${token0.symbol}`
         : `${token0.symbol} / ${token1.symbol}`,
     token0,
@@ -49,9 +51,18 @@ export const createPoolFromPair = (
     volume0: Number(pair.volume0),
     volume1: Number(pair.volume1),
     volumeUSD: Number(pair.volumeUSD),
-    volume24h0: Number(dayData?.volume0 ?? 0),
-    volume24h1: Number(dayData?.volume1 ?? 0),
-    volume24hUSD: Number(dayData?.volumeUSD ?? 0),
+    volume24h0: dayData.reduce(
+      (total, { volume0 }) => total + Number(volume0),
+      0,
+    ),
+    volume24h1: dayData.reduce(
+      (total, { volume1 }) => total + Number(volume1),
+      0,
+    ),
+    volume24hUSD: dayData.reduce(
+      (total, { volumeUSD }) => total + Number(volumeUSD),
+      0,
+    ),
     volume1w0: weekData.reduce(
       (total, { volume0 }) => total + Number(volume0),
       0,

@@ -9,7 +9,8 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const PoolImage = ({ pool, className, ...divProps }: Props) => {
-  const isToken1Base = pool.token0.isNFT && !pool.token1.isNFT;
+  const isToken1Base =
+    (pool.token0.isNFT && !pool.token1.isNFT) || pool.token1.isMAGIC;
   return (
     <div className="flex items-center">
       <PoolTokenImage

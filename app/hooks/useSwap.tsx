@@ -25,10 +25,12 @@ import type {
   PoolToken,
   TroveTokenWithQuantity,
 } from "~/types";
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
+import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
+import type { Version } from ".graphclient";
 
 type Props = {
+  version: Version;
   tokenIn: PoolToken;
   tokenOut: Optional<PoolToken>;
   amountIn: bigint;
@@ -42,6 +44,7 @@ type Props = {
 };
 
 export const useSwap = ({
+  version,
   tokenIn,
   tokenOut,
   amountIn,
@@ -54,7 +57,7 @@ export const useSwap = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useMagicSwapV2RouterAddress();
+  const routerAddress = useRouterAddress(version);
   const state = useSettingsStore();
 
   const isEnabled = enabled && !!address && !!tokenOut;

@@ -90,7 +90,7 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
         </thead>
         <tbody>
           {pools.map((pool) => (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+            // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
             <tr
               key={pool.id}
               className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
@@ -104,7 +104,18 @@ const PoolsTable = ({ pools }: { pools: Pool[] }) => {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <PoolImage pool={pool} />
-                  <span className="-ml-2 sm:ml-0">{pool.name}</span>
+                  <div className="-ml-2 space-y-1 sm:ml-0">
+                    <span className="block">{pool.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Badge
+                        size="xs"
+                        color={pool.version === "V2" ? "primary" : "secondary"}
+                      >
+                        {pool.version}
+                      </Badge>
+                      <Badge size="xs">{formatPercent(pool.lpFee, 3)}</Badge>
+                    </div>
+                  </div>
                 </Link>
               </td>
               <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
@@ -182,7 +193,7 @@ export default function PoolsListPage() {
             id: "user",
             title: (
               <div className="flex items-center justify-center gap-2">
-                Your Positions
+                My Positions
                 <Suspense fallback={<LoaderIcon className="h-4 w-4" />}>
                   <Await resolve={user}>
                     {(user) => (

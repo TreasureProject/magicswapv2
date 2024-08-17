@@ -11,15 +11,17 @@ export const formatNumber = (
     options,
   );
 
-export const formatPercent = (percentage: string | number, rounded = false) => {
+export const formatPercent = (
+  percentage: string | number,
+  maximumFractionDigits = 2,
+) => {
   const number =
     (typeof percentage === "string"
       ? Number.parseFloat(percentage)
       : percentage) * 100;
-  const shouldRound = rounded && number >= 1;
-  return `${formatNumber(shouldRound ? Math.round(number) : number, {
+  return `${formatNumber(number, {
     minimumFractionDigits: 0,
-    maximumFractionDigits: shouldRound ? 0 : 2,
+    maximumFractionDigits,
   })}%`;
 };
 

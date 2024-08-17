@@ -107,10 +107,12 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
 };
 
 export const fetchPools = async () => {
-  const result = (await execute(
-    GetPairsDocument,
-    {},
-  )) as ExecutionResult<GetPairsQuery>;
+  const result = (await execute(GetPairsDocument, {
+    hourDataWhere: { date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 },
+    dayDataWhere: {
+      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+    },
+  })) as ExecutionResult<GetPairsQuery>;
   const { pairs = [] } = result.data ?? {};
   return createPoolsFromPairs(pairs);
 };
@@ -118,6 +120,10 @@ export const fetchPools = async () => {
 export const fetchPool = async (id: string) => {
   const result = (await execute(GetPairDocument, {
     id,
+    hourDataWhere: { date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 },
+    dayDataWhere: {
+      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+    },
   })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;
   if (!pair) {
