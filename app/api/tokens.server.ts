@@ -1,5 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
+import { BLOCKED_TOKENS } from "~/consts";
 import { sumArray } from "~/lib/array";
 import { getCachedValue } from "~/lib/cache.server";
 import { ENV } from "~/lib/env.server";
@@ -21,10 +22,11 @@ import {
  * Fetches tokens available for swapping
  */
 export const fetchTokens = async () => {
-  const { data, errors } = (await execute(
-    GetTokensDocument,
-    {},
-  )) as ExecutionResult<GetTokensQuery>;
+  const { data, errors } = (await execute(GetTokensDocument, {
+    where: {
+      id_not_in: BLOCKED_TOKENS,
+    },
+  })) as ExecutionResult<GetTokensQuery>;
   if (errors) {
     throw new Error(
       `Error fetching tokens: ${errors.map((error) => error.message).join(", ")}`,

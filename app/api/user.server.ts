@@ -4,22 +4,49 @@ import { getCachedValue } from "~/lib/cache.server";
 import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
 import { createPoolsFromPairs } from "./pools.server";
-import { GetUserDocument, type GetUserQuery, execute } from ".graphclient";
+import {
+  GetUserPositionsDocument,
+  type GetUserPositionsQuery,
+  execute,
+} from ".graphclient";
 
-export const fetchUser = async (address: string) => {
-  const result = (await execute(GetUserDocument, {
-    id: address,
-  })) as ExecutionResult<GetUserQuery>;
-  const { user } = result.data ?? {};
-  if (!user) {
-    return null;
+export const fetchUserPositions = async (address: string | undefined) => {
+  if (!address) {
+    return {
+      total: 0,
+      positions: [],
+    };
   }
 
+  const result = (await execute(GetUserPositionsDocument, {
+    id: address,
+  })) as ExecutionResult<GetUserPositionsQuery>;
+  if (!result.data?.user) {
+    return {
+      total: 0,
+      positions: [],
+    };
+  }
+
+  const { user } = result.data;
+  const pools = await createPoolsFromPairs(
+    user.liquidityPositions.map(({ pair }) => pair),
+  );
+  const poolsMapping = pools.reduce(
+    (acc, pool) => {
+      acc[pool.id] = pool;
+      return acc;
+    },
+    {} as Record<string, (typeof pools)[0]>,
+  );
+
   return {
-    ...user,
-    pools: await createPoolsFromPairs(
-      user.liquidityPositions.map(({ pair }) => pair),
-    ),
+    total: Number(user.liquidityPositionCount),
+    positions: user.liquidityPositions.map(({ balance, pair }) => ({
+      balance,
+      // biome-ignore lint/style/noNonNullAssertion: poolsMapping is created with keys from pairs directly above
+      pool: poolsMapping[pair.id]!,
+    })),
   };
 };
 

@@ -1,5 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
+import { BLOCKED_PAIRS } from "~/consts";
 import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
 import { createPoolFromPair } from "~/lib/pools.server";
@@ -108,6 +109,10 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
 
 export const fetchPools = async () => {
   const result = (await execute(GetPairsDocument, {
+    where: {
+      id_not_in: BLOCKED_PAIRS,
+      reserve0_gt: 0,
+    },
     hourDataWhere: { date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 },
     dayDataWhere: {
       date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
