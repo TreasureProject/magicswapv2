@@ -20,6 +20,9 @@ export const fetchUserPositions = async (address: string | undefined) => {
 
   const result = (await execute(GetUserPositionsDocument, {
     id: address,
+    dayDataWhere: {
+      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+    },
   })) as ExecutionResult<GetUserPositionsQuery>;
   if (!result.data?.user) {
     return {

@@ -42,6 +42,19 @@ export const PAIR_FRAGMENT = gql`
   }
 `;
 
+export const PAIR_DAY_DATA_FRAGMENT = gql`
+  fragment PairDayDataFragment on PairDayData {
+    date
+    reserve0
+    reserve1
+    reserveUSD
+    volume0
+    volume1
+    volumeUSD
+    txCount
+  }
+`;
+
 export const getPairTransactions = gql`
   ${TRANSACTION_ITEM_FRAGMENT}
   query GetPairTransactions(
@@ -88,6 +101,7 @@ export const getPairTransactions = gql`
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
+  ${PAIR_DAY_DATA_FRAGMENT}
   query GetPairs(
     $skip: Int = 0
     $first: Int = 100
@@ -124,14 +138,7 @@ export const getPairs = gql`
         orderBy: date
         orderDirection: desc
       ) {
-        date
-        reserve0
-        reserve1
-        reserveUSD
-        volume0
-        volume1
-        volumeUSD
-        txCount
+        ...PairDayDataFragment
       }
     }
   }
