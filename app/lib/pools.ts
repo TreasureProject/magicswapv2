@@ -7,9 +7,7 @@ import {
 import { parseUnits } from "viem";
 
 import type { AddressString, PoolToken } from "~/types";
-import { aprToApy } from "./apr";
 import { formatAmount, formatUSD } from "./currency";
-import { bigIntToNumber } from "./number";
 import type { Pool } from "./pools.server";
 import { tokenToRToken } from "./tokens";
 
@@ -82,26 +80,6 @@ export const createSwapRoute = (
   }
 
   return findMultiRouteExactIn(rTokenIn, rTokenOut, amount, rPools, networks);
-};
-
-export const getPoolAPY = (pool: Pool) => {
-  const volume1w = pool.volume1wUSD
-    ? pool.volume1wUSD
-    : pool.isNFTNFT || !pool.token0.isNFT
-      ? pool.volume1w0
-      : pool.volume1w1;
-  const reserve = pool.reserveUSD
-    ? pool.reserveUSD
-    : pool.isNFTNFT || !pool.token0.isNFT
-      ? bigIntToNumber(BigInt(pool.token0.reserve))
-      : bigIntToNumber(BigInt(pool.token1.reserve));
-
-  if (reserve === 0) {
-    return 0;
-  }
-
-  const apr = ((volume1w / 7) * 365 * Number(pool.lpFee)) / reserve;
-  return aprToApy(apr);
 };
 
 export const getPoolVolume24hDisplay = (pool: Pool) => {

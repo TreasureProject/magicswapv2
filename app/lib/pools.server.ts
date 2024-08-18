@@ -6,6 +6,8 @@ import type {
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
+import { aprToApy } from "./apr";
+import { bigIntToNumber } from "./number";
 import { createPoolToken } from "./tokens.server";
 
 export const createPoolFromPair = (
@@ -30,13 +32,43 @@ export const createPoolFromPair = (
     ).toString(),
   };
 
+  const isNFTNFT = token0.isNFT && token1.isNFT;
   const reserveUSD = Number(pair.reserveUSD);
+
   const dayTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24;
   const dayData =
     pair.hourData?.filter(({ date }) => Number(date) >= dayTime) ?? [];
   const weekTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7;
   const weekData =
     pair.dayData?.filter(({ date }) => Number(date) >= weekTime) ?? [];
+  const volume1wUSD = weekData.reduce(
+    (total, { volumeUSD }) => total + Number(volumeUSD),
+    0,
+  );
+  const volume1w0 = weekData.reduce(
+    (total, { volume0 }) => total + Number(volume0),
+    0,
+  );
+  const volume1w1 = weekData.reduce(
+    (total, { volume1 }) => total + Number(volume1),
+    0,
+  );
+  const volume1w = volume1wUSD
+    ? volume1wUSD
+    : isNFTNFT || !token0.isNFT
+      ? volume1w0
+      : volume1w1;
+
+  const aprReserve = reserveUSD
+    ? reserveUSD
+    : isNFTNFT || !token0.isNFT
+      ? bigIntToNumber(BigInt(token0.reserve))
+      : bigIntToNumber(BigInt(token1.reserve));
+  const apr =
+    aprReserve > 0
+      ? ((volume1w / 7) * 365 * Number(pair.lpFee)) / aprReserve
+      : 0;
+
   return {
     ...pair,
     name:
@@ -46,7 +78,7 @@ export const createPoolFromPair = (
     token0,
     token1,
     hasNFT: token0.isNFT || token1.isNFT,
-    isNFTNFT: token0.isNFT && token1.isNFT,
+    isNFTNFT,
     reserveUSD,
     volume0: Number(pair.volume0),
     volume1: Number(pair.volume1),
@@ -63,18 +95,8 @@ export const createPoolFromPair = (
       (total, { volumeUSD }) => total + Number(volumeUSD),
       0,
     ),
-    volume1w0: weekData.reduce(
-      (total, { volume0 }) => total + Number(volume0),
-      0,
-    ),
-    volume1w1: weekData.reduce(
-      (total, { volume1 }) => total + Number(volume1),
-      0,
-    ),
-    volume1wUSD: weekData.reduce(
-      (total, { volumeUSD }) => total + Number(volumeUSD),
-      0,
-    ),
+    volume1wUSD,
+    apy: aprToApy(apr),
   };
 };
 

@@ -8,7 +8,6 @@ import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatPercent } from "~/lib/number";
 import {
-  getPoolAPY,
   getPoolFeesDisplay,
   getPoolReserveDisplay,
   getPoolVolume24hDisplay,
@@ -139,7 +138,7 @@ export default function PoolsListPage() {
                     {getPoolFeesDisplay(pool)}
                   </td>
                   <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
-                    {formatPercent(getPoolAPY(pool))}
+                    {formatPercent(pool.apy)}
                   </td>
                 </tr>
               ))

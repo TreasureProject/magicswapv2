@@ -1,16 +1,14 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { defer, json } from "@remix-run/node";
+import { defer } from "@remix-run/node";
 import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense } from "react";
 
-import { fetchPools } from "~/api/pools.server";
 import { fetchUserPositions } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
-import { getPoolAPY, getPoolVolume24hDisplay } from "~/lib/pools";
 import { getSession } from "~/sessions";
 import type { PoolsHandle } from "./pools";
 
@@ -126,7 +124,7 @@ export default function UserPositionsListPage() {
                         : `${formatAmount(lpShare)} MLP`}
                     </td>
                     <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
-                      {formatPercent(getPoolAPY(pool))}
+                      {formatPercent(pool.apy)}
                     </td>
                   </tr>
                 );
