@@ -59,10 +59,10 @@ export default function PoolsListPage() {
   const navigate = useNavigate();
 
   return (
-    <table className="mt-4 w-full rounded-md bg-night-1100 sm:mt-6">
+    <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">
       <thead>
         <tr className="text-night-100 text-sm">
-          <th className="px-4 py-2.5 text-left font-normal text-sm sm:px-5">
+          <th className="w-2/3 px-4 py-2.5 text-left font-normal text-sm sm:w-1/3 sm:px-5">
             Name
           </th>
           <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
