@@ -35,24 +35,17 @@ export const createPoolFromPair = (
   const isNFTNFT = token0.isNFT && token1.isNFT;
   const reserveUSD = Number(pair.reserveUSD);
 
-  const dayTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24;
-  const dayData =
-    pair.hourData?.filter(({ date }) => Number(date) >= dayTime) ?? [];
-  const weekTime = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7;
-  const weekData =
-    pair.dayData?.filter(({ date }) => Number(date) >= weekTime) ?? [];
-  const volume1wUSD = weekData.reduce(
-    (total, { volumeUSD }) => total + Number(volumeUSD),
-    0,
-  );
-  const volume1w0 = weekData.reduce(
-    (total, { volume0 }) => total + Number(volume0),
-    0,
-  );
-  const volume1w1 = weekData.reduce(
-    (total, { volume1 }) => total + Number(volume1),
-    0,
-  );
+  const volume1wUSD =
+    pair.dayData?.reduce(
+      (total, { volumeUSD }) => total + Number(volumeUSD),
+      0,
+    ) ?? 0;
+  const volume1w0 =
+    pair.dayData?.reduce((total, { volume0 }) => total + Number(volume0), 0) ??
+    0;
+  const volume1w1 =
+    pair.dayData?.reduce((total, { volume1 }) => total + Number(volume1), 0) ??
+    0;
   const volume1w = isNFTNFT || !token0.isNFT ? volume1w0 : volume1w1;
 
   const aprReserve =
@@ -78,18 +71,21 @@ export const createPoolFromPair = (
     volume0: Number(pair.volume0),
     volume1: Number(pair.volume1),
     volumeUSD: Number(pair.volumeUSD),
-    volume24h0: dayData.reduce(
-      (total, { volume0 }) => total + Number(volume0),
-      0,
-    ),
-    volume24h1: dayData.reduce(
-      (total, { volume1 }) => total + Number(volume1),
-      0,
-    ),
-    volume24hUSD: dayData.reduce(
-      (total, { volumeUSD }) => total + Number(volumeUSD),
-      0,
-    ),
+    volume24h0:
+      pair.hourData?.reduce(
+        (total, { volume0 }) => total + Number(volume0),
+        0,
+      ) ?? 0,
+    volume24h1:
+      pair.hourData?.reduce(
+        (total, { volume1 }) => total + Number(volume1),
+        0,
+      ) ?? 0,
+    volume24hUSD:
+      pair.hourData?.reduce(
+        (total, { volumeUSD }) => total + Number(volumeUSD),
+        0,
+      ) ?? 0,
     volume1wUSD,
     apy: aprToApy(apr),
   };

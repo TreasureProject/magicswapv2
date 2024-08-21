@@ -37,6 +37,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "connectkit": "^1.7.2",
+    "dayjs": "^1.11.13",
     "decimal.js-light": "^2.5.1",
     "framer-motion": "^11.2.6",
     "graphql": "^16.6.0",

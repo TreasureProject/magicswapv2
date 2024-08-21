@@ -3,6 +3,10 @@ import type { ExecutionResult } from "graphql";
 import { BLOCKED_PAIRS } from "~/consts";
 import { uniswapV2PairAbi } from "~/generated";
 import { client } from "~/lib/chain.server";
+import {
+  getOneDayAgoTimestamp,
+  getOneWeekAgoTimestamp,
+} from "~/lib/date.server";
 import { createPoolFromPair } from "~/lib/pools.server";
 import { itemToTroveTokenItem } from "~/lib/tokens.server";
 import type { AddressString, Pair } from "~/types";
@@ -113,9 +117,9 @@ export const fetchPools = async () => {
       id_not_in: BLOCKED_PAIRS,
       reserve0_gt: 0,
     },
-    hourDataWhere: { date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 },
+    hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
-      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+      date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetPairsQuery>;
   const { pairs = [] } = result.data ?? {};
@@ -125,9 +129,9 @@ export const fetchPools = async () => {
 export const fetchPool = async (id: string) => {
   const result = (await execute(GetPairDocument, {
     id,
-    hourDataWhere: { date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 },
+    hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
-      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+      date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;

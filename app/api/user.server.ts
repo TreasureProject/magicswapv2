@@ -1,6 +1,7 @@
 import type { ExecutionResult } from "graphql";
 
 import { getCachedValue } from "~/lib/cache.server";
+import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
 import { createPoolsFromPairs } from "./pools.server";
@@ -21,7 +22,7 @@ export const fetchUserPositions = async (address: string | undefined) => {
   const result = (await execute(GetUserPositionsDocument, {
     id: address,
     dayDataWhere: {
-      date_gte: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7,
+      date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetUserPositionsQuery>;
   if (!result.data?.user) {
