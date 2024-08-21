@@ -53,15 +53,10 @@ export const createPoolFromPair = (
     (total, { volume1 }) => total + Number(volume1),
     0,
   );
-  const volume1w = volume1wUSD
-    ? volume1wUSD
-    : isNFTNFT || !token0.isNFT
-      ? volume1w0
-      : volume1w1;
+  const volume1w = isNFTNFT || !token0.isNFT ? volume1w0 : volume1w1;
 
-  const aprReserve = reserveUSD
-    ? reserveUSD
-    : isNFTNFT || !token0.isNFT
+  const aprReserve =
+    isNFTNFT || !token0.isNFT
       ? bigIntToNumber(BigInt(token0.reserve))
       : bigIntToNumber(BigInt(token1.reserve));
   const apr =

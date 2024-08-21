@@ -4,7 +4,7 @@ import { formatUnits } from "viem";
 export const formatUSD = (value: number | string) =>
   `$${Number(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: Number(value) < 0.01 ? 4 : 2,
   })}`;
 
 export const formatAmount = (

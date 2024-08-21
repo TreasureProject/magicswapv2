@@ -590,9 +590,9 @@ const PoolActivityTable = ({
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Action
             </th>
-            {/* <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Value
-            </th> */}
+            </th>
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               User
             </th>
@@ -684,9 +684,11 @@ const PoolActivityTable = ({
                       <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
                         {tx.type}
                       </td>
-                      {/* <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                          {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
-                        </td> */}
+                      <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
+                        {Number(tx.amountUSD) > 0
+                          ? formatUSD(tx.amountUSD)
+                          : "-"}
+                      </td>
                       <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                         {tx.userDomain?.treasuretag ? (
                           <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
