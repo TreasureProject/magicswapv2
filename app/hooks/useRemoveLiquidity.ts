@@ -12,7 +12,7 @@ import {
 import type { Pool } from "~/lib/pools.server";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, TroveTokenWithQuantity } from "~/types";
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
+import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -37,7 +37,7 @@ export const useRemoveLiquidity = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useMagicSwapV2RouterAddress();
+  const routerAddress = useRouterAddress(pool.version);
   const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;

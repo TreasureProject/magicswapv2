@@ -51,24 +51,24 @@ export const SwapRoutePanel = ({
         <ul className="mt-2.5 space-y-1 p-4 pt-0">
           <li className="flex items-center justify-between">
             Price impact
-            <span>-{formatPercent(priceImpact)}</span>
+            <span>{formatPercent(priceImpact * -1)}</span>
           </li>
           {lpFee > 0 && (
             <li className="flex items-center justify-between">
               Liquidity provider fee
-              <span>{formatPercent(lpFee)}</span>
+              <span>{formatPercent(lpFee, 3)}</span>
             </li>
           )}
           {royaltiesFee > 0 && (
             <li className="flex items-center justify-between">
               Royalties fee
-              <span>{formatPercent(royaltiesFee)}</span>
+              <span>{formatPercent(royaltiesFee, 3)}</span>
             </li>
           )}
           {protocolFee > 0 && (
             <li className="flex items-center justify-between">
               Protocol fee
-              <span>{formatPercent(protocolFee)}</span>
+              <span>{formatPercent(protocolFee, 3)}</span>
             </li>
           )}
           {isNFTNFT ? (

@@ -11,7 +11,7 @@ import {
   TokenDisplay,
   generateOgImage,
 } from "~/lib/og.server";
-import { getPoolAPY, getPoolReserveDisplay } from "~/lib/pools";
+import { getPoolReserveDisplay } from "~/lib/pools";
 import { formatTokenReserve } from "~/lib/tokens";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -112,7 +112,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                {formatPercent(getPoolAPY(pool))}
+                {formatPercent(pool.apy)}
               </div>
               <div
                 style={{

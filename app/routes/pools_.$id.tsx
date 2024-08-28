@@ -67,11 +67,7 @@ import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
-import {
-  getPoolAPY,
-  getPoolFees24hDisplay,
-  getPoolVolume24hDisplay,
-} from "~/lib/pools";
+import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { formatTokenReserve } from "~/lib/tokens";
@@ -173,9 +169,11 @@ export default function PoolDetailsPage() {
   useFocusInterval(refresh, 5_000);
 
   const baseToken =
-    pool.token1.isNFT && !pool.isNFTNFT ? pool.token1 : pool.token0;
+    (pool.token1.isNFT && !pool.isNFTNFT) || pool.token1.isMAGIC
+      ? pool.token1
+      : pool.token0;
   const quoteToken =
-    pool.token1.isNFT && !pool.isNFTNFT ? pool.token0 : pool.token1;
+    baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
   const lpShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
@@ -183,7 +181,7 @@ export default function PoolDetailsPage() {
     <main className="container py-5 md:py-7">
       <Link
         to="/pools"
-        className="flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
+        className="inline-flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
         prefetch="intent"
       >
         <ChevronLeftIcon className="h-4" />
@@ -197,7 +195,7 @@ export default function PoolDetailsPage() {
               <div className="flex flex-col text-2xl">
                 <span>{pool.name}</span>
                 <span className="text-night-400 text-sm">
-                  LP Fees: {formatPercent(pool.lpFee)}
+                  LP Fees: {formatPercent(pool.lpFee, 3)}
                 </span>
               </div>
             </div>
@@ -388,7 +386,7 @@ export default function PoolDetailsPage() {
               <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
                 <p className="text-night-500">APY</p>
                 <p className="font-medium text-night-100">
-                  {formatPercent(getPoolAPY(pool))}
+                  {formatPercent(pool.apy)}
                 </p>
               </div>
             </div>
@@ -592,9 +590,9 @@ const PoolActivityTable = ({
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Action
             </th>
-            {/* <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
+            <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               Value
-            </th> */}
+            </th>
             <th className="hidden px-4 py-2.5 text-center font-normal sm:table-cell sm:px-5">
               User
             </th>
@@ -686,9 +684,11 @@ const PoolActivityTable = ({
                       <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
                         {tx.type}
                       </td>
-                      {/* <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                          {tx.amountUSD !== "0" ? formatUSD(tx.amountUSD) : "-"}
-                        </td> */}
+                      <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
+                        {Number(tx.amountUSD) > 0
+                          ? formatUSD(tx.amountUSD)
+                          : "-"}
+                      </td>
                       <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                         {tx.userDomain?.treasuretag ? (
                           <span className="flex items-center justify-center gap-1 font-medium text-honey-25">

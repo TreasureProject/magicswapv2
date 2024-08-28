@@ -7,21 +7,21 @@ import {
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
 import type { AddressString, PoolToken } from "~/types";
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 
 type Props = {
+  operator: AddressString;
   token: PoolToken | string;
   amount?: bigint;
   enabled?: boolean;
 };
 
 export const useIsApproved = ({
+  operator,
   token,
   amount = 0n,
   enabled = true,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const operator = useMagicSwapV2RouterAddress();
 
   const isFullToken = typeof token !== "string";
   const tokenAddress = (isFullToken ? token.id : token) as AddressString;

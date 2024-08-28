@@ -6,10 +6,10 @@ import {
   useWriteErc1155SetApprovalForAll,
 } from "~/generated";
 import type { AddressString, PoolToken } from "~/types";
-import { useMagicSwapV2RouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
+  operator: AddressString;
   token: PoolToken | string;
   amount?: bigint;
   enabled?: boolean;
@@ -17,13 +17,12 @@ type Props = {
 };
 
 export const useApprove = ({
+  operator,
   token,
   amount = 0n,
   enabled = true,
   onSuccess,
 }: Props) => {
-  const operator = useMagicSwapV2RouterAddress();
-
   const erc20Approve = useWriteErc20Approve();
   const erc20ApproveReceipt = useWaitForTransactionReceipt({
     hash: erc20Approve.data,

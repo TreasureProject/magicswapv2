@@ -19,6 +19,7 @@ const TRANSACTION_ITEM_FRAGMENT = gql`
 export const PAIR_FRAGMENT = gql`
   fragment PairFragment on Pair {
     id
+    version
     token0 {
       ...TokenFragment
     }
@@ -38,16 +39,19 @@ export const PAIR_FRAGMENT = gql`
     royaltiesFee
     royaltiesBeneficiary
     totalFee
-    dayData(first: 7, orderBy: date, orderDirection: desc) {
-      date
-      reserve0
-      reserve1
-      reserveUSD
-      volume0
-      volume1
-      volumeUSD
-      txCount
-    }
+  }
+`;
+
+export const PAIR_DAY_DATA_FRAGMENT = gql`
+  fragment PairDayDataFragment on PairDayData {
+    date
+    reserve0
+    reserve1
+    reserveUSD
+    volume0
+    volume1
+    volumeUSD
+    txCount
   }
 `;
 
@@ -97,12 +101,15 @@ export const getPairTransactions = gql`
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
+  ${PAIR_DAY_DATA_FRAGMENT}
   query GetPairs(
     $skip: Int = 0
     $first: Int = 100
     $where: Pair_filter = { reserve0_gt: 0 }
     $orderBy: Pair_orderBy = reserveUSD
     $orderDirection: OrderDirection = desc
+    $hourDataWhere: PairHourData_filter
+    $dayDataWhere: PairDayData_filter
   ) {
     pairs(
       skip: $skip
@@ -112,6 +119,27 @@ export const getPairs = gql`
       orderDirection: $orderDirection
     ) {
       ...PairFragment
+      hourData(
+        where: $hourDataWhere
+        orderBy: date
+        orderDirection: desc
+      ) {
+        date
+        reserve0
+        reserve1
+        reserveUSD
+        volume0
+        volume1
+        volumeUSD
+        txCount
+      }
+      dayData(
+        where: $dayDataWhere
+        orderBy: date
+        orderDirection: desc
+      ) {
+        ...PairDayDataFragment
+      }
     }
   }
 `;
@@ -119,9 +147,41 @@ export const getPairs = gql`
 export const getPair = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query GetPair($id: ID!) {
+  query GetPair(
+    $id: ID!
+    $hourDataWhere: PairHourData_filter
+    $dayDataWhere: PairDayData_filter
+  ) {
     pair(id: $id) {
       ...PairFragment
+      hourData(
+        where: $hourDataWhere
+        orderBy: date
+        orderDirection: desc
+      ) {
+        date
+        reserve0
+        reserve1
+        reserveUSD
+        volume0
+        volume1
+        volumeUSD
+        txCount
+      }
+      dayData(
+        where: $dayDataWhere
+        orderBy: date
+        orderDirection: desc
+      ) {
+        date
+        reserve0
+        reserve1
+        reserveUSD
+        volume0
+        volume1
+        volumeUSD
+        txCount
+      }
     }
   }
 `;

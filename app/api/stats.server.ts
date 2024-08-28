@@ -7,8 +7,11 @@ const fetchStats = async () => {
     GetStatsDocument,
     {},
   )) as ExecutionResult<GetStatsQuery>;
-  const { factories = [] } = result.data ?? {};
-  return factories[0];
+  const { globals = [], factories = [] } = result.data ?? {};
+  return {
+    ...globals[0],
+    ...factories[0],
+  };
 };
 
 export const fetchMagicUSD = async () => {

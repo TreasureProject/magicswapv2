@@ -8,6 +8,8 @@ export const TOKEN_FRAGMENT = gql`
     decimals
     derivedMAGIC
     isNFT
+    isMAGIC
+    isETH
     vaultCollections {
       collection {
         id
@@ -36,12 +38,14 @@ export const getTokens = gql`
   query GetTokens(
     $skip: Int = 0
     $first: Int = 100
+    $where: Token_filter
     $orderBy: Token_orderBy = symbol
     $orderDirection: OrderDirection = asc
   ) {
     tokens(
       skip: $skip
       first: $first
+      where: $where
       orderBy: $orderBy
       orderDirection: $orderDirection
     ) {

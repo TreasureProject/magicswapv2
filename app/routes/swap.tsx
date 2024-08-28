@@ -48,6 +48,7 @@ import {
 } from "~/components/ui/Dialog";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
+import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
@@ -158,8 +159,18 @@ export default function SwapPage() {
   const amountNFTsIn = countTokens(nftsIn);
   const amountNFTsOut = countTokens(nftsOut);
 
-  const { amountIn, amountOut, tokenIn, tokenOut, path, priceImpact } =
-    swapRoute;
+  const {
+    isValid: isValidSwapRoute,
+    version = "V2",
+    amountIn,
+    amountOut,
+    tokenIn,
+    tokenOut,
+    path,
+    priceImpact,
+  } = swapRoute;
+
+  const routerAddress = useRouterAddress(version);
 
   const limitNFTsIn = Math.floor(bigIntToNumber(amountIn, tokenIn.decimals));
   const limitNFTsOut = Math.floor(
@@ -189,6 +200,7 @@ export default function SwapPage() {
     });
 
   const { amountInMax, amountOutMin, swap } = useSwap({
+    version,
     tokenIn,
     tokenOut,
     amountIn,
@@ -197,7 +209,7 @@ export default function SwapPage() {
     nftsIn,
     nftsOut,
     path,
-    enabled: isConnected && !!tokenOut && hasAmounts,
+    enabled: isConnected && !!tokenOut && hasAmounts && isValidSwapRoute,
     onSuccess: () => {
       setTrade(DEFAULT_STATE);
       refetchTokenInBalance();
@@ -209,6 +221,7 @@ export default function SwapPage() {
 
   const { isApproved: isTokenInApproved, approve: approveTokenIn } =
     useApproval({
+      operator: routerAddress,
       token: tokenIn,
       amount: amountInMax,
       enabled: isConnected && hasAmounts,
@@ -387,9 +400,13 @@ export default function SwapPage() {
                     Price impact is too high
                   </LabeledCheckbox>
                 ) : null}
-                {!isTokenInApproved &&
-                hasAmounts &&
-                (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
+                {!!tokenOut && !isValidSwapRoute ? (
+                  <Button className="w-full" size="lg" disabled>
+                    Swap route not available
+                  </Button>
+                ) : !isTokenInApproved &&
+                  hasAmounts &&
+                  (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
                   <TransactionButton
                     className="w-full"
                     size="lg"
@@ -569,7 +586,7 @@ export default function SwapPage() {
             )}
           </ClientOnly>
         </div>
-        {tokenOut ? (
+        {!!tokenOut && isValidSwapRoute ? (
           <SwapRoutePanel
             className="mt-4"
             swapRoute={swapRoute}

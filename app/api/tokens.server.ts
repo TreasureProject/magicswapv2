@@ -1,5 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
+import { BLOCKED_TOKENS } from "~/consts";
 import { sumArray } from "~/lib/array";
 import { getCachedValue } from "~/lib/cache.server";
 import { ENV } from "~/lib/env.server";
@@ -21,10 +22,11 @@ import {
  * Fetches tokens available for swapping
  */
 export const fetchTokens = async () => {
-  const { data, errors } = (await execute(
-    GetTokensDocument,
-    {},
-  )) as ExecutionResult<GetTokensQuery>;
+  const { data, errors } = (await execute(GetTokensDocument, {
+    where: {
+      id_not_in: BLOCKED_TOKENS,
+    },
+  })) as ExecutionResult<GetTokensQuery>;
   if (errors) {
     throw new Error(
       `Error fetching tokens: ${errors.map((error) => error.message).join(", ")}`,
@@ -70,9 +72,13 @@ export const fetchToken = async (id: string) => {
 /**
  * Fetches NFT metadata
  */
-const fetchTroveTokens = async (ids: string[]) =>
+const fetchTroveTokens = async (ids: string[]) => {
+  if (ids.length === 0) {
+    return [];
+  }
+
   // Cache this because it's relatively static NFT metadata
-  getCachedValue(`trove-tokens-${ids.join()}`, async () => {
+  return getCachedValue(`trove-tokens-${ids.join()}`, async () => {
     const response = await fetch(`${ENV.TROVE_API_URL}/batch-tokens`, {
       method: "POST",
       headers: {
@@ -86,11 +92,16 @@ const fetchTroveTokens = async (ids: string[]) =>
     const results = (await response.json()) as TroveToken[];
     return results;
   });
+};
 
 /**
  * Fetches NFT metadata and transforms it into an object mapping
  */
 export const fetchTroveTokenMapping = async (ids: string[]) => {
+  if (ids.length === 0) {
+    return {};
+  }
+
   const tokens = await fetchTroveTokens(ids);
   return tokens.reduce((acc, token) => {
     const address = token.collectionAddr.toLowerCase();
