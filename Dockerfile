@@ -15,7 +15,7 @@ FROM base as build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-  apt-get install -y build-essential pkg-config python-is-python3
+  apt-get install -y build-essential pkg-config python-is-python3 ca-certificates
 
 # Install pnpm and curl for dependencies in @sushiswap/chains
 RUN npm install -g pnpm
