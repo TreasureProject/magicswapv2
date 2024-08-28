@@ -14,12 +14,10 @@ ENV NODE_ENV="production"
 FROM base as build
 
 # Install packages needed to build node modules
+# Install pnpm and curl for dependencies in @sushiswap/chains
 RUN apt-get update -qq && \
   apt-get install -y build-essential pkg-config python-is-python3 curl
-
-# Install pnpm and curl for dependencies in @sushiswap/chains
 RUN npm install -g pnpm
-RUN apt-get -y update && apt-get -y install curl
 
 # Copy application code
 COPY --link . .
@@ -46,6 +44,9 @@ FROM base
 
 # Copy built application
 COPY --from=build /app /app
+
+# Install ca-certificates package to fix TLS verify
+RUN apt-get -y update && apt-get -y install ca-certificates
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
