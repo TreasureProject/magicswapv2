@@ -22,7 +22,7 @@ primary_region = "lax"
     method = "GET"
     path = "/healthcheck"
     protocol = "http"
-    tls_skip_verify = false
+    tls_skip_verify = true
 
 [metrics]
   port = 9090
