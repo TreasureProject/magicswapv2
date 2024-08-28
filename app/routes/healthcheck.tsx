@@ -6,6 +6,7 @@ export const loader = async () => {
     return new Response("OK");
   } catch (err) {
     console.error("Healthcheck failed:", err);
+
     return new Response("ERROR", { status: 500 });
   }
 };
