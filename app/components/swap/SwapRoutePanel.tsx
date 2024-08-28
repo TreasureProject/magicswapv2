@@ -51,7 +51,7 @@ export const SwapRoutePanel = ({
         <ul className="mt-2.5 space-y-1 p-4 pt-0">
           <li className="flex items-center justify-between">
             Price impact
-            <span>-{formatPercent(priceImpact)}</span>
+            <span>{formatPercent(priceImpact * -1)}</span>
           </li>
           {lpFee > 0 && (
             <li className="flex items-center justify-between">

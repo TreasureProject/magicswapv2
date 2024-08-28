@@ -72,9 +72,13 @@ export const fetchToken = async (id: string) => {
 /**
  * Fetches NFT metadata
  */
-const fetchTroveTokens = async (ids: string[]) =>
+const fetchTroveTokens = async (ids: string[]) => {
+  if (ids.length === 0) {
+    return [];
+  }
+
   // Cache this because it's relatively static NFT metadata
-  getCachedValue(`trove-tokens-${ids.join()}`, async () => {
+  return getCachedValue(`trove-tokens-${ids.join()}`, async () => {
     const response = await fetch(`${ENV.TROVE_API_URL}/batch-tokens`, {
       method: "POST",
       headers: {
@@ -88,11 +92,16 @@ const fetchTroveTokens = async (ids: string[]) =>
     const results = (await response.json()) as TroveToken[];
     return results;
   });
+};
 
 /**
  * Fetches NFT metadata and transforms it into an object mapping
  */
 export const fetchTroveTokenMapping = async (ids: string[]) => {
+  if (ids.length === 0) {
+    return {};
+  }
+
   const tokens = await fetchTroveTokens(ids);
   return tokens.reduce((acc, token) => {
     const address = token.collectionAddr.toLowerCase();
