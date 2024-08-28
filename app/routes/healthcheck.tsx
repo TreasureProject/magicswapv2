@@ -1,13 +1,16 @@
 import { fetchTokens } from "~/api/tokens.server";
-import { getMeshOptions } from ".graphclient";
+import { getBuiltGraphClient } from ".graphclient";
 
 export const loader = async () => {
   try {
     await fetchTokens();
     return new Response("OK");
   } catch (err) {
-    const options = await getMeshOptions();
-    console.error("Healthcheck failed:", err, options);
+    console.error("Healthcheck failed:", err);
+
+    const client = await getBuiltGraphClient();
+    console.log(JSON.stringify(client, null, 2));
+
     return new Response("ERROR", { status: 500 });
   }
 };
