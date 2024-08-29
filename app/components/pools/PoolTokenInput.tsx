@@ -1,8 +1,8 @@
 import { formatAmount, formatUSD } from "~/lib/currency";
 import type { PoolToken } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
-import { DisabledInputPopover } from "../DisabledInputPopover";
 import { VisibleOnClient } from "../VisibleOnClient";
+import { InfoPopover } from "../ui/InfoPopover";
 import { PoolTokenImage } from "./PoolTokenImage";
 
 export const PoolTokenInput = ({
@@ -58,7 +58,12 @@ export const PoolTokenInput = ({
             </VisibleOnClient>
           </span>
         </p>
-        {disabled ? <DisabledInputPopover /> : null}
+        {disabled ? (
+          <InfoPopover>
+            Input is disabled because the amount will be auto-calculated based
+            on the selected NFTs.
+          </InfoPopover>
+        ) : null}
       </div>
     </div>
   );

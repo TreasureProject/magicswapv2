@@ -132,7 +132,7 @@ type ViewOnlyProps = BaseProps & {
 type EditableProps = BaseProps & {
   viewOnly?: false;
   selectedTokens?: TroveTokenWithQuantity[];
-  limit?: number;
+  requiredAmount?: number;
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
   children?: (renderProps: { amount: string }) => React.ReactNode;
 };
@@ -161,10 +161,12 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     0,
   );
   const selectionDisabled =
-    !props.viewOnly && props.limit ? selectedQuantity >= props.limit : false;
+    !props.viewOnly && props.requiredAmount
+      ? selectedQuantity === props.requiredAmount
+      : false;
   const buttonDisabled =
-    !props.viewOnly && props.limit
-      ? selectedQuantity < props.limit
+    !props.viewOnly && props.requiredAmount
+      ? selectedQuantity !== props.requiredAmount
       : selectedItems.length === 0;
 
   const selectionHandler = (item: TroveTokenWithQuantity) => {
@@ -254,9 +256,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                     selectionHandler({
                       ...item,
                       quantity:
-                        !props.viewOnly && props.limit
+                        !props.viewOnly && props.requiredAmount
                           ? Math.min(
-                              props.limit - selectedQuantity,
+                              props.requiredAmount - selectedQuantity,
                               item.queryUserQuantityOwned ?? 1,
                             )
                           : 1,
@@ -271,8 +273,18 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       {!props.viewOnly && (
         <div className="grid-in-selection flex flex-col gap-4 rounded-lg bg-night-1100 p-3">
           <div className="flex min-h-full flex-col">
-            <p className="text-night-400 text-sm leading-[160%]">
-              Selected assets
+            <p className="flex items-center justify-between gap-2 text-night-400 text-sm leading-[160%]">
+              Selected items
+              {selectedItems.length > 0 ? (
+                <Button
+                  size="xs"
+                  className="p-0 text-[#28A0F0] hover:bg-transparent hover:text-[#28A0F0]/90"
+                  variant="ghost"
+                  onClick={() => setSelectedItems([])}
+                >
+                  Clear
+                </Button>
+              ) : null}
             </p>
             {selectedItems.length > 0 ? (
               <div className="mt-2 flex flex-1 flex-col gap-2 overflow-auto pr-2">
@@ -335,29 +347,15 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
               </div>
             ) : (
               <p className="flex grow items-center justify-center text-night-600 text-xs">
-                You haven't selected any assets yet.
+                You haven't selected any items yet.
               </p>
             )}
             <div className="sticky bottom-0 mt-2 space-y-3 bg-night-1100/50 backdrop-blur-sm">
-              <div className="flex rounded-lg bg-night-800 p-4">
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="text-night-400 text-sm">Total</span>
-                  {!props.viewOnly &&
-                    props.children &&
-                    props.children({
-                      amount: String(countTokens(selectedItems)),
-                    })}
-                </div>
-                <Button
-                  size="xs"
-                  className="p-0 text-[#28A0F0] hover:bg-transparent hover:text-[#28A0F0]/90"
-                  variant="ghost"
-                  onClick={() => setSelectedItems([])}
-                >
-                  Clear
-                </Button>
-              </div>
-
+              {!props.viewOnly &&
+                props.children &&
+                props.children({
+                  amount: String(countTokens(selectedItems)),
+                })}
               <DialogClose asChild>
                 <Button
                   disabled={buttonDisabled}
@@ -365,10 +363,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   className="w-full"
                   onClick={() => props.onSubmit(selectedItems)}
                 >
-                  {props.limit && buttonDisabled
-                    ? `Add ${props.limit - selectedQuantity} item${
-                        props.limit - selectedQuantity > 1 ? "s" : ""
-                      }`
+                  {props.requiredAmount && buttonDisabled
+                    ? `Select ${props.requiredAmount} ${props.requiredAmount === 1 ? "item" : "items"}`
                     : "Save selections"}
                 </Button>
               </DialogClose>

@@ -5,6 +5,7 @@ import type {
   TroveCollectionMapping,
   TroveTokenMapping,
 } from "~/types";
+import { truncateEthAddress } from "./address";
 import { createPoolTokenCollection } from "./collections.server";
 import { ENV } from "./env.server";
 
@@ -97,7 +98,11 @@ const createTokenMetadata = (
     }
 
     const name = vaultCollectionAddresses
-      .map((address) => collectionMapping[address]?.displayName ?? address)
+      .map(
+        (address) =>
+          collectionMapping[address]?.displayName ??
+          truncateEthAddress(address),
+      )
       .join(" & ");
     return {
       name,
