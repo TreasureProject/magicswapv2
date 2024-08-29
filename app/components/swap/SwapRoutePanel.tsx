@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 
 import type { SwapRoute } from "~/hooks/useSwapRoute";
 import { formatAmount } from "~/lib/currency";
-import { floorBigInt, formatPercent } from "~/lib/number";
+import { ceilBigInt, floorBigInt, formatPercent } from "~/lib/number";
 import { cn } from "~/lib/utils";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
@@ -77,7 +77,7 @@ export const SwapRoutePanel = ({
               <span>
                 {formatAmount(
                   isExactOut
-                    ? amountIn - floorBigInt(amountIn)
+                    ? ceilBigInt(amountIn) - amountIn
                     : amountOut - floorBigInt(amountOut),
                   {
                     decimals: isExactOut ? tokenIn.decimals : tokenOut.decimals,

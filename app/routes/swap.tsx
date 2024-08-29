@@ -57,7 +57,12 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useTrove } from "~/hooks/useTrove";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
-import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
+import {
+  bigIntToNumber,
+  ceilBigInt,
+  floorBigInt,
+  formatNumber,
+} from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
@@ -172,7 +177,7 @@ export default function SwapPage() {
 
   const routerAddress = useRouterAddress(version);
 
-  const limitNFTsIn = Math.floor(bigIntToNumber(amountIn, tokenIn.decimals));
+  const limitNFTsIn = Math.ceil(bigIntToNumber(amountIn, tokenIn.decimals));
   const limitNFTsOut = Math.floor(
     bigIntToNumber(amountOut, tokenOut?.decimals),
   );
@@ -289,7 +294,9 @@ export default function SwapPage() {
               : amount
           }
           selectedNfts={nftsIn}
-          nftLimit={amountNFTsOut > 0 && isExactOut ? limitNFTsIn : undefined}
+          requiredNftSelectionAmount={
+            isExactOut && amountNFTsOut > 0 ? limitNFTsIn : undefined
+          }
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -348,7 +355,9 @@ export default function SwapPage() {
                 : formattedTokenOutAmount
           }
           selectedNfts={nftsOut}
-          nftLimit={!isExactOut && amountNFTsIn > 0 ? limitNFTsOut : undefined}
+          requiredNftSelectionAmount={
+            !isExactOut && amountNFTsIn > 0 ? limitNFTsOut : undefined
+          }
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>
             setTrade({
@@ -607,7 +616,7 @@ const SwapTokenInput = ({
   balance = 0n,
   amount,
   selectedNfts,
-  nftLimit,
+  requiredNftSelectionAmount,
   onSelect,
   onUpdateAmount,
   onSelectNfts,
@@ -619,7 +628,7 @@ const SwapTokenInput = ({
   balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
-  nftLimit?: number;
+  requiredNftSelectionAmount?: number;
   onSelect: (token: PoolToken) => void;
   onUpdateAmount: (amount: string) => void;
   onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
@@ -746,17 +755,17 @@ const SwapTokenInput = ({
                           type={isOut ? "vault" : "inventory"}
                           token={token}
                           selectedTokens={selectedNfts}
-                          limit={nftLimit}
+                          requiredAmount={requiredNftSelectionAmount}
                           onSubmit={onSelectNfts}
                         >
-                          {({ amount }) => {
-                            return (
+                          {({ amount }) =>
+                            requiredNftSelectionAmount ? undefined : (
                               <TotalDisplay
                                 amount={amount}
                                 isExactOut={isOut}
                               />
-                            );
-                          }}
+                            )
+                          }
                         </SelectionPopup>
                       ) : null}
                     </Dialog>
@@ -932,14 +941,14 @@ const SwapTokenInput = ({
                     type={isOut ? "vault" : "inventory"}
                     token={token}
                     selectedTokens={selectedNfts}
-                    limit={nftLimit}
+                    requiredAmount={requiredNftSelectionAmount}
                     onSubmit={onSelectNfts}
                   >
-                    {({ amount }) => {
-                      return (
+                    {({ amount }) =>
+                      requiredNftSelectionAmount ? undefined : (
                         <TotalDisplay amount={amount} isExactOut={isOut} />
-                      );
-                    }}
+                      )
+                    }
                   </SelectionPopup>
                 ) : null}
               </Dialog>
@@ -991,22 +1000,30 @@ const TotalDisplay = ({
     amount,
     isExactOut,
   });
+
+  if (!tokenOut || (amountIn === 0n && amountOut === 0n)) {
+    return null;
+  }
+
   return (
-    <span className="flex items-center gap-1">
-      <PoolTokenImage
-        token={isExactOut ? tokenIn : tokenOut}
-        className="h-4 w-4 flex-shrink-0"
-      />
-      <span className="truncate font-medium text-honey-25 text-sm">
-        {isExactOut
-          ? formatAmount(amountIn, {
-              decimals: tokenIn.decimals,
-            })
-          : formatAmount(amountOut, {
-              decimals: tokenOut?.decimals,
-            })}
+    <div className="flex items-center gap-2 rounded-lg bg-night-800 p-4">
+      <span className="text-night-400 text-sm">Cost:</span>
+      <span className="flex items-center gap-1">
+        <PoolTokenImage
+          token={isExactOut ? tokenIn : tokenOut}
+          className="h-4 w-4 flex-shrink-0"
+        />
+        <span className="truncate font-medium text-honey-25 text-sm">
+          {isExactOut
+            ? formatAmount(amountIn, {
+                decimals: tokenIn.decimals,
+              })
+            : formatAmount(amountOut, {
+                decimals: tokenOut?.decimals,
+              })}
+        </span>
       </span>
-    </span>
+    </div>
   );
 };
 

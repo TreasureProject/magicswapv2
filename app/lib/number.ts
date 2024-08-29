@@ -31,5 +31,11 @@ export const floorBigInt = (value: bigint, decimals = 18) =>
     decimals,
   );
 
+export const ceilBigInt = (value: bigint, decimals = 18) =>
+  parseUnits(
+    Math.ceil(Number(formatUnits(value, decimals))).toString() as NumberString,
+    decimals,
+  );
+
 export const bigIntToNumber = (value: bigint, decimals = 18) =>
   Number(formatUnits(value, decimals));
