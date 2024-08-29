@@ -266,7 +266,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             size="lg"
             onClick={() => approve?.()}
           >
-            Approve LP Token
+            Approve LP token
           </TransactionButton>
         ) : (
           <TransactionButton
@@ -281,7 +281,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             }
             onClick={() => removeLiquidity?.()}
           >
-            Remove Liquidity
+            Remove liquidity
           </TransactionButton>
         )}
       </div>
