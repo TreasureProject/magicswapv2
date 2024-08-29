@@ -124,6 +124,7 @@ export const PoolDepositTab = ({
       : getAmountMin(amount1, slippage || DEFAULT_SLIPPAGE),
     nfts0,
     nfts1,
+    isExact1,
     enabled: isApproved0 && isApproved1 && hasAmount,
     onSuccess: useCallback(() => {
       setTransaction({
@@ -140,7 +141,7 @@ export const PoolDepositTab = ({
   });
 
   const estimatedLp = getLpCountForTokens(
-    amount,
+    amount0,
     BigInt(pool.token0.reserve),
     BigInt(pool.totalSupply),
   );

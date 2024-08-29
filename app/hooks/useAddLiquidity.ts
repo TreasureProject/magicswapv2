@@ -23,6 +23,7 @@ type Props = {
   amount1Min: bigint;
   nfts0: TroveTokenWithQuantity[];
   nfts1: TroveTokenWithQuantity[];
+  isExact1: boolean;
   enabled?: boolean;
   onSuccess?: () => void;
 };
@@ -35,6 +36,7 @@ export const useAddLiquidity = ({
   amount1Min,
   nfts0,
   nfts1,
+  isExact1,
   enabled = true,
   onSuccess,
 }: Props) => {
@@ -123,6 +125,7 @@ export const useAddLiquidity = ({
   }, [isSuccess, onSuccess]);
 
   const isTokenAToken1 =
+    isExact1 ||
     pool.token1.isETH ||
     (pool.token1.isNFT && !pool.isNFTNFT && !pool.token0.isETH);
   const tokenA = (
