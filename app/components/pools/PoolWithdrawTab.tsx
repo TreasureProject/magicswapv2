@@ -217,7 +217,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             <Dialog>
               <SelectionPopup
                 type="vault"
-                limit={amountNFTs0}
+                requiredAmount={amountNFTs0}
                 token={pool.token0}
                 selectedTokens={nfts0}
                 onSubmit={(nfts0) =>
@@ -239,7 +239,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             <Dialog>
               <SelectionPopup
                 type="vault"
-                limit={amountNFTs1}
+                requiredAmount={amountNFTs1}
                 token={pool.token1}
                 selectedTokens={nfts1}
                 onSubmit={(nfts1) =>

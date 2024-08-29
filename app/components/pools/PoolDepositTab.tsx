@@ -231,21 +231,24 @@ export const PoolDepositTab = ({
                     BigInt(pool.token1.reserve),
                   );
               return (
-                <span className="flex items-center gap-1">
-                  <PoolTokenImage
-                    token={isSelectingToken1 ? pool.token0 : pool.token1}
-                    className="h-4 w-4 flex-shrink-0"
-                  />
-                  <span className="truncate font-medium text-honey-25 text-sm">
-                    {isSelectingToken1
-                      ? formatAmount(amount0, {
-                          decimals: pool.token0.decimals,
-                        })
-                      : formatAmount(amount1, {
-                          decimals: pool.token1.decimals,
-                        })}
+                <div className="flex items-center gap-2 rounded-lg bg-night-800 p-4">
+                  <span className="text-night-400 text-sm">Requires:</span>
+                  <span className="flex items-center gap-1">
+                    <PoolTokenImage
+                      token={isSelectingToken1 ? pool.token0 : pool.token1}
+                      className="h-4 w-4 flex-shrink-0"
+                    />
+                    <span className="truncate font-medium text-honey-25 text-sm">
+                      {isSelectingToken1
+                        ? formatAmount(amount0, {
+                            decimals: pool.token0.decimals,
+                          })
+                        : formatAmount(amount1, {
+                            decimals: pool.token1.decimals,
+                          })}
+                    </span>
                   </span>
-                </span>
+                </div>
               );
             }}
           </SelectionPopup>
