@@ -29,7 +29,6 @@ import {
   fetchTokensWithMetadata,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
-import { DisabledInputPopover } from "~/components/DisabledInputPopover";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -46,6 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/Dialog";
+import { InfoPopover } from "~/components/ui/InfoPopover";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRouterAddress } from "~/hooks/useContractAddress";
@@ -918,7 +918,12 @@ const SwapTokenInput = ({
               </VisibleOnClient>
             )}
           </div>
-          {!token?.isNFT && otherToken?.isNFT ? <DisabledInputPopover /> : null}
+          {!token?.isNFT && otherToken?.isNFT ? (
+            <InfoPopover>
+              Input is disabled because the amount will be auto-calculated based
+              on the selected NFTs.
+            </InfoPopover>
+          ) : null}
           {!token?.isNFT && !otherToken?.isNFT && !isOut ? (
             <Button
               size="xs"

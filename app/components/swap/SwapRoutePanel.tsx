@@ -4,6 +4,7 @@ import type { SwapRoute } from "~/hooks/useSwapRoute";
 import { formatAmount } from "~/lib/currency";
 import { ceilBigInt, floorBigInt, formatPercent } from "~/lib/number";
 import { cn } from "~/lib/utils";
+import { InfoPopover } from "../ui/InfoPopover";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   swapRoute: SwapRoute;
@@ -73,7 +74,15 @@ export const SwapRoutePanel = ({
           )}
           {isNFTNFT ? (
             <li className="flex items-center justify-between">
-              NFT dust sent to pool
+              <span className="flex items-center gap-1">
+                NFT dust sent to pool
+                <InfoPopover buttonClassName="h-3 w-3">
+                  NFTs can only be traded in whole amounts so any fractional
+                  amounts are sent to the pool to reward liquidity providers.
+                  Minimize this amount to get the best trade value by adjusting
+                  the {isExactOut ? "output" : "input"} amount selected.
+                </InfoPopover>
+              </span>
               <span>
                 {formatAmount(
                   isExactOut
