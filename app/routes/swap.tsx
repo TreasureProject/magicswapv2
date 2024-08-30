@@ -57,12 +57,7 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useTrove } from "~/hooks/useTrove";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
-import {
-  bigIntToNumber,
-  ceilBigInt,
-  floorBigInt,
-  formatNumber,
-} from "~/lib/number";
+import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
