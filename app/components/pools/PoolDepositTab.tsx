@@ -59,6 +59,7 @@ export const PoolDepositTab = ({
   const [selectingToken, setSelectingToken] = useState<Optional<PoolToken>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
   const routerAddress = useRouterAddress(pool.version);
+  const isSelectingToken1 = selectingToken?.id === pool.token1.id;
 
   const amount = parseUnits(
     rawAmount as NumberString,
@@ -71,6 +72,15 @@ export const PoolDepositTab = ({
     ? amount
     : quote(amount, BigInt(pool.token0.reserve), BigInt(pool.token1.reserve));
   const hasAmount = amount > 0;
+
+  const requiredNfts0 =
+    isExact1 && hasAmount
+      ? Math.ceil(bigIntToNumber(amount0, pool.token0.decimals))
+      : undefined;
+  const requiredNfts1 =
+    !isExact1 && hasAmount
+      ? Math.ceil(bigIntToNumber(amount1, pool.token1.decimals))
+      : undefined;
 
   // Fetch balance of token0 if it's an ERC20
   const { data: balance0, refetch: refetchBalance0 } = useTokenBalance({
@@ -172,36 +182,34 @@ export const PoolDepositTab = ({
           <SelectionPopup
             type="inventory"
             token={selectingToken}
-            selectedTokens={
-              selectingToken.id === pool.token0.id ? nfts0 : nfts1
-            }
+            selectedTokens={isSelectingToken1 ? nfts1 : nfts0}
+            requiredAmount={isSelectingToken1 ? requiredNfts1 : requiredNfts0}
             onSubmit={(tokens) => {
               const amountTokens = countTokens(tokens);
-              const isSelecting1 = selectingToken.id === pool.token1.id;
               setTransaction((curr) => {
                 const amountNFTs0 = countTokens(curr.nfts0);
                 const amountNFTs1 = countTokens(curr.nfts1);
                 // Determine if we should treat this seleciton as a new transaction
                 if (
                   (amountNFTs0 === 0 && amountNFTs1 === 0) || // user hasn't selecting anything previously
-                  (isSelecting1 &&
+                  (isSelectingToken1 &&
                     amountNFTs1 > 0 &&
                     amountNFTs1 !== amountTokens) || // user previously selected NFTs B, but changed the amount
-                  (!isSelecting1 &&
+                  (!isSelectingToken1 &&
                     amountNFTs0 > 0 &&
                     amountNFTs0 !== amountTokens) // user previously selected NFTs A, but changed the amount
                 ) {
                   return {
                     amount: amountTokens.toString(),
-                    nfts0: isSelecting1 ? [] : tokens,
-                    nfts1: isSelecting1 ? tokens : [],
-                    isExact1: isSelecting1,
+                    nfts0: isSelectingToken1 ? [] : tokens,
+                    nfts1: isSelectingToken1 ? tokens : [],
+                    isExact1: isSelectingToken1,
                   };
                 }
 
                 // Not a new transaction, treat this simply as an NFT selection
                 const next = { ...curr };
-                if (isSelecting1) {
+                if (isSelectingToken1) {
                   next.nfts1 = tokens;
                 } else {
                   next.nfts0 = tokens;
@@ -212,7 +220,13 @@ export const PoolDepositTab = ({
             }}
           >
             {({ amount: selectingAmount }) => {
-              const isSelectingToken1 = selectingToken.id === pool.token1.id;
+              if (
+                (isSelectingToken1 && requiredNfts1 !== undefined) ||
+                (!isSelectingToken1 && requiredNfts0 !== undefined)
+              ) {
+                return null;
+              }
+
               const amount = parseUnits(
                 selectingAmount as NumberString,
                 isSelectingToken1 ? pool.token1.decimals : pool.token0.decimals,
@@ -231,22 +245,20 @@ export const PoolDepositTab = ({
                     BigInt(pool.token0.reserve),
                     BigInt(pool.token1.reserve),
                   );
+              const otherAmount = isSelectingToken1 ? amount0 : amount1;
+              const otherToken = isSelectingToken1 ? pool.token0 : pool.token1;
               return (
                 <div className="flex items-center gap-2 rounded-lg bg-night-800 p-4">
                   <span className="text-night-400 text-sm">Requires:</span>
                   <span className="flex items-center gap-1">
                     <PoolTokenImage
-                      token={isSelectingToken1 ? pool.token0 : pool.token1}
+                      token={otherToken}
                       className="h-4 w-4 flex-shrink-0"
                     />
                     <span className="truncate font-medium text-honey-25 text-sm">
-                      {isSelectingToken1
-                        ? formatAmount(amount0, {
-                            decimals: pool.token0.decimals,
-                          })
-                        : formatAmount(amount1, {
-                            decimals: pool.token1.decimals,
-                          })}
+                      {formatAmount(otherAmount, {
+                        decimals: otherToken.decimals,
+                      })}
                     </span>
                   </span>
                 </div>
@@ -257,11 +269,7 @@ export const PoolDepositTab = ({
         {pool.token0.isNFT ? (
           <PoolNftTokenInput
             token={pool.token0}
-            amount={
-              isExact1
-                ? bigIntToNumber(amount0, pool.token0.decimals)
-                : undefined
-            }
+            amount={requiredNfts0}
             balance={nftBalance0}
             selectedNfts={nfts0}
             onOpenSelect={setSelectingToken}
@@ -289,11 +297,7 @@ export const PoolDepositTab = ({
         {pool.token1.isNFT ? (
           <PoolNftTokenInput
             token={pool.token1}
-            amount={
-              isExact1
-                ? undefined
-                : bigIntToNumber(amount1, pool.token1.decimals)
-            }
+            amount={requiredNfts1}
             balance={nftBalance1}
             selectedNfts={nfts1}
             onOpenSelect={setSelectingToken}
