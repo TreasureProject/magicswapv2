@@ -134,14 +134,15 @@ const DEFAULT_STATE = {
 
 export default function SwapPage() {
   const loaderData = useLoaderData<typeof loader>();
+  const revalidator = useRevalidator();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
   const [{ amount, isExactOut, nftsIn, nftsOut }, setTrade] =
     useState(DEFAULT_STATE);
-  const revalidator = useRevalidator();
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [priceImpactOptIn, setPriceImpactOptIn] = useState(false);
   const location = useLocation();
+
   const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
     searchParams.set(direction, token.id);
     // adding state (can be anything here) on client side transition to indicate that a modal can pop-up
@@ -172,16 +173,16 @@ export default function SwapPage() {
 
   const routerAddress = useRouterAddress(version);
 
-  const limitNFTsIn = Math.ceil(bigIntToNumber(amountIn, tokenIn.decimals));
-  const limitNFTsOut = Math.floor(
+  const requiredNftsIn = Math.ceil(bigIntToNumber(amountIn, tokenIn.decimals));
+  const requiredNftsOut = Math.floor(
     bigIntToNumber(amountOut, tokenOut?.decimals),
   );
 
   const hasAmounts =
     amountIn > 0 &&
     amountOut > 0 &&
-    (!tokenIn.isNFT || limitNFTsIn === amountNFTsIn) &&
-    (!tokenOut?.isNFT || limitNFTsOut === amountNFTsOut);
+    (!tokenIn.isNFT || requiredNftsIn === amountNFTsIn) &&
+    (!tokenOut?.isNFT || requiredNftsOut === amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } =
@@ -191,6 +192,7 @@ export default function SwapPage() {
       isETH: tokenIn.isETH,
       enabled: !tokenIn.isNFT,
     });
+
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
     useTokenBalance({
       id: tokenOut?.id as AddressString,
@@ -198,6 +200,17 @@ export default function SwapPage() {
       isETH: tokenOut?.isETH,
       enabled: !tokenOut?.isNFT,
     });
+
+  const refetch = useCallback(() => {
+    if (revalidator.state === "idle") {
+      // revalidator.revalidate();
+    }
+
+    refetchTokenInBalance();
+    refetchTokenOutBalance();
+  }, [revalidator, refetchTokenInBalance, refetchTokenOutBalance]);
+
+  useFocusInterval(refetch, 5_000);
 
   const { amountInMax, amountOutMin, swap } = useSwap({
     version,
@@ -212,8 +225,7 @@ export default function SwapPage() {
     enabled: isConnected && !!tokenOut && hasAmounts && isValidSwapRoute,
     onSuccess: () => {
       setTrade(DEFAULT_STATE);
-      refetchTokenInBalance();
-      refetchTokenOutBalance();
+      refetch();
       setSwapModalOpen(false);
       setPriceImpactOptIn(false);
     },
@@ -251,13 +263,6 @@ export default function SwapPage() {
     }
   }, [tokenOut?.id]);
 
-  useFocusInterval(
-    useCallback(() => {
-      revalidator.revalidate();
-    }, [revalidator]),
-    5000,
-  );
-
   const formattedTokenInAmount = formatAmount(amountIn, {
     decimals: tokenIn.decimals,
   });
@@ -284,13 +289,13 @@ export default function SwapPage() {
           amount={
             isExactOut
               ? tokenIn.isNFT
-                ? limitNFTsIn.toString()
+                ? requiredNftsIn.toString()
                 : formattedTokenInAmount
               : amount
           }
           selectedNfts={nftsIn}
           requiredNftSelectionAmount={
-            isExactOut && amountNFTsOut > 0 ? limitNFTsIn : undefined
+            isExactOut && amountNFTsOut > 0 ? requiredNftsIn : undefined
           }
           onSelect={(token) => handleSelectToken("in", token)}
           onUpdateAmount={(amount) =>
@@ -346,12 +351,12 @@ export default function SwapPage() {
             isExactOut
               ? amount
               : tokenOut?.isNFT
-                ? limitNFTsOut.toString()
+                ? requiredNftsOut.toString()
                 : formattedTokenOutAmount
           }
           selectedNfts={nftsOut}
           requiredNftSelectionAmount={
-            !isExactOut && amountNFTsIn > 0 ? limitNFTsOut : undefined
+            !isExactOut && amountNFTsIn > 0 ? requiredNftsOut : undefined
           }
           onSelect={(token) => handleSelectToken("out", token)}
           onUpdateAmount={(amount) =>

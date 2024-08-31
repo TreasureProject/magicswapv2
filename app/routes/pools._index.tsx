@@ -1,11 +1,18 @@
 import { defer } from "@remix-run/node";
-import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
-import { Suspense } from "react";
+import {
+  Await,
+  Link,
+  useLoaderData,
+  useNavigate,
+  useRevalidator,
+} from "@remix-run/react";
+import { Suspense, useCallback } from "react";
 
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
+import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { formatPercent } from "~/lib/number";
 import {
   getPoolFeesDisplay,
@@ -55,7 +62,16 @@ const RowSkeleton = () => (
 
 export default function PoolsListPage() {
   const { pools } = useLoaderData<typeof loader>();
+  const revalidator = useRevalidator();
   const navigate = useNavigate();
+
+  const refetch = useCallback(() => {
+    if (revalidator.state === "idle") {
+      // revalidator.revalidate();
+    }
+  }, [revalidator]);
+
+  useFocusInterval(refetch, 5_000);
 
   return (
     <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">

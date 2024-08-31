@@ -11,7 +11,6 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "@remix-run/react";
-import { AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRightIcon,
   ArrowRightIcon,
@@ -158,15 +157,15 @@ export default function PoolDetailsPage() {
     address,
   });
 
-  const refresh = useCallback(() => {
+  const refetch = useCallback(() => {
     if (revalidator.state === "idle") {
-      revalidator.revalidate();
+      // revalidator.revalidate();
     }
 
     refetchLpBalance();
-  }, [refetchLpBalance, revalidator]);
+  }, [revalidator, refetchLpBalance]);
 
-  useFocusInterval(refresh, 5_000);
+  useFocusInterval(refetch, 5_000);
 
   const baseToken =
     (pool.token1.isNFT && !pool.isNFTNFT) || pool.token1.isMAGIC
@@ -395,7 +394,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={refresh}
+            onSuccess={refetch}
           />
         </div>
         {pool.hasNFT ? (
@@ -481,7 +480,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
-            onSuccess={refresh}
+            onSuccess={refetch}
           />
         </SheetContent>
       </Sheet>
@@ -602,119 +601,110 @@ const PoolActivityTable = ({
             <th className="hidden px-4 py-2.5 sm:table-cell sm:px-5" />
           </tr>
         </thead>
-        <AnimatePresence>
-          <tbody className="transition-all">
-            <>
-              {transactions.map((tx) => {
-                let tokenA: PoolToken;
-                let amountA: string;
-                let itemsA: PoolTransactionItem[];
-                let tokenB: PoolToken;
-                let amountB: string;
-                let itemsB: PoolTransactionItem[];
-                const isSwap = tx.type === "Swap";
-                if (isSwap) {
-                  if (tx.isAmount1Out) {
-                    tokenA = pool.token0;
-                    amountA = tx.amount0;
-                    itemsA = tx.items0 ?? [];
-                    tokenB = pool.token1;
-                    amountB = tx.amount1;
-                    itemsB = tx.items1;
-                  } else {
-                    tokenA = pool.token1;
-                    amountA = tx.amount1;
-                    itemsA = tx.items1;
-                    tokenB = pool.token0;
-                    amountB = tx.amount0;
-                    itemsB = tx.items0;
-                  }
-                } else {
+        <tbody>
+          <>
+            {transactions.map((tx) => {
+              let tokenA: PoolToken;
+              let amountA: string;
+              let itemsA: PoolTransactionItem[];
+              let tokenB: PoolToken;
+              let amountB: string;
+              let itemsB: PoolTransactionItem[];
+              const isSwap = tx.type === "Swap";
+              if (isSwap) {
+                if (tx.isAmount1Out) {
                   tokenA = pool.token0;
+                  amountA = tx.amount0;
+                  itemsA = tx.items0 ?? [];
                   tokenB = pool.token1;
-                  if (tokenA.id === pool.token0.id) {
-                    amountA = tx.amount0;
-                    itemsA = tx.items0;
-                    amountB = tx.amount1;
-                    itemsB = tx.items1;
-                  } else {
-                    amountA = tx.amount1;
-                    itemsA = tx.items1;
-                    amountB = tx.amount0;
-                    itemsB = tx.items0;
-                  }
+                  amountB = tx.amount1;
+                  itemsB = tx.items1;
+                } else {
+                  tokenA = pool.token1;
+                  amountA = tx.amount1;
+                  itemsA = tx.items1;
+                  tokenB = pool.token0;
+                  amountB = tx.amount0;
+                  itemsB = tx.items0;
                 }
+              } else {
+                tokenA = pool.token0;
+                tokenB = pool.token1;
+                if (tokenA.id === pool.token0.id) {
+                  amountA = tx.amount0;
+                  itemsA = tx.items0;
+                  amountB = tx.amount1;
+                  itemsB = tx.items1;
+                } else {
+                  amountA = tx.amount1;
+                  itemsA = tx.items1;
+                  amountB = tx.amount0;
+                  itemsB = tx.items0;
+                }
+              }
 
-                return (
-                  <Fragment key={tx.id}>
-                    <tr className="border-b border-b-night-900 transition-colors">
-                      <td className="px-4 py-3.5 text-left sm:px-5">
-                        <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
-                          <div className="flex items-center gap-2.5">
-                            <PoolTransactionImage
-                              token={tokenA}
-                              items={itemsA}
-                            />
-                            <span>
-                              <span className="text-honey-25">
-                                {formatAmount(amountA)}
-                              </span>{" "}
-                              {tokenA.symbol}
-                            </span>
-                          </div>
-                          {isSwap ? (
-                            <ArrowRightIcon className="h-6 w-6" />
-                          ) : (
-                            <PlusIcon className="h-6 w-6" />
-                          )}
-                          <div className="flex items-center gap-2.5">
-                            <PoolTransactionImage
-                              token={tokenB}
-                              items={itemsB}
-                            />
-                            <span>
-                              <span className="text-honey-25">
-                                {formatAmount(amountB)}
-                              </span>{" "}
-                              {tokenB.symbol}
-                            </span>
-                          </div>
+              return (
+                <Fragment key={tx.id}>
+                  <tr className="border-b border-b-night-900 transition-colors">
+                    <td className="px-4 py-3.5 text-left sm:px-5">
+                      <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
+                        <div className="flex items-center gap-2.5">
+                          <PoolTransactionImage token={tokenA} items={itemsA} />
+                          <span>
+                            <span className="text-honey-25">
+                              {formatAmount(amountA)}
+                            </span>{" "}
+                            {tokenA.symbol}
+                          </span>
                         </div>
-                      </td>
-                      <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                        {tx.type}
-                      </td>
-                      <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                        {Number(tx.amountUSD) > 0
-                          ? formatUSD(tx.amountUSD)
-                          : "-"}
-                      </td>
-                      <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
-                        {tx.userDomain?.treasuretag ? (
-                          <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
-                            <MagicLogo className="h-3 w-3" />
-                            {tx.userDomain.treasuretag.name}
-                          </span>
+                        {isSwap ? (
+                          <ArrowRightIcon className="h-6 w-6" />
                         ) : (
-                          <span className="font-mono">
-                            {tx.user ? truncateEthAddress(tx.user.id) : "-"}
-                          </span>
+                          <PlusIcon className="h-6 w-6" />
                         )}
-                      </td>
-                      <td className="hidden px-4 py-3.5 text-right text-night-400 text-sm sm:table-cell sm:px-5">
-                        {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
-                      </td>
-                      <td className="flex items-center justify-end gap-2 px-4 py-3.5 text-end sm:px-5">
-                        <a
-                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
-                          href={`${blockExplorer.url}/tx/${tx.hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title={`View on ${blockExplorer.name}`}
-                        >
-                          <ExternalLinkIcon className="h-4 w-4" />
-                        </a>
-                        {/* <button
+                        <div className="flex items-center gap-2.5">
+                          <PoolTransactionImage token={tokenB} items={itemsB} />
+                          <span>
+                            <span className="text-honey-25">
+                              {formatAmount(amountB)}
+                            </span>{" "}
+                            {tokenB.symbol}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
+                      {tx.type}
+                    </td>
+                    <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
+                      {Number(tx.amountUSD) > 0 ? formatUSD(tx.amountUSD) : "-"}
+                    </td>
+                    <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
+                      {tx.userDomain?.treasuretag ? (
+                        <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
+                          <MagicLogo className="h-3 w-3" />
+                          {tx.userDomain.treasuretag.name}
+                        </span>
+                      ) : (
+                        <span className="font-mono">
+                          {tx.user ? truncateEthAddress(tx.user.id) : "-"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="hidden px-4 py-3.5 text-right text-night-400 text-sm sm:table-cell sm:px-5">
+                      {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
+                    </td>
+                    <td className="flex items-center justify-end gap-2 px-4 py-3.5 text-end sm:px-5">
+                      <a
+                        className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                        href={`${blockExplorer.url}/tx/${tx.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`View on ${blockExplorer.name}`}
+                      >
+                        <ExternalLinkIcon className="h-4 w-4" />
+                      </a>
+                      {/* <button
                           className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
                           onClick={() =>
                             setExpandedRow(expandedRow === 0 ? null : 0)
@@ -727,9 +717,9 @@ const PoolActivityTable = ({
                             )}
                           />
                         </button> */}
-                      </td>
-                    </tr>
-                    {/* {expandedRow === 0 && (
+                    </td>
+                  </tr>
+                  {/* {expandedRow === 0 && (
                       <motion.div
                         initial={{ height: "0px", opacity: 0 }}
                         animate={{ height: "max", opacity: 1 }}
@@ -752,12 +742,11 @@ const PoolActivityTable = ({
                           )}
                       </motion.div>
                     )} */}
-                  </Fragment>
-                );
-              })}
-            </>
-          </tbody>
-        </AnimatePresence>
+                </Fragment>
+              );
+            })}
+          </>
+        </tbody>
       </table>
       <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
         <Button
