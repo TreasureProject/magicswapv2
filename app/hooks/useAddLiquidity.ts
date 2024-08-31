@@ -167,6 +167,8 @@ export const useAddLiquidity = ({
               tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
               amount: nftsB.map(({ quantity }) => BigInt(quantity)),
             },
+            amountAMin,
+            amountBMin,
             addressArg,
             deadline,
           ],
