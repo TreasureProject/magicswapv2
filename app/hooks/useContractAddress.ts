@@ -11,7 +11,7 @@ const CONTRACT_ADDRESSES = {
   },
   [arbitrum.id]: {
     magicswapV1Router: "0xf3573bf4ca41b039bc596354870973d34fdb618b",
-    magicswapV2Router: "0xb740d5804ea2061432469119cfa40cbb4586dd17",
+    magicswapV2Router: "0xf7c8f888720d5af7c54dfc04afe876673d7f5f43",
   },
 } as const;
 

@@ -326,7 +326,7 @@ export const PoolDepositTab = ({
       <Table
         items={[
           {
-            label: "Estimated LP Tokens",
+            label: "Estimated MLP tokens",
             value: (
               <div className="-space-x-1 flex items-center">
                 <PoolImage className="h-5 w-5" pool={pool} />
@@ -335,7 +335,7 @@ export const PoolDepositTab = ({
             ),
           },
           {
-            label: "Share of Pool",
+            label: "Share of pool",
             value: formatPercent(
               BigInt(pool.totalSupply) > 0
                 ? bigIntToNumber(estimatedLp) /

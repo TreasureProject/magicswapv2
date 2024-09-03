@@ -19,7 +19,6 @@ import {
   ArrowDownToLineIcon as DepositIcon,
   ExternalLinkIcon,
   PlusIcon,
-  RepeatIcon,
   ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
 import type React from "react";
@@ -151,6 +150,7 @@ export default function PoolDetailsPage() {
   const { address } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
+  const blockExplorer = useBlockExplorer();
 
   const { data: lpBalance = 0n, refetch: refetchLpBalance } = useTokenBalance({
     id: pool.id as AddressString,
@@ -192,12 +192,51 @@ export default function PoolDetailsPage() {
             <div className="-space-x-2 flex items-center">
               <PoolImage pool={pool} className="h-auto w-14" />
               <div className="flex flex-col text-2xl">
-                <span>{pool.name}</span>
+                <a
+                  href={`${blockExplorer.url}/address/${pool.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium hover:underline"
+                >
+                  {pool.name}
+                </a>
                 <span className="text-night-400 text-sm">
                   LP Fees: {formatPercent(pool.lpFee, 3)}
                 </span>
               </div>
             </div>
+            <ul className="flex flex-wrap items-center gap-5 text-night-100 text-sm">
+              {[pool.token0, pool.token1].map(({ id, name, isNFT }) => (
+                <li key={id} className="flex items-center gap-1.5">
+                  <span className="font-medium">
+                    {isNFT ? `${name} Vault` : name}
+                  </span>{" "}
+                  <a
+                    href={`${blockExplorer.url}/address/${id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:underline"
+                  >
+                    {truncateEthAddress(id)}{" "}
+                    <ExternalLinkIcon className="h-2.5 w-2.5" />
+                  </a>
+                </li>
+              ))}
+              {pool.collections.map(({ id, name }) => (
+                <li key={id} className="flex items-center gap-1.5">
+                  <span className="font-medium">{name}</span>{" "}
+                  <a
+                    href={`${blockExplorer.url}/address/${id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:underline"
+                  >
+                    {truncateEthAddress(id)}{" "}
+                    <ExternalLinkIcon className="h-2.5 w-2.5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
             <div className="h-[1px] bg-night-900" />
             <ClientOnly
               fallback={
@@ -209,30 +248,22 @@ export default function PoolDetailsPage() {
               {() => (
                 <>
                   {address && lpBalance > 0 ? (
-                    <div className="space-y-4 rounded-md bg-night-1100 p-4">
-                      <div className="flex items-center justify-between gap-3 rounded-md bg-night-900 px-4 py-2">
-                        <h3 className="font-medium">Your Positions</h3>
+                    <div className="space-y-4 rounded-md bg-night-900 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="font-medium">Your Position</h3>
                         {pool.reserveUSD > 0 ? (
                           <span className="text-night-200">
-                            <abbr
-                              title="Total Value Locked"
-                              className="text-night-600 no-underline"
-                            >
-                              TVL
-                            </abbr>
-                            : {formatUSD(lpShare * pool.reserveUSD)}
+                            {formatUSD(lpShare * pool.reserveUSD)}
                           </span>
                         ) : null}
                       </div>
-                      <div className="flex flex-col space-y-2 px-2 py-3.5">
-                        <div className="-space-x-1 flex items-center">
-                          <PoolImage pool={pool} className="h-10 w-10" />
-                          <p className="text-3xl text-night-100">
+                      <div className="-space-x-1 flex items-center py-1.5">
+                        <PoolImage pool={pool} className="h-10 w-10" />
+                        <p className="flex items-center gap-1.5 text-2xl text-night-400">
+                          <span className="text-3xl text-night-100">
                             {formatAmount(lpBalance)}
-                          </p>
-                        </div>
-                        <p className="text-night-400 text-sm">
-                          Current LP Token Balance
+                          </span>{" "}
+                          MLP
                         </p>
                       </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -289,7 +320,7 @@ export default function PoolDetailsPage() {
                           // { label: "Initial LP Tokens", value: 0.0 },
                           // { label: "Rewards Earned", value: 0.0 },
                           {
-                            label: "Current Share of Pool",
+                            label: "Current share of pool",
                             value: formatPercent(lpShare),
                           },
                         ]}
@@ -304,13 +335,7 @@ export default function PoolDetailsPage() {
                 <h3 className="font-medium">Pool Reserves</h3>
                 {pool.reserveUSD > 0 ? (
                   <span className="text-night-200">
-                    <abbr
-                      title="Total Value Locked"
-                      className="text-night-600 no-underline"
-                    >
-                      TVL
-                    </abbr>
-                    : <span className="">{formatUSD(pool.reserveUSD)}</span>
+                    {formatUSD(pool.reserveUSD)}
                   </span>
                 ) : null}
               </div>
@@ -391,7 +416,7 @@ export default function PoolDetailsPage() {
             </div>
           </div>
           <PoolManagementView
-            className="sticky top-4 col-span-3 hidden space-y-6 p-4 lg:block"
+            className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
             onSuccess={refetch}
@@ -507,12 +532,9 @@ const PoolManagementView = ({
   return (
     <div className={className}>
       <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-2">
-          <RepeatIcon className="h-5 w-5 text-night-400" />
-          <h1 className="font-semibold text-lg text-night-100">
-            Add Liquidity
-          </h1>
-        </div>
+        <h1 className="font-semibold text-lg text-night-100">
+          Manage Liquidity
+        </h1>
         <SettingsDropdownMenu />
       </div>
       <MultiSelect
@@ -521,12 +543,12 @@ const PoolManagementView = ({
           {
             id: "deposit",
             icon: DepositIcon,
-            name: "Deposit",
+            name: "Add",
           },
           {
             id: "withdraw",
             icon: WithdrawIcon,
-            name: "Withdraw",
+            name: "Remove",
           },
         ]}
         activeTab={activeTab}

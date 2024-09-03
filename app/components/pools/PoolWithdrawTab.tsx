@@ -266,7 +266,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             size="lg"
             onClick={() => approve?.()}
           >
-            Approve LP token
+            Approve MLP token
           </TransactionButton>
         ) : (
           <TransactionButton

@@ -33,6 +33,7 @@ export const createPoolFromPair = (
   };
 
   const isNFTNFT = token0.isNFT && token1.isNFT;
+  const collections = [token0.collections, token1.collections].flat();
   const reserveUSD = Number(pair.reserveUSD);
 
   const volume1wUSD =
@@ -67,6 +68,11 @@ export const createPoolFromPair = (
     token1,
     hasNFT: token0.isNFT || token1.isNFT,
     isNFTNFT,
+    collections: collections.filter(
+      (value, index, self) =>
+        index ===
+        self.findIndex((t) => t.id.toLowerCase() === value.id.toLowerCase()),
+    ),
     reserveUSD,
     volume0: Number(pair.volume0),
     volume1: Number(pair.volume1),
