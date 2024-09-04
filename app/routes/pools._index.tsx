@@ -1,4 +1,4 @@
-import { defer } from "@remix-run/node";
+import { type LoaderFunctionArgs, defer } from "@remix-run/node";
 import {
   Await,
   Link,
@@ -25,9 +25,23 @@ export const handle: PoolsHandle = {
   tab: "pools",
 };
 
-export function loader() {
+export function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const search = url.searchParams.get("search");
+
+  const fetchAndFilterPools = async () => {
+    let pools = await fetchPools();
+    if (search) {
+      pools = pools.filter(({ name }) =>
+        name.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+
+    return pools;
+  };
+
   return defer({
-    pools: fetchPools(),
+    pools: fetchAndFilterPools(),
   });
 }
 

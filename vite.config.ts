@@ -7,4 +7,7 @@ installGlobals();
 
 export default defineConfig({
   plugins: [remix(), tsconfigPaths()],
+  ssr: {
+    noExternal: ["react-use"],
+  },
 });

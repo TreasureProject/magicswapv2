@@ -19,8 +19,23 @@ export const handle: PoolsHandle = {
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const address = session.get("address");
+  const url = new URL(request.url);
+  const search = url.searchParams.get("search");
+
+  const fetchAndFilterUserPositions = async () => {
+    const userPositions = await fetchUserPositions(address);
+    if (search) {
+      userPositions.positions = userPositions.positions.filter(
+        ({ pool: { name } }) =>
+          name.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+
+    return userPositions;
+  };
+
   return defer({
-    userPositions: fetchUserPositions(address),
+    userPositions: fetchAndFilterUserPositions(),
   });
 }
 
