@@ -21,7 +21,7 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
     id: token.id as AddressString,
     address,
     isETH: token.isETH,
-    enabled: !token.isNFT,
+    enabled: !!address && !token.isNFT,
   });
 
   useEffect(() => {

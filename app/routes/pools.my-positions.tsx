@@ -8,6 +8,8 @@ import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatAmount, formatUSD } from "~/lib/currency";
+import { ENV } from "~/lib/env.server";
+import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getSession } from "~/sessions";
 import type { PoolsHandle } from "./pools";
@@ -21,17 +23,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
+  const game = url.searchParams.get("game");
 
   const fetchAndFilterUserPositions = async () => {
-    const userPositions = await fetchUserPositions(address);
-    if (search) {
-      userPositions.positions = userPositions.positions.filter(
-        ({ pool: { name } }) =>
-          name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
+    const { total, positions } = await fetchUserPositions(address);
+    const gameTokenIdsMap = game
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
+    const gameCollectionIdsMap = game
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
 
-    return userPositions;
+    return {
+      total,
+      positions: positions.filter(
+        ({ pool: { name, token0, token1, collections } }) =>
+          // Filter by search query
+          (!search ||
+            name.toLowerCase().includes(search) ||
+            token0.symbol.toLowerCase().includes(search) ||
+            token1.symbol.toLowerCase().includes(search) ||
+            token0.name.toLowerCase().includes(search) ||
+            token1.name.toLowerCase().includes(search) ||
+            collections.some((collection) =>
+              collection.name.toLowerCase().includes(search),
+            )) &&
+          // Filter by selected game
+          (!game ||
+            !!gameTokenIdsMap[token0.id] ||
+            !!gameTokenIdsMap[token1.id] ||
+            collections.some(
+              (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
+            )),
+      ),
+    };
   };
 
   return defer({

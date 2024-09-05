@@ -3,8 +3,10 @@ import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
+import { useChainId } from "wagmi";
 
 import { Input } from "~/components/ui/Input";
+import { GAME_METADATA } from "~/consts";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
@@ -29,12 +31,13 @@ export const meta: MetaFunction<
 };
 
 export default function PoolsListPage() {
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const matches = useMatches();
   const match = matches[matches.length - 1];
   const tab = (match?.handle as PoolsHandle | undefined)?.tab ?? "pools";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const chainId = useChainId();
 
   useDebounce(
     () => {
@@ -58,6 +61,18 @@ export default function PoolsListPage() {
       return curr;
     });
   }, [debouncedSearch, setSearchParams]);
+
+  const handleSelectGame = (id: string) => {
+    setSearchParams((curr) => {
+      if (curr.get("game") === id) {
+        curr.delete("game");
+      } else {
+        curr.set("game", id);
+      }
+
+      return curr;
+    });
+  };
 
   return (
     <main className="container space-y-8 py-5 md:py-7">
@@ -88,7 +103,7 @@ export default function PoolsListPage() {
             My Positions
           </Link>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-md border border-night-800 pl-2">
             <SearchIcon className="h-5 w-5 text-night-400" />
             <Input
@@ -99,6 +114,23 @@ export default function PoolsListPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          {Object.entries(GAME_METADATA).map(
+            ([id, { name, image, tokens, collections }]) =>
+              chainId in tokens || chainId in collections ? (
+                <button
+                  key={id}
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border border-night-800 px-3 py-2 text-sm transition-colors hover:bg-night-800 active:bg-night-900",
+                    searchParams.get("game") === id && "bg-night-900",
+                  )}
+                  onClick={() => handleSelectGame(id)}
+                >
+                  <img src={image} alt="" className="h-5 w-5 rounded" />
+                  {name}
+                </button>
+              ) : null,
+          )}
         </div>
         <Outlet />
       </div>

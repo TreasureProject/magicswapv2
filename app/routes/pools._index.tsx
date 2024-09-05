@@ -13,6 +13,8 @@ import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
+import { ENV } from "~/lib/env.server";
+import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { formatPercent } from "~/lib/number";
 import {
   getPoolFeesDisplay,
@@ -27,17 +29,38 @@ export const handle: PoolsHandle = {
 
 export function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const search = url.searchParams.get("search");
+  const search = url.searchParams.get("search")?.toLowerCase();
+  const game = url.searchParams.get("game");
 
   const fetchAndFilterPools = async () => {
-    let pools = await fetchPools();
-    if (search) {
-      pools = pools.filter(({ name }) =>
-        name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
+    const pools = await fetchPools();
+    const gameTokenIdsMap = game
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
+    const gameCollectionIdsMap = game
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
 
-    return pools;
+    return pools.filter(
+      ({ name, token0, token1, collections }) =>
+        // Filter by search query
+        (!search ||
+          name.toLowerCase().includes(search) ||
+          token0.symbol.toLowerCase().includes(search) ||
+          token1.symbol.toLowerCase().includes(search) ||
+          token0.name.toLowerCase().includes(search) ||
+          token1.name.toLowerCase().includes(search) ||
+          collections.some((collection) =>
+            collection.name.toLowerCase().includes(search),
+          )) &&
+        // Filter by selected game
+        (!game ||
+          !!gameTokenIdsMap[token0.id] ||
+          !!gameTokenIdsMap[token1.id] ||
+          collections.some(
+            (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
+          )),
+    );
   };
 
   return defer({

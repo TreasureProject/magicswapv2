@@ -12,15 +12,18 @@ import {
 } from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  GlobeIcon as AllIcon,
   ArrowDownIcon,
   ChevronDownIcon,
   ExternalLink,
   LayersIcon,
+  SearchIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { formatUnits } from "viem";
+import { useChainId } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
 import {
@@ -46,6 +49,8 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { InfoPopover } from "~/components/ui/InfoPopover";
+import { Input } from "~/components/ui/Input";
+import { GAME_METADATA } from "~/consts";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRouterAddress } from "~/hooks/useContractAddress";
@@ -57,6 +62,7 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useTrove } from "~/hooks/useTrove";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
+import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens } from "~/lib/tokens";
@@ -657,6 +663,7 @@ const SwapTokenInput = ({
             disabledTokenIds={
               [token.id, otherToken?.id].filter((id) => !!id) as string[]
             }
+            isOut={isOut}
             onSelect={onSelect}
           />
 
@@ -972,6 +979,7 @@ const SwapTokenInput = ({
     <Dialog>
       <TokenSelectDialog
         disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
+        isOut={isOut}
         onSelect={onSelect}
       />
       <DialogTrigger asChild>
@@ -1034,47 +1042,100 @@ const TotalDisplay = ({
 
 const TokenSelectDialog = ({
   disabledTokenIds = [],
+  isOut,
   onSelect,
 }: {
   disabledTokenIds?: string[];
+  isOut: boolean;
   onSelect: (token: PoolToken) => void;
 }) => {
-  const [tab, setTab] = useState<"tokens" | "collections">("collections");
+  const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
+  const [search, setSearch] = useState("");
+  const [game, setGame] = useState("");
+  const chainId = useChainId();
   const { tokens } = useLoaderData<typeof loader>();
+
+  const gameTokenIdsMap = game ? getTokenIdsMapForGame(game, chainId) : {};
+  const gameCollectionIdsMap = game
+    ? getCollectionIdsMapForGame(game, chainId)
+    : {};
 
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Select Asset</DialogTitle>
+        <DialogTitle>Select an asset to {isOut ? "buy" : "sell"}</DialogTitle>
         <DialogDescription>
-          Select an asset to add to the swap.
+          Choose from the list of tokens and NFTs below.
         </DialogDescription>
       </DialogHeader>
-      <div className="rounded-lg bg-night-1100 p-4">
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
-              tab === "tokens" && "border-night-800 bg-night-800 text-honey-25",
+      <div className="space-y-4 rounded-lg bg-night-1100 p-4">
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              type="button"
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                tab === "all" && "border-night-800 bg-night-800 text-honey-25",
+              )}
+              onClick={() => setTab("all")}
+            >
+              <AllIcon className="h-4 w-4" />
+              All
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                tab === "tokens" &&
+                  "border-night-800 bg-night-800 text-honey-25",
+              )}
+              onClick={() => setTab("tokens")}
+            >
+              <TokenIcon className="h-4 w-4" />
+              Tokens
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                tab === "collections" &&
+                  "border-night-800 bg-night-800 text-honey-25",
+              )}
+              onClick={() => setTab("collections")}
+            >
+              <LayersIcon className="h-4 w-4" />
+              Collections
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center rounded-md border border-night-800 pl-2">
+              <SearchIcon className="h-5 w-5 text-night-400" />
+              <Input
+                type="search"
+                placeholder="Search"
+                className="h-auto w-auto max-w-[128px] border-none px-2 py-1.5 ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {Object.entries(GAME_METADATA).map(
+              ([id, { name, image, tokens, collections }]) =>
+                chainId in tokens || chainId in collections ? (
+                  <button
+                    key={id}
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1 rounded-full border border-night-800 px-2.5 py-1.5 text-xs transition-colors hover:bg-night-800 active:bg-night-900",
+                      game === id && "bg-night-900",
+                    )}
+                    onClick={() => (game === id ? setGame("") : setGame(id))}
+                  >
+                    <img src={image} alt="" className="h-4 w-4 rounded" />
+                    {name}
+                  </button>
+                ) : null,
             )}
-            onClick={() => setTab("tokens")}
-          >
-            <TokenIcon className="h-4 w-4" />
-            Tokens
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
-              tab === "collections" &&
-                "border-night-800 bg-night-800 text-honey-25",
-            )}
-            onClick={() => setTab("collections")}
-          >
-            <LayersIcon className="h-4 w-4" />
-            Collections
-          </button>
+          </div>
         </div>
         <Suspense
           fallback={
@@ -1085,10 +1146,29 @@ const TokenSelectDialog = ({
         >
           <Await resolve={tokens}>
             {(tokens) => (
-              <ul className="mt-4 h-80 overflow-auto border-night-900 border-t pt-4">
+              <ul className="h-80 overflow-auto border-night-900 border-t pt-4">
                 {tokens
-                  .filter(({ isNFT }) =>
-                    tab === "collections" ? isNFT : !isNFT,
+                  .filter(
+                    ({ id, symbol, name, collections, isNFT }) =>
+                      // Filter by search query
+                      (!search ||
+                        symbol.toLowerCase().includes(search.toLowerCase()) ||
+                        name.toLowerCase().includes(search.toLowerCase()) ||
+                        collections.some((collection) =>
+                          collection.name
+                            .toLowerCase()
+                            .includes(search.toLowerCase()),
+                        )) &&
+                      // Filter by selected game
+                      (!game ||
+                        !!gameTokenIdsMap[id] ||
+                        collections.some(
+                          (collection) =>
+                            gameCollectionIdsMap[collection.id.toLowerCase()],
+                        )) &&
+                      // Filter by selected tab
+                      (tab === "all" ||
+                        (tab === "collections" ? isNFT : !isNFT)),
                   )
                   .map((token) => (
                     <Token
@@ -1134,6 +1214,11 @@ const Token = ({
             </span>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
               <span className="block text-night-600">{token.name}</span>
+            ) : token.name.toUpperCase() !==
+              token.collections[0]?.name.toUpperCase() ? (
+              <p className="text-night-400 text-xs sm:text-sm">
+                {token.collections[0]?.name}
+              </p>
             ) : null}
           </div>
         </div>

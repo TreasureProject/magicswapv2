@@ -1,16 +1,18 @@
+import { arbitrum, arbitrumSepolia } from "viem/chains";
+
 export const PRIVACY_POLICY_URL = "https://app.treasure.lol/privacy-policy";
 export const TERMS_OF_SERVICE_URL = "https://app.treasure.lol/terms-of-service";
 
 export const DOCS_URL = "https://docs.treasure.lol/magicswap";
 export const GOVERNANCE_FORUM_URL =
   "https://forum.treasure.lol/discussions/3.1.%20Magicswap%20-%20Active";
-export const BUY_MAGIC_URL = "https://app.treasure.lol/manage-funds";
+export const BUY_MAGIC_URL = "https://market.treasure.lol/manage-funds";
 
 export const DISCORD_URL = "https://discord.com/invite/treasuredao";
 export const TWITTER_URL = "https://twitter.com/MagicSwap_";
 
 export const TOKEN_METADATA = {
-  42161: [
+  [arbitrum.id]: [
     {
       id: "0x539bde0d7dbd336b79148aa742883198bbf60342",
       name: "MAGIC",
@@ -56,7 +58,7 @@ export const TOKEN_METADATA = {
       image: "/img/tokens/vee.png",
     },
   ],
-  421614: [
+  [arbitrumSepolia.id]: [
     {
       id: "0x55d0cf68a1afe0932aff6f36c87efa703508191c",
       name: "MAGIC",
@@ -80,7 +82,7 @@ export const TOKEN_METADATA = {
     {
       id: "0xff095e7d5a51d268f17ed77c32a62669782868ba",
       name: "gFLY",
-      symboL: "GFLY",
+      symbol: "GFLY",
       image: "/img/tokens/gfly.png",
     },
     {
@@ -97,6 +99,45 @@ export const TOKEN_METADATA = {
     },
   ],
 } as const;
+
+export const GAME_METADATA: Record<
+  string,
+  {
+    name: string;
+    image: string;
+    tokens: Record<number, string[]>;
+    collections: Record<number, string[]>;
+  }
+> = {
+  bitmates: {
+    name: "Bitmates",
+    image: "/img/games/bitmates.png",
+    tokens: {},
+    collections: {
+      [arbitrumSepolia.id]: ["0x7e0ac4fd9ce457c4dfc903804d96b1eb5a34000e"],
+    },
+  },
+  realm: {
+    name: "Realm",
+    image: "/img/games/realm.png",
+    tokens: {
+      [arbitrum.id]: ["0xccd05a0fcfc1380e9da27862adb2198e58e0d66f"],
+    },
+    collections: {},
+  },
+  zeeverse: {
+    name: "Zeeverse",
+    image: "/img/games/zeeverse.png",
+    tokens: {
+      [arbitrum.id]: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
+      [arbitrumSepolia.id]: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
+    },
+    collections: {
+      [arbitrum.id]: ["0x58318bceaa0d249b62fad57d134da7475e551b47"],
+      [arbitrumSepolia.id]: ["0xfaad5aa3209ab1b25ede22ed4da5521538b649fa"],
+    },
+  },
+};
 
 export const BLOCKED_PAIRS = [
   "0xf904469497e6a179a9d47a7b468e4be42ec56e65", // MAGIC-ELM v1
