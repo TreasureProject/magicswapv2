@@ -1,3 +1,5 @@
+import { arbitrum, arbitrumSepolia } from "viem/chains";
+
 export const PRIVACY_POLICY_URL = "https://app.treasure.lol/privacy-policy";
 export const TERMS_OF_SERVICE_URL = "https://app.treasure.lol/terms-of-service";
 
@@ -10,7 +12,7 @@ export const DISCORD_URL = "https://discord.com/invite/treasuredao";
 export const TWITTER_URL = "https://twitter.com/MagicSwap_";
 
 export const TOKEN_METADATA = {
-  42161: [
+  [arbitrum.id]: [
     {
       id: "0x539bde0d7dbd336b79148aa742883198bbf60342",
       name: "MAGIC",
@@ -56,7 +58,7 @@ export const TOKEN_METADATA = {
       image: "/img/tokens/vee.png",
     },
   ],
-  421614: [
+  [arbitrumSepolia.id]: [
     {
       id: "0x55d0cf68a1afe0932aff6f36c87efa703508191c",
       name: "MAGIC",
@@ -112,14 +114,14 @@ export const GAME_METADATA: Record<
     image: "/img/games/bitmates.png",
     tokens: {},
     collections: {
-      421614: ["0x7e0ac4fd9ce457c4dfc903804d96b1eb5a34000e"],
+      [arbitrumSepolia.id]: ["0x7e0ac4fd9ce457c4dfc903804d96b1eb5a34000e"],
     },
   },
   realm: {
     name: "Realm",
     image: "/img/games/realm.png",
     tokens: {
-      42161: ["0xccd05a0fcfc1380e9da27862adb2198e58e0d66f"],
+      [arbitrum.id]: ["0xccd05a0fcfc1380e9da27862adb2198e58e0d66f"],
     },
     collections: {},
   },
@@ -127,8 +129,8 @@ export const GAME_METADATA: Record<
     name: "Zeeverse",
     image: "/img/games/zeeverse.png",
     tokens: {
-      42161: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
-      421614: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
+      [arbitrum.id]: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
+      [arbitrumSepolia.id]: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
     },
     collections: {},
   },
