@@ -1068,42 +1068,42 @@ const TokenSelectDialog = ({
           Choose from the list of tokens and NFTs below.
         </DialogDescription>
       </DialogHeader>
-      <div className="space-y-4 rounded-lg bg-night-1100 p-4">
+      <div className="space-y-4 rounded-lg bg-night-1100 p-3 sm:p-4">
         <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <button
               type="button"
               className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                "flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25 sm:gap-2.5 sm:px-3",
                 tab === "all" && "border-night-800 bg-night-800 text-honey-25",
               )}
               onClick={() => setTab("all")}
             >
-              <AllIcon className="h-4 w-4" />
+              <AllIcon className="h-4 w-4 shrink-0" />
               All
             </button>
             <button
               type="button"
               className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                "flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25 sm:gap-2.5 sm:px-3",
                 tab === "tokens" &&
                   "border-night-800 bg-night-800 text-honey-25",
               )}
               onClick={() => setTab("tokens")}
             >
-              <TokenIcon className="h-4 w-4" />
+              <TokenIcon className="h-4 w-4 shrink-0" />
               Tokens
             </button>
             <button
               type="button"
               className={cn(
-                "flex items-center gap-2.5 rounded-lg border border-border bg-transparent px-3 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25",
+                "flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2 py-2 font-medium text-night-500 text-sm transition-colors hover:text-honey-25 sm:gap-2.5 sm:px-3",
                 tab === "collections" &&
                   "border-night-800 bg-night-800 text-honey-25",
               )}
               onClick={() => setTab("collections")}
             >
-              <LayersIcon className="h-4 w-4" />
+              <LayersIcon className="h-4 w-4 shrink-0" />
               Collections
             </button>
           </div>

@@ -125,6 +125,15 @@ export const GAME_METADATA: Record<
     },
     collections: {},
   },
+  smol: {
+    name: "SMOL",
+    image: "/img/games/smol.png",
+    tokens: {
+      [arbitrum.id]: ["0x9e64d3b9e8ec387a9a58ced80b71ed815f8d82b5"],
+      [arbitrumSepolia.id]: ["0x568b900f596c183e68fe9d773a7afb93156c9db3"],
+    },
+    collections: {},
+  },
   zeeverse: {
     name: "Zeeverse",
     image: "/img/games/zeeverse.png",
