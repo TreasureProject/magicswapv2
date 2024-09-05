@@ -132,7 +132,10 @@ export const GAME_METADATA: Record<
       [arbitrum.id]: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
       [arbitrumSepolia.id]: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
     },
-    collections: {},
+    collections: {
+      [arbitrum.id]: ["0x58318bceaa0d249b62fad57d134da7475e551b47"],
+      [arbitrumSepolia.id]: ["0xfaad5aa3209ab1b25ede22ed4da5521538b649fa"],
+    },
   },
 };
 

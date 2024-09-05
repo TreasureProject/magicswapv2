@@ -13,17 +13,14 @@ import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
-import {
-  getCollectionIdsMapForGame,
-  getTokenIdsMapForGame,
-} from "~/lib/game.server";
+import { ENV } from "~/lib/env.server";
+import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { formatPercent } from "~/lib/number";
 import {
   getPoolFeesDisplay,
   getPoolReserveDisplay,
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
-import type { Pool } from "~/lib/pools.server";
 import type { PoolsHandle } from "./pools";
 
 export const handle: PoolsHandle = {
@@ -32,38 +29,38 @@ export const handle: PoolsHandle = {
 
 export function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const search = url.searchParams.get("search");
-  const gameId = url.searchParams.get("game");
+  const search = url.searchParams.get("search")?.toLowerCase();
+  const game = url.searchParams.get("game");
 
   const fetchAndFilterPools = async () => {
-    const allPools = await fetchPools();
-    let pools: typeof allPools = [];
+    const pools = await fetchPools();
+    const gameTokenIdsMap = game
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
+    const gameCollectionIdsMap = game
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
 
-    if (gameId) {
-      const tokenIdsMap = getTokenIdsMapForGame(gameId);
-      for (const pool of allPools) {
-        if (tokenIdsMap[pool.token0.id] || tokenIdsMap[pool.token1.id]) {
-          pools.push(pool);
-        }
-      }
-
-      const collectionIdsMap = getCollectionIdsMapForGame(gameId);
-      for (const pool of allPools) {
-        if (pool.collections.some(({ id }) => collectionIdsMap[id])) {
-          pools.push(pool);
-        }
-      }
-    } else {
-      pools = allPools;
-    }
-
-    if (search) {
-      pools = pools.filter(({ name }) =>
-        name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
-
-    return pools;
+    return pools.filter(
+      ({ name, token0, token1, collections }) =>
+        // Filter by search query
+        (!search ||
+          name.toLowerCase().includes(search) ||
+          token0.symbol.toLowerCase().includes(search) ||
+          token1.symbol.toLowerCase().includes(search) ||
+          token0.name.toLowerCase().includes(search) ||
+          token1.name.toLowerCase().includes(search) ||
+          collections.some((collection) =>
+            collection.name.toLowerCase().includes(search),
+          )) &&
+        // Filter by selected game
+        (!game ||
+          !!gameTokenIdsMap[token0.id] ||
+          !!gameTokenIdsMap[token1.id] ||
+          collections.some(
+            (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
+          )),
+    );
   };
 
   return defer({

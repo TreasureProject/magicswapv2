@@ -8,10 +8,8 @@ import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatAmount, formatUSD } from "~/lib/currency";
-import {
-  getCollectionIdsMapForGame,
-  getTokenIdsMapForGame,
-} from "~/lib/game.server";
+import { ENV } from "~/lib/env.server";
+import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getSession } from "~/sessions";
 import type { PoolsHandle } from "./pools";
@@ -25,41 +23,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
-  const gameId = url.searchParams.get("game");
+  const game = url.searchParams.get("game");
 
   const fetchAndFilterUserPositions = async () => {
-    const { total, positions: allPositions } =
-      await fetchUserPositions(address);
-    let positions: typeof allPositions = [];
+    const { total, positions } = await fetchUserPositions(address);
+    const gameTokenIdsMap = game
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
+    const gameCollectionIdsMap = game
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      : {};
 
-    if (gameId) {
-      const tokenIdsMap = getTokenIdsMapForGame(gameId);
-      for (const position of allPositions) {
-        if (
-          tokenIdsMap[position.pool.token0.id] ||
-          tokenIdsMap[position.pool.token1.id]
-        ) {
-          positions.push(position);
-        }
-      }
-
-      const collectionIdsMap = getCollectionIdsMapForGame(gameId);
-      for (const position of allPositions) {
-        if (position.pool.collections.some(({ id }) => collectionIdsMap[id])) {
-          positions.push(position);
-        }
-      }
-    } else {
-      positions = allPositions;
-    }
-
-    if (search) {
-      positions = positions.filter(({ pool: { name } }) =>
-        name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
-
-    return { total, positions };
+    return {
+      total,
+      positions: positions.filter(
+        ({ pool: { name, token0, token1, collections } }) =>
+          // Filter by search query
+          (!search ||
+            name.toLowerCase().includes(search) ||
+            token0.symbol.toLowerCase().includes(search) ||
+            token1.symbol.toLowerCase().includes(search) ||
+            token0.name.toLowerCase().includes(search) ||
+            token1.name.toLowerCase().includes(search) ||
+            collections.some((collection) =>
+              collection.name.toLowerCase().includes(search),
+            )) &&
+          // Filter by selected game
+          (!game ||
+            !!gameTokenIdsMap[token0.id] ||
+            !!gameTokenIdsMap[token1.id] ||
+            collections.some(
+              (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
+            )),
+      ),
+    };
   };
 
   return defer({
