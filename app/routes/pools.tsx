@@ -3,6 +3,7 @@ import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
+import { useChainId } from "wagmi";
 
 import { Input } from "~/components/ui/Input";
 import { GAME_METADATA } from "~/consts";
@@ -36,6 +37,7 @@ export default function PoolsListPage() {
   const tab = (match?.handle as PoolsHandle | undefined)?.tab ?? "pools";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const chainId = useChainId();
 
   useDebounce(
     () => {
@@ -112,20 +114,23 @@ export default function PoolsListPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {Object.entries(GAME_METADATA).map(([id, { name, image }]) => (
-            <button
-              key={id}
-              type="button"
-              className={cn(
-                "flex items-center gap-1 rounded-full border border-night-800 px-3 py-2 text-sm transition-colors hover:bg-night-800 active:bg-night-900",
-                searchParams.get("game") === id && "bg-night-900",
-              )}
-              onClick={() => handleSelectGame(id)}
-            >
-              <img src={image} alt="" className="h-5 w-5 rounded" />
-              {name}
-            </button>
-          ))}
+          {Object.entries(GAME_METADATA).map(
+            ([id, { name, image, tokens, collections }]) =>
+              chainId in tokens || chainId in collections ? (
+                <button
+                  key={id}
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border border-night-800 px-3 py-2 text-sm transition-colors hover:bg-night-800 active:bg-night-900",
+                    searchParams.get("game") === id && "bg-night-900",
+                  )}
+                  onClick={() => handleSelectGame(id)}
+                >
+                  <img src={image} alt="" className="h-5 w-5 rounded" />
+                  {name}
+                </button>
+              ) : null,
+          )}
         </div>
         <Outlet />
       </div>
