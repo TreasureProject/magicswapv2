@@ -8,6 +8,10 @@ import { Badge } from "~/components/Badge";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatAmount, formatUSD } from "~/lib/currency";
+import {
+  getCollectionIdsMapForGame,
+  getTokenIdsMapForGame,
+} from "~/lib/game.server";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getSession } from "~/sessions";
 import type { PoolsHandle } from "./pools";
@@ -21,17 +25,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
+  const gameId = url.searchParams.get("game");
 
   const fetchAndFilterUserPositions = async () => {
-    const userPositions = await fetchUserPositions(address);
+    const { total, positions: allPositions } =
+      await fetchUserPositions(address);
+    let positions: typeof allPositions = [];
+
+    if (gameId) {
+      const tokenIdsMap = getTokenIdsMapForGame(gameId);
+      for (const position of allPositions) {
+        if (
+          tokenIdsMap[position.pool.token0.id] ||
+          tokenIdsMap[position.pool.token1.id]
+        ) {
+          positions.push(position);
+        }
+      }
+
+      const collectionIdsMap = getCollectionIdsMapForGame(gameId);
+      for (const position of allPositions) {
+        if (position.pool.collections.some(({ id }) => collectionIdsMap[id])) {
+          positions.push(position);
+        }
+      }
+    } else {
+      positions = allPositions;
+    }
+
     if (search) {
-      userPositions.positions = userPositions.positions.filter(
-        ({ pool: { name } }) =>
-          name.toLowerCase().includes(search.toLowerCase()),
+      positions = positions.filter(({ pool: { name } }) =>
+        name.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
-    return userPositions;
+    return { total, positions };
   };
 
   return defer({

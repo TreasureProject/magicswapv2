@@ -80,7 +80,7 @@ export const TOKEN_METADATA = {
     {
       id: "0xff095e7d5a51d268f17ed77c32a62669782868ba",
       name: "gFLY",
-      symboL: "GFLY",
+      symbol: "GFLY",
       image: "/img/tokens/gfly.png",
     },
     {
@@ -97,6 +97,42 @@ export const TOKEN_METADATA = {
     },
   ],
 } as const;
+
+export const GAME_METADATA: Record<
+  string,
+  {
+    name: string;
+    image: string;
+    tokens: Record<number, string[]>;
+    collections: Record<number, string[]>;
+  }
+> = {
+  bitmates: {
+    name: "Bitmates",
+    image: "/img/games/bitmates.png",
+    tokens: {},
+    collections: {
+      421614: ["0x7e0ac4fd9ce457c4dfc903804d96b1eb5a34000e"],
+    },
+  },
+  realm: {
+    name: "Realm",
+    image: "/img/games/realm.png",
+    tokens: {
+      42161: ["0xccd05a0fcfc1380e9da27862adb2198e58e0d66f"],
+    },
+    collections: {},
+  },
+  zeeverse: {
+    name: "Zeeverse",
+    image: "/img/games/zeeverse.png",
+    tokens: {
+      42161: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
+      421614: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
+    },
+    collections: {},
+  },
+};
 
 export const BLOCKED_PAIRS = [
   "0xf904469497e6a179a9d47a7b468e4be42ec56e65", // MAGIC-ELM v1
