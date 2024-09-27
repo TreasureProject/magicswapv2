@@ -23,7 +23,7 @@ export const useSwapRoute = ({
 }: Props) => {
   const amountBI = parseUnits(
     amount as NumberString,
-    isExactOut ? tokenOut?.decimals ?? 18 : tokenIn.decimals,
+    isExactOut ? (tokenOut?.decimals ?? 18) : tokenIn.decimals,
   );
   const isSampleRoute = amountBI <= 0;
 

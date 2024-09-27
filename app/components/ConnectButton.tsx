@@ -35,7 +35,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   const name =
     typeof domainType === "string"
       ? truncatedAddress
-      : domainType?.name ?? truncatedAddress;
+      : (domainType?.name ?? truncatedAddress);
   const image =
     (domainType &&
       typeof domainType !== "string" &&

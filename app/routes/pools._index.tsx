@@ -137,14 +137,10 @@ export default function PoolsListPage() {
       </thead>
       <tbody>
         <Suspense
-          fallback={
-            <>
-              {Array.from({ length: 5 }).map((_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows are identical
-                <RowSkeleton key={i} />
-              ))}
-            </>
-          }
+          fallback={Array.from({ length: 5 }).map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows are identical
+            <RowSkeleton key={i} />
+          ))}
         >
           <Await resolve={pools}>
             {(pools) =>

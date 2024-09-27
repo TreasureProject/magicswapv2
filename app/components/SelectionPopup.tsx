@@ -152,7 +152,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     enabled: token.isNFT,
   });
   const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
-    !props.viewOnly ? props.selectedTokens ?? [] : [],
+    !props.viewOnly ? (props.selectedTokens ?? []) : [],
   );
   const [isCompactMode, setIsCompactMode] = useState(false);
 

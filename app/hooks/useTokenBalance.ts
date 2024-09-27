@@ -35,7 +35,7 @@ export const useTokenBalance = ({
   } = useBalance({ address: isETH ? address : undefined });
 
   return {
-    data: isETH ? ethData?.value ?? 0n : data,
+    data: isETH ? (ethData?.value ?? 0n) : data,
     isLoading: isETH ? isLoadingEthBalance : isLoading,
     refetch: isETH ? refetchEthBalance : refetch,
   };
