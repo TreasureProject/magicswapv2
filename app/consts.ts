@@ -57,6 +57,12 @@ export const TOKEN_METADATA = {
       symbol: "VEE",
       image: "/img/tokens/vee.png",
     },
+    {
+      id: "0x74abf11b5f7bf057000e411a7130b46911792709",
+      name: "Heist Rewards Token",
+      symbol: "HRT",
+      image: "/img/tokens/hrt.png",
+    },
   ],
   [arbitrumSepolia.id]: [
     {
@@ -96,6 +102,12 @@ export const TOKEN_METADATA = {
       name: "VEE",
       symbol: "VEE",
       image: "/img/tokens/vee.png",
+    },
+    {
+      id: "0x5a3247e764ee0e71cef22802d189815fad6f1257",
+      name: "Heist Rewards Token",
+      symbol: "HRT",
+      image: "/img/tokens/hrt.png",
     },
   ],
 } as const;
@@ -138,8 +150,14 @@ export const GAME_METADATA: Record<
     name: "Zeeverse",
     image: "/img/games/zeeverse.png",
     tokens: {
-      [arbitrum.id]: ["0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9"],
-      [arbitrumSepolia.id]: ["0x23be0504127475387a459fe4b01e54f1e336ffae"],
+      [arbitrum.id]: [
+        "0x0caadd427a6feb5b5fc1137eb05aa7ddd9c08ce9",
+        "0x74abf11b5f7bf057000e411a7130b46911792709",
+      ],
+      [arbitrumSepolia.id]: [
+        "0x23be0504127475387a459fe4b01e54f1e336ffae",
+        "0x5a3247e764ee0e71cef22802d189815fad6f1257",
+      ],
     },
     collections: {
       [arbitrum.id]: ["0x58318bceaa0d249b62fad57d134da7475e551b47"],
