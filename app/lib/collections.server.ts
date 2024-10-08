@@ -3,6 +3,7 @@ import type {
   PoolTokenCollection,
   TroveCollectionMapping,
 } from "~/types";
+import { truncateEthAddress } from "./address";
 
 export const createPoolTokenCollection = (
   collection: Collection,
@@ -11,7 +12,7 @@ export const createPoolTokenCollection = (
 ): PoolTokenCollection => {
   const {
     urlSlug = "",
-    displayName: name = collection.id,
+    displayName: name = truncateEthAddress(collection.id),
     symbol = "?",
     contractType: type = "ERC721",
     thumbnailUri: image = "",
