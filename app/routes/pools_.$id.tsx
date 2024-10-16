@@ -28,7 +28,6 @@ import {
   useCallback,
   useState,
 } from "react";
-import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
 import type { TransactionType } from ".graphclient";
 
@@ -42,12 +41,14 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
+import { fetchUserPosition } from "~/api/user.server";
 import { LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
@@ -100,7 +101,7 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`,
+      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`
     ),
     description: `Provide liquidity for ${pool?.token0.symbol}/${pool?.token1.symbol} on Magicswap`,
     image: `${url}.png`,
@@ -124,16 +125,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const address = session.get("address");
   return defer({
     pool,
-    vaultItems0: pool.token0.isNFT
-      ? fetchVaultReserveItems({
-          id: pool.token0.id,
-        })
-      : undefined,
-    vaultItems1: pool.token1.isNFT
-      ? fetchVaultReserveItems({
-          id: pool.token1.id,
-        })
-      : undefined,
+    userPosition: await fetchUserPosition(address, params.id),
+    vaultItems0:
+      pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
+        ? fetchVaultReserveItems({
+            id: pool.token0.id,
+          })
+        : undefined,
+    vaultItems1:
+      pool.token1.isNFT && pool.token1.collectionTokenIds.length !== 1
+        ? fetchVaultReserveItems({
+            id: pool.token1.id,
+          })
+        : undefined,
     nftBalance0:
       pool.token0.isNFT && address
         ? fetchPoolTokenBalance(pool.token0, address)
@@ -147,26 +151,26 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1, chainId } =
+  const { pool, userPosition, vaultItems0, vaultItems1, chainId } =
     useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
-  const { address } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
 
-  const { data: lpBalance = 0n, refetch: refetchLpBalance } = useTokenBalance({
-    id: pool.id as AddressString,
-    address,
-  });
+  const lpBalance = BigInt(userPosition.lpBalance);
+  const lpStaked = BigInt(userPosition.lpStaked);
+  const lpBalanceShare =
+    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+  const lpStakedShare =
+    bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
+  const lpShare = lpBalanceShare + lpStakedShare;
 
   const refetch = useCallback(() => {
     if (revalidator.state === "idle") {
       // revalidator.revalidate();
     }
-
-    refetchLpBalance();
-  }, [revalidator, refetchLpBalance]);
+  }, [revalidator]);
 
   useFocusInterval(refetch, 5_000);
 
@@ -176,8 +180,6 @@ export default function PoolDetailsPage() {
       : pool.token0;
   const quoteToken =
     baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
-  const lpShare =
-    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
   return (
     <main className="container py-5 md:py-7">
@@ -245,182 +247,154 @@ export default function PoolDetailsPage() {
               ))}
             </ul>
             <div className="h-[1px] bg-night-900" />
-            <ClientOnly
-              fallback={
-                <div className="flex h-52 items-center justify-center">
-                  <LoaderIcon className="h-10 w-10" />
-                </div>
-              }
-            >
-              {() => (
-                <>
-                  {address && lpBalance > 0 ? (
-                    <div className="space-y-4 rounded-md bg-night-900 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-medium">Your Position</h3>
-                        {pool.reserveUSD > 0 ? (
-                          <span className="text-night-200">
-                            {formatUSD(lpShare * pool.reserveUSD)}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="-space-x-1 flex items-center py-1.5">
-                        <PoolImage pool={pool} className="h-10 w-10" />
-                        <p className="flex items-center gap-1.5 text-2xl text-night-400">
-                          <span className="text-3xl text-night-100">
-                            {formatAmount(lpBalance)}
-                          </span>{" "}
-                          MLP
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {[pool.token0, pool.token1].map((token) => (
-                          <div key={token.id} className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <p className="font-medium text-night-100">
-                                {token.name}
-                              </p>
-                              {token.name.toUpperCase() !==
-                              token.symbol.toUpperCase() ? (
-                                <>
-                                  <div className="h-3 w-[1px] bg-night-400" />
-                                  <p className="font-regular text-night-300 uppercase">
-                                    {token.symbol}
-                                  </p>
-                                </>
-                              ) : null}
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <PoolTokenImage
-                                  className="h-6 w-6"
-                                  token={token}
-                                />
-                                <p className="text-night-100">
-                                  {formatAmount(
-                                    lpShare *
-                                      bigIntToNumber(
-                                        BigInt(token.reserve),
-                                        token.decimals,
-                                      ),
-                                  )}
-                                </p>
-                              </div>
-                              {token.priceUSD > 0 ? (
-                                <p className="text-night-500 text-xs">
-                                  {formatUSD(
-                                    lpShare *
-                                      bigIntToNumber(
-                                        BigInt(token.reserve),
-                                        token.decimals,
-                                      ) *
-                                      token.priceUSD,
-                                  )}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <Table
-                        items={[
-                          // { label: "Initial LP Tokens", value: 0.0 },
-                          // { label: "Rewards Earned", value: 0.0 },
-                          {
-                            label: "Current share of pool",
-                            value: formatPercent(lpShare),
-                          },
-                        ]}
-                      />
-                    </div>
+            <div className="grid grid-cols-7 gap-3">
+              <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
+                <div>
+                  <h3 className="font-medium text-lg">Pool Reserves</h3>
+                  {pool.reserveUSD > 0 ? (
+                    <span className="text-night-400 text-sm">
+                      {formatUSD(pool.reserveUSD)}
+                    </span>
                   ) : null}
-                </>
-              )}
-            </ClientOnly>
-            <div className="rounded-md bg-night-1100 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-medium">Pool Reserves</h3>
-                {pool.reserveUSD > 0 ? (
-                  <span className="text-night-200">
-                    {formatUSD(pool.reserveUSD)}
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
-                <p className="justify-self-end text-night-400">
-                  <span className="text-night-100">1</span> {baseToken.symbol}
-                </p>
-                <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
-                <p className="text-night-400">
-                  <span className="text-night-100">
-                    {BigInt(baseToken.reserve) > 0
-                      ? formatAmount(
-                          bigIntToNumber(
-                            BigInt(quoteToken.reserve),
-                            quoteToken.decimals,
-                          ) /
-                            bigIntToNumber(
-                              BigInt(baseToken.reserve),
-                              baseToken.decimals,
-                            ),
-                        )
-                      : 0}
-                  </span>{" "}
-                  {quoteToken.symbol}
-                </p>
-                {[baseToken, null, quoteToken].map((token) => {
-                  if (!token) {
-                    return <div className="hidden sm:block" key="empty" />;
-                  }
-                  return (
-                    <div
+                </div>
+                <div className="space-y-2">
+                  {[baseToken, quoteToken].map((token) => (
+                    <PoolTokenRow
                       key={token.id}
-                      className="col-span-3 flex flex-1 items-center justify-between gap-3 rounded-md bg-night-1200 p-3 sm:col-span-1"
-                    >
-                      <div className="flex items-center gap-2 font-medium">
-                        <PoolTokenImage className="h-6 w-6" token={token} />
-                        <span className="text-night-100">{token.symbol}</span>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-night-100">
-                          {formatTokenReserve(token)}
-                        </p>
-                        {token.priceUSD > 0 ? (
-                          <p className="text-night-400 text-xs">
-                            {formatUSD(
+                      token={token}
+                      amount={formatTokenReserve(token)}
+                      amountUSD={
+                        bigIntToNumber(BigInt(token.reserve), token.decimals) *
+                        token.priceUSD
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center justify-center gap-3 rounded-md bg-night-1200 p-3">
+                  <p className="justify-self-end text-night-400">
+                    <span className="text-night-100">1</span> {baseToken.symbol}
+                  </p>
+                  <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
+                  <p className="text-night-400">
+                    <span className="text-night-100">
+                      {BigInt(baseToken.reserve) > 0
+                        ? formatAmount(
+                            bigIntToNumber(
+                              BigInt(quoteToken.reserve),
+                              quoteToken.decimals
+                            ) /
                               bigIntToNumber(
-                                BigInt(token.reserve),
-                                token.decimals,
-                              ) * token.priceUSD,
-                            )}
-                          </p>
-                        ) : null}
-                      </div>
+                                BigInt(baseToken.reserve),
+                                baseToken.decimals
+                              )
+                          )
+                        : 0}
+                    </span>{" "}
+                    {quoteToken.symbol}
+                  </p>
+                </div>
+              </div>
+              <div className="col-span-2">
+                <div className="space-y-3">
+                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                    <p className="text-night-500">Volume (24h)</p>
+                    <p className="font-medium text-night-100">
+                      {getPoolVolume24hDisplay(pool)}
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                    <p className="text-night-500">Fees (24h)</p>
+                    <p className="font-medium text-night-100">
+                      {getPoolFees24hDisplay(pool)}
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
+                    <p className="text-night-500">APY</p>
+                    <p className="font-medium text-night-100">
+                      {formatPercent(pool.apy)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {lpBalance > 0 || lpStaked > 0 ? (
+              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                <div>
+                  <h3 className="font-medium text-lg">My Position</h3>
+                  {pool.reserveUSD > 0 ? (
+                    <span className="text-night-400 text-sm">
+                      {formatUSD(lpShare * pool.reserveUSD)}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-2">
+                    <h3 className="text-night-200">Unstaked</h3>
+                    <PoolLpAmount pool={pool} amount={lpBalance} />
+                    <div className="space-y-2">
+                      {[baseToken, quoteToken].map((token) => (
+                        <PoolTokenRow
+                          key={token.id}
+                          token={token}
+                          amount={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              BigInt(token.reserve),
+                              token.decimals
+                            )
+                          }
+                          amountUSD={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              BigInt(token.reserve),
+                              token.decimals
+                            ) *
+                            token.priceUSD
+                          }
+                        />
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-night-200">Staked</h3>
+                    <PoolLpAmount pool={pool} amount={lpStaked} />
+                    <div className="space-y-2">
+                      {[baseToken, quoteToken].map((token) => (
+                        <PoolTokenRow
+                          key={token.id}
+                          token={token}
+                          amount={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              BigInt(token.reserve),
+                              token.decimals
+                            )
+                          }
+                          amountUSD={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              BigInt(token.reserve),
+                              token.decimals
+                            ) *
+                            token.priceUSD
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <Table
+                  items={[
+                    // { label: "Initial LP Tokens", value: 0.0 },
+                    // { label: "Rewards Earned", value: 0.0 },
+                    {
+                      label: "Current share of pool",
+                      value: formatPercent(lpShare),
+                    },
+                  ]}
+                />
               </div>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row">
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Volume (24h)</p>
-                <p className="font-medium text-night-100">
-                  {getPoolVolume24hDisplay(pool)}
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Fees (24h)</p>
-                <p className="font-medium text-night-100">
-                  {getPoolFees24hDisplay(pool)}
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">APY</p>
-                <p className="font-medium text-night-100">
-                  {formatPercent(pool.apy)}
-                </p>
-              </div>
-            </div>
+            ) : null}
           </div>
           <PoolManagementView
             className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
@@ -488,7 +462,7 @@ export default function PoolDetailsPage() {
                 type="button"
                 className={cn(
                   "text-night-400 text-sm capitalize hover:text-night-200",
-                  value === poolActivityFilter && "text-night-100",
+                  value === poolActivityFilter && "text-night-100"
                 )}
                 onClick={() => setPoolActivityFilter(value)}
               >
@@ -825,7 +799,7 @@ const PoolTokenCollectionInventory = ({
   items: TroveToken[];
 }) => {
   const numVaultItems = sumArray(
-    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1),
+    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1)
   );
   return (
     <div key={token.id} className="rounded-lg bg-night-1100">
@@ -875,3 +849,28 @@ const PoolTokenCollectionInventory = ({
     </div>
   );
 };
+
+const PoolTokenRow = ({
+  token,
+  amount,
+  amountUSD,
+}: {
+  token: PoolToken;
+  amount: number | string;
+  amountUSD: number;
+}) => (
+  <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center gap-2 font-medium">
+      <PoolTokenImage className="h-6 w-6" token={token} />
+      <span className="text-night-100">{token.symbol}</span>
+    </div>
+    <div className="flex items-center gap-2 text-right">
+      <span>{typeof amount === "string" ? amount : formatAmount(amount)}</span>
+      {amountUSD > 0 ? (
+        <span className="text-night-400 text-sm">
+          {formatUSD(amountUSD, { notation: "compact" })}
+        </span>
+      ) : null}
+    </div>
+  </div>
+);

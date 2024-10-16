@@ -40,3 +40,29 @@ export const getUserPositions = gql`
     }
   }
 `;
+
+export const getUserPosition = gql`
+  ${TOKEN_FRAGMENT}
+  ${PAIR_FRAGMENT}
+  query GetUserPosition(
+    $id: String!
+    $pairId: String!
+  ) {
+    liquidityPositions(
+      where: {
+        user: $id
+        pair: $pairId
+      }
+    ) {
+      balance
+    }
+    userStakes(
+      where: {
+        user: $id
+        pair: $pairId  
+      }
+    ) {
+      amount
+    }
+  }
+`;

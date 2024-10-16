@@ -6,6 +6,8 @@ import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
 import { createPoolsFromPairs } from "./pools.server";
 import {
+  GetUserPositionDocument,
+  type GetUserPositionQuery,
   GetUserPositionsDocument,
   type GetUserPositionsQuery,
   execute,
@@ -51,6 +53,24 @@ export const fetchUserPositions = async (address: string | undefined) => {
       // biome-ignore lint/style/noNonNullAssertion: poolsMapping is created with keys from pairs directly above
       pool: poolsMapping[pair.id]!,
     })),
+  };
+};
+
+export const fetchUserPosition = async (
+  address: string | undefined,
+  poolId: string,
+) => {
+  if (!address) {
+    return { lpBalance: "0", lpStaked: "0" };
+  }
+
+  const { data } = (await execute(GetUserPositionDocument, {
+    id: address,
+    pairId: poolId,
+  })) as ExecutionResult<GetUserPositionQuery>;
+  return {
+    lpBalance: data?.liquidityPositions[0]?.balance ?? "0",
+    lpStaked: data?.userStakes[0]?.amount ?? "0",
   };
 };
 

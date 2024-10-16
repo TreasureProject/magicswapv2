@@ -168,6 +168,10 @@ export const PoolDepositTab = ({
       ) > Number.parseFloat(formatEther(balance1 ?? 0n))
     : false;
 
+  const requiresTerms =
+    (pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1) ||
+    (pool.token1.isNFT && pool.token1.collectionTokenIds.length !== 1);
+
   return (
     <div className="space-y-6">
       <Dialog
@@ -346,7 +350,7 @@ export const PoolDepositTab = ({
           },
         ]}
       />
-      {pool.hasNFT && (
+      {requiresTerms ? (
         <LabeledCheckbox
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
@@ -356,7 +360,7 @@ export const PoolDepositTab = ({
         >
           Accept terms and conditions
         </LabeledCheckbox>
-      )}
+      ) : null}
       <div className="space-y-1.5">
         <TransactionButton
           className="w-full"
@@ -365,7 +369,7 @@ export const PoolDepositTab = ({
             !hasAmount ||
             insufficientBalanceA ||
             insufficientBalanceB ||
-            (pool.hasNFT && !checkedTerms)
+            (requiresTerms && !checkedTerms)
           }
           onClick={() => {
             if (!isApproved0) {
