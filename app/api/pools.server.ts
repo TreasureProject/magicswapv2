@@ -83,7 +83,16 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
   const [[collectionMapping, tokenMapping], magicUSD, reserves] =
     await Promise.all([
       fetchTokensCollections(
-        pairs.flatMap(({ token0, token1 }) => [token0, token1]),
+        pairs.flatMap(({ token0, token1, incentives }) => {
+          const tokens = [token0, token1];
+          for (const { rewardToken } of incentives) {
+            if (rewardToken) {
+              tokens.push(rewardToken);
+            }
+          }
+
+          return tokens;
+        }),
       ),
       fetchMagicUSD(),
       client.multicall({
