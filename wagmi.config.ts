@@ -4,6 +4,7 @@ import { erc20Abi, erc721Abi } from "viem";
 
 import { erc1155Abi } from "./artifacts/ERC1155";
 import { magicSwapV2RouterAbi } from "./artifacts/MagicSwapV2Router";
+import { stakingContractAbi } from "./artifacts/StakingContract";
 import { uniswapV2PairAbi } from "./artifacts/UniswapV2Pair";
 
 export default defineConfig({
@@ -28,6 +29,10 @@ export default defineConfig({
     {
       name: "MagicSwapV2Router",
       abi: magicSwapV2RouterAbi,
+    },
+    {
+      name: "StakingContract",
+      abi: stakingContractAbi,
     },
   ],
   plugins: [react()],

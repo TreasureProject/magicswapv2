@@ -259,32 +259,30 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
           ) : null}
         </>
       )}
-      <div className="space-y-1.5">
-        {hasAmount && !isApproved ? (
-          <TransactionButton
-            className="w-full"
-            size="lg"
-            onClick={() => approve?.()}
-          >
-            Approve MLP token
-          </TransactionButton>
-        ) : (
-          <TransactionButton
-            className="w-full"
-            size="lg"
-            disabled={
-              !address ||
-              !isApproved ||
-              !hasAmount ||
-              Number(amountNFTs0) !== countTokens(nfts0) ||
-              Number(amountNFTs1) !== countTokens(nfts1)
-            }
-            onClick={() => removeLiquidity?.()}
-          >
-            Remove liquidity
-          </TransactionButton>
-        )}
-      </div>
+      {hasAmount && !isApproved ? (
+        <TransactionButton
+          className="w-full"
+          size="lg"
+          onClick={() => approve?.()}
+        >
+          Approve MLP token
+        </TransactionButton>
+      ) : (
+        <TransactionButton
+          className="w-full"
+          size="lg"
+          disabled={
+            !address ||
+            !isApproved ||
+            !hasAmount ||
+            Number(amountNFTs0) !== countTokens(nfts0) ||
+            Number(amountNFTs1) !== countTokens(nfts1)
+          }
+          onClick={() => removeLiquidity?.()}
+        >
+          Remove liquidity
+        </TransactionButton>
+      )}
     </div>
   );
 };
