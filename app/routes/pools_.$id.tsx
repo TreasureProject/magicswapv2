@@ -317,6 +317,51 @@ export default function PoolDetailsPage() {
                 </div>
               </div>
             </div>
+            {pool.incentives.length > 0 ? (
+              <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
+                <h3 className="font-medium text-lg">Pool Rewards</h3>
+                <div className="space-y-2">
+                  {pool.incentives.map(
+                    ({
+                      incentiveId,
+                      rewardToken,
+                      rewardTokenAddress,
+                      rewardAmount,
+                    }) => (
+                      <div
+                        key={incentiveId}
+                        className="flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-2 font-medium">
+                          {rewardToken ? (
+                            <PoolTokenImage
+                              className="h-6 w-6"
+                              token={rewardToken}
+                            />
+                          ) : null}
+                          <span className="text-night-100">
+                            {rewardToken?.symbol ??
+                              truncateEthAddress(rewardTokenAddress)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-right">
+                          <span>{formatAmount(BigInt(rewardAmount))}</span>
+                          {rewardToken?.priceUSD ? (
+                            <span className="text-night-400 text-sm">
+                              {formatUSD(
+                                bigIntToNumber(BigInt(rewardAmount)) *
+                                  rewardToken.priceUSD,
+                                { notation: "compact" },
+                              )}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            ) : null}
             {lpBalance > 0 || lpStaked > 0 ? (
               <div className="space-y-4 rounded-md bg-night-1100 p-4">
                 <div>

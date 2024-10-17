@@ -39,6 +39,17 @@ export const PAIR_FRAGMENT = gql`
     royaltiesFee
     royaltiesBeneficiary
     totalFee
+    incentives {
+      incentiveId
+      startTime
+      endTime
+      rewardTokenAddress
+      rewardToken {
+        ...TokenFragment
+      }
+      rewardAmount
+      isRewardRounded
+    }
   }
 `;
 

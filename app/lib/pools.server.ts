@@ -94,6 +94,17 @@ export const createPoolFromPair = (
       ) ?? 0,
     volume1wUSD,
     apy: aprToApy(apr),
+    incentives: pair.incentives.map((incentive) => ({
+      ...incentive,
+      rewardToken: incentive.rewardToken
+        ? createPoolToken(
+            incentive.rewardToken,
+            collectionMapping,
+            tokenMapping,
+            magicUSD,
+          )
+        : null,
+    })),
   };
 };
 
