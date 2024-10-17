@@ -48,6 +48,8 @@ import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
+import { PoolIncentiveUnstake } from "~/components/pools/PoolIncentiveUnstake";
 import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
@@ -445,6 +447,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
+            lpStaked={lpStaked}
             onSuccess={refetch}
           />
         </div>
@@ -531,6 +534,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
+            lpStaked={lpStaked}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -542,11 +546,13 @@ export default function PoolDetailsPage() {
 const PoolManagementView = ({
   pool,
   lpBalance,
+  lpStaked,
   onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
+  lpStaked: bigint;
   onSuccess: () => void;
   className?: string;
 }) => {
@@ -594,6 +600,8 @@ const PoolManagementView = ({
           onSuccess={onSuccess}
         />
       )}
+      <PoolIncentiveStake pool={pool} balance={lpBalance} />
+      <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
     </div>
   );
 };
