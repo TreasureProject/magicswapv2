@@ -17,7 +17,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ArrowDownToLineIcon as DepositIcon,
-  ExternalLinkIcon,
   PlusIcon,
   ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
@@ -42,7 +41,7 @@ import {
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
 import { fetchUserPosition } from "~/api/user.server";
-import { LoaderIcon } from "~/components/Icons";
+import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
@@ -201,7 +200,7 @@ export default function PoolDetailsPage() {
                   href={`${blockExplorer.url}/address/${pool.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium hover:underline"
+                  className="font-semibold hover:underline"
                 >
                   {pool.name}
                 </a>
@@ -220,10 +219,10 @@ export default function PoolDetailsPage() {
                     href={`${blockExplorer.url}/address/${id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 hover:underline"
+                    className="flex items-center gap-0.5 text-night-400 hover:underline"
                   >
                     {truncateEthAddress(id)}{" "}
-                    <ExternalLinkIcon className="h-2.5 w-2.5" />
+                    <ExternalLinkIcon className="h-4 w-4" />
                   </a>
                 </li>
               ))}
@@ -234,10 +233,10 @@ export default function PoolDetailsPage() {
                     href={`${blockExplorer.url}/address/${id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 hover:underline"
+                    className="flex items-center gap-0.5 text-night-400 hover:underline"
                   >
                     {truncateEthAddress(id)}{" "}
-                    <ExternalLinkIcon className="h-2.5 w-2.5" />
+                    <ExternalLinkIcon className="h-4 w-4" />
                   </a>
                 </li>
               ))}
@@ -550,7 +549,9 @@ const PoolManagementView = ({
   onSuccess: () => void;
   className?: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<string>("deposit");
+  const [tab, setTab] = useState<"deposit" | "withdraw" | "stake" | "unstake">(
+    "deposit",
+  );
   const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
     typeof loader
   >;
@@ -563,39 +564,49 @@ const PoolManagementView = ({
         </h1>
         <SettingsDropdownMenu />
       </div>
-      <MultiSelect
-        className="bg-night-1200 sm:bg-night-1100"
-        tabs={[
-          {
-            id: "deposit",
-            icon: DepositIcon,
-            name: "Add",
-          },
-          {
-            id: "withdraw",
-            icon: WithdrawIcon,
-            name: "Remove",
-          },
-        ]}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      {activeTab === "withdraw" && (
-        <PoolWithdrawTab
-          pool={pool}
-          balance={lpBalance}
-          onSuccess={onSuccess}
-        />
-      )}
-      {activeTab === "deposit" && (
+      <div className="flex h-[41px] items-center border-b-2 border-b-[#2C4868] font-medium text-[#9FA3A9]">
+        {[
+          ["deposit", "Deposit"],
+          ["withdraw", "Withdraw"],
+          ["stake", "Stake"],
+          ["unstake", "Unstake"],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            className={cn(
+              "h-11 border-b-2 px-3 hover:text-[#FFFCF3]",
+              key === tab
+                ? "border-b-[#DC2626] text-[#FFFCF3]"
+                : "border-b-transparent",
+            )}
+            onClick={() => setTab(key as typeof tab)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {tab === "deposit" ? (
         <PoolDepositTab
           pool={pool}
           nftBalances={nftBalances}
           onSuccess={onSuccess}
         />
-      )}
-      <PoolIncentiveStake pool={pool} balance={lpBalance} />
-      <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
+      ) : null}
+      {tab === "withdraw" ? (
+        <PoolWithdrawTab
+          pool={pool}
+          balance={lpBalance}
+          onSuccess={onSuccess}
+        />
+      ) : null}
+      {tab === "stake" ? (
+        <PoolIncentiveStake pool={pool} balance={lpBalance} />
+      ) : null}
+      {tab === "unstake" ? (
+        <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
+      ) : null}
     </div>
   );
 };
