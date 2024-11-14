@@ -40,7 +40,7 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { fetchUserPosition } from "~/api/user.server";
+import { fetchUserIncentive, fetchUserPosition } from "~/api/user.server";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -127,6 +127,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return defer({
     pool,
     userPosition: await fetchUserPosition(address, params.id),
+    userIncentive: await fetchUserIncentive(address, params.id),
     vaultItems0:
       pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
         ? fetchVaultReserveItems({
@@ -152,8 +153,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function PoolDetailsPage() {
-  const { pool, userPosition, vaultItems0, vaultItems1, chainId } =
-    useLoaderData<typeof loader>();
+  const {
+    pool,
+    userPosition,
+    userIncentive,
+    vaultItems0,
+    vaultItems1,
+    chainId,
+  } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
@@ -352,13 +359,13 @@ export default function PoolDetailsPage() {
                               {formatUSD(
                                 bigIntToNumber(BigInt(rewardAmount)) *
                                   rewardToken.priceUSD,
-                                { notation: "compact" },
+                                { notation: "compact" }
                               )}
                             </span>
                           ) : null}
                         </div>
                       </div>
-                    ),
+                    )
                   )}
                 </div>
               </div>
@@ -447,6 +454,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            isSubscribed={userIncentive.isSubscribed}
             onSuccess={refetch}
           />
         </div>
@@ -534,6 +542,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            isSubscribed={userIncentive.isSubscribed}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -546,17 +555,19 @@ const PoolManagementView = ({
   pool,
   lpBalance,
   lpStaked,
+  isSubscribed,
   onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
   lpStaked: bigint;
+  isSubscribed: boolean;
   onSuccess: () => void;
   className?: string;
 }) => {
   const [tab, setTab] = useState<"deposit" | "withdraw" | "stake" | "unstake">(
-    "deposit",
+    "deposit"
   );
   const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
     typeof loader
@@ -585,7 +596,7 @@ const PoolManagementView = ({
               "h-11 border-b-2 px-3 hover:text-[#FFFCF3]",
               key === tab
                 ? "border-b-[#DC2626] text-[#FFFCF3]"
-                : "border-b-transparent",
+                : "border-b-transparent"
             )}
             onClick={() => setTab(key as typeof tab)}
           >
@@ -608,7 +619,11 @@ const PoolManagementView = ({
         />
       ) : null}
       {tab === "stake" ? (
-        <PoolIncentiveStake pool={pool} balance={lpBalance} />
+        <PoolIncentiveStake
+          pool={pool}
+          balance={lpBalance}
+          isSubscribed={isSubscribed}
+        />
       ) : null}
       {tab === "unstake" ? (
         <PoolIncentiveUnstake pool={pool} staked={lpStaked} />

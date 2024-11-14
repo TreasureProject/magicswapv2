@@ -6,6 +6,8 @@ import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
 import { createPoolsFromPairs } from "./pools.server";
 import {
+  GetUserIncentiveDocument,
+  type GetUserIncentiveQuery,
   GetUserPositionDocument,
   type GetUserPositionQuery,
   GetUserPositionsDocument,
@@ -71,6 +73,23 @@ export const fetchUserPosition = async (
   return {
     lpBalance: data?.liquidityPositions[0]?.balance ?? "0",
     lpStaked: data?.userStakes[0]?.amount ?? "0",
+  };
+};
+
+export const fetchUserIncentive = async (
+  address: string | undefined,
+  poolId: string,
+) => {
+  if (!address) {
+    return { isSubscribed: false };
+  }
+
+  const { data } = (await execute(GetUserIncentiveDocument, {
+    id: address,
+    pairId: poolId,
+  })) as ExecutionResult<GetUserIncentiveQuery>;
+  return {
+    isSubscribed: data?.userIncentives[0]?.isSubscribed ?? false,
   };
 };
 
