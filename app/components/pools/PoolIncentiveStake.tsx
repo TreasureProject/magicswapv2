@@ -11,13 +11,17 @@ import { PoolInput } from "./PoolInput";
 type Props = {
   pool: Pool;
   balance: bigint;
-  staked: bigint;
+  isSubscribed: boolean;
 };
 
-export const PoolIncentiveStake = ({ pool, balance, staked }: Props) => {
+export const PoolIncentiveStake = ({
+  pool,
+  balance,
+  isSubscribed: wasSubscribed,
+}: Props) => {
   const [rawAmount, setRawAmount] = useState("0");
   const { isConnected } = useAccount();
-  const [isSubscribed, setIsSubscribed] = useState(staked > 0);
+  const [isSubscribed, setIsSubscribed] = useState(wasSubscribed);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;

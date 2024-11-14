@@ -55,20 +55,19 @@ export const useStake = ({
   useToast({
     title: `Staking ${pool.name} MLP`,
     isLoading:
-      stakeAndSubscribe.isPending || stakeAndSubscribeReceipt.isLoading,
-    isSuccess: isSuccessStakeAndSubscribe,
-    isError: stakeAndSubscribe.isError || stakeAndSubscribeReceipt.isError,
-    errorDescription: (
-      stakeAndSubscribe.error || stakeAndSubscribeReceipt.error
-    )?.message,
-  });
-
-  useToast({
-    title: `Staking ${pool.name} MLP`,
-    isLoading: stakeToken.isPending || stakeTokenReceipt.isLoading,
-    isSuccess: isSuccessStakeToken,
-    isError: stakeToken.isError || stakeTokenReceipt.isError,
-    errorDescription: (stakeToken.error || stakeTokenReceipt.error)?.message,
+      stakeAndSubscribe.isPending ||
+      stakeAndSubscribeReceipt.isLoading ||
+      stakeToken.isPending ||
+      stakeTokenReceipt.isLoading,
+    isSuccess: isSuccessStakeAndSubscribe || isSuccessStakeToken,
+    isError:
+      stakeAndSubscribe.isError ||
+      stakeAndSubscribeReceipt.isError ||
+      stakeToken.isError ||
+      stakeTokenReceipt.isError,
+    errorDescription:
+      (stakeAndSubscribe.error || stakeAndSubscribeReceipt.error)?.message ||
+      (stakeToken.error || stakeTokenReceipt.error)?.message,
   });
 
   useEffect(() => {
@@ -93,7 +92,7 @@ export const useStake = ({
       if (isSubscribed) {
         return stakeToken.writeContractAsync({
           address: stakingContractAddress,
-          args: [pool.id as AddressString, amount, true],
+          args: [pool.id as AddressString, amount, false],
         });
       }
       return stakeAndSubscribe.writeContractAsync({
