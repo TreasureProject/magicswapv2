@@ -27,11 +27,7 @@ export const getUserPositions = gql`
       ) {
         pair {
           ...PairFragment
-          dayData(
-            where: $dayDataWhere
-            orderBy: date
-            orderDirection: desc
-          ) {
+          dayData(where: $dayDataWhere, orderBy: date, orderDirection: desc) {
             ...PairDayDataFragment
           }
         }
@@ -44,25 +40,21 @@ export const getUserPositions = gql`
 export const getUserPosition = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query GetUserPosition(
-    $id: String!
-    $pairId: String!
-  ) {
-    liquidityPositions(
-      where: {
-        user: $id
-        pair: $pairId
-      }
-    ) {
+  query GetUserPosition($id: String!, $pairId: String!) {
+    liquidityPositions(where: { user: $id, pair: $pairId }) {
       balance
     }
-    userStakes(
-      where: {
-        user: $id
-        pair: $pairId  
-      }
-    ) {
+    userStakes(where: { user: $id, pair: $pairId }) {
       amount
+    }
+  }
+`;
+
+export const getUserIncentive = gql`
+  query GetUserIncentive($id: String!, $pairId: String!) {
+    userIncentives(where: { user: $id, incentive_: { pair: $pairId } }) {
+      id
+      isSubscribed
     }
   }
 `;

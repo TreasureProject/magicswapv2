@@ -40,7 +40,7 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { fetchUserPosition } from "~/api/user.server";
+import { fetchUserIncentive, fetchUserPosition } from "~/api/user.server";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -126,6 +126,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return defer({
     pool,
     userPosition: await fetchUserPosition(address, params.id),
+    userIncentive: await fetchUserIncentive(address, params.id),
     vaultItems0:
       pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
         ? fetchVaultReserveItems({
@@ -150,7 +151,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function PoolDetailsPage() {
-  const { pool, userPosition, vaultItems0, vaultItems1 } =
+  const { pool, userPosition, userIncentive, vaultItems0, vaultItems1 } =
     useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -441,6 +442,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            isSubscribed={userIncentive.isSubscribed}
             onSuccess={refetch}
           />
         </div>
@@ -528,6 +530,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            isSubscribed={userIncentive.isSubscribed}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -540,12 +543,14 @@ const PoolManagementView = ({
   pool,
   lpBalance,
   lpStaked,
+  isSubscribed,
   onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
   lpStaked: bigint;
+  isSubscribed: boolean;
   onSuccess: () => void;
   className?: string;
 }) => {
@@ -602,7 +607,11 @@ const PoolManagementView = ({
         />
       ) : null}
       {tab === "stake" ? (
-        <PoolIncentiveStake pool={pool} balance={lpBalance} />
+        <PoolIncentiveStake
+          pool={pool}
+          balance={lpBalance}
+          isSubscribed={isSubscribed}
+        />
       ) : null}
       {tab === "unstake" ? (
         <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
@@ -912,7 +921,11 @@ const PoolTokenRow = ({
   token,
   amount,
   amountUSD,
-}: { token: PoolToken; amount: number | string; amountUSD: number }) => (
+}: {
+  token: PoolToken;
+  amount: number | string;
+  amountUSD: number;
+}) => (
   <div className="flex items-center justify-between gap-3">
     <div className="flex items-center gap-2 font-medium">
       <PoolTokenImage className="h-6 w-6" token={token} />
