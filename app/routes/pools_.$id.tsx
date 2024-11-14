@@ -602,7 +602,7 @@ const PoolManagementView = ({
         />
       ) : null}
       {tab === "stake" ? (
-        <PoolIncentiveStake pool={pool} balance={lpBalance} />
+        <PoolIncentiveStake pool={pool} balance={lpBalance} staked={lpStaked} />
       ) : null}
       {tab === "unstake" ? (
         <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
@@ -912,7 +912,11 @@ const PoolTokenRow = ({
   token,
   amount,
   amountUSD,
-}: { token: PoolToken; amount: number | string; amountUSD: number }) => (
+}: {
+  token: PoolToken;
+  amount: number | string;
+  amountUSD: number;
+}) => (
   <div className="flex items-center justify-between gap-3">
     <div className="flex items-center gap-2 font-medium">
       <PoolTokenImage className="h-6 w-6" token={token} />

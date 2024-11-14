@@ -2,7 +2,10 @@ import { useEffect } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
-import { useWriteStakingContractStakeAndSubscribeToIncentives } from "~/generated";
+import {
+  useWriteStakingContractStakeAndSubscribeToIncentives,
+  useWriteStakingContractStakeToken,
+} from "~/generated";
 import type { Pool } from "~/lib/pools.server";
 import type { AddressString } from "~/types";
 import { useApproval } from "./useApproval";
@@ -13,6 +16,7 @@ type Props = {
   pool: Pool;
   amount: bigint;
   enabled?: boolean;
+  isSubscribed?: boolean;
   onSuccess?: () => void;
 };
 
@@ -20,6 +24,7 @@ export const useStake = ({
   pool,
   amount,
   enabled = true,
+  isSubscribed = false,
   onSuccess,
 }: Props) => {
   const { isConnected } = useAccount();
@@ -39,24 +44,44 @@ export const useStake = ({
     hash: stakeAndSubscribe.data,
   });
 
-  const isSuccess = stakeAndSubscribeReceipt.isSuccess;
+  const stakeToken = useWriteStakingContractStakeToken();
+  const stakeTokenReceipt = useWaitForTransactionReceipt({
+    hash: stakeToken.data,
+  });
+
+  const isSuccessStakeAndSubscribe = stakeAndSubscribeReceipt.isSuccess;
+  const isSuccessStakeToken = stakeTokenReceipt.isSuccess;
 
   useToast({
     title: `Staking ${pool.name} MLP`,
     isLoading:
       stakeAndSubscribe.isPending || stakeAndSubscribeReceipt.isLoading,
-    isSuccess,
+    isSuccess: isSuccessStakeAndSubscribe,
     isError: stakeAndSubscribe.isError || stakeAndSubscribeReceipt.isError,
     errorDescription: (
       stakeAndSubscribe.error || stakeAndSubscribeReceipt.error
     )?.message,
   });
 
+  useToast({
+    title: `Staking ${pool.name} MLP`,
+    isLoading: stakeToken.isPending || stakeTokenReceipt.isLoading,
+    isSuccess: isSuccessStakeToken,
+    isError: stakeToken.isError || stakeTokenReceipt.isError,
+    errorDescription: (stakeToken.error || stakeTokenReceipt.error)?.message,
+  });
+
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccessStakeAndSubscribe) {
       onSuccess?.();
     }
-  }, [isSuccess, onSuccess]);
+  }, [isSuccessStakeAndSubscribe, onSuccess]);
+
+  useEffect(() => {
+    if (isSuccessStakeToken) {
+      onSuccess?.();
+    }
+  }, [isSuccessStakeToken, onSuccess]);
 
   return {
     isApproved,
@@ -65,7 +90,12 @@ export const useStake = ({
       if (!isEnabled || !isApproved) {
         return;
       }
-
+      if (isSubscribed) {
+        return stakeToken.writeContractAsync({
+          address: stakingContractAddress,
+          args: [pool.id as AddressString, amount, true],
+        });
+      }
       return stakeAndSubscribe.writeContractAsync({
         address: stakingContractAddress,
         args: [
