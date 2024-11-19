@@ -334,7 +334,7 @@ export default function PoolDetailsPage() {
                       incentiveId,
                       rewardToken,
                       rewardTokenAddress,
-                      rewardAmount,
+                      remainingRewardAmount,
                     }) => (
                       <div
                         key={incentiveId}
@@ -353,11 +353,13 @@ export default function PoolDetailsPage() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-right">
-                          <span>{formatAmount(BigInt(rewardAmount))}</span>
+                          <span>
+                            {formatAmount(BigInt(remainingRewardAmount))}
+                          </span>
                           {rewardToken?.priceUSD ? (
                             <span className="text-night-400 text-sm">
                               {formatUSD(
-                                bigIntToNumber(BigInt(rewardAmount)) *
+                                bigIntToNumber(BigInt(remainingRewardAmount)) *
                                   rewardToken.priceUSD,
                                 { notation: "compact" }
                               )}
