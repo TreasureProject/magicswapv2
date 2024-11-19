@@ -7,21 +7,22 @@ import type { Pool } from "~/lib/pools.server";
 import type { NumberString } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
+import type { GetUserIncentiveQuery } from ".graphclient";
 
 type Props = {
   pool: Pool;
   balance: bigint;
-  isSubscribed: boolean;
+  userIncentives: GetUserIncentiveQuery["userIncentives"];
 };
 
 export const PoolIncentiveStake = ({
   pool,
   balance,
-  isSubscribed: wasSubscribed,
+  userIncentives,
 }: Props) => {
   const [rawAmount, setRawAmount] = useState("0");
   const { isConnected } = useAccount();
-  const [isSubscribed, setIsSubscribed] = useState(wasSubscribed);
+  const [tempUserIncentives, setUserIncentives] = useState(userIncentives);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
@@ -29,11 +30,14 @@ export const PoolIncentiveStake = ({
   const { isApproved, approve, stake } = useStake({
     pool,
     amount,
-    isSubscribed,
-    onSuccess: useCallback(() => {
-      setRawAmount("0");
-      setIsSubscribed(true);
-    }, []),
+    userIncentives: tempUserIncentives,
+    onSuccess: useCallback(
+      (newIncentives: GetUserIncentiveQuery["userIncentives"]) => {
+        setRawAmount("0");
+        setUserIncentives([...userIncentives, ...newIncentives]);
+      },
+      [userIncentives],
+    ),
   });
 
   return (

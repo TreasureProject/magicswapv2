@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -11,20 +11,21 @@ import type { AddressString } from "~/types";
 import { useApproval } from "./useApproval";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
+import type { GetUserIncentiveQuery } from ".graphclient";
 
 type Props = {
   pool: Pool;
   amount: bigint;
   enabled?: boolean;
-  isSubscribed?: boolean;
-  onSuccess?: () => void;
+  userIncentives: GetUserIncentiveQuery["userIncentives"];
+  onSuccess?: (incentives: GetUserIncentiveQuery["userIncentives"]) => void;
 };
 
 export const useStake = ({
   pool,
   amount,
   enabled = true,
-  isSubscribed = false,
+  userIncentives,
   onSuccess,
 }: Props) => {
   const { isConnected } = useAccount();
@@ -52,6 +53,16 @@ export const useStake = ({
   const isSuccessStakeAndSubscribe = stakeAndSubscribeReceipt.isSuccess;
   const isSuccessStakeToken = stakeTokenReceipt.isSuccess;
 
+  const unsubscribedIncentives = useMemo(() => {
+    const subscribedIncentiveIds = userIncentives
+      .filter((userIncentive) => userIncentive.isSubscribed)
+      .map((userIncentive) => userIncentive.incentive.incentiveId);
+
+    return pool.incentives.filter(
+      (incentive) => !subscribedIncentiveIds.includes(incentive.incentiveId),
+    );
+  }, [pool, userIncentives]);
+
   useToast({
     title: `Staking ${pool.name} MLP`,
     isLoading:
@@ -72,15 +83,21 @@ export const useStake = ({
 
   useEffect(() => {
     if (isSuccessStakeAndSubscribe) {
-      onSuccess?.();
+      onSuccess?.([]);
     }
   }, [isSuccessStakeAndSubscribe, onSuccess]);
 
   useEffect(() => {
     if (isSuccessStakeToken) {
-      onSuccess?.();
+      onSuccess?.(
+        unsubscribedIncentives.map(({ incentiveId }) => ({
+          id: "",
+          incentive: { incentiveId },
+          isSubscribed: true,
+        })),
+      );
     }
-  }, [isSuccessStakeToken, onSuccess]);
+  }, [isSuccessStakeToken, onSuccess, unsubscribedIncentives]);
 
   return {
     isApproved,
@@ -89,7 +106,7 @@ export const useStake = ({
       if (!isEnabled || !isApproved) {
         return;
       }
-      if (isSubscribed) {
+      if (unsubscribedIncentives.length === 0) {
         return stakeToken.writeContractAsync({
           address: stakingContractAddress,
           args: [pool.id as AddressString, amount, false],
@@ -100,7 +117,7 @@ export const useStake = ({
         args: [
           pool.id as AddressString,
           amount,
-          pool.incentives.map(({ incentiveId }) => BigInt(incentiveId)),
+          unsubscribedIncentives.map(({ incentiveId }) => BigInt(incentiveId)),
           true,
         ],
       });
