@@ -48,6 +48,7 @@ export const PAIR_FRAGMENT = gql`
         ...TokenFragment
       }
       rewardAmount
+      remainingRewardAmount
       isRewardRounded
     }
   }
@@ -130,11 +131,7 @@ export const getPairs = gql`
       orderDirection: $orderDirection
     ) {
       ...PairFragment
-      hourData(
-        where: $hourDataWhere
-        orderBy: date
-        orderDirection: desc
-      ) {
+      hourData(where: $hourDataWhere, orderBy: date, orderDirection: desc) {
         date
         reserve0
         reserve1
@@ -144,11 +141,7 @@ export const getPairs = gql`
         volumeUSD
         txCount
       }
-      dayData(
-        where: $dayDataWhere
-        orderBy: date
-        orderDirection: desc
-      ) {
+      dayData(where: $dayDataWhere, orderBy: date, orderDirection: desc) {
         ...PairDayDataFragment
       }
     }
@@ -165,11 +158,7 @@ export const getPair = gql`
   ) {
     pair(id: $id) {
       ...PairFragment
-      hourData(
-        where: $hourDataWhere
-        orderBy: date
-        orderDirection: desc
-      ) {
+      hourData(where: $hourDataWhere, orderBy: date, orderDirection: desc) {
         date
         reserve0
         reserve1
@@ -179,11 +168,7 @@ export const getPair = gql`
         volumeUSD
         txCount
       }
-      dayData(
-        where: $dayDataWhere
-        orderBy: date
-        orderDirection: desc
-      ) {
+      dayData(where: $dayDataWhere, orderBy: date, orderDirection: desc) {
         date
         reserve0
         reserve1
