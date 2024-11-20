@@ -4,24 +4,24 @@ import { parseEther } from "viem";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
 import type { Pool } from "~/lib/pools.server";
-import type { NumberString } from "~/types";
+import type { NumberString, UserIncentive } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 
 type Props = {
   pool: Pool;
   balance: bigint;
-  isSubscribed: boolean;
+  userIncentives: UserIncentive[];
 };
 
 export const PoolIncentiveStake = ({
   pool,
   balance,
-  isSubscribed: wasSubscribed,
+  userIncentives,
 }: Props) => {
   const [rawAmount, setRawAmount] = useState("0");
   const { isConnected } = useAccount();
-  const [isSubscribed, setIsSubscribed] = useState(wasSubscribed);
+  const [tempUserIncentives, setUserIncentives] = useState(userIncentives);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
@@ -29,10 +29,10 @@ export const PoolIncentiveStake = ({
   const { isApproved, approve, stake } = useStake({
     pool,
     amount,
-    isSubscribed,
-    onSuccess: useCallback(() => {
+    userIncentives: tempUserIncentives,
+    onSuccess: useCallback((newIncentives: UserIncentive[]) => {
       setRawAmount("0");
-      setIsSubscribed(true);
+      setUserIncentives((curr) => curr.concat(newIncentives));
     }, []),
   });
 

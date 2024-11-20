@@ -1,5 +1,5 @@
 import type { SetOptional } from "type-fest";
-import type { GetPairsQuery } from ".graphclient";
+import type { GetPairsQuery, GetUserIncentiveQuery } from ".graphclient";
 
 export type Optional<T> = T | undefined;
 
@@ -93,3 +93,5 @@ export type PoolToken = Omit<Token, "decimals"> & {
   priceUSD: number;
   reserve: string;
 };
+
+export type UserIncentive = GetUserIncentiveQuery["userIncentives"][number];

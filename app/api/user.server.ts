@@ -76,21 +76,20 @@ export const fetchUserPosition = async (
   };
 };
 
-export const fetchUserIncentive = async (
+export const fetchUserIncentives = async (
   address: string | undefined,
   poolId: string,
 ) => {
   if (!address) {
-    return { isSubscribed: false };
+    return [];
   }
 
   const { data } = (await execute(GetUserIncentiveDocument, {
     id: address,
     pairId: poolId,
   })) as ExecutionResult<GetUserIncentiveQuery>;
-  return {
-    isSubscribed: data?.userIncentives[0]?.isSubscribed ?? false,
-  };
+
+  return data?.userIncentives || [];
 };
 
 export const fetchDomain = async (address: string) =>
