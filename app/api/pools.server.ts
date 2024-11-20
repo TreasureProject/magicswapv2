@@ -22,7 +22,10 @@ import {
 } from "../../.graphclient";
 import { fetchTokensCollections } from "./collections.server";
 import { fetchMagicUSD } from "./stats.server";
-import { fetchTroveTokenMapping } from "./tokens.server";
+import {
+  fetchTroveTokenMapping,
+  fetchVaultReserveItems,
+} from "./tokens.server";
 import { fetchDomains } from "./user.server";
 
 export const fetchPoolTransactions = async ({
@@ -103,13 +106,28 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
         })),
       }),
     ]);
-  return pairs.map((pair, i) => {
+  return pairs.map(async (pair, i) => {
     const reserve = reserves[i] as {
       result: [bigint, bigint, number];
       status: "success" | "reverted";
     };
+
+    const enrichedIncentives = await Promise.all(
+      pair.incentives.map(async (incentive) => {
+        if (!incentive.rewardToken?.isNFT) {
+          return incentive;
+        }
+        return {
+          ...incentive,
+          vaultItems: await fetchVaultReserveItems({
+            id: incentive.rewardToken.id,
+          }),
+        };
+      }),
+    );
+
     return createPoolFromPair(
-      pair,
+      { ...pair, incentives: enrichedIncentives },
       collectionMapping,
       tokenMapping,
       magicUSD,

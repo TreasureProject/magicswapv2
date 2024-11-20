@@ -6,12 +6,18 @@ export type Optional<T> = T | undefined;
 export type AddressString = `0x${string}`;
 export type NumberString = `${number}`;
 
+type EnrichedIncentive =
+  GetPairsQuery["pairs"][number]["incentives"][number] & {
+    vaultItems?: TroveToken[];
+  };
+
 /** Data Transfer Objects */
 // Subgraph
-export type Pair = SetOptional<
-  GetPairsQuery["pairs"][number],
-  "hourData" | "dayData"
->;
+export type Pair = Omit<
+  SetOptional<GetPairsQuery["pairs"][number], "hourData" | "dayData">,
+  "incentives"
+> & { incentives: EnrichedIncentive[] };
+
 export type Token = Pair["token0"];
 export type Collection = NonNullable<
   Token["vaultCollections"]
