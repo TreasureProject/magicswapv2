@@ -4,15 +4,14 @@ import { parseEther } from "viem";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
 import type { Pool } from "~/lib/pools.server";
-import type { NumberString } from "~/types";
+import type { NumberString, UserIncentive } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
-import type { GetUserIncentiveQuery } from ".graphclient";
 
 type Props = {
   pool: Pool;
   balance: bigint;
-  userIncentives: GetUserIncentiveQuery["userIncentives"];
+  userIncentives: UserIncentive[];
 };
 
 export const PoolIncentiveStake = ({
@@ -32,7 +31,7 @@ export const PoolIncentiveStake = ({
     amount,
     userIncentives: tempUserIncentives,
     onSuccess: useCallback(
-      (newIncentives: GetUserIncentiveQuery["userIncentives"]) => {
+      (newIncentives: UserIncentive[]) => {
         setRawAmount("0");
         setUserIncentives([...userIncentives, ...newIncentives]);
       },

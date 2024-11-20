@@ -7,18 +7,17 @@ import {
   useWriteStakingContractStakeToken,
 } from "~/generated";
 import type { Pool } from "~/lib/pools.server";
-import type { AddressString } from "~/types";
+import type { AddressString, UserIncentive } from "~/types";
 import { useApproval } from "./useApproval";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
-import type { GetUserIncentiveQuery } from ".graphclient";
 
 type Props = {
   pool: Pool;
   amount: bigint;
   enabled?: boolean;
-  userIncentives: GetUserIncentiveQuery["userIncentives"];
-  onSuccess?: (incentives: GetUserIncentiveQuery["userIncentives"]) => void;
+  userIncentives: UserIncentive[];
+  onSuccess?: (incentives: UserIncentive[]) => void;
 };
 
 export const useStake = ({

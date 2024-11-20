@@ -28,11 +28,7 @@ import {
   useState,
 } from "react";
 import invariant from "tiny-invariant";
-import type {
-  GetUserIncentiveQuery,
-  TransactionType,
-  UserIncentive,
-} from ".graphclient";
+import type { TransactionType } from ".graphclient";
 
 import { MagicLogo } from "@treasure-project/branding";
 import type {
@@ -78,7 +74,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, PoolToken, TroveToken } from "~/types";
+import type { Optional, PoolToken, TroveToken, UserIncentive } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -556,7 +552,7 @@ const PoolManagementView = ({
   pool: Pool;
   lpBalance: bigint;
   lpStaked: bigint;
-  userIncentives: GetUserIncentiveQuery["userIncentives"];
+  userIncentives: UserIncentive[];
   onSuccess: () => void;
   className?: string;
 }) => {
