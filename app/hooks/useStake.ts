@@ -90,7 +90,7 @@ export const useStake = ({
     if (isSuccessStakeToken) {
       onSuccess?.(
         unsubscribedIncentives.map(({ incentiveId }) => ({
-          id: "",
+          id: incentiveId,
           incentive: { incentiveId },
           isSubscribed: true,
         })),
