@@ -41,6 +41,7 @@ import {
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
 import { fetchUserIncentives, fetchUserPosition } from "~/api/user.server";
+import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -153,6 +154,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export default function PoolDetailsPage() {
   const { pool, userPosition, userIncentives, vaultItems0, vaultItems1 } =
     useLoaderData<typeof loader>();
+
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
@@ -171,6 +173,10 @@ export default function PoolDetailsPage() {
       // revalidator.revalidate();
     }
   }, [revalidator]);
+
+  const subscribedIncentiveIds = userIncentives
+    .filter((userIncentive) => userIncentive.isSubscribed)
+    .map((userIncentive) => userIncentive.incentive.incentiveId);
 
   useFocusInterval(refetch, 5_000);
 
@@ -315,7 +321,10 @@ export default function PoolDetailsPage() {
             </div>
             {pool.incentives.length > 0 ? (
               <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
-                <h3 className="font-medium text-lg">Pool Rewards</h3>
+                <div className="flex justify-between">
+                  <h3 className="font-medium text-lg">Pool Rewards</h3>
+                  <Button size="xs">Start Earning</Button>
+                </div>
                 <div className="space-y-2">
                   {pool.incentives.map(
                     ({
@@ -339,6 +348,9 @@ export default function PoolDetailsPage() {
                             {rewardToken?.symbol ??
                               truncateEthAddress(rewardTokenAddress)}
                           </span>
+                          {subscribedIncentiveIds.includes(incentiveId) && (
+                            <Badge size="xs">Earning</Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 text-right">
                           <span>
