@@ -54,6 +54,9 @@ export const getUserIncentive = gql`
   query GetUserIncentive($id: String!, $pairId: String!) {
     userIncentives(where: { user: $id, incentive_: { pair: $pairId } }) {
       id
+      incentive {
+        incentiveId
+      }
       isSubscribed
     }
   }

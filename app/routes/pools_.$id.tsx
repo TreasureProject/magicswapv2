@@ -40,7 +40,7 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { fetchUserIncentive, fetchUserPosition } from "~/api/user.server";
+import { fetchUserIncentives, fetchUserPosition } from "~/api/user.server";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
@@ -75,7 +75,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, PoolToken, TroveToken } from "~/types";
+import type { Optional, PoolToken, TroveToken, UserIncentive } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -127,7 +127,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return defer({
     pool,
     userPosition: await fetchUserPosition(address, params.id),
-    userIncentive: await fetchUserIncentive(address, params.id),
+    userIncentives: await fetchUserIncentives(address, params.id),
     vaultItems0:
       pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
         ? fetchVaultReserveItems({
@@ -156,11 +156,12 @@ export default function PoolDetailsPage() {
   const {
     pool,
     userPosition,
-    userIncentive,
+    userIncentives,
     vaultItems0,
     vaultItems1,
     chainId,
   } = useLoaderData<typeof loader>();
+
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
@@ -456,7 +457,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
-            isSubscribed={userIncentive.isSubscribed}
+            userIncentives={userIncentives}
             onSuccess={refetch}
           />
         </div>
@@ -544,7 +545,7 @@ export default function PoolDetailsPage() {
             pool={pool}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
-            isSubscribed={userIncentive.isSubscribed}
+            userIncentives={userIncentives}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -557,14 +558,14 @@ const PoolManagementView = ({
   pool,
   lpBalance,
   lpStaked,
-  isSubscribed,
+  userIncentives,
   onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
   lpStaked: bigint;
-  isSubscribed: boolean;
+  userIncentives: UserIncentive[];
   onSuccess: () => void;
   className?: string;
 }) => {
@@ -624,7 +625,7 @@ const PoolManagementView = ({
         <PoolIncentiveStake
           pool={pool}
           balance={lpBalance}
-          isSubscribed={isSubscribed}
+          userIncentives={userIncentives}
         />
       ) : null}
       {tab === "unstake" ? (
