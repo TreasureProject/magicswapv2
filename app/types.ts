@@ -12,6 +12,7 @@ export type Pair = SetOptional<
   GetPairsQuery["pairs"][number],
   "hourData" | "dayData"
 >;
+
 export type Token = Pair["token0"];
 export type Collection = NonNullable<
   Token["vaultCollections"]
