@@ -35,7 +35,7 @@ import type {
   PoolTransactionItem,
   PoolTransactionType,
 } from "~/api/pools.server";
-import { fetchPool } from "~/api/pools.server";
+import { fetchPool, fetchPoolIncentives } from "~/api/pools.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
@@ -112,9 +112,10 @@ export const meta: MetaFunction<
 export async function loader({ params, request }: LoaderFunctionArgs) {
   invariant(params.id, "Pool ID required");
 
-  const [pool, session] = await Promise.all([
+  const [pool, session, poolIncentives] = await Promise.all([
     fetchPool(params.id),
     getSession(request.headers.get("Cookie")),
+    fetchPoolIncentives(params.id),
   ]);
 
   if (!pool) {
@@ -126,6 +127,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const address = session.get("address");
   return defer({
     pool,
+    poolIncentives,
     userPosition: await fetchUserPosition(address, params.id),
     userIncentives: await fetchUserIncentives(address, params.id),
     vaultItems0:
