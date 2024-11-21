@@ -16,6 +16,21 @@ const TRANSACTION_ITEM_FRAGMENT = gql`
   }
 `;
 
+export const INCENTIVE_FRAGMENT = gql`
+  fragment IncentiveFragment on Incentive {
+    incentiveId
+    startTime
+    endTime
+    rewardTokenAddress
+    rewardToken {
+      ...TokenFragment
+    }
+    rewardAmount
+    remainingRewardAmount
+    isRewardRounded
+  }
+`;
+
 export const PAIR_FRAGMENT = gql`
   fragment PairFragment on Pair {
     id
@@ -40,16 +55,7 @@ export const PAIR_FRAGMENT = gql`
     royaltiesBeneficiary
     totalFee
     incentives {
-      incentiveId
-      startTime
-      endTime
-      rewardTokenAddress
-      rewardToken {
-        ...TokenFragment
-      }
-      rewardAmount
-      remainingRewardAmount
-      isRewardRounded
+      ...IncentiveFragment
     }
   }
 `;
@@ -112,6 +118,7 @@ export const getPairTransactions = gql`
 
 export const getPairs = gql`
   ${TOKEN_FRAGMENT}
+  ${INCENTIVE_FRAGMENT}
   ${PAIR_FRAGMENT}
   ${PAIR_DAY_DATA_FRAGMENT}
   query GetPairs(
@@ -150,6 +157,7 @@ export const getPairs = gql`
 
 export const getPair = gql`
   ${TOKEN_FRAGMENT}
+  ${INCENTIVE_FRAGMENT}
   ${PAIR_FRAGMENT}
   query GetPair(
     $id: ID!
@@ -178,6 +186,15 @@ export const getPair = gql`
         volumeUSD
         txCount
       }
+    }
+  }
+`;
+
+export const getPairIncentives = gql`
+  ${INCENTIVE_FRAGMENT}
+  query GetPairIncentives($id: String!) {
+    incentives(where: { pair: $id }) {
+      ...IncentiveFragment
     }
   }
 `;

@@ -12,6 +12,8 @@ import { itemToTroveTokenItem } from "~/lib/tokens.server";
 import type { AddressString, Pair } from "~/types";
 import {
   GetPairDocument,
+  GetPairIncentivesDocument,
+  type GetPairIncentivesQuery,
   type GetPairQuery,
   GetPairTransactionsDocument,
   type GetPairTransactionsQuery,
@@ -106,28 +108,14 @@ export const createPoolsFromPairs = async (pairs: Pair[]) => {
         })),
       }),
     ]);
-  return pairs.map(async (pair, i) => {
+  return pairs.map((pair, i) => {
     const reserve = reserves[i] as {
       result: [bigint, bigint, number];
       status: "success" | "reverted";
     };
 
-    const enrichedIncentives = await Promise.all(
-      pair.incentives.map(async (incentive) => {
-        if (!incentive.rewardToken?.isNFT) {
-          return incentive;
-        }
-        return {
-          ...incentive,
-          vaultItems: await fetchVaultReserveItems({
-            id: incentive.rewardToken.id,
-          }),
-        };
-      }),
-    );
-
     return createPoolFromPair(
-      { ...pair, incentives: enrichedIncentives },
+      pair,
       collectionMapping,
       tokenMapping,
       magicUSD,
@@ -168,4 +156,30 @@ export const fetchPool = async (id: string) => {
 
   const pools = await createPoolsFromPairs([pair]);
   return pools[0];
+};
+
+export const fetchPoolIncentives = async (id: string) => {
+  const result = (await execute(GetPairIncentivesDocument, {
+    id,
+  })) as ExecutionResult<GetPairIncentivesQuery>;
+  const incentives = result.data?.incentives;
+  if (!incentives) {
+    return [];
+  }
+
+  const enrichedIncentives = await Promise.all(
+    incentives.map(async (incentive) => {
+      if (!incentive.rewardToken?.isNFT) {
+        return incentive;
+      }
+      return {
+        ...incentive,
+        vaultItems: await fetchVaultReserveItems({
+          id: incentive.rewardToken.id,
+        }),
+      };
+    }),
+  );
+
+  return enrichedIncentives;
 };
