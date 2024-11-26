@@ -16,9 +16,7 @@ import {
   ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowDownToLineIcon as DepositIcon,
   PlusIcon,
-  ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
 import type React from "react";
 import {
@@ -43,29 +41,25 @@ import {
 import { fetchUserIncentives, fetchUserPosition } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
-import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolIncentive } from "~/components/pools/PoolIncentive";
 import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
 import { PoolIncentiveUnstake } from "~/components/pools/PoolIncentiveUnstake";
 import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
+import { PoolTokenCollectionInventory } from "~/components/pools/PoolTokenCollectionInventory";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
-import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
-import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
-import { useAccount } from "~/contexts/account";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
-import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
-import { sumArray } from "~/lib/array";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
@@ -76,7 +70,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, PoolToken, TroveToken, UserIncentive } from "~/types";
+import type { Optional, PoolToken, UserIncentive } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -103,7 +97,7 @@ export const meta: MetaFunction<
   return getSocialMetas({
     url,
     title: generateTitle(
-      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`
+      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`,
     ),
     description: `Provide liquidity for ${pool?.token0.symbol}/${pool?.token1.symbol} on Magicswap`,
     image: `${url}.png`,
@@ -158,6 +152,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export default function PoolDetailsPage() {
   const {
     pool,
+    poolIncentives,
     userPosition,
     userIncentives,
     vaultItems0,
@@ -297,12 +292,12 @@ export default function PoolDetailsPage() {
                         ? formatAmount(
                             bigIntToNumber(
                               BigInt(quoteToken.reserve),
-                              quoteToken.decimals
+                              quoteToken.decimals,
                             ) /
                               bigIntToNumber(
                                 BigInt(baseToken.reserve),
-                                baseToken.decimals
-                              )
+                                baseToken.decimals,
+                              ),
                           )
                         : 0}
                     </span>{" "}
@@ -333,11 +328,20 @@ export default function PoolDetailsPage() {
                 </div>
               </div>
             </div>
-            {pool.incentives.length > 0 ? (
+            {poolIncentives.length > 0 ? (
               <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
                 <div className="flex justify-between">
                   <h3 className="font-medium text-lg">Pool Rewards</h3>
-                  <Button size="xs">Start Earning</Button>
+                  <Button
+                    size="xs"
+                    disabled={poolIncentives.every((poolIncentive) =>
+                      subscribedIncentiveIds.includes(
+                        poolIncentive.incentiveId,
+                      ),
+                    )}
+                  >
+                    Start Earning
+                  </Button>
                 </div>
                 <div className="space-y-2">
                   {pool.incentives.map(
@@ -375,13 +379,13 @@ export default function PoolDetailsPage() {
                               {formatUSD(
                                 bigIntToNumber(BigInt(remainingRewardAmount)) *
                                   rewardToken.priceUSD,
-                                { notation: "compact" }
+                                { notation: "compact" },
                               )}
                             </span>
                           ) : null}
                         </div>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -409,14 +413,14 @@ export default function PoolDetailsPage() {
                             lpBalanceShare *
                             bigIntToNumber(
                               BigInt(token.reserve),
-                              token.decimals
+                              token.decimals,
                             )
                           }
                           amountUSD={
                             lpBalanceShare *
                             bigIntToNumber(
                               BigInt(token.reserve),
-                              token.decimals
+                              token.decimals,
                             ) *
                             token.priceUSD
                           }
@@ -436,14 +440,14 @@ export default function PoolDetailsPage() {
                             lpStakedShare *
                             bigIntToNumber(
                               BigInt(token.reserve),
-                              token.decimals
+                              token.decimals,
                             )
                           }
                           amountUSD={
                             lpStakedShare *
                             bigIntToNumber(
                               BigInt(token.reserve),
-                              token.decimals
+                              token.decimals,
                             ) *
                             token.priceUSD
                           }
@@ -533,7 +537,7 @@ export default function PoolDetailsPage() {
                 type="button"
                 className={cn(
                   "text-night-400 text-sm capitalize hover:text-night-200",
-                  value === poolActivityFilter && "text-night-100"
+                  value === poolActivityFilter && "text-night-100",
                 )}
                 onClick={() => setPoolActivityFilter(value)}
               >
@@ -583,7 +587,7 @@ const PoolManagementView = ({
   className?: string;
 }) => {
   const [tab, setTab] = useState<"deposit" | "withdraw" | "stake" | "unstake">(
-    "deposit"
+    "deposit",
   );
   const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
     typeof loader
@@ -612,7 +616,7 @@ const PoolManagementView = ({
               "h-11 border-b-2 px-3 hover:text-[#FFFCF3]",
               key === tab
                 ? "border-b-[#DC2626] text-[#FFFCF3]"
-                : "border-b-transparent"
+                : "border-b-transparent",
             )}
             onClick={() => setTab(key as typeof tab)}
           >
@@ -882,65 +886,6 @@ const PoolActivityTable = ({
           <ChevronRightIcon className="w-4" />
         </Button>
       </nav>
-    </div>
-  );
-};
-
-const PoolTokenCollectionInventory = ({
-  token,
-  items,
-}: {
-  token: PoolToken;
-  items: TroveToken[];
-}) => {
-  const numVaultItems = sumArray(
-    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1)
-  );
-  return (
-    <div key={token.id} className="rounded-lg bg-night-1100">
-      <Dialog>
-        <div className="space-y-5 p-6">
-          <div className="flex items-center gap-3">
-            <span className="font-medium">{token.name} Vault</span>
-            {token.name !== token.symbol ? (
-              <>
-                <span className="h-3 w-[1px] bg-night-400" />
-                <span className="text-night-400 uppercase">{token.symbol}</span>
-              </>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
-            {items.map((item) => (
-              <div
-                key={item.tokenId}
-                className="relative overflow-hidden rounded"
-              >
-                <img
-                  src={item.image.uri}
-                  alt={item.metadata.name}
-                  title={item.metadata.name}
-                />
-                {(item.queryUserQuantityOwned ?? 1) > 1 ? (
-                  <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-                    {formatNumber(item.queryUserQuantityOwned ?? 1)}x
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="h-[1px] bg-night-800" />
-        <div className="flex items-center justify-between px-6 py-3">
-          <span className="text-night-400 text-sm">
-            {formatNumber(numVaultItems)}{" "}
-            {numVaultItems === 1 ? "item" : "items"}
-          </span>
-          <DialogTrigger asChild>
-            <Button variant="ghost">View All</Button>
-          </DialogTrigger>
-        </div>
-        <SelectionPopup type="vault" viewOnly token={token} />
-      </Dialog>
     </div>
   );
 };

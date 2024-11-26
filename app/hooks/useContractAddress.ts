@@ -10,11 +10,13 @@ const CONTRACT_ADDRESSES = {
     magicswapV1Router: "0xf9e197aa9fa7c3b27a1a1313cad5851b55f2fd71",
     magicswapV2Router: "0xa8654a8097b78daf740c1e2ada8a6bf3cd60da50",
     stakingContract: "0xb39b382b81aedd8c5003ff141b51c6398dba82ff",
+    nftVaultManager: "0x29e3c51787ccd964914ce82cac26c41ea9b019eb",
   },
   [arbitrum.id]: {
     magicswapV1Router: "0xf3573bf4ca41b039bc596354870973d34fdb618b",
     magicswapV2Router: "0xf7c8f888720d5af7c54dfc04afe876673d7f5f43",
     stakingContract: zeroAddress,
+    nftVaultManager: zeroAddress,
   },
 } as const;
 
