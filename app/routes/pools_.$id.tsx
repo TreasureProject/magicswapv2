@@ -16,9 +16,7 @@ import {
   ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowDownToLineIcon as DepositIcon,
   PlusIcon,
-  ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
 import type React from "react";
 import {
@@ -41,31 +39,26 @@ import {
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
 import { fetchUserIncentives, fetchUserPosition } from "~/api/user.server";
-import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
-import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolIncentive } from "~/components/pools/PoolIncentive";
 import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
 import { PoolIncentiveUnstake } from "~/components/pools/PoolIncentiveUnstake";
 import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
+import { PoolTokenCollectionInventory } from "~/components/pools/PoolTokenCollectionInventory";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
-import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
-import { MultiSelect } from "~/components/ui/MultiSelect";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
-import { useAccount } from "~/contexts/account";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
-import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
-import { sumArray } from "~/lib/array";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
@@ -75,7 +68,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, PoolToken, TroveToken, UserIncentive } from "~/types";
+import type { Optional, PoolToken, UserIncentive } from "~/types";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -154,8 +147,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function PoolDetailsPage() {
-  const { pool, userPosition, userIncentives, vaultItems0, vaultItems1 } =
-    useLoaderData<typeof loader>();
+  const {
+    pool,
+    poolIncentives,
+    userPosition,
+    userIncentives,
+    vaultItems0,
+    vaultItems1,
+  } = useLoaderData<typeof loader>();
 
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -321,56 +320,29 @@ export default function PoolDetailsPage() {
                 </div>
               </div>
             </div>
-            {pool.incentives.length > 0 ? (
+            {poolIncentives.length > 0 ? (
               <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
                 <div className="flex justify-between">
                   <h3 className="font-medium text-lg">Pool Rewards</h3>
-                  <Button size="xs">Start Earning</Button>
+                  <Button
+                    size="xs"
+                    disabled={poolIncentives.every((poolIncentive) =>
+                      subscribedIncentiveIds.includes(
+                        poolIncentive.incentiveId,
+                      ),
+                    )}
+                  >
+                    Start Earning
+                  </Button>
                 </div>
                 <div className="space-y-2">
-                  {pool.incentives.map(
-                    ({
-                      incentiveId,
-                      rewardToken,
-                      rewardTokenAddress,
-                      remainingRewardAmount,
-                    }) => (
-                      <div
-                        key={incentiveId}
-                        className="flex items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-2 font-medium">
-                          {rewardToken ? (
-                            <PoolTokenImage
-                              className="h-6 w-6"
-                              token={rewardToken}
-                            />
-                          ) : null}
-                          <span className="text-night-100">
-                            {rewardToken?.symbol ??
-                              truncateEthAddress(rewardTokenAddress)}
-                          </span>
-                          {subscribedIncentiveIds.includes(incentiveId) && (
-                            <Badge size="xs">Earning</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-right">
-                          <span>
-                            {formatAmount(BigInt(remainingRewardAmount))}
-                          </span>
-                          {rewardToken?.priceUSD ? (
-                            <span className="text-night-400 text-sm">
-                              {formatUSD(
-                                bigIntToNumber(BigInt(remainingRewardAmount)) *
-                                  rewardToken.priceUSD,
-                                { notation: "compact" },
-                              )}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    ),
-                  )}
+                  {poolIncentives.map((incentive) => (
+                    <PoolIncentive
+                      key={incentive.incentiveId}
+                      incentive={incentive}
+                      subscribedIncentiveIds={subscribedIncentiveIds}
+                    />
+                  ))}
                 </div>
               </div>
             ) : null}
@@ -870,65 +842,6 @@ const PoolActivityTable = ({
           <ChevronRightIcon className="w-4" />
         </Button>
       </nav>
-    </div>
-  );
-};
-
-const PoolTokenCollectionInventory = ({
-  token,
-  items,
-}: {
-  token: PoolToken;
-  items: TroveToken[];
-}) => {
-  const numVaultItems = sumArray(
-    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1),
-  );
-  return (
-    <div key={token.id} className="rounded-lg bg-night-1100">
-      <Dialog>
-        <div className="space-y-5 p-6">
-          <div className="flex items-center gap-3">
-            <span className="font-medium">{token.name} Vault</span>
-            {token.name !== token.symbol ? (
-              <>
-                <span className="h-3 w-[1px] bg-night-400" />
-                <span className="text-night-400 uppercase">{token.symbol}</span>
-              </>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
-            {items.map((item) => (
-              <div
-                key={item.tokenId}
-                className="relative overflow-hidden rounded"
-              >
-                <img
-                  src={item.image.uri}
-                  alt={item.metadata.name}
-                  title={item.metadata.name}
-                />
-                {(item.queryUserQuantityOwned ?? 1) > 1 ? (
-                  <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-                    {formatNumber(item.queryUserQuantityOwned ?? 1)}x
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="h-[1px] bg-night-800" />
-        <div className="flex items-center justify-between px-6 py-3">
-          <span className="text-night-400 text-sm">
-            {formatNumber(numVaultItems)}{" "}
-            {numVaultItems === 1 ? "item" : "items"}
-          </span>
-          <DialogTrigger asChild>
-            <Button variant="ghost">View All</Button>
-          </DialogTrigger>
-        </div>
-        <SelectionPopup type="vault" viewOnly token={token} />
-      </Dialog>
     </div>
   );
 };

@@ -133,6 +133,8 @@ type EditableProps = BaseProps & {
   viewOnly?: false;
   selectedTokens?: TroveTokenWithQuantity[];
   requiredAmount?: number;
+  keepOpenOnSubmit?: boolean;
+  isSubmitDisabled?: boolean;
   onSubmit: (items: TroveTokenWithQuantity[]) => void;
   children?: (renderProps: { amount: string }) => React.ReactNode;
 };
@@ -358,13 +360,20 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 })}
               <DialogClose asChild>
                 <Button
-                  disabled={buttonDisabled}
+                  disabled={buttonDisabled || props.isSubmitDisabled}
                   size="md"
                   className="w-full"
-                  onClick={() => props.onSubmit(selectedItems)}
+                  onClick={(event) => {
+                    props.onSubmit(selectedItems);
+                    if (props.keepOpenOnSubmit) {
+                      event.preventDefault();
+                    }
+                  }}
                 >
                   {props.requiredAmount && buttonDisabled
-                    ? `Select ${props.requiredAmount} ${props.requiredAmount === 1 ? "item" : "items"}`
+                    ? `Select ${props.requiredAmount} ${
+                        props.requiredAmount === 1 ? "item" : "items"
+                      }`
                     : "Save selections"}
                 </Button>
               </DialogClose>
