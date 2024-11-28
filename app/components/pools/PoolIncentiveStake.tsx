@@ -32,7 +32,17 @@ export const PoolIncentiveStake = ({
     userIncentives: tempUserIncentives,
     onSuccess: useCallback((newIncentives: UserIncentive[]) => {
       setRawAmount("0");
-      setUserIncentives((curr) => curr.concat(newIncentives));
+      setUserIncentives((curr) => {
+        if (
+          newIncentives.some(
+            (newIncentive) =>
+              !curr.find((incentive) => incentive.id === newIncentive.id),
+          )
+        ) {
+          return curr.concat(newIncentives);
+        }
+        return curr;
+      });
     }, []),
   });
 

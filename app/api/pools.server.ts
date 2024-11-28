@@ -8,8 +8,8 @@ import {
   getOneWeekAgoTimestamp,
 } from "~/lib/date.server";
 import { createPoolFromPair } from "~/lib/pools.server";
-import { itemToTroveTokenItem } from "~/lib/tokens.server";
-import type { AddressString, Pair } from "~/types";
+import { createPoolToken, itemToTroveTokenItem } from "~/lib/tokens.server";
+import type { AddressString, Pair, Token } from "~/types";
 import {
   GetPairDocument,
   GetPairIncentivesDocument,
@@ -162,18 +162,49 @@ export const fetchPoolIncentives = async (id: string) => {
   const result = (await execute(GetPairIncentivesDocument, {
     id,
   })) as ExecutionResult<GetPairIncentivesQuery>;
+
   const incentives = result.data?.incentives;
   if (!incentives) {
     return [];
   }
 
+  const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
+    fetchTokensCollections(
+      incentives
+        .map((incentive) => {
+          return incentive.rewardToken;
+        })
+        .filter(Boolean) as Token[],
+    ),
+    fetchMagicUSD(),
+  ]);
+
   const enrichedIncentives = await Promise.all(
     incentives.map(async (incentive) => {
       if (!incentive.rewardToken?.isNFT) {
-        return incentive;
+        return {
+          ...incentive,
+          rewardToken: incentive.rewardToken
+            ? createPoolToken(
+                incentive.rewardToken,
+                collectionMapping,
+                tokenMapping,
+                magicUSD,
+              )
+            : null,
+          vaultItems: [],
+        };
       }
       return {
         ...incentive,
+        rewardToken: incentive.rewardToken
+          ? createPoolToken(
+              incentive.rewardToken,
+              collectionMapping,
+              tokenMapping,
+              magicUSD,
+            )
+          : null,
         vaultItems: await fetchVaultReserveItems({
           id: incentive.rewardToken.id,
         }),
@@ -183,3 +214,7 @@ export const fetchPoolIncentives = async (id: string) => {
 
   return enrichedIncentives;
 };
+
+export type PoolIncentive = Awaited<
+  ReturnType<typeof fetchPoolIncentives>
+>[number];
