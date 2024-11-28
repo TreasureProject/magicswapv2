@@ -59,6 +59,7 @@ import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
+import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
@@ -164,6 +165,7 @@ export default function PoolDetailsPage() {
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
+  const { subscribeToIncentives } = useSubscribeToIncentives({});
 
   const lpBalance = BigInt(userPosition.lpBalance);
   const lpStaked = BigInt(userPosition.lpStaked);
@@ -182,6 +184,11 @@ export default function PoolDetailsPage() {
   const subscribedIncentiveIds = userIncentives
     .filter((userIncentive) => userIncentive.isSubscribed)
     .map((userIncentive) => userIncentive.incentive.incentiveId);
+
+  const unsubscribedIncentives = poolIncentives.filter(
+    (poolIncentive) =>
+      !subscribedIncentiveIds.includes(poolIncentive.incentiveId),
+  );
 
   useFocusInterval(refetch, 5_000);
 
@@ -334,11 +341,14 @@ export default function PoolDetailsPage() {
                   <h3 className="font-medium text-lg">Pool Rewards</h3>
                   <Button
                     size="xs"
-                    disabled={poolIncentives.every((poolIncentive) =>
-                      subscribedIncentiveIds.includes(
-                        poolIncentive.incentiveId,
-                      ),
-                    )}
+                    disabled={unsubscribedIncentives.length === 0}
+                    onClick={() => {
+                      subscribeToIncentives(
+                        unsubscribedIncentives.map(({ incentiveId }) =>
+                          BigInt(incentiveId),
+                        ),
+                      );
+                    }}
                   >
                     Start Earning
                   </Button>
