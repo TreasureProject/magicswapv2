@@ -16,7 +16,7 @@ jobs:
       - name: Generate code
         run: npm run generate
         env:
-          MAGICSWAPV2_API_URL: https://api.goldsky.com/api/public/project_clrm53zqegpoi01x18coz2fb5/subgraphs/magicswap-dev/v2.1.1/gn
+          MAGICSWAPV2_API_URL: https://api.goldsky.com/api/public/project_clrm53zqegpoi01x18coz2fb5/subgraphs/magicswap-dev/v2.1.2/gn
       - name: Lint code
         run: npm run lint
       - name: Analyze code
