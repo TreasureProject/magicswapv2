@@ -126,7 +126,7 @@ export default function App() {
         <meta name="theme-color" content="#ffffff" />
         <Meta />
         <Links />
-        {process.env.NODE_ENV !== "production" ? null : (
+        {env.PUBLIC_GTAG_ID ? (
           <script
             dangerouslySetInnerHTML={{
               __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -136,10 +136,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-${env.PUBLIC_GTAG_ID}');`,
             }}
           />
-        )}
+        ) : null}
       </head>
       <body className="h-full antialiased">
-        {process.env.NODE_ENV !== "production" ? null : (
+        {env.PUBLIC_GTAG_ID ? (
           <noscript>
             <iframe
               title="Google Tag Manager"
@@ -149,7 +149,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               className="invisible hidden"
             />
           </noscript>
-        )}
+        ) : null}
         <WagmiProvider config={client}>
           <QueryClientProvider client={queryClient}>
             <ConnectKitProvider theme="midnight">
