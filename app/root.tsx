@@ -39,6 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       PUBLIC_CHAIN_ID: ENV.PUBLIC_CHAIN_ID,
       PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
       PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+      PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
     },
   });
 };
@@ -125,8 +126,30 @@ export default function App() {
         <meta name="theme-color" content="#ffffff" />
         <Meta />
         <Links />
+        {process.env.NODE_ENV !== "production" ? null : (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-${env.PUBLIC_GTAG_ID}');`,
+            }}
+          />
+        )}
       </head>
       <body className="h-full antialiased">
+        {process.env.NODE_ENV !== "production" ? null : (
+          <noscript>
+            <iframe
+              title="Google Tag Manager"
+              src={`https://www.googletagmanager.com/ns.html?id=GTM-${env.PUBLIC_GTAG_ID}`}
+              height="0"
+              width="0"
+              className="invisible hidden"
+            />
+          </noscript>
+        )}
         <WagmiProvider config={client}>
           <QueryClientProvider client={queryClient}>
             <ConnectKitProvider theme="midnight">
