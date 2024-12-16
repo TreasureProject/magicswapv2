@@ -1,0 +1,16 @@
+name: Deploy (Topaz)
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development-topaz
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy --no-cache --config ./fly.toml --app ${{ vars.APP_NAME }} --remote-only --build-arg MAGICSWAPV2_API_URL=${{ vars.MAGICSWAPV2_API_URL }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
