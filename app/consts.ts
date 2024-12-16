@@ -11,6 +11,54 @@ export const BUY_MAGIC_URL = "https://market.treasure.lol/manage-funds";
 export const DISCORD_URL = "https://discord.com/invite/treasuredao";
 export const TWITTER_URL = "https://twitter.com/MagicSwap_";
 
+export const CHAIN_MAPPING = {
+  [arbitrum.id]: arbitrum,
+  [arbitrumSepolia.id]: arbitrumSepolia,
+  978658: {
+    id: 978658,
+    name: "Treasure Topaz",
+    nativeCurrency: {
+      name: "MAGIC",
+      symbol: "MAGIC",
+      decimals: 18,
+    },
+    rpcUrls: {
+      default: {
+        http: ["https://rpc.topaz.treasure.lol"],
+      },
+    },
+    blockExplorers: {
+      default: {
+        name: "Treasure Topaz Explorer",
+        url: "https://topaz.treasurescan.io",
+        apiUrl: "https://topaz.treasurescan.io/node-api/proxy/api/v2",
+      },
+    },
+    testnet: true,
+  },
+  61166: {
+    id: 61166,
+    name: "Treasure",
+    nativeCurrency: {
+      name: "MAGIC",
+      symbol: "MAGIC",
+      decimals: 18,
+    },
+    rpcUrls: {
+      default: {
+        http: ["https://rpc.treasure.lol"],
+      },
+    },
+    blockExplorers: {
+      default: {
+        name: "Treasure Explorer",
+        url: "https://treasurescan.io",
+        apiUrl: "https://treasurescan.io/api/v2",
+      },
+    },
+  },
+};
+
 export const TOKEN_METADATA = {
   [arbitrum.id]: [
     {
@@ -117,6 +165,7 @@ export const TOKEN_METADATA = {
       symbol: "MAGIC",
       image: "/img/tokens/magic.png",
       isMAGIC: true,
+      isETH: true,
     },
     {
       id: "0x99b9ed17bb37768bb1a3cb6d91b15834eb7c2185",
@@ -125,7 +174,16 @@ export const TOKEN_METADATA = {
       image: "/img/tokens/usdc.png",
     },
   ],
-  61166: [],
+  61166: [
+    {
+      id: "0x263d8f36bb8d0d9526255e205868c26690b04b88",
+      name: "MAGIC",
+      symbol: "MAGIC",
+      image: "/img/tokens/magic.png",
+      isMAGIC: true,
+      isETH: true,
+    },
+  ],
 } as const;
 
 export const GAME_METADATA: Record<

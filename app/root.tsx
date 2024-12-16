@@ -16,7 +16,6 @@ import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
 import { http, WagmiProvider, createConfig } from "wagmi";
-import { arbitrum, arbitrumSepolia } from "wagmi/chains";
 
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
@@ -26,6 +25,7 @@ import { useSettingsStore } from "./store/settings";
 import "./styles/nprogress.css";
 import "./styles/tailwind.css";
 import { Toaster } from "./components/ui/Toast";
+import { CHAIN_MAPPING } from "./consts";
 
 const queryClient = new QueryClient();
 
@@ -63,11 +63,7 @@ export default function App() {
           ),
         },
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-        chains: [
-          env.PUBLIC_CHAIN_ID === arbitrumSepolia.id
-            ? arbitrumSepolia
-            : arbitrum,
-        ],
+        chains: [CHAIN_MAPPING[env.PUBLIC_CHAIN_ID]],
       }),
     ),
   );
