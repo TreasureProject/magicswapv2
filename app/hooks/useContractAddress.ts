@@ -1,5 +1,7 @@
+import { zeroAddress } from "viem";
 import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
+
 import type { Version } from ".graphclient";
 
 import type { AddressString } from "~/types";
@@ -13,17 +15,23 @@ const CONTRACT_ADDRESSES = {
     magicswapV1Router: "0xf3573bf4ca41b039bc596354870973d34fdb618b",
     magicswapV2Router: "0xf7c8f888720d5af7c54dfc04afe876673d7f5f43",
   },
+  978658: {
+    magicswapV1Router: zeroAddress,
+    magicswapV2Router: "0xad781ed13b5966e7c620b896b6340abb4dd2ca86",
+  },
+  61166: {
+    magicswapV1Router: zeroAddress,
+    magicswapV2Router: zeroAddress,
+  },
 } as const;
 
 type Contract = keyof (typeof CONTRACT_ADDRESSES)[42161];
 
 const useContractAddress = (contract: Contract) => {
   const chainId = useChainId();
-  const addresses =
-    CONTRACT_ADDRESSES[
-      chainId === arbitrumSepolia.id ? arbitrumSepolia.id : arbitrum.id
-    ];
-  return addresses[contract] as AddressString;
+  return CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES][
+    contract
+  ] as AddressString;
 };
 
 export const useRouterAddress = (version: Version) =>
