@@ -110,6 +110,22 @@ export const TOKEN_METADATA = {
       image: "/img/tokens/hrt.png",
     },
   ],
+  978658: [
+    {
+      id: "0x095ded714d42cbd5fb2e84a0ffbfb140e38dc9e1",
+      name: "MAGIC",
+      symbol: "MAGIC",
+      image: "/img/tokens/magic.png",
+      isMAGIC: true,
+    },
+    {
+      id: "0x99b9ed17bb37768bb1a3cb6d91b15834eb7c2185",
+      name: "USDC",
+      symbol: "USDC",
+      image: "/img/tokens/usdc.png",
+    },
+  ],
+  61166: [],
 } as const;
 
 export const GAME_METADATA: Record<
