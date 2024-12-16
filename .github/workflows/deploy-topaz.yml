@@ -1,6 +1,9 @@
 name: Deploy (Topaz)
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feat/topaz
 jobs:
   deploy:
     runs-on: ubuntu-latest
