@@ -106,11 +106,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             <p>You'll receive at least:</p>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
-                <PoolTokenImage
-                  className="h-6 w-6"
-                  token={pool.token0}
-                  includeChain
-                />
+                <PoolTokenImage className="h-6 w-6" token={pool.token0} />
                 <span className="text-honey-25">
                   {formatAmount(amount0Min)}
                 </span>
@@ -125,11 +121,7 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
-                <PoolTokenImage
-                  className="h-6 w-6"
-                  token={pool.token1}
-                  includeChain
-                />
+                <PoolTokenImage className="h-6 w-6" token={pool.token1} />
                 <span className="text-honey-25">
                   {formatAmount(amount1Min)}
                 </span>
@@ -172,7 +164,6 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
                       <PoolTokenImage
-                        includeChain
                         className="h-6 w-6"
                         token={pool.token0.isNFT ? pool.token0 : pool.token1}
                       />
@@ -186,7 +177,6 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
                     to
                     <div className="flex items-center gap-1">
                       <PoolTokenImage
-                        includeChain
                         className="h-6 w-6"
                         token={pool.token0.isNFT ? pool.token1 : pool.token0}
                       />

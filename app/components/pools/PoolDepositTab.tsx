@@ -253,7 +253,6 @@ export const PoolDepositTab = ({
                   <span className="flex items-center gap-1">
                     <PoolTokenImage
                       token={otherToken}
-                      includeChain
                       className="h-4 w-4 flex-shrink-0"
                     />
                     <span className="truncate font-medium text-honey-25 text-sm">

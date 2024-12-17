@@ -194,7 +194,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     >
       <div className="grid-in-header flex items-center gap-2 text-xs sm:text-base">
         <p className="text-night-400">{props.viewOnly ? "View" : "Select"}</p>
-        <PoolTokenImage className="h-6 w-6" token={token} includeChain />
+        <PoolTokenImage className="h-6 w-6" token={token} />
         <p className="font-medium text-md text-night-100 capitalize">
           {token.name}{" "}
           <span className="text-night-400 normal-case">

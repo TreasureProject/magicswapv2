@@ -61,6 +61,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return defer({
     userPositions: fetchAndFilterUserPositions(),
+    publicChainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -88,7 +89,7 @@ const RowSkeleton = () => (
 );
 
 export default function UserPositionsListPage() {
-  const { userPositions } = useLoaderData<typeof loader>();
+  const { userPositions, publicChainId } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   return (
@@ -135,7 +136,7 @@ export default function UserPositionsListPage() {
                         className="flex items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <PoolImage includeChain pool={pool} />
+                        <PoolImage chainId={publicChainId} pool={pool} />
                         <div className="-ml-2 space-y-1 sm:ml-0">
                           <span className="block">{pool.name}</span>
                           <div className="flex items-center gap-1">

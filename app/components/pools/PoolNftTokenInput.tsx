@@ -29,11 +29,7 @@ export const PoolNftTokenInput = ({
   return (
     <div className="overflow-hidden rounded-lg bg-night-1100">
       <div className="flex gap-3 p-4">
-        <PoolTokenImage
-          includeChain
-          className="h-10 w-10 shrink-0"
-          token={token}
-        />
+        <PoolTokenImage className="h-10 w-10 shrink-0" token={token} />
         <div
           className={cn(
             "flex flex-1 justify-between gap-3",

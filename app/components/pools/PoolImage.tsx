@@ -6,15 +6,10 @@ import { PoolTokenImage } from "./PoolTokenImage";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   pool: Pool;
-  includeChain?: boolean;
+  chainId?: number;
 };
 
-export const PoolImage = ({
-  pool,
-  includeChain,
-  className,
-  ...divProps
-}: Props) => {
+export const PoolImage = ({ pool, chainId, className, ...divProps }: Props) => {
   const isToken1Base =
     (pool.token0.isNFT && !pool.token1.isNFT) || pool.token1.isMAGIC;
   return (
@@ -25,7 +20,7 @@ export const PoolImage = ({
         {...divProps}
       />
       <PoolTokenImage
-        includeChain={includeChain}
+        chainId={chainId}
         token={isToken1Base ? pool.token0 : pool.token1}
         className={cn("border-2 border-night-1100", className)}
         containerClassName={"-translate-x-1/3"}

@@ -128,6 +128,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         ? fetchPoolTokenBalance(tokenIn, address)
         : undefined,
     address,
+    publicChainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -288,6 +289,7 @@ export default function SwapPage() {
       <div className="mt-3">
         <SwapTokenInput
           key={`${location.search}-in`}
+          publicChainId={loaderData.publicChainId}
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
@@ -349,6 +351,7 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput
           key={`${location.search}-out`}
+          publicChainId={loaderData.publicChainId}
           token={tokenOut}
           otherToken={tokenIn}
           isOut
@@ -452,7 +455,7 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              includeChain
+                              chainId={loaderData.publicChainId}
                               token={tokenIn}
                               className="h-6 w-6"
                             />
@@ -511,7 +514,7 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              includeChain
+                              chainId={loaderData.publicChainId}
                               token={tokenOut}
                               className="h-6 w-6"
                             />
@@ -625,6 +628,7 @@ const SwapTokenInput = ({
   amount,
   selectedNfts,
   requiredNftSelectionAmount,
+  publicChainId,
   onSelect,
   onUpdateAmount,
   onSelectNfts,
@@ -636,6 +640,7 @@ const SwapTokenInput = ({
   balance?: bigint;
   amount: string;
   selectedNfts: TroveTokenWithQuantity[];
+  publicChainId: number;
   requiredNftSelectionAmount?: number;
   onSelect: (token: PoolToken) => void;
   onUpdateAmount: (amount: string) => void;
@@ -665,6 +670,7 @@ const SwapTokenInput = ({
             disabledTokenIds={
               [token.id, otherToken?.id].filter((id) => !!id) as string[]
             }
+            publicChainId={publicChainId}
             isOut={isOut}
             onSelect={onSelect}
           />
@@ -672,7 +678,7 @@ const SwapTokenInput = ({
           <DialogTrigger asChild>
             <button type="button" className="flex items-center gap-4 text-left">
               <PoolTokenImage
-                includeChain
+                chainId={publicChainId}
                 className="h-12 w-12"
                 token={token}
               />
@@ -986,6 +992,7 @@ const SwapTokenInput = ({
       <TokenSelectDialog
         disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
         isOut={isOut}
+        publicChainId={publicChainId}
         onSelect={onSelect}
       />
       <DialogTrigger asChild>
@@ -1049,10 +1056,12 @@ const TotalDisplay = ({
 const TokenSelectDialog = ({
   disabledTokenIds = [],
   isOut,
+  publicChainId,
   onSelect,
 }: {
   disabledTokenIds?: string[];
   isOut: boolean;
+  publicChainId: number;
   onSelect: (token: PoolToken) => void;
 }) => {
   const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
@@ -1179,6 +1188,7 @@ const TokenSelectDialog = ({
                   .map((token) => (
                     <Token
                       key={token.id}
+                      publicChainId={publicChainId}
                       disabled={disabledTokenIds.includes(token.id)}
                       onSelect={onSelect}
                       token={token}
@@ -1196,10 +1206,12 @@ const TokenSelectDialog = ({
 const Token = ({
   token,
   disabled,
+  publicChainId,
   onSelect,
 }: {
   token: PoolToken;
   disabled: boolean;
+  publicChainId: number;
   onSelect: (token: PoolToken) => void;
 }) => {
   const { address } = useAccount();
@@ -1213,7 +1225,11 @@ const Token = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <PoolTokenImage token={token} className="h-9 w-9" includeChain />
+          <PoolTokenImage
+            token={token}
+            className="h-9 w-9"
+            chainId={publicChainId}
+          />
           <div className="text-left text-sm">
             <span className="block font-semibold text-honey-25">
               {token.symbol}

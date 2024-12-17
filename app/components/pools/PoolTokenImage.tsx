@@ -6,7 +6,7 @@ import type { Optional, PoolToken } from "~/types";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   token: Optional<PoolToken>;
-  includeChain?: boolean;
+  chainId?: number;
   containerClassName?: string;
 };
 
@@ -14,14 +14,13 @@ export const PoolTokenImage = ({
   token,
   className,
   containerClassName,
-  includeChain,
+  chainId,
   ...divProps
 }: Props) => {
   // TODO: replace with actual chain ID
-  const chainId = 42161;
   return (
     <div className={cn("relative", containerClassName)}>
-      {includeChain && (
+      {chainId && (
         <div
           className={cn(
             "-right-1 -bottom-1 absolute flex h-full w-full items-end justify-end",
