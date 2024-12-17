@@ -190,7 +190,7 @@ export default function PoolDetailsPage() {
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
             <div className="-space-x-2 flex items-center">
-              <PoolImage pool={pool} className="h-auto w-14" />
+              <PoolImage includeChain pool={pool} className="h-auto w-14" />
               <div className="flex flex-col text-2xl">
                 <a
                   href={`${blockExplorer.url}/address/${pool.id}`}
@@ -258,7 +258,11 @@ export default function PoolDetailsPage() {
                         ) : null}
                       </div>
                       <div className="-space-x-1 flex items-center py-1.5">
-                        <PoolImage pool={pool} className="h-10 w-10" />
+                        <PoolImage
+                          includeChain
+                          pool={pool}
+                          className="h-10 w-10"
+                        />
                         <p className="flex items-center gap-1.5 text-2xl text-night-400">
                           <span className="text-3xl text-night-100">
                             {formatAmount(lpBalance)}

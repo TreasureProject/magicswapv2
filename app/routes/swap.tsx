@@ -452,6 +452,7 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
+                              includeChain
                               token={tokenIn}
                               className="h-6 w-6"
                             />
@@ -510,6 +511,7 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
+                              includeChain
                               token={tokenOut}
                               className="h-6 w-6"
                             />
@@ -669,7 +671,11 @@ const SwapTokenInput = ({
 
           <DialogTrigger asChild>
             <button type="button" className="flex items-center gap-4 text-left">
-              <PoolTokenImage className="h-12 w-12" token={token} />
+              <PoolTokenImage
+                includeChain
+                className="h-12 w-12"
+                token={token}
+              />
               <div className="flex-1">
                 <span className="flex items-center gap-1.5 font-medium text-honey-25 text-sm sm:text-lg">
                   {token.symbol} <ChevronDownIcon className="h-3 w-3" />
@@ -1207,7 +1213,7 @@ const Token = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <PoolTokenImage token={token} className="h-9 w-9" />
+          <PoolTokenImage token={token} className="h-9 w-9" includeChain />
           <div className="text-left text-sm">
             <span className="block font-semibold text-honey-25">
               {token.symbol}

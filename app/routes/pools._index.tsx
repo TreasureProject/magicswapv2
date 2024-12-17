@@ -158,7 +158,7 @@ export default function PoolsListPage() {
                       className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <PoolImage pool={pool} />
+                      <PoolImage includeChain pool={pool} />
                       <div className="-ml-2 space-y-1 sm:ml-0">
                         <span className="block">{pool.name}</span>
                         <div className="flex items-center gap-1">

@@ -31,5 +31,5 @@ export const PoolTransactionImage = ({ token, items }: Props) => {
     );
   }
 
-  return <PoolTokenImage className="h-9 w-9" token={token} />;
+  return <PoolTokenImage className="h-9 w-9" token={token} includeChain />;
 };

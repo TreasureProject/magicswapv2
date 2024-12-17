@@ -194,7 +194,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     >
       <div className="grid-in-header flex items-center gap-2 text-xs sm:text-base">
         <p className="text-night-400">{props.viewOnly ? "View" : "Select"}</p>
-        <PoolTokenImage className="h-6 w-6" token={token} />
+        <PoolTokenImage className="h-6 w-6" token={token} includeChain />
         <p className="font-medium text-md text-night-100 capitalize">
           {token.name}{" "}
           <span className="text-night-400 normal-case">
@@ -364,7 +364,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   onClick={() => props.onSubmit(selectedItems)}
                 >
                   {props.requiredAmount && buttonDisabled
-                    ? `Select ${props.requiredAmount} ${props.requiredAmount === 1 ? "item" : "items"}`
+                    ? `Select ${props.requiredAmount} ${
+                        props.requiredAmount === 1 ? "item" : "items"
+                      }`
                     : "Save selections"}
                 </Button>
               </DialogClose>

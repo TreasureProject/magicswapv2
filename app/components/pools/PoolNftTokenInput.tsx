@@ -29,7 +29,11 @@ export const PoolNftTokenInput = ({
   return (
     <div className="overflow-hidden rounded-lg bg-night-1100">
       <div className="flex gap-3 p-4">
-        <PoolTokenImage className="h-10 w-10 shrink-0" token={token} />
+        <PoolTokenImage
+          includeChain
+          className="h-10 w-10 shrink-0"
+          token={token}
+        />
         <div
           className={cn(
             "flex flex-1 justify-between gap-3",
@@ -89,7 +93,9 @@ export const PoolNftTokenInput = ({
                 onClick={() => onOpenSelect?.(token)}
               >
                 {amount
-                  ? `Select ${formatNumber(amount)} ${amount === 1 ? "item" : "items"}`
+                  ? `Select ${formatNumber(amount)} ${
+                      amount === 1 ? "item" : "items"
+                    }`
                   : "Select items"}
               </Button>
             </DialogTrigger>

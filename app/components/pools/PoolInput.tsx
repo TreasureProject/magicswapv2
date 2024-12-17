@@ -24,7 +24,7 @@ export const PoolInput = ({
     <div className="relative overflow-hidden rounded-lg bg-night-1100">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center">
-          <PoolImage pool={pool} />
+          <PoolImage includeChain pool={pool} />
           <p className="-ml-2 font-medium text-sm sm:text-xl">{pool.name}</p>
         </div>
         <div className="space-y-1 text-right">
