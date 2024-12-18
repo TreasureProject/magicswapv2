@@ -65,6 +65,7 @@ export function loader({ request }: LoaderFunctionArgs) {
 
   return defer({
     pools: fetchAndFilterPools(),
+    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -98,7 +99,7 @@ const RowSkeleton = () => (
 );
 
 export default function PoolsListPage() {
-  const { pools } = useLoaderData<typeof loader>();
+  const { pools, chainId } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
 
@@ -158,7 +159,7 @@ export default function PoolsListPage() {
                       className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <PoolImage pool={pool} />
+                      <PoolImage chainId={chainId} pool={pool} />
                       <div className="-ml-2 space-y-1 sm:ml-0">
                         <span className="block">{pool.name}</span>
                         <div className="flex items-center gap-1">

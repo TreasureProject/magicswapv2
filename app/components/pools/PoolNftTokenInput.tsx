@@ -89,7 +89,9 @@ export const PoolNftTokenInput = ({
                 onClick={() => onOpenSelect?.(token)}
               >
                 {amount
-                  ? `Select ${formatNumber(amount)} ${amount === 1 ? "item" : "items"}`
+                  ? `Select ${formatNumber(amount)} ${
+                      amount === 1 ? "item" : "items"
+                    }`
                   : "Select items"}
               </Button>
             </DialogTrigger>

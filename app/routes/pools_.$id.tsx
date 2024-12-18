@@ -64,6 +64,7 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { truncateEthAddress } from "~/lib/address";
 import { sumArray } from "~/lib/array";
 import { formatAmount, formatUSD } from "~/lib/currency";
+import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
 import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
@@ -141,11 +142,13 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       pool.token1.isNFT && address
         ? fetchPoolTokenBalance(pool.token1, address)
         : undefined,
+    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1 } = useLoaderData<typeof loader>();
+  const { pool, vaultItems0, vaultItems1, chainId } =
+    useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -190,7 +193,11 @@ export default function PoolDetailsPage() {
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
             <div className="-space-x-2 flex items-center">
-              <PoolImage pool={pool} className="h-auto w-14" />
+              <PoolImage
+                chainId={chainId}
+                pool={pool}
+                className="h-auto w-14"
+              />
               <div className="flex flex-col text-2xl">
                 <a
                   href={`${blockExplorer.url}/address/${pool.id}`}

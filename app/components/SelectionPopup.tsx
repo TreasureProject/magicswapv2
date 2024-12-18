@@ -364,7 +364,9 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   onClick={() => props.onSubmit(selectedItems)}
                 >
                   {props.requiredAmount && buttonDisabled
-                    ? `Select ${props.requiredAmount} ${props.requiredAmount === 1 ? "item" : "items"}`
+                    ? `Select ${props.requiredAmount} ${
+                        props.requiredAmount === 1 ? "item" : "items"
+                      }`
                     : "Save selections"}
                 </Button>
               </DialogClose>
