@@ -142,12 +142,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       pool.token1.isNFT && address
         ? fetchPoolTokenBalance(pool.token1, address)
         : undefined,
-    publicChainId: ENV.PUBLIC_CHAIN_ID,
+    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1, publicChainId } =
+  const { pool, vaultItems0, vaultItems1, chainId } =
     useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address } = useAccount();
@@ -194,7 +194,7 @@ export default function PoolDetailsPage() {
           <div className="space-y-6 md:flex-row lg:col-span-4">
             <div className="-space-x-2 flex items-center">
               <PoolImage
-                chainId={publicChainId}
+                chainId={chainId}
                 pool={pool}
                 className="h-auto w-14"
               />
