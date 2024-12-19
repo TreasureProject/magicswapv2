@@ -1,7 +1,7 @@
 import type { ExecutionResult } from "graphql";
 
 import { arbitrum } from "viem/chains";
-import { CHAIN_ID_TO_TROVE_API_NETWORK } from "~/consts";
+import { CHAIN_ID_TO_TROVE_API_URL } from "~/consts";
 import { getCachedValue } from "~/lib/cache.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
@@ -48,7 +48,7 @@ export const fetchUserPositions = async (address: string | undefined) => {
 export const fetchDomain = async (address: string) =>
   getCachedValue(`domain-${address}`, async () => {
     const response = await fetch(
-      `${CHAIN_ID_TO_TROVE_API_NETWORK[arbitrum.id]}/domain/${address}`,
+      `${CHAIN_ID_TO_TROVE_API_URL[arbitrum.id]}/domain/${address}`,
       {
         headers: {
           "X-API-Key": ENV.TROVE_API_KEY,
@@ -68,7 +68,7 @@ export const fetchDomains = async (addresses: string[]) => {
   const uniqueAddresses = [...new Set(addresses.filter((address) => address))];
   return getCachedValue(`domains-${uniqueAddresses.join(",")}`, async () => {
     const response = await fetch(
-      `${CHAIN_ID_TO_TROVE_API_NETWORK[arbitrum.id]}/batch-domains`,
+      `${CHAIN_ID_TO_TROVE_API_URL[arbitrum.id]}/batch-domains`,
       {
         method: "POST",
         headers: {
