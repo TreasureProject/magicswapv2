@@ -27,11 +27,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const fetchAndFilterUserPositions = async () => {
     const { total, positions } = await fetchUserPositions(address);
+    // TODO: filter by selected chain ID
     const gameTokenIdsMap = game
-      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
     const gameCollectionIdsMap = game
-      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
 
     return {
@@ -61,7 +62,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return defer({
     userPositions: fetchAndFilterUserPositions(),
-    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -89,7 +89,7 @@ const RowSkeleton = () => (
 );
 
 export default function UserPositionsListPage() {
-  const { userPositions, chainId } = useLoaderData<typeof loader>();
+  const { userPositions } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   return (
@@ -136,7 +136,7 @@ export default function UserPositionsListPage() {
                         className="flex items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <PoolImage chainId={chainId} pool={pool} />
+                        <PoolImage pool={pool} showChainIcon />
                         <div className="-ml-2 space-y-1 sm:ml-0">
                           <span className="block">{pool.name}</span>
                           <div className="flex items-center gap-1">

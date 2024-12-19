@@ -5,36 +5,37 @@ import { cn } from "~/lib/utils";
 import type { Optional } from "~/types";
 
 export type Token = {
-  isVault: boolean;
-  isMagic: boolean;
+  chainId: number;
   name: string;
   symbol: string;
   image?: string | null;
+  isVault: boolean;
+  isMagic: boolean;
 };
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   token: Optional<Token>;
-  chainId?: number;
+  showChainIcon?: boolean;
   containerClassName?: string;
 };
 
 export const PoolTokenImage = ({
   token,
   className,
+  showChainIcon = false,
   containerClassName,
-  chainId,
   ...divProps
 }: Props) => (
   <div className={cn("relative", containerClassName)}>
-    {chainId && (
+    {showChainIcon && token?.chainId ? (
       <div
         className={cn(
           "-right-1 -bottom-1 absolute flex h-full w-full items-end justify-end",
         )}
       >
-        <ChainIcon id={chainId} unsupported={false} size="40%" />
+        <ChainIcon id={token.chainId} unsupported={false} size="40%" />
       </div>
-    )}
+    ) : null}
     <div
       className={cn(
         "h-9 w-9 overflow-hidden border border-night-1000 bg-night-1000",

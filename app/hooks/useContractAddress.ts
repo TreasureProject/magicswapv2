@@ -18,6 +18,7 @@ const CONTRACT_ADDRESSES = {
 type Contract = keyof (typeof CONTRACT_ADDRESSES)[42161];
 
 const useContractAddress = (contract: Contract) => {
+  // TODO: support other chains
   const chainId = useChainId();
   const addresses =
     CONTRACT_ADDRESSES[

@@ -19,7 +19,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   let token: Token | undefined;
   try {
-    token = await fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: id });
+    // TODO: pass chain ID in params
+    token = await fetchToken({
+      chainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
+      address: id,
+    });
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }

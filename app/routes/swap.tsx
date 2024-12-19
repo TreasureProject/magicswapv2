@@ -64,7 +64,7 @@ import { ENV } from "~/lib/env.server";
 import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
-import { countTokens } from "~/lib/tokens";
+import { countTokens, parseTokenParams } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
@@ -94,18 +94,21 @@ export const meta: MetaFunction<
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const tokenInAddress =
-    url.searchParams.get("in") ?? ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS;
-  const tokenOutAddress = url.searchParams.get("out");
+
+  const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
+    parseTokenParams({
+      inStr: url.searchParams.get("in") ?? "",
+      outStr: url.searchParams.get("out") ?? "",
+      defaultChainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
+      defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
+    });
 
   const [session, pools, tokenIn, tokenOut, magicUsd] = await Promise.all([
     getSession(request.headers.get("Cookie")),
     fetchPools(),
-    tokenInAddress
-      ? fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: tokenInAddress })
-      : null,
-    tokenOutAddress
-      ? fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: tokenOutAddress })
+    fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
+    tokenAddressOut
+      ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
       : null,
     fetchMagicUsd(),
   ]);
@@ -127,7 +130,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
         ? fetchPoolTokenBalance(tokenIn, address)
         : undefined,
     address,
-    chainId: ENV.PUBLIC_CHAIN_ID,
     magicUsd,
   });
 }
@@ -151,7 +153,7 @@ export default function SwapPage() {
   const location = useLocation();
 
   const handleSelectToken = (direction: "in" | "out", token: Token) => {
-    searchParams.set(direction, token.address);
+    searchParams.set(direction, `${token.chainId}:${token.address}`);
     // adding state (can be anything here) on client side transition to indicate that a modal can pop-up
     setSearchParams(searchParams, {
       state: "true",
@@ -289,7 +291,6 @@ export default function SwapPage() {
       <div className="mt-3">
         <SwapTokenInput
           key={`${location.search}-in`}
-          chainId={loaderData.chainId}
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
@@ -341,7 +342,7 @@ export default function SwapPage() {
           }}
         />
         <Link
-          to={`/swap?in=${tokenOut?.address}&out=${tokenIn.address}`}
+          to={`/swap?in=${tokenOut?.chainId}:${tokenOut?.address}&out=${tokenIn.chainId}:${tokenIn.address}`}
           aria-disabled={!tokenOut?.address ? "true" : "false"}
           onClick={(e) => !tokenOut?.address && e.preventDefault()}
           className={cn(
@@ -353,7 +354,6 @@ export default function SwapPage() {
         </Link>
         <SwapTokenInput
           key={`${location.search}-out`}
-          chainId={loaderData.chainId}
           token={tokenOut}
           otherToken={tokenIn}
           isOut
@@ -459,9 +459,9 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              chainId={loaderData.chainId}
                               token={tokenIn}
                               className="h-6 w-6"
+                              showChainIcon
                             />
                             <span className="ml-2 font-medium text-honey-25">
                               {tokenIn.name}
@@ -522,9 +522,9 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              chainId={loaderData.chainId}
                               token={tokenOut}
                               className="h-6 w-6"
+                              showChainIcon
                             />
                             <span className="ml-2 font-medium text-honey-25">
                               {tokenOut?.name}
@@ -635,7 +635,6 @@ export default function SwapPage() {
 }
 
 const SwapTokenInput = ({
-  chainId,
   token,
   otherToken,
   isOut,
@@ -650,7 +649,6 @@ const SwapTokenInput = ({
   onSelectNfts,
   className,
 }: {
-  chainId: number;
   token: Optional<Token>;
   otherToken: Optional<Token>;
   isOut: boolean;
@@ -689,7 +687,6 @@ const SwapTokenInput = ({
                 (address) => !!address,
               ) as string[]
             }
-            chainId={chainId}
             isOut={isOut}
             onSelect={onSelect}
           />
@@ -697,9 +694,9 @@ const SwapTokenInput = ({
           <DialogTrigger asChild>
             <button type="button" className="flex items-center gap-4 text-left">
               <PoolTokenImage
-                chainId={chainId}
                 className="h-12 w-12"
                 token={token}
+                showChainIcon
               />
               <div className="flex-1">
                 <span className="flex items-center gap-1.5 font-medium text-honey-25 text-sm sm:text-lg">
@@ -1000,7 +997,6 @@ const SwapTokenInput = ({
           [otherToken?.address].filter((address) => !!address) as string[]
         }
         isOut={isOut}
-        chainId={chainId}
         onSelect={onSelect}
       />
       <DialogTrigger asChild>
@@ -1064,12 +1060,10 @@ const TotalDisplay = ({
 const TokenSelectDialog = ({
   disabledTokenIds = [],
   isOut,
-  chainId: defaultChainId,
   onSelect,
 }: {
   disabledTokenIds?: string[];
   isOut: boolean;
-  chainId: number;
   onSelect: (token: Token) => void;
 }) => {
   const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
@@ -1199,7 +1193,6 @@ const TokenSelectDialog = ({
                   .map((token) => (
                     <TokenView
                       key={token.address}
-                      chainId={defaultChainId}
                       disabled={disabledTokenIds.includes(token.address)}
                       onSelect={onSelect}
                       token={token}
@@ -1217,12 +1210,10 @@ const TokenSelectDialog = ({
 const TokenView = ({
   token,
   disabled,
-  chainId,
   onSelect,
 }: {
   token: Token;
   disabled: boolean;
-  chainId: number;
   onSelect: (token: Token) => void;
 }) => {
   const { address } = useAccount();
@@ -1236,7 +1227,7 @@ const TokenView = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <PoolTokenImage token={token} className="h-9 w-9" chainId={chainId} />
+          <PoolTokenImage token={token} className="h-9 w-9" showChainIcon />
           <div className="text-left text-sm">
             <span className="block font-semibold text-honey-25">
               {token.symbol}

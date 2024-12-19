@@ -17,9 +17,12 @@ import { formatTokenReserve } from "~/lib/tokens";
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
-  invariant(params.id, "Missing pool id");
+  invariant(params.address, "Pool address required");
 
-  const pool = await fetchPool(params.id);
+  const pool = await fetchPool({
+    chainId: Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID),
+    address: params.address,
+  });
   if (!pool) {
     return new Response(undefined, {
       status: 404,

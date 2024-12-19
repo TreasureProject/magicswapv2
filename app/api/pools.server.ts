@@ -138,9 +138,12 @@ export const fetchPools = async (): Promise<Pool[]> => {
   return result.data?.pairs.items.map((pair) => pairToPool(pair)) ?? [];
 };
 
-export const fetchPool = async (id: string): Promise<Pool | undefined> => {
+export const fetchPool = async (params: {
+  chainId: number;
+  address: string;
+}): Promise<Pool | undefined> => {
   const result = (await execute(GetPairDocument, {
-    id,
+    ...params,
     hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
       date_gte: getOneWeekAgoTimestamp(),

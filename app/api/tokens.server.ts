@@ -1,6 +1,10 @@
 import type { ExecutionResult } from "graphql";
 
-import { BLOCKED_TOKENS } from "~/consts";
+import {
+  BLOCKED_TOKENS,
+  CHAIN_ID_TO_TROVE_API_NETWORK,
+  CHAIN_ID_TO_TROVE_API_URL,
+} from "~/consts";
 import { sumArray } from "~/lib/array";
 import { ENV } from "~/lib/env.server";
 import type { Token, TokenWithAmount, TroveToken } from "~/types";
@@ -20,7 +24,7 @@ import {
 export const fetchTokens = async () => {
   const { data, errors } = (await execute(GetTokensDocument, {
     where: {
-      id_not_in: BLOCKED_TOKENS,
+      address_not_in: BLOCKED_TOKENS,
     },
   })) as ExecutionResult<GetTokensQuery>;
   if (errors) {
@@ -50,17 +54,27 @@ export const fetchToken = async (params: {
  * Fetches user's balance for NFT vault
  */
 export const fetchPoolTokenBalance = async (token: Token, address: string) => {
-  const url = new URL(`${ENV.TROVE_API_URL}/tokens-for-user`);
+  const url = new URL(
+    `${CHAIN_ID_TO_TROVE_API_URL[token.chainId]}/tokens-for-user`,
+  );
   url.searchParams.append("userAddress", address);
   url.searchParams.append("projection", "queryUserQuantityOwned");
 
   const tokenIds = token.collectionTokenIds ?? [];
   if (tokenIds.length > 0) {
-    url.searchParams.append("ids", tokenIds.join(","));
+    url.searchParams.append(
+      "ids",
+      tokenIds
+        .map(
+          (tokenId) =>
+            `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}/${tokenId}`,
+        )
+        .join(","),
+    );
   } else {
     url.searchParams.append(
       "slugs",
-      `${ENV.TROVE_API_NETWORK}/${token.collectionAddress}`,
+      `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}`,
     );
   }
 
@@ -93,17 +107,27 @@ export const fetchVaultUserInventory = async ({
   }
 
   // Fetch user inventory
-  const url = new URL(`${ENV.TROVE_API_URL}/tokens-for-user`);
+  const url = new URL(
+    `${CHAIN_ID_TO_TROVE_API_URL[token.chainId]}/tokens-for-user`,
+  );
   url.searchParams.append("userAddress", address);
 
   const tokenIds = token.collectionTokenIds ?? [];
   if (tokenIds.length > 0) {
-    url.searchParams.append("ids", tokenIds.join(","));
+    url.searchParams.append(
+      "ids",
+      tokenIds
+        .map(
+          (tokenId) =>
+            `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}/${tokenId}`,
+        )
+        .join(","),
+    );
   } else {
     // TODO: switch to single collection query
     url.searchParams.append(
       "slugs",
-      `${ENV.TROVE_API_NETWORK}/${token.collectionAddress}`,
+      `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}`,
     );
   }
 

@@ -115,10 +115,13 @@ export const meta: MetaFunction<
 };
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  invariant(params.id, "Pool ID required");
+  invariant(params.address, "Pool address required");
 
   const [pool, session, magicUsd] = await Promise.all([
-    fetchPool(params.id),
+    fetchPool({
+      chainId: Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID),
+      address: params.address,
+    }),
     getSession(request.headers.get("Cookie")),
     fetchMagicUsd(),
   ]);
@@ -150,13 +153,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       pool.token1.isVault && address
         ? fetchPoolTokenBalance(pool.token1, address)
         : undefined,
-    chainId: ENV.PUBLIC_CHAIN_ID,
     magicUsd,
   });
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1, chainId, magicUsd } =
+  const { pool, vaultItems0, vaultItems1, magicUsd } =
     useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address } = useAccount();
@@ -204,11 +206,7 @@ export default function PoolDetailsPage() {
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
             <div className="-space-x-2 flex items-center">
-              <PoolImage
-                chainId={chainId}
-                pool={pool}
-                className="h-auto w-14"
-              />
+              <PoolImage pool={pool} className="h-auto w-14" showChainIcon />
               <div className="flex flex-col text-2xl">
                 <a
                   href={`${blockExplorer.url}/address/${pool.address}`}
@@ -565,9 +563,9 @@ const PoolManagementView = ({
   className?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<string>("deposit");
-  const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
-    typeof loader
-  >;
+  const nftBalances = useRouteLoaderData(
+    "routes/pools_.($chainId).$address",
+  ) as SerializeFrom<typeof loader>;
 
   return (
     <div className={className}>
