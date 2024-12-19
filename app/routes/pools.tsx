@@ -156,7 +156,7 @@ export default function PoolsListPage() {
                 <span>{selectedChain.name}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end">
               {chains.map((chain) => (
                 <DropdownMenuItem key={chain.id}>
                   <Button
