@@ -4,6 +4,7 @@ import { ChainIcon } from "connectkit";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
+import type { Chain } from "viem";
 import { useChainId, useChains } from "wagmi";
 import { Button } from "~/components/ui/Button";
 import {
@@ -47,7 +48,7 @@ export default function PoolsListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const chainId = useChainId();
   const chains = useChains();
-  const [selectedChain, setSelectedChain] = useState(chains[0]);
+  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
 
   useDebounce(
     () => {
@@ -147,13 +148,19 @@ export default function PoolsListPage() {
                 variant="secondary"
                 className="space-x-1 border border-night-800 bg-transparent"
               >
-                <span>Network:</span>
-                <ChainIcon
-                  id={selectedChain.id}
-                  unsupported={false}
-                  size="15px"
-                />
-                <span>{selectedChain.name}</span>
+                {selectedChain ? (
+                  <>
+                    <span>Network:</span>
+                    <ChainIcon
+                      id={selectedChain.id}
+                      unsupported={false}
+                      size="15px"
+                    />
+                    <span>{selectedChain.name}</span>
+                  </>
+                ) : (
+                  <span>Network: All</span>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
