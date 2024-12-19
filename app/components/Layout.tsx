@@ -11,6 +11,7 @@ import {
   TWITTER_URL,
 } from "~/consts";
 import { cn } from "~/lib/utils";
+import { ChainSelector } from "./ChainSelector";
 import { ConnectButton } from "./ConnectButton";
 import { Footer } from "./Footer";
 import { DiscordIcon, TwitterIcon } from "./Icons";
@@ -132,6 +133,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            <ChainSelector />
             <ConnectButton />
           </div>
         </div>

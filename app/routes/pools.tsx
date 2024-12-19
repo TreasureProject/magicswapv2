@@ -1,9 +1,18 @@
 import type { MetaFunction } from "@remix-run/react";
 import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
+import { ChainIcon } from "connectkit";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
-import { useChainId } from "wagmi";
+import type { Chain } from "viem";
+import { useChainId, useChains } from "wagmi";
+import { Button } from "~/components/ui/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/Dropdown";
 
 import { Input } from "~/components/ui/Input";
 import { GAME_METADATA } from "~/consts";
@@ -38,6 +47,8 @@ export default function PoolsListPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const chainId = useChainId();
+  const chains = useChains();
+  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
 
   useDebounce(
     () => {
@@ -131,6 +142,43 @@ export default function PoolsListPage() {
                 </button>
               ) : null,
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="space-x-1 border border-night-800 bg-transparent"
+              >
+                {selectedChain ? (
+                  <>
+                    <span>Network:</span>
+                    <ChainIcon
+                      id={selectedChain.id}
+                      unsupported={false}
+                      size="15px"
+                    />
+                    <span>{selectedChain.name}</span>
+                  </>
+                ) : (
+                  <span>Network: All</span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {chains.map((chain) => (
+                <DropdownMenuItem key={chain.id}>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="space-x-2"
+                    onClick={() => setSelectedChain(chain)}
+                  >
+                    <ChainIcon id={chain.id} size="15px" unsupported={false} />
+                    <span>{chain.name}</span>
+                  </Button>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <Outlet />
       </div>
