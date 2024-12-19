@@ -1,6 +1,6 @@
 import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
-import type { Version } from ".graphclient";
+import type { version as Version } from ".graphclient";
 
 import type { AddressString } from "~/types";
 

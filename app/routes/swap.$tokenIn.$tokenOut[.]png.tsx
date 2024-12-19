@@ -19,8 +19,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   invariant(tokenOutAddress, "Missing output address");
 
   const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(tokenInAddress),
-    fetchToken(tokenOutAddress),
+    fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: tokenInAddress }),
+    fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: tokenOutAddress }),
   ]);
 
   const png = await generateOgImage(

@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 import { fetchPoolTransactions } from "~/api/pools.server";
-import type { TransactionType } from ".graphclient";
+import type { transactionType as TransactionType } from ".graphclient";
 
 const createErrorResponse = (error: string) =>
   json({ ok: false, error } as const);

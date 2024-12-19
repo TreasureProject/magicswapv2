@@ -2,7 +2,7 @@ import { useFetcher } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
 import type { FetchVaultItems } from "~/routes/resources.vaults.$id.items";
-import type { TroveToken } from "~/types";
+import type { TokenWithAmount } from "~/types";
 
 type Props = {
   id: string;
@@ -30,7 +30,7 @@ export const useVaultItems = ({
   const { load, state, data } = useFetcher<FetchVaultItems>();
   const [{ results, page, hasNextPage, isLoading, error }, setState] =
     useState<{
-      results: TroveToken[];
+      results: TokenWithAmount[];
       page: number;
       hasNextPage: boolean;
       isLoading: boolean;

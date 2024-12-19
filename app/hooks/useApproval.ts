@@ -1,10 +1,10 @@
-import type { AddressString, PoolToken } from "~/types";
+import type { AddressString, Token } from "~/types";
 import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
   operator: AddressString;
-  token: PoolToken | string;
+  token: Token | string;
   amount?: bigint;
   enabled?: boolean;
   onSuccess?: () => void;
@@ -17,7 +17,7 @@ export const useApproval = ({
   enabled,
   onSuccess,
 }: Props) => {
-  const isETH = typeof token !== "string" && !!token.isETH;
+  const isETH = typeof token !== "string" && !!token.isEth;
   const { isApproved, allowance, refetch } = useIsApproved({
     operator,
     token,

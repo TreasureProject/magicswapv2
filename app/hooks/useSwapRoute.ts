@@ -3,12 +3,11 @@ import { parseUnits } from "viem";
 import { multiplyArray, sumArray } from "~/lib/array";
 import { bigIntToNumber } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
-import type { Pool } from "~/lib/pools.server";
-import type { AddressString, NumberString, PoolToken } from "~/types";
+import type { AddressString, NumberString, Pool, Token } from "~/types";
 
 type Props = {
-  tokenIn: PoolToken;
-  tokenOut: PoolToken | null;
+  tokenIn: Token;
+  tokenOut: Token | null;
   pools: Pool[];
   amount: string;
   isExactOut: boolean;
@@ -41,23 +40,30 @@ export const useSwapRoute = ({
   ) ?? {};
 
   const poolLegs = legs
-    .map(({ poolAddress, tokenFrom, tokenTo }) => {
-      const pool = pools.find((pool) => pool.id === poolAddress);
+    .map((leg) => {
+      const pool = pools.find((pool) => pool.address === leg.poolAddress);
       if (!pool) {
         return undefined;
       }
 
+      const [tokenFrom, reserveFrom] =
+        pool.token0Address === leg.tokenFrom.address
+          ? [pool.token0, BigInt(pool.reserve0)]
+          : [pool.token1, BigInt(pool.reserve1)];
+      const [tokenTo, reserveTo] =
+        pool.token0Address === leg.tokenTo.address
+          ? [pool.token0, BigInt(pool.reserve0)]
+          : [pool.token1, BigInt(pool.reserve1)];
+
       return {
         ...pool,
-        tokenFrom:
-          pool.token0.id === tokenFrom.address ? pool.token0 : pool.token1,
-        tokenTo: pool.token0.id === tokenTo.address ? pool.token0 : pool.token1,
+        tokenFrom,
+        reserveFrom,
+        tokenTo,
+        reserveTo,
       };
     })
-    .filter((leg) => !!leg) as (Pool & {
-    tokenFrom: PoolToken;
-    tokenTo: PoolToken;
-  })[];
+    .filter((leg) => !!leg);
 
   const isValid =
     poolLegs.length > 0 &&
@@ -71,15 +77,15 @@ export const useSwapRoute = ({
     tokenOut: poolLegs[poolLegs.length - 1]?.tokenTo ?? tokenOut ?? undefined,
     path: poolLegs.flatMap(({ tokenFrom, tokenTo }, i) =>
       i === poolLegs.length - 1
-        ? [tokenFrom.id as AddressString, tokenTo.id as AddressString]
-        : (tokenFrom.id as AddressString),
+        ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
+        : (tokenFrom.address as AddressString),
     ),
     priceImpact,
     derivedValue: multiplyArray(
       poolLegs.map(
-        ({ tokenFrom, tokenTo }) =>
-          bigIntToNumber(BigInt(tokenFrom.reserve), tokenFrom.decimals) /
-          bigIntToNumber(BigInt(tokenTo.reserve), tokenTo.decimals),
+        ({ tokenFrom, reserveFrom, tokenTo, reserveTo }) =>
+          bigIntToNumber(reserveFrom, tokenFrom.decimals) /
+          bigIntToNumber(reserveTo, tokenTo.decimals),
       ),
     ),
     lpFee: sumArray(poolLegs.map(({ lpFee }) => Number(lpFee))),

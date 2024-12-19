@@ -4,7 +4,7 @@ import { getCachedValue } from "~/lib/cache.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
 import type { AccountDomains } from "~/types";
-import { createPoolsFromPairs } from "./pools.server";
+import { pairToPool } from "./pools.server";
 import {
   GetUserPositionsDocument,
   type GetUserPositionsQuery,
@@ -33,24 +33,13 @@ export const fetchUserPositions = async (address: string | undefined) => {
   }
 
   const { user } = result.data;
-  const pools = await createPoolsFromPairs(
-    user.liquidityPositions.map(({ pair }) => pair),
-  );
-  const poolsMapping = pools.reduce(
-    (acc, pool) => {
-      acc[pool.id] = pool;
-      return acc;
-    },
-    {} as Record<string, (typeof pools)[0]>,
-  );
-
   return {
     total: Number(user.liquidityPositionCount),
-    positions: user.liquidityPositions.map(({ balance, pair }) => ({
-      balance,
-      // biome-ignore lint/style/noNonNullAssertion: poolsMapping is created with keys from pairs directly above
-      pool: poolsMapping[pair.id]!,
-    })),
+    positions:
+      user.liquidityPositions?.items.map(({ pair, ...liquidityPosition }) => ({
+        ...liquidityPosition,
+        pool: pairToPool(pair!),
+      })) ?? [],
   };
 };
 

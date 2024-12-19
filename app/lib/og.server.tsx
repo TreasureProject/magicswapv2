@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
-import type { PoolToken } from "~/types";
+import type { Token } from "~/types";
 
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
@@ -23,24 +23,26 @@ export const TokenDisplay = ({
   token1,
   origin,
 }: {
-  token0?: PoolToken | null;
-  token1?: PoolToken | null;
+  token0?: Token | null;
+  token1?: Token | null;
   origin: string;
 }) => (
   <div tw="flex items-center">
-    <img
-      src={token0?.isNFT ? token0?.image : `${origin}${token0?.image}`}
-      height={132}
-      width={132}
-      tw={token0?.isNFT ? "rounded-lg" : "rounded-full"}
-      alt="banner"
-    />
+    {token0?.image ? (
+      <img
+        src={token0.isVault ? token0.image : `${origin}${token0.image}`}
+        height={132}
+        width={132}
+        tw={token0.isVault ? "rounded-lg" : "rounded-full"}
+        alt="banner"
+      />
+    ) : null}
     <div
       tw={`${
-        token1?.isNFT ? "rounded-xl" : "rounded-full"
+        token1?.isVault ? "rounded-xl" : "rounded-full"
       } flex items-center justify-center -ml-10 relative`}
       style={{
-        ...(token1?.isNFT
+        ...(token1?.isVault
           ? {
               width: 128,
               height: 128,
@@ -52,13 +54,15 @@ export const TokenDisplay = ({
         backgroundColor: "rgba(16, 24, 39, 1)",
       }}
     >
-      <img
-        src={token1?.isNFT ? token1?.image : `${origin}${token1?.image}`}
-        height={token1?.isNFT ? 116 : 124}
-        width={token1?.isNFT ? 116 : 124}
-        tw={token1?.isNFT ? "rounded-lg" : "rounded-full"}
-        alt="banner"
-      />
+      {token1?.image ? (
+        <img
+          src={token1.isVault ? token1.image : `${origin}${token1.image}`}
+          height={token1.isVault ? 116 : 124}
+          width={token1.isVault ? 116 : 124}
+          tw={token1.isVault ? "rounded-lg" : "rounded-full"}
+          alt="banner"
+        />
+      ) : null}
     </div>
   </div>
 );

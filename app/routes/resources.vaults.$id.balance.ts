@@ -3,7 +3,8 @@ import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 
 import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
-import type { PoolToken } from "~/types";
+import { ENV } from "~/lib/env.server";
+import type { Token } from "~/types";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { id } = params;
@@ -16,9 +17,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const createErrorResponse = (error: string) =>
     json({ ok: false, error } as const);
 
-  let token: PoolToken | null;
+  let token: Token | undefined;
   try {
-    token = await fetchToken(id);
+    token = await fetchToken({ chainId: ENV.PUBLIC_CHAIN_ID, address: id });
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }
@@ -27,7 +28,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     return createErrorResponse("Token not found");
   }
 
-  if (!token.isNFT) {
+  if (!token.isVault) {
     return createErrorResponse("Token must be an NFT vault");
   }
 

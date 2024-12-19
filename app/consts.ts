@@ -166,10 +166,6 @@ export const GAME_METADATA: Record<
   },
 };
 
-export const BLOCKED_PAIRS = [
-  "0xf904469497e6a179a9d47a7b468e4be42ec56e65", // MAGIC-ELM v1
-];
-
 export const BLOCKED_TOKENS = [
   "0x45d55eadf0ed5495b369e040af0717eafae3b731", // ELM v1
 ];

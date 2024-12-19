@@ -1,17 +1,22 @@
 import type { HTMLAttributes } from "react";
 
-import type { Pool } from "~/lib/pools.server";
 import { cn } from "~/lib/utils";
-import { PoolTokenImage } from "./PoolTokenImage";
+import {
+  PoolTokenImage,
+  type Token as PoolTokenImageToken,
+} from "./PoolTokenImage";
 
 type Props = HTMLAttributes<HTMLDivElement> & {
-  pool: Pool;
   chainId?: number;
+  pool: {
+    token0: PoolTokenImageToken;
+    token1: PoolTokenImageToken;
+  };
 };
 
 export const PoolImage = ({ pool, chainId, className, ...divProps }: Props) => {
   const isToken1Base =
-    (pool.token0.isNFT && !pool.token1.isNFT) || pool.token1.isMAGIC;
+    (pool.token0.isVault && !pool.token1.isVault) || pool.token1.isMagic;
   return (
     <div className="flex items-center">
       <PoolTokenImage

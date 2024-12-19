@@ -42,7 +42,7 @@ export function loader({ request }: LoaderFunctionArgs) {
       : {};
 
     return pools.filter(
-      ({ name, token0, token1, collections }) =>
+      ({ name, token0, token1 }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -50,16 +50,16 @@ export function loader({ request }: LoaderFunctionArgs) {
           token1.symbol.toLowerCase().includes(search) ||
           token0.name.toLowerCase().includes(search) ||
           token1.name.toLowerCase().includes(search) ||
-          collections.some((collection) =>
-            collection.name.toLowerCase().includes(search),
-          )) &&
+          token0.collectionName?.toLowerCase().includes(search) ||
+          token1.collectionName?.toLowerCase().includes(search)) &&
         // Filter by selected game
         (!game ||
-          !!gameTokenIdsMap[token0.id] ||
-          !!gameTokenIdsMap[token1.id] ||
-          collections.some(
-            (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
-          )),
+          !!gameTokenIdsMap[token0.address] ||
+          !!gameTokenIdsMap[token1.address] ||
+          (token0.collectionAddress &&
+            gameCollectionIdsMap[token0.collectionAddress]) ||
+          (token1.collectionAddress &&
+            gameCollectionIdsMap[token1.collectionAddress])),
     );
   };
 
@@ -148,13 +148,13 @@ export default function PoolsListPage() {
               pools.map((pool) => (
                 // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                 <tr
-                  key={pool.id}
+                  key={pool.address}
                   className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
-                  onClick={() => navigate(`/pools/${pool.id}`)}
+                  onClick={() => navigate(`/pools/${pool.address}`)}
                 >
                   <td className="px-4 py-3.5 text-left font-medium text-white sm:px-5">
                     <Link
-                      to={`/pools/${pool.id}`}
+                      to={`/pools/${pool.address}`}
                       prefetch="intent"
                       className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
