@@ -30,7 +30,7 @@ export const SwapRoutePanel = ({
   amountOutMin,
   className,
 }: Props) => {
-  const isNFTNFT = tokenIn.isNFT && !!tokenOut?.isNFT;
+  const isVaultVault = tokenIn.isVault && !!tokenOut?.isVault;
   return (
     <div
       className={cn(
@@ -72,7 +72,7 @@ export const SwapRoutePanel = ({
               <span>{formatPercent(protocolFee, 3)}</span>
             </li>
           )}
-          {isNFTNFT ? (
+          {isVaultVault ? (
             <li className="flex items-center justify-between">
               <span className="flex items-center gap-1">
                 NFT dust sent to pool

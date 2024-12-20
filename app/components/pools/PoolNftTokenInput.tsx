@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { formatAmount } from "~/lib/currency";
 import { formatNumber } from "~/lib/number";
 import { cn } from "~/lib/utils";
-import type { PoolToken, TroveTokenWithQuantity } from "~/types";
+import type { Token, TokenWithAmount } from "~/types";
 import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
@@ -18,12 +18,12 @@ export const PoolNftTokenInput = ({
   selectedNfts,
   onOpenSelect,
 }: {
-  token: PoolToken;
+  token: Token;
   amount?: number;
   balance?: Promise<number> | null;
   reserve?: bigint;
-  selectedNfts: TroveTokenWithQuantity[];
-  onOpenSelect?: (token: PoolToken) => void;
+  selectedNfts: TokenWithAmount[];
+  onOpenSelect?: (token: Token) => void;
 }) => {
   const isVault = typeof reserve !== "undefined";
   return (
@@ -40,12 +40,13 @@ export const PoolNftTokenInput = ({
             <p className="truncate font-medium text-sm sm:text-xl">
               {token.symbol}
             </p>
-            {token.name.toUpperCase() !==
-              token.collections[0]?.name.toUpperCase() && (
-              <p className="text-night-400 text-xs sm:text-sm">
-                {token.collections[0]?.name}
-              </p>
-            )}
+            {token.collectionName &&
+              token.name.toUpperCase() !==
+                token.collectionName?.toUpperCase() && (
+                <p className="text-night-400 text-xs sm:text-sm">
+                  {token.collectionName}
+                </p>
+              )}
           </div>
           {selectedNfts.length > 0 ? (
             <div className="flex grow flex-wrap items-center justify-end space-x-2">
@@ -58,7 +59,7 @@ export const PoolNftTokenInput = ({
               ) : null}
               <ul
                 className={cn("flex items-center", {
-                  "-space-x-5": token.type === "ERC721",
+                  "-space-x-5": token.collectionType === "ERC721",
                 })}
               >
                 {selectedNfts
@@ -66,14 +67,16 @@ export const PoolNftTokenInput = ({
                   .map((nft) => {
                     return (
                       <li key={nft.tokenId} className="text-center">
-                        <img
-                          className="h-10 w-10 rounded border-2 border-night-1100 sm:h-12 sm:w-12"
-                          src={nft.image.uri}
-                          alt={nft.metadata.name}
-                        />
-                        {token.type === "ERC1155" ? (
+                        {nft.image ? (
+                          <img
+                            className="h-10 w-10 rounded border-2 border-night-1100 sm:h-12 sm:w-12"
+                            src={nft.image}
+                            alt={nft.name}
+                          />
+                        ) : null}
+                        {token.collectionType === "ERC1155" ? (
                           <p className="text-night-600 text-xs">
-                            {nft.quantity}x
+                            {nft.amount}x
                           </p>
                         ) : null}
                       </li>

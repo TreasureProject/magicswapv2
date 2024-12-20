@@ -15,7 +15,6 @@ import {
   GlobeIcon as AllIcon,
   ArrowDownIcon,
   ChevronDownIcon,
-  ExternalLink,
   LayersIcon,
   SearchIcon,
 } from "lucide-react";
@@ -26,10 +25,11 @@ import { formatUnits } from "viem";
 import { useChainId } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
+import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
   fetchToken,
-  fetchTokensWithMetadata,
+  fetchTokens,
 } from "~/api/tokens.server";
 import { CurrencyInput } from "~/components/CurrencyInput";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
@@ -59,22 +59,16 @@ import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
-import { useTrove } from "~/hooks/useTrove";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
-import { countTokens } from "~/lib/tokens";
+import { countTokens, parseTokenParams } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type {
-  AddressString,
-  Optional,
-  PoolToken,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { AddressString, Optional, Token, TokenWithAmount } from "~/types";
 
 export const meta: MetaFunction<
   typeof loader,
@@ -93,22 +87,30 @@ export const meta: MetaFunction<
         : "Swap",
     ),
     image: data?.tokenOut
-      ? `${url}/${data?.tokenIn.id}/${data?.tokenOut.id}.png`
+      ? `${url}/${data?.tokenIn.address}/${data?.tokenOut.address}.png`
       : generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
-  const tokenInAddress =
-    url.searchParams.get("in") ?? ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS;
-  const tokenOutAddress = url.searchParams.get("out");
 
-  const [session, pools, tokenIn, tokenOut] = await Promise.all([
+  const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
+    parseTokenParams({
+      inStr: url.searchParams.get("in") ?? "",
+      outStr: url.searchParams.get("out") ?? "",
+      defaultChainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
+      defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
+    });
+
+  const [session, pools, tokenIn, tokenOut, magicUsd] = await Promise.all([
     getSession(request.headers.get("Cookie")),
     fetchPools(),
-    tokenInAddress ? fetchToken(tokenInAddress) : null,
-    tokenOutAddress ? fetchToken(tokenOutAddress) : null,
+    fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
+    tokenAddressOut
+      ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
+      : undefined,
+    fetchMagicUsd(),
   ]);
 
   if (!tokenIn) {
@@ -120,27 +122,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   return defer({
     pools,
-    tokens: fetchTokensWithMetadata(),
+    tokens: fetchTokens(),
     tokenIn,
     tokenOut,
     tokenInNFTBalance:
-      address && tokenIn.isNFT
+      address && tokenIn.isVault
         ? fetchPoolTokenBalance(tokenIn, address)
         : undefined,
     address,
-    chainId: ENV.PUBLIC_CHAIN_ID,
+    magicUsd,
   });
 }
 
 const DEFAULT_STATE = {
   amount: "0",
-  nftsIn: [] as TroveTokenWithQuantity[],
-  nftsOut: [] as TroveTokenWithQuantity[],
+  nftsIn: [] as TokenWithAmount[],
+  nftsOut: [] as TokenWithAmount[],
   isExactOut: false,
 };
 
 export default function SwapPage() {
-  const loaderData = useLoaderData<typeof loader>();
+  const { pools, tokenIn, tokenOut, magicUsd } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -150,8 +152,8 @@ export default function SwapPage() {
   const [priceImpactOptIn, setPriceImpactOptIn] = useState(false);
   const location = useLocation();
 
-  const handleSelectToken = (direction: "in" | "out", token: PoolToken) => {
-    searchParams.set(direction, token.id);
+  const handleSelectToken = (direction: "in" | "out", token: Token) => {
+    searchParams.set(direction, `${token.chainId}:${token.address}`);
     // adding state (can be anything here) on client side transition to indicate that a modal can pop-up
     setSearchParams(searchParams, {
       state: "true",
@@ -159,7 +161,9 @@ export default function SwapPage() {
   };
 
   const swapRoute = useSwapRoute({
-    ...loaderData,
+    pools,
+    tokenIn,
+    tokenOut,
     amount,
     isExactOut,
   });
@@ -170,10 +174,10 @@ export default function SwapPage() {
   const {
     isValid: isValidSwapRoute,
     version = "V2",
+    reserveIn,
+    reserveOut,
     amountIn,
     amountOut,
-    tokenIn,
-    tokenOut,
     path,
     priceImpact,
   } = swapRoute;
@@ -188,24 +192,24 @@ export default function SwapPage() {
   const hasAmounts =
     amountIn > 0 &&
     amountOut > 0 &&
-    (!tokenIn.isNFT || requiredNftsIn === amountNFTsIn) &&
-    (!tokenOut?.isNFT || requiredNftsOut === amountNFTsOut);
+    (!tokenIn.isVault || requiredNftsIn === amountNFTsIn) &&
+    (!tokenOut?.isVault || requiredNftsOut === amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } =
     useTokenBalance({
-      id: tokenIn.id as AddressString,
+      id: tokenIn.address as AddressString,
       address,
-      isETH: tokenIn.isETH,
-      enabled: !tokenIn.isNFT,
+      isETH: tokenIn.isEth,
+      enabled: !tokenIn.isVault,
     });
 
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
     useTokenBalance({
-      id: tokenOut?.id as AddressString,
+      id: tokenOut?.address as AddressString,
       address,
-      isETH: tokenOut?.isETH,
-      enabled: !tokenOut?.isNFT,
+      isETH: tokenOut?.isEth,
+      enabled: !tokenOut?.isVault,
     });
 
   const refetch = useCallback(() => {
@@ -248,7 +252,7 @@ export default function SwapPage() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: tokenIn is not memoized
   useEffect(() => {
-    if (tokenIn.isNFT) {
+    if (tokenIn.isVault) {
       setTrade(DEFAULT_STATE);
     } else {
       setTrade((trade) => ({
@@ -256,11 +260,11 @@ export default function SwapPage() {
         nftsOut: [],
       }));
     }
-  }, [tokenIn.id]);
+  }, [tokenIn.address]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: tokenOut is not memoized
   useEffect(() => {
-    if (tokenOut?.isNFT) {
+    if (tokenOut?.isVault) {
       setTrade(DEFAULT_STATE);
     } else {
       setTrade((trade) => ({
@@ -268,7 +272,7 @@ export default function SwapPage() {
         nftsOut: [],
       }));
     }
-  }, [tokenOut?.id]);
+  }, [tokenOut?.address]);
 
   const formattedTokenInAmount = formatAmount(amountIn, {
     decimals: tokenIn.decimals,
@@ -289,18 +293,19 @@ export default function SwapPage() {
       <div className="mt-3">
         <SwapTokenInput
           key={`${location.search}-in`}
-          chainId={loaderData.chainId}
           token={tokenIn}
           otherToken={tokenOut}
           isOut={false}
           balance={tokenInBalance}
           amount={
             isExactOut
-              ? tokenIn.isNFT
+              ? tokenIn.isVault
                 ? requiredNftsIn.toString()
                 : formattedTokenInAmount
               : amount
           }
+          tokenReserve={reserveIn}
+          tokenPriceUsd={Number(tokenIn.derivedMagic) * magicUsd}
           selectedNfts={nftsIn}
           requiredNftSelectionAmount={
             isExactOut && amountNFTsOut > 0 ? requiredNftsIn : undefined
@@ -339,19 +344,18 @@ export default function SwapPage() {
           }}
         />
         <Link
-          to={`/swap?in=${tokenOut?.id}&out=${tokenIn.id}`}
-          aria-disabled={!tokenOut?.id ? "true" : "false"}
-          onClick={(e) => !tokenOut?.id && e.preventDefault()}
+          to={`/swap?in=${tokenOut?.chainId}:${tokenOut?.address}&out=${tokenIn.chainId}:${tokenIn.address}`}
+          aria-disabled={!tokenOut?.address ? "true" : "false"}
+          onClick={(e) => !tokenOut?.address && e.preventDefault()}
           className={cn(
             "-my-2 relative z-10 mx-auto flex h-8 w-8 items-center justify-center rounded border-4 border-night-1200 bg-night-1100 text-honey-25",
-            !tokenOut?.id ? "cursor-not-allowed text-night-800" : "group",
+            !tokenOut?.address ? "cursor-not-allowed text-night-800" : "group",
           )}
         >
           <ArrowDownIcon className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
         </Link>
         <SwapTokenInput
           key={`${location.search}-out`}
-          chainId={loaderData.chainId}
           token={tokenOut}
           otherToken={tokenIn}
           isOut
@@ -359,10 +363,12 @@ export default function SwapPage() {
           amount={
             isExactOut
               ? amount
-              : tokenOut?.isNFT
+              : tokenOut?.isVault
                 ? requiredNftsOut.toString()
                 : formattedTokenOutAmount
           }
+          tokenReserve={reserveOut}
+          tokenPriceUsd={Number(tokenOut?.derivedMagic ?? 0) * magicUsd}
           selectedNfts={nftsOut}
           requiredNftSelectionAmount={
             !isExactOut && amountNFTsIn > 0 ? requiredNftsOut : undefined
@@ -455,21 +461,22 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              chainId={loaderData.chainId}
                               token={tokenIn}
                               className="h-6 w-6"
+                              showChainIcon
                             />
                             <span className="ml-2 font-medium text-honey-25">
                               {tokenIn.name}
                             </span>
                           </div>
                           <div className="p-4">
-                            {tokenIn.isNFT ? (
+                            {tokenIn.isVault ? (
                               nftsIn.length > 0 ? (
                                 <div className="flex items-center space-x-2">
                                   <div
                                     className={cn("flex", {
-                                      "-space-x-5": tokenIn.type === "ERC721",
+                                      "-space-x-5":
+                                        tokenIn.collectionType === "ERC721",
                                     })}
                                   >
                                     {nftsIn
@@ -480,14 +487,17 @@ export default function SwapPage() {
                                             key={nft.tokenId}
                                             className="flex flex-col items-center"
                                           >
-                                            <img
-                                              className="h-12 w-12 rounded border-2 border-night-1100"
-                                              src={nft.image.uri}
-                                              alt={nft.metadata.name}
-                                            />
-                                            {tokenIn.type === "ERC1155" ? (
+                                            {nft.image ? (
+                                              <img
+                                                className="h-12 w-12 rounded border-2 border-night-1100"
+                                                src={nft.image}
+                                                alt={nft.name}
+                                              />
+                                            ) : null}
+                                            {tokenIn.collectionType ===
+                                            "ERC1155" ? (
                                               <p className="text-night-600 text-xs">
-                                                {nft.quantity}x
+                                                {nft.amount}x
                                               </p>
                                             ) : null}
                                           </div>
@@ -514,21 +524,22 @@ export default function SwapPage() {
                         <div className="overflow-hidden rounded-lg bg-night-1100">
                           <div className="flex items-center bg-night-900 px-3.5 py-2.5">
                             <PoolTokenImage
-                              chainId={loaderData.chainId}
                               token={tokenOut}
                               className="h-6 w-6"
+                              showChainIcon
                             />
                             <span className="ml-2 font-medium text-honey-25">
                               {tokenOut?.name}
                             </span>
                           </div>
                           <div className="p-4">
-                            {tokenOut?.isNFT ? (
+                            {tokenOut?.isVault ? (
                               nftsOut.length > 0 ? (
                                 <div className="flex items-center space-x-2">
                                   <div
                                     className={cn("flex", {
-                                      "-space-x-5": tokenOut?.type === "ERC721",
+                                      "-space-x-5":
+                                        tokenOut?.collectionType === "ERC721",
                                     })}
                                   >
                                     {nftsOut
@@ -539,14 +550,17 @@ export default function SwapPage() {
                                             key={nft.tokenId}
                                             className="flex flex-col items-center"
                                           >
-                                            <img
-                                              className="h-12 w-12 rounded border-2 border-night-1100"
-                                              src={nft.image.uri}
-                                              alt={nft.metadata.name}
-                                            />
-                                            {tokenOut?.type === "ERC1155" ? (
+                                            {nft.image ? (
+                                              <img
+                                                className="h-12 w-12 rounded border-2 border-night-1100"
+                                                src={nft.image}
+                                                alt={nft.name}
+                                              />
+                                            ) : null}
+                                            {tokenOut?.collectionType ===
+                                            "ERC1155" ? (
                                               <p className="text-night-600 text-xs">
-                                                {nft.quantity}x
+                                                {nft.amount}x
                                               </p>
                                             ) : null}
                                           </div>
@@ -572,10 +586,12 @@ export default function SwapPage() {
                           swapRoute={swapRoute}
                           isExactOut={isExactOut}
                           amountInMax={
-                            tokenIn.isNFT ? floorBigInt(amountIn) : amountInMax
+                            tokenIn.isVault
+                              ? floorBigInt(amountIn)
+                              : amountInMax
                           }
                           amountOutMin={
-                            tokenOut?.isNFT
+                            tokenOut?.isVault
                               ? floorBigInt(amountOut)
                               : amountOutMin
                           }
@@ -626,35 +642,36 @@ const SwapTokenInput = ({
   isOut,
   balance = 0n,
   amount,
+  tokenReserve,
+  tokenPriceUsd,
   selectedNfts,
   requiredNftSelectionAmount,
-  chainId,
   onSelect,
   onUpdateAmount,
   onSelectNfts,
   className,
 }: {
-  token: Optional<PoolToken>;
-  otherToken: Optional<PoolToken>;
+  token: Optional<Token>;
+  otherToken: Optional<Token>;
   isOut: boolean;
   balance?: bigint;
   amount: string;
-  selectedNfts: TroveTokenWithQuantity[];
-  chainId: number;
+  tokenReserve: bigint;
+  tokenPriceUsd: number;
+  selectedNfts: TokenWithAmount[];
   requiredNftSelectionAmount?: number;
-  onSelect: (token: PoolToken) => void;
+  onSelect: (token: Token) => void;
   onUpdateAmount: (amount: string) => void;
-  onSelectNfts: (tokens: TroveTokenWithQuantity[]) => void;
+  onSelectNfts: (tokens: TokenWithAmount[]) => void;
   className?: string;
 }) => {
   const parsedAmount = Number(amount);
   const amountPriceUSD =
-    (token?.priceUSD ?? 0) *
+    tokenPriceUsd *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
   const { tokenInNFTBalance } = useLoaderData<typeof loader>();
   const [collapsed, setCollapsed] = useState(true);
   const [ref, bounds] = useMeasure();
-  const { createTokenUrl } = useTrove();
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
 
   const buttonText =
@@ -668,9 +685,10 @@ const SwapTokenInput = ({
         <Dialog>
           <TokenSelectDialog
             disabledTokenIds={
-              [token.id, otherToken?.id].filter((id) => !!id) as string[]
+              [token.address, otherToken?.address].filter(
+                (address) => !!address,
+              ) as string[]
             }
-            chainId={chainId}
             isOut={isOut}
             onSelect={onSelect}
           />
@@ -678,22 +696,23 @@ const SwapTokenInput = ({
           <DialogTrigger asChild>
             <button type="button" className="flex items-center gap-4 text-left">
               <PoolTokenImage
-                chainId={chainId}
                 className="h-12 w-12"
                 token={token}
+                showChainIcon
               />
               <div className="flex-1">
                 <span className="flex items-center gap-1.5 font-medium text-honey-25 text-sm sm:text-lg">
                   {token.symbol} <ChevronDownIcon className="h-3 w-3" />
                 </span>
-                {token.isNFT ? (
+                {token.isVault ? (
                   <>
-                    {token.name.toUpperCase() !==
-                      token.collections[0]?.name.toUpperCase() && (
-                      <p className="text-night-400 text-xs sm:text-sm">
-                        {token.collections[0]?.name}
-                      </p>
-                    )}
+                    {token.collectionName &&
+                      token.name.toUpperCase() !==
+                        token.collectionName.toUpperCase() && (
+                        <p className="text-night-400 text-xs sm:text-sm">
+                          {token.collectionName}
+                        </p>
+                      )}
                   </>
                 ) : (
                   <>
@@ -709,7 +728,7 @@ const SwapTokenInput = ({
           </DialogTrigger>
         </Dialog>
         <div className="space-y-1 text-right">
-          {token.isNFT ? (
+          {token.isVault ? (
             selectedNfts.length > 0 ? (
               <div className="flex items-center space-x-2">
                 {selectedNfts.length > 5 ? (
@@ -721,7 +740,7 @@ const SwapTokenInput = ({
                 ) : null}
                 <div
                   className={cn("flex", {
-                    "-space-x-5": token.type === "ERC721",
+                    "-space-x-5": token.collectionType === "ERC721",
                   })}
                 >
                   {selectedNfts
@@ -732,14 +751,16 @@ const SwapTokenInput = ({
                           key={nft.tokenId}
                           className="flex flex-col items-center"
                         >
-                          <img
-                            className="h-12 w-12 rounded border-2 border-night-1100"
-                            src={nft.image.uri}
-                            alt={nft.metadata.name}
-                          />
-                          {token.type === "ERC1155" ? (
+                          {nft.image ? (
+                            <img
+                              className="h-12 w-12 rounded border-2 border-night-1100"
+                              src={nft.image}
+                              alt={nft.name}
+                            />
+                          ) : null}
+                          {token.collectionType === "ERC1155" ? (
                             <p className="text-night-600 text-xs">
-                              {nft.quantity}x
+                              {nft.amount}x
                             </p>
                           ) : null}
                         </div>
@@ -806,7 +827,7 @@ const SwapTokenInput = ({
                   <CurrencyInput
                     value={amount}
                     onChange={onUpdateAmount}
-                    disabled={!!otherToken?.isNFT}
+                    disabled={!!otherToken?.isVault}
                   />
                   {amountPriceUSD > 0 ? (
                     <span className="block text-night-400 text-sm">
@@ -852,44 +873,28 @@ const SwapTokenInput = ({
                         className="flex flex-col overflow-hidden rounded-lg bg-night-900"
                       >
                         <div className="relative">
-                          <img
-                            src={nft.image.uri}
-                            alt={nft.tokenId}
-                            className="w-full"
-                          />
-                          {token.type === "ERC1155" ? (
+                          {nft.image ? (
+                            <img
+                              src={nft.image}
+                              alt={nft.tokenId}
+                              className="w-full"
+                            />
+                          ) : null}
+                          {token.collectionType === "ERC1155" ? (
                             <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-                              {nft.quantity}x
+                              {nft.amount}x
                             </span>
                           ) : null}
                         </div>
                         <div className="flex items-start justify-between gap-2 p-2.5">
                           <div className="min-w-0 text-left">
                             <p className="truncate font-medium text-honey-25 text-xs">
-                              {nft.metadata.name}
+                              {nft.name}
                             </p>
                             <p className="truncate text-[0.6rem] text-night-400">
                               #{nft.tokenId}
                             </p>
                           </div>
-                          <a
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={`View ${nft.metadata.name} in the marketplace`}
-                            className="text-night-400 transition-colors hover:text-night-100"
-                            href={createTokenUrl(
-                              nft.collectionUrlSlug,
-                              nft.tokenId,
-                            )}
-                          >
-                            <ExternalLink
-                              className="h-3.5 w-auto"
-                              aria-hidden="true"
-                            />
-                            <span className="sr-only">
-                              View {nft.metadata.name} in the marketplace
-                            </span>
-                          </a>
                         </div>
                       </div>
                     );
@@ -904,17 +909,17 @@ const SwapTokenInput = ({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
             <span className="text-night-400 sm:text-sm">
-              {token.isNFT && isOut
+              {token.isVault && isOut
                 ? "Vault"
-                : token.isNFT
+                : token.isVault
                   ? "Inventory"
                   : "Balance"}
               :
             </span>
-            {token.isNFT ? (
+            {token.isVault ? (
               <>
                 {isOut ? (
-                  formatAmount(BigInt(token.reserve), {
+                  formatAmount(tokenReserve, {
                     decimals: token.decimals,
                   })
                 ) : (
@@ -937,13 +942,13 @@ const SwapTokenInput = ({
               </VisibleOnClient>
             )}
           </div>
-          {!token?.isNFT && otherToken?.isNFT ? (
+          {!token?.isVault && otherToken?.isVault ? (
             <InfoPopover>
               Input is disabled because the amount will be auto-calculated based
               on the selected NFTs.
             </InfoPopover>
           ) : null}
-          {!token?.isNFT && !otherToken?.isNFT && !isOut ? (
+          {!token?.isVault && !otherToken?.isVault && !isOut ? (
             <Button
               size="xs"
               variant="secondary"
@@ -990,9 +995,10 @@ const SwapTokenInput = ({
   ) : (
     <Dialog>
       <TokenSelectDialog
-        disabledTokenIds={[otherToken?.id].filter((id) => !!id) as string[]}
+        disabledTokenIds={
+          [otherToken?.address].filter((address) => !!address) as string[]
+        }
         isOut={isOut}
-        chainId={chainId}
         onSelect={onSelect}
       />
       <DialogTrigger asChild>
@@ -1020,9 +1026,11 @@ const TotalDisplay = ({
   amount: string;
   isExactOut: boolean;
 }) => {
-  const loaderData = useLoaderData<typeof loader>();
-  const { amountIn, amountOut, tokenIn, tokenOut } = useSwapRoute({
-    ...loaderData,
+  const { pools, tokenIn, tokenOut } = useLoaderData<typeof loader>();
+  const { amountIn, amountOut } = useSwapRoute({
+    pools,
+    tokenIn,
+    tokenOut,
     amount,
     isExactOut,
   });
@@ -1056,13 +1064,11 @@ const TotalDisplay = ({
 const TokenSelectDialog = ({
   disabledTokenIds = [],
   isOut,
-  chainId: defaultChainId,
   onSelect,
 }: {
   disabledTokenIds?: string[];
   isOut: boolean;
-  chainId: number;
-  onSelect: (token: PoolToken) => void;
+  onSelect: (token: Token) => void;
 }) => {
   const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
   const [search, setSearch] = useState("");
@@ -1164,32 +1170,34 @@ const TokenSelectDialog = ({
               <ul className="h-80 overflow-auto border-night-900 border-t pt-4">
                 {tokens
                   .filter(
-                    ({ id, symbol, name, collections, isNFT }) =>
+                    ({
+                      address,
+                      symbol,
+                      name,
+                      collectionAddress,
+                      collectionName,
+                      isVault,
+                    }) =>
                       // Filter by search query
                       (!search ||
                         symbol.toLowerCase().includes(search.toLowerCase()) ||
                         name.toLowerCase().includes(search.toLowerCase()) ||
-                        collections.some((collection) =>
-                          collection.name
-                            .toLowerCase()
-                            .includes(search.toLowerCase()),
-                        )) &&
+                        collectionName
+                          ?.toLowerCase()
+                          .includes(search.toLowerCase())) &&
                       // Filter by selected game
                       (!game ||
-                        !!gameTokenIdsMap[id] ||
-                        collections.some(
-                          (collection) =>
-                            gameCollectionIdsMap[collection.id.toLowerCase()],
-                        )) &&
+                        !!gameTokenIdsMap[address] ||
+                        (collectionAddress &&
+                          gameCollectionIdsMap[collectionAddress])) &&
                       // Filter by selected tab
                       (tab === "all" ||
-                        (tab === "collections" ? isNFT : !isNFT)),
+                        (tab === "collections" ? isVault : !isVault)),
                   )
                   .map((token) => (
-                    <Token
-                      key={token.id}
-                      chainId={defaultChainId}
-                      disabled={disabledTokenIds.includes(token.id)}
+                    <TokenView
+                      key={token.address}
+                      disabled={disabledTokenIds.includes(token.address)}
                       onSelect={onSelect}
                       token={token}
                     />
@@ -1203,16 +1211,14 @@ const TokenSelectDialog = ({
   );
 };
 
-const Token = ({
+const TokenView = ({
   token,
   disabled,
-  chainId,
   onSelect,
 }: {
-  token: PoolToken;
+  token: Token;
   disabled: boolean;
-  chainId: number;
-  onSelect: (token: PoolToken) => void;
+  onSelect: (token: Token) => void;
 }) => {
   const { address } = useAccount();
   const { data: balance, isLoading } = usePoolTokenBalance({ token, address });
@@ -1225,17 +1231,18 @@ const Token = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <PoolTokenImage token={token} className="h-9 w-9" chainId={chainId} />
+          <PoolTokenImage token={token} className="h-9 w-9" showChainIcon />
           <div className="text-left text-sm">
             <span className="block font-semibold text-honey-25">
               {token.symbol}
             </span>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
               <span className="block text-night-600">{token.name}</span>
-            ) : token.name.toUpperCase() !==
-              token.collections[0]?.name.toUpperCase() ? (
+            ) : token.collectionName &&
+              token.name.toUpperCase() !==
+                token.collectionName.toUpperCase() ? (
               <p className="text-night-400 text-xs sm:text-sm">
-                {token.collections[0]?.name}
+                {token.collectionName}
               </p>
             ) : null}
           </div>

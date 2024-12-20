@@ -27,17 +27,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const fetchAndFilterUserPositions = async () => {
     const { total, positions } = await fetchUserPositions(address);
+    // TODO: filter by selected chain ID
     const gameTokenIdsMap = game
-      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
     const gameCollectionIdsMap = game
-      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
 
     return {
       total,
       positions: positions.filter(
-        ({ pool: { name, token0, token1, collections } }) =>
+        ({ pool: { name, token0, token1 } }) =>
           // Filter by search query
           (!search ||
             name.toLowerCase().includes(search) ||
@@ -45,23 +46,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
             token1.symbol.toLowerCase().includes(search) ||
             token0.name.toLowerCase().includes(search) ||
             token1.name.toLowerCase().includes(search) ||
-            collections.some((collection) =>
-              collection.name.toLowerCase().includes(search),
-            )) &&
+            token0.collectionName?.toLowerCase().includes(search) ||
+            token1.collectionName?.toLowerCase().includes(search)) &&
           // Filter by selected game
           (!game ||
-            !!gameTokenIdsMap[token0.id] ||
-            !!gameTokenIdsMap[token1.id] ||
-            collections.some(
-              (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
-            )),
+            !!gameTokenIdsMap[token0.address] ||
+            !!gameTokenIdsMap[token1.address] ||
+            (token0.collectionAddress &&
+              gameCollectionIdsMap[token0.collectionAddress]) ||
+            (token1.collectionAddress &&
+              gameCollectionIdsMap[token1.collectionAddress])),
       ),
     };
   };
 
   return defer({
     userPositions: fetchAndFilterUserPositions(),
-    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -89,7 +89,7 @@ const RowSkeleton = () => (
 );
 
 export default function UserPositionsListPage() {
-  const { userPositions, chainId } = useLoaderData<typeof loader>();
+  const { userPositions } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   return (
@@ -125,18 +125,18 @@ export default function UserPositionsListPage() {
                 return (
                   // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                   <tr
-                    key={pool.id}
+                    key={pool.address}
                     className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
-                    onClick={() => navigate(`/pools/${pool.id}`)}
+                    onClick={() => navigate(`/pools/${pool.address}`)}
                   >
                     <td className="px-4 py-3.5 text-left font-medium text-white sm:px-5">
                       <Link
-                        to={`/pools/${pool.id}`}
+                        to={`/pools/${pool.address}`}
                         prefetch="intent"
                         className="flex items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <PoolImage chainId={chainId} pool={pool} />
+                        <PoolImage pool={pool} showChainIcon />
                         <div className="-ml-2 space-y-1 sm:ml-0">
                           <span className="block">{pool.name}</span>
                           <div className="flex items-center gap-1">
@@ -156,8 +156,8 @@ export default function UserPositionsListPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3.5 text-right text-night-200 text-sm sm:px-5">
-                      {pool.reserveUSD > 0
-                        ? formatUSD(lpShare * pool.reserveUSD)
+                      {Number(pool.reserveUsd) > 0
+                        ? formatUSD(lpShare * Number(pool.reserveUsd))
                         : `${formatAmount(lpShare)} MLP`}
                     </td>
                     <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">

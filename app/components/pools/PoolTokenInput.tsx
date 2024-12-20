@@ -1,5 +1,5 @@
 import { formatAmount, formatUSD } from "~/lib/currency";
-import type { PoolToken } from "~/types";
+import type { Token } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { InfoPopover } from "../ui/InfoPopover";
@@ -8,12 +8,14 @@ import { PoolTokenImage } from "./PoolTokenImage";
 export const PoolTokenInput = ({
   token,
   balance = 0n,
+  priceUsd,
   amount,
   disabled = false,
   onUpdateAmount,
 }: {
-  token: PoolToken;
+  token: Token;
   balance?: bigint;
+  priceUsd: number;
   amount: string;
   disabled?: boolean;
   onUpdateAmount: (amount: string) => void;
@@ -37,10 +39,10 @@ export const PoolTokenInput = ({
             disabled={disabled}
             onChange={onUpdateAmount}
           />
-          {token.priceUSD ? (
+          {priceUsd > 0 ? (
             <span className="block text-[0.6rem] text-night-400 sm:text-sm">
               {formatUSD(
-                token.priceUSD *
+                priceUsd *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
                     ? 1
                     : Number(amount.replace(/,/g, ""))),

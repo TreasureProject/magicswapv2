@@ -11,8 +11,9 @@ const createErrorResponse = (error: string) =>
   json({ ok: false, error } as const);
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { id } = params;
-  invariant(id, "Token ID required");
+  const { chainId, address: vaultAddress } = params;
+  invariant(chainId, "Chain ID required");
+  invariant(vaultAddress, "Vault address is required");
 
   const url = new URL(request.url);
   const type = url.searchParams.get("type") ?? "reserves";
@@ -26,7 +27,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     }
 
     try {
-      const results = await fetchVaultUserInventory({ id, address });
+      const results = await fetchVaultUserInventory({
+        chainId: Number(chainId),
+        vaultAddress,
+        userAddress: address,
+      });
       return json({ ok: true, results } as const);
     } catch (err) {
       return createErrorResponse((err as Error).message);
@@ -35,7 +40,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   try {
     const results = await fetchVaultReserveItems({
-      id,
+      chainId: Number(chainId),
+      address: vaultAddress,
       page: page ? Number(page) : undefined,
       resultsPerPage: resultsPerPage ? Number(resultsPerPage) : undefined,
     });

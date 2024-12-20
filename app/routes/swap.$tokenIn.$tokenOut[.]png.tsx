@@ -9,18 +9,24 @@ import {
   TokenDisplay,
   generateOgImage,
 } from "~/lib/og.server";
+import { parseTokenParams } from "~/lib/tokens";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
-  const tokenInAddress = params.tokenIn ?? ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS;
-  const tokenOutAddress = params.tokenOut;
+  const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
+    parseTokenParams({
+      inStr: params.tokenIn ?? "",
+      outStr: params.tokenOut ?? "",
+      defaultChainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
+      defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
+    });
 
-  invariant(tokenOutAddress, "Missing output address");
+  invariant(tokenAddressOut, "Missing output address");
 
   const [tokenIn, tokenOut] = await Promise.all([
-    fetchToken(tokenInAddress),
-    fetchToken(tokenOutAddress),
+    fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
+    fetchToken({ chainId: chainIdOut, address: tokenAddressOut }),
   ]);
 
   const png = await generateOgImage(

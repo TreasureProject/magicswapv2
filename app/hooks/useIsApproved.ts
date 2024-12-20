@@ -6,11 +6,11 @@ import {
   useReadErc721IsApprovedForAll,
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
-import type { AddressString, PoolToken } from "~/types";
+import type { AddressString, Token } from "~/types";
 
 type Props = {
   operator: AddressString;
-  token: PoolToken | string;
+  token: Token | string;
   amount?: bigint;
   enabled?: boolean;
 };
@@ -24,12 +24,12 @@ export const useIsApproved = ({
   const { address, addressArg } = useAccount();
 
   const isFullToken = typeof token !== "string";
-  const tokenAddress = (isFullToken ? token.id : token) as AddressString;
+  const tokenAddress = (isFullToken ? token.address : token) as AddressString;
   const collectionAddress = isFullToken
-    ? (token.collectionId as AddressString)
+    ? (token.collectionAddress as AddressString)
     : undefined;
-  const isERC721 = isFullToken && token.type === "ERC721";
-  const isERC1155 = isFullToken && token.type === "ERC1155";
+  const isERC721 = isFullToken && token.collectionType === "ERC721";
+  const isERC1155 = isFullToken && token.collectionType === "ERC1155";
   const isEnabled = !!address && enabled;
 
   const { data: allowance, refetch: refetchAllowance } = useReadErc20Allowance({

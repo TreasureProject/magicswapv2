@@ -5,12 +5,12 @@ import {
   useWriteErc721SetApprovalForAll,
   useWriteErc1155SetApprovalForAll,
 } from "~/generated";
-import type { AddressString, PoolToken } from "~/types";
+import type { AddressString, Token } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {
   operator: AddressString;
-  token: PoolToken | string;
+  token: Token | string;
   amount?: bigint;
   enabled?: boolean;
   onSuccess?: () => void;
@@ -77,16 +77,16 @@ export const useApprove = ({
         return;
       }
 
-      if (typeof token !== "string" && token.type === "ERC721") {
+      if (typeof token !== "string" && token.collectionType === "ERC721") {
         return erc721Approve.writeContractAsync({
-          address: token.collectionId as AddressString,
+          address: token.collectionAddress as AddressString,
           args: [operator, true],
         });
       }
 
-      if (typeof token !== "string" && token.type === "ERC1155") {
+      if (typeof token !== "string" && token.collectionType === "ERC1155") {
         return erc1155Approve.writeContractAsync({
-          address: token.collectionId as AddressString,
+          address: token.collectionAddress as AddressString,
           args: [operator, true],
         });
       }
@@ -94,7 +94,7 @@ export const useApprove = ({
       return erc20Approve.writeContractAsync({
         address: (typeof token === "string"
           ? token
-          : token.id) as AddressString,
+          : token.address) as AddressString,
         args: [operator, amount],
       });
     },
