@@ -150,11 +150,13 @@ export default function PoolsListPage() {
                 <tr
                   key={pool.address}
                   className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
-                  onClick={() => navigate(`/pools/${pool.address}`)}
+                  onClick={() =>
+                    navigate(`/pools/${pool.chainId}/${pool.address}`)
+                  }
                 >
                   <td className="px-4 py-3.5 text-left font-medium text-white sm:px-5">
                     <Link
-                      to={`/pools/${pool.address}`}
+                      to={`/pools/${pool.chainId}/${pool.address}`}
                       prefetch="intent"
                       className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
