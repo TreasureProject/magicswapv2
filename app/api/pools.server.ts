@@ -20,25 +20,28 @@ import {
 import { fetchDomains } from "./user.server";
 
 export const fetchPoolTransactions = async ({
-  id,
+  chainId,
+  address,
   page = 1,
   resultsPerPage = 25,
   type,
 }: {
-  id: string;
+  chainId: number;
+  address: string;
   page?: number;
   resultsPerPage?: number;
   type?: TransactionType;
 }) => {
   const result = (await execute(GetPairTransactionsDocument, {
-    pair: id,
+    chainId,
+    address,
     first: resultsPerPage,
     skip: (page - 1) * resultsPerPage,
     ...(type ? { where: { type } } : undefined),
   })) as ExecutionResult<GetPairTransactionsQuery>;
   const { pair } = result.data ?? {};
   if (!pair) {
-    throw new Error(`Pair not found: ${id}`);
+    throw new Error(`Pair not found: ${address}`);
   }
 
   const domains = await fetchDomains(

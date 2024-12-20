@@ -1,10 +1,11 @@
 import { useFetcher } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
-import type { FetchPoolTransactions } from "~/routes/resources.pools.$id.transactions";
+import type { FetchPoolTransactions } from "~/routes/resources.pools.$chainId.$address.transactions";
 import type { transactionType as TransactionType } from ".graphclient";
 
 type Props = {
-  id: string;
+  chainId: number;
+  address: string;
   type?: TransactionType;
   resultsPerPage?: number;
   enabled?: boolean;
@@ -16,7 +17,8 @@ const DEFAULT_STATE = {
 };
 
 export const usePoolTransactions = ({
-  id,
+  chainId,
+  address,
   type,
   resultsPerPage = 25,
   enabled = true,
@@ -48,12 +50,14 @@ export const usePoolTransactions = ({
       }
 
       setState((curr) => ({ ...curr, isLoading: true }));
-      load(`/resources/pools/${id}/transactions?${params.toString()}`);
+      load(
+        `/resources/pools/${chainId}/${address}/transactions?${params.toString()}`,
+      );
       setState((curr) => ({ ...curr, isLoading: false }));
     } else {
       setState(DEFAULT_STATE);
     }
-  }, [enabled, id, type, page, resultsPerPage, load]);
+  }, [enabled, chainId, address, type, page, resultsPerPage, load]);
 
   return {
     isLoading: isLoading || state === "loading",

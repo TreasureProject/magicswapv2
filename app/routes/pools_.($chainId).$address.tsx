@@ -137,12 +137,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     pool,
     vaultItems0: pool.token0.isVault
       ? fetchVaultReserveItems({
-          id: pool.token0.address,
+          chainId: pool.token0.chainId,
+          address: pool.token0.address,
         })
       : undefined,
     vaultItems1: pool.token1.isVault
       ? fetchVaultReserveItems({
-          id: pool.token1.address,
+          chainId: pool.token1.chainId,
+          address: pool.token1.address,
         })
       : undefined,
     nftBalance0:
@@ -632,7 +634,11 @@ const PoolActivityTable = ({
     hasNextPage,
     goToPreviousPage,
     goToNextPage,
-  } = usePoolTransactions({ id: pool.address, type });
+  } = usePoolTransactions({
+    chainId: pool.chainId,
+    address: pool.address,
+    type,
+  });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const blockExplorer = useBlockExplorer();
 

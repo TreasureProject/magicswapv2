@@ -8,8 +8,9 @@ const createErrorResponse = (error: string) =>
   json({ ok: false, error } as const);
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { id } = params;
-  invariant(id, "Pool ID required");
+  const { chainId, address } = params;
+  invariant(chainId, "Chain ID required");
+  invariant(address, "Pool address required");
 
   const url = new URL(request.url);
   const page = url.searchParams.get("page");
@@ -18,7 +19,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   try {
     const results = await fetchPoolTransactions({
-      id,
+      chainId: Number(chainId),
+      address,
       page: page ? Number(page) : undefined,
       resultsPerPage: resultsPerPage ? Number(resultsPerPage) : undefined,
       type: type ? (type as TransactionType) : undefined,
