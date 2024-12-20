@@ -67,7 +67,8 @@ export const useSwapRoute = ({
 
   const isValid =
     poolLegs.length > 0 &&
-    new Set(poolLegs.map(({ version }) => version)).size === 1;
+    new Set(poolLegs.map(({ version }) => version)).size === 1 &&
+    new Set(poolLegs.map(({ chainId }) => chainId)).size === 1;
   return {
     isValid,
     version: isValid ? poolLegs[0]?.version : undefined,
