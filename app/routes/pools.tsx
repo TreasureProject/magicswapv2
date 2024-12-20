@@ -1,11 +1,17 @@
 import type { MetaFunction } from "@remix-run/react";
 import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
-import { ChainIcon } from "connectkit";
-import { SearchIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  CircleCheckIcon,
+  SearchIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
 import type { Chain } from "viem";
 import { useChainId, useChains } from "wagmi";
+import { ChainIcon } from "~/components/ChainIcon";
+
 import { Button } from "~/components/ui/Button";
 import {
   DropdownMenu,
@@ -13,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
-
 import { Input } from "~/components/ui/Input";
 import { GAME_METADATA } from "~/consts";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
@@ -48,7 +53,9 @@ export default function PoolsListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const chainId = useChainId();
   const chains = useChains();
-  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
+  const [selectedChain, setSelectedChain] = useState<Chain | undefined>(
+    undefined,
+  );
 
   useDebounce(
     () => {
@@ -115,12 +122,12 @@ export default function PoolsListPage() {
           </Link>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-md border border-night-800 pl-2">
-            <SearchIcon className="h-5 w-5 text-night-400" />
+          <div className="flex items-center rounded-md border border-night-900 bg-night-1100 pl-2">
+            <SearchIcon className="h-5 w-5 text-night-500" />
             <Input
               type="search"
               placeholder="Search"
-              className="w-auto border-none ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
+              className="h-9 w-auto border-none ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -146,35 +153,45 @@ export default function PoolsListPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="secondary"
-                className="space-x-1 border border-night-800 bg-transparent"
+                className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
               >
                 {selectedChain ? (
                   <>
-                    <span>Network:</span>
-                    <ChainIcon
-                      id={selectedChain.id}
-                      unsupported={false}
-                      size="15px"
-                    />
-                    <span>{selectedChain.name}</span>
+                    <ChainIcon chainId={selectedChain.id} />
+                    {selectedChain.name}
                   </>
                 ) : (
-                  <span>Network: All</span>
+                  "All Networks"
                 )}
+                <ChevronDownIcon className="h-3.5 w-3.5 text-night-600" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-4 font-medium text-white"
+                  onClick={() => setSelectedChain(undefined)}
+                >
+                  All Networks
+                  {!selectedChain ? <CheckIcon className="h-4 w-4" /> : null}
+                </button>
+              </DropdownMenuItem>
               {chains.map((chain) => (
                 <DropdownMenuItem key={chain.id}>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    className="space-x-2"
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 font-medium text-white"
                     onClick={() => setSelectedChain(chain)}
                   >
-                    <ChainIcon id={chain.id} size="15px" unsupported={false} />
-                    <span>{chain.name}</span>
-                  </Button>
+                    <span className="flex items-center gap-2">
+                      <ChainIcon chainId={chain.id} />
+                      {chain.name}
+                    </span>
+                    {chain.id === selectedChain?.id ? (
+                      <CheckIcon className="h-4 w-4" />
+                    ) : null}
+                  </button>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
