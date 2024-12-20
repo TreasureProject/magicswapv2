@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   TableIcon as ColumnIcon,
-  ExternalLink,
   LayoutGridIcon as GridIcon,
   RotateCwIcon as RefreshIcon,
   XIcon,
@@ -11,12 +10,11 @@ import { useState } from "react";
 import { useAccount } from "wagmi";
 
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
-import { useTrove } from "~/hooks/useTrove";
 import { useVaultItems } from "~/hooks/useVaultItems";
 import { formatNumber } from "~/lib/number";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
-import type { PoolToken, TroveToken, TroveTokenWithQuantity } from "~/types";
+import type { Token, TokenWithAmount } from "~/types";
 import { CheckIcon, LoaderIcon } from "./Icons";
 import { PoolTokenImage } from "./pools/PoolTokenImage";
 import { Button } from "./ui/Button";
@@ -26,21 +24,18 @@ import { NumberSelect } from "./ui/NumberSelect";
 const ItemCard = ({
   selected,
   item,
-  quantity,
   onClick,
   disabled,
   viewOnly,
   compact,
 }: {
   selected: boolean;
-  item: TroveToken;
-  quantity: number;
+  item: TokenWithAmount;
   onClick: () => void;
   disabled: boolean;
   viewOnly: boolean;
   compact: boolean;
 }) => {
-  const { createTokenUrl } = useTrove();
   const disableUnselected = !selected && disabled;
 
   const innerCard = (
@@ -56,17 +51,19 @@ const ItemCard = ({
         </div>
       )}
       <div className="relative">
-        <img
-          src={item.image.uri}
-          alt={item.tokenId}
-          className={cn(
-            "w-full",
-            !viewOnly && !disableUnselected && "group-hover:opacity-75",
-          )}
-        />
-        {quantity > 1 ? (
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.tokenId}
+            className={cn(
+              "w-full",
+              !viewOnly && !disableUnselected && "group-hover:opacity-75",
+            )}
+          />
+        ) : null}
+        {item.amount > 1 ? (
           <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-            {formatNumber(quantity)}x
+            {formatNumber(item.amount)}x
           </span>
         ) : null}
       </div>
@@ -74,23 +71,10 @@ const ItemCard = ({
         <div className="flex items-start justify-between gap-2 p-2.5">
           <div className="text-left">
             <p className="font-medium text-honey-25 text-xs sm:text-sm">
-              {item.metadata.name}
+              {item.name}
             </p>
             <p className="text-night-400 text-sm">#{item.tokenId}</p>
           </div>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            title={`View ${item.metadata.name} in the marketplace`}
-            className="text-night-400 transition-colors hover:text-night-100"
-            href={createTokenUrl(item.collectionUrlSlug, item.tokenId)}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">
-              View {item.metadata.name} in the marketplace
-            </span>
-          </a>
         </div>
       ) : null}
     </div>
@@ -113,7 +97,7 @@ const ItemCard = ({
       disabled={disableUnselected}
     >
       {!disableUnselected ? (
-        <span className="sr-only">Select {item.metadata.name}</span>
+        <span className="sr-only">Select {item.name}</span>
       ) : null}
       {innerCard}
     </button>
@@ -121,7 +105,7 @@ const ItemCard = ({
 };
 
 type BaseProps = {
-  token: PoolToken;
+  token: Token;
   type: "vault" | "inventory";
 };
 
@@ -131,9 +115,9 @@ type ViewOnlyProps = BaseProps & {
 
 type EditableProps = BaseProps & {
   viewOnly?: false;
-  selectedTokens?: TroveTokenWithQuantity[];
+  selectedTokens?: TokenWithAmount[];
   requiredAmount?: number;
-  onSubmit: (items: TroveTokenWithQuantity[]) => void;
+  onSubmit: (items: TokenWithAmount[]) => void;
   children?: (renderProps: { amount: string }) => React.ReactNode;
 };
 
@@ -146,18 +130,19 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     isLoading,
     refetch,
   } = useVaultItems({
-    id: token.id,
     type: type === "vault" ? "reserves" : "inventory",
-    address,
-    enabled: token.isNFT,
+    chainId: token.chainId,
+    vaultAddress: token.address,
+    userAddress: address,
+    enabled: token.isVault,
   });
-  const [selectedItems, setSelectedItems] = useState<TroveTokenWithQuantity[]>(
+  const [selectedItems, setSelectedItems] = useState<TokenWithAmount[]>(
     !props.viewOnly ? (props.selectedTokens ?? []) : [],
   );
   const [isCompactMode, setIsCompactMode] = useState(false);
 
   const selectedQuantity = selectedItems.reduce(
-    (acc, curr) => acc + curr.quantity,
+    (acc, curr) => acc + curr.amount,
     0,
   );
   const selectionDisabled =
@@ -169,7 +154,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
       ? selectedQuantity !== props.requiredAmount
       : selectedItems.length === 0;
 
-  const selectionHandler = (item: TroveTokenWithQuantity) => {
+  const selectionHandler = (item: TokenWithAmount) => {
     if (selectedItems.some((i) => i.tokenId === item.tokenId)) {
       const itemIndex = selectedItems.findIndex(
         (i) => i.tokenId === item.tokenId,
@@ -249,17 +234,16 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                   )}
                   key={item.tokenId}
                   item={item}
-                  quantity={item.queryUserQuantityOwned ?? 1}
                   viewOnly={props.viewOnly || false}
                   compact={isCompactMode}
                   onClick={() => {
                     selectionHandler({
                       ...item,
-                      quantity:
+                      amount:
                         !props.viewOnly && props.requiredAmount
                           ? Math.min(
                               props.requiredAmount - selectedQuantity,
-                              item.queryUserQuantityOwned ?? 1,
+                              item.amount ?? 1,
                             )
                           : 1,
                     });
@@ -301,8 +285,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                       <div className="flex items-center gap-3">
                         {item.image ? (
                           <img
-                            src={item.image.uri}
-                            alt={item.metadata.name}
+                            src={item.image}
+                            alt={item.name}
                             className="h-10 w-10 rounded"
                           />
                         ) : (
@@ -310,7 +294,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                         )}
                         <div className="flex min-w-0 flex-1 flex-col">
                           <p className="truncate font-medium text-honey-25 text-sm">
-                            {item.metadata.name}
+                            {item.name}
                           </p>
                           <p className="text-night-400 text-sm">
                             #{item.tokenId}
@@ -318,7 +302,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {item.contractType === "ERC1155" && (
+                        {token.collectionType === "ERC1155" && (
                           <NumberSelect
                             onChange={(num) => {
                               setSelectedItems((prev) =>
@@ -329,8 +313,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                 ),
                               );
                             }}
-                            value={item.quantity}
-                            max={item.queryUserQuantityOwned || 1}
+                            value={item.amount}
+                            max={item.amount || 1}
                           />
                         )}
                         <Button

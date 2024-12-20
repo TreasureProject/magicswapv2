@@ -9,9 +9,8 @@ import {
   useWriteMagicSwapV2RouterAddLiquidityNfteth,
   useWriteMagicSwapV2RouterAddLiquidityNftnft,
 } from "~/generated";
-import type { Pool } from "~/lib/pools.server";
 import { useSettingsStore } from "~/store/settings";
-import type { AddressString, TroveTokenWithQuantity } from "~/types";
+import type { AddressString, Pool, TokenWithAmount } from "~/types";
 import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
@@ -21,8 +20,8 @@ type Props = {
   amount1: bigint;
   amount0Min: bigint;
   amount1Min: bigint;
-  nfts0: TroveTokenWithQuantity[];
-  nfts1: TroveTokenWithQuantity[];
+  nfts0: TokenWithAmount[];
+  nfts1: TokenWithAmount[];
   isExact1: boolean;
   enabled?: boolean;
   onSuccess?: () => void;
@@ -126,13 +125,13 @@ export const useAddLiquidity = ({
 
   const isTokenAToken1 =
     isExact1 ||
-    pool.token1.isETH ||
-    (pool.token1.isNFT && !pool.isNFTNFT && !pool.token0.isETH);
+    pool.token1.isEth ||
+    (pool.token1.isVault && !pool.isVaultVault && !pool.token0.isEth);
   const tokenA = (
-    isTokenAToken1 ? pool.token1.id : pool.token0.id
+    isTokenAToken1 ? pool.token1Address : pool.token0Address
   ) as AddressString;
   const tokenB = (
-    isTokenAToken1 ? pool.token0.id : pool.token1.id
+    isTokenAToken1 ? pool.token0Address : pool.token1Address
   ) as AddressString;
   const amountA = isTokenAToken1 ? amount1 : amount0;
   const amountB = isTokenAToken1 ? amount0 : amount1;
@@ -146,7 +145,7 @@ export const useAddLiquidity = ({
         return;
       }
 
-      if (pool.isNFTNFT) {
+      if (pool.isVaultVault) {
         // NFT-NFT
         return addLiquidityNFTNFT.writeContractAsync({
           address: routerAddress,
@@ -154,18 +153,18 @@ export const useAddLiquidity = ({
             {
               token: tokenA,
               collection: nftsA.map(
-                ({ collectionAddr }) => collectionAddr as AddressString,
+                ({ collectionAddress }) => collectionAddress as AddressString,
               ),
               tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-              amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+              amount: nftsA.map(({ amount }) => BigInt(amount)),
             },
             {
               token: tokenB,
               collection: nftsB.map(
-                ({ collectionAddr }) => collectionAddr as AddressString,
+                ({ collectionAddress }) => collectionAddress as AddressString,
               ),
               tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
-              amount: nftsB.map(({ quantity }) => BigInt(quantity)),
+              amount: nftsB.map(({ amount }) => BigInt(amount)),
             },
             amountAMin,
             amountBMin,
@@ -175,8 +174,8 @@ export const useAddLiquidity = ({
         });
       }
 
-      if (pool.hasNFT) {
-        if (pool.token0.isETH || pool.token1.isETH) {
+      if (pool.hasVault) {
+        if (pool.token0.isEth || pool.token1.isEth) {
           // NFT-ETH
           return addLiquidityNFTETH.writeContractAsync({
             address: routerAddress,
@@ -184,10 +183,10 @@ export const useAddLiquidity = ({
               {
                 token: tokenB,
                 collection: nftsB.map(
-                  ({ collectionAddr }) => collectionAddr as AddressString,
+                  ({ collectionAddress }) => collectionAddress as AddressString,
                 ),
                 tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
-                amount: nftsB.map(({ quantity }) => BigInt(quantity)),
+                amount: nftsB.map(({ amount }) => BigInt(amount)),
               },
               amountA,
               addressArg,
@@ -204,10 +203,10 @@ export const useAddLiquidity = ({
             {
               token: tokenA,
               collection: nftsA.map(
-                ({ collectionAddr }) => collectionAddr as AddressString,
+                ({ collectionAddress }) => collectionAddress as AddressString,
               ),
               tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
-              amount: nftsA.map(({ quantity }) => BigInt(quantity)),
+              amount: nftsA.map(({ amount }) => BigInt(amount)),
             },
             tokenB,
             amountB,
@@ -218,7 +217,7 @@ export const useAddLiquidity = ({
         });
       }
 
-      if (pool.token0.isETH || pool.token1.isETH) {
+      if (pool.token0.isEth || pool.token1.isEth) {
         // ERC20-ETH
         return addLiquidityETH.writeContractAsync({
           address: routerAddress,

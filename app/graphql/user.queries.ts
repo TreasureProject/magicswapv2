@@ -8,34 +8,36 @@ export const getUserPositions = gql`
   ${PAIR_FRAGMENT}
   ${PAIR_DAY_DATA_FRAGMENT}
   query GetUserPositions(
-    $id: ID!
-    $skip: Int = 0
-    $first: Int = 100
-    $where: LiquidityPosition_filter
-    $dayDataWhere: PairDayData_filter
-    $orderBy: LiquidityPosition_orderBy = balance
-    $orderDirection: OrderDirection = desc
+    $address: String!
+    $where: liquidityPositionFilter
+    $limit: Int = 100
+    $dayDataWhere: pairDayDataFilter
+    $orderBy: String = "balance"
+    $orderDirection: String = "desc"
   ) {
-    user(id: $id) {
+    user(address: $address) {
       liquidityPositionCount
       liquidityPositions(
-        first: $first
-        skip: $skip
         where: $where
+        limit: $limit
         orderBy: $orderBy
         orderDirection: $orderDirection
       ) {
-        pair {
-          ...PairFragment
-          dayData(
-            where: $dayDataWhere
-            orderBy: date
-            orderDirection: desc
-          ) {
-            ...PairDayDataFragment
+        items {
+          pair {
+            ...PairFragment
+            dayData(
+              where: $dayDataWhere
+              orderBy: "date"
+              orderDirection: "desc"
+            ) {
+              items {
+                ...PairDayDataFragment
+              }
+            }
           }
+          balance
         }
-        balance
       }
     }
   }

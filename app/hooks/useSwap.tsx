@@ -19,24 +19,19 @@ import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  AddressString,
-  Optional,
-  PoolToken,
-  TroveTokenWithQuantity,
-} from "~/types";
+import type { AddressString, Optional, Token, TokenWithAmount } from "~/types";
 import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
-import type { Version } from ".graphclient";
+import type { version as Version } from ".graphclient";
 
 type Props = {
   version: Version;
-  tokenIn: PoolToken;
-  tokenOut: Optional<PoolToken>;
+  tokenIn: Token;
+  tokenOut: Optional<Token>;
   amountIn: bigint;
   amountOut: bigint;
-  nftsIn: TroveTokenWithQuantity[];
-  nftsOut: TroveTokenWithQuantity[];
+  nftsIn: TokenWithAmount[];
+  nftsOut: TokenWithAmount[];
   isExactOut: boolean;
   path: AddressString[];
   enabled?: boolean;
@@ -68,15 +63,15 @@ export const useSwap = ({
     ? amountOut
     : getAmountMin(amountOut, state?.slippage || DEFAULT_SLIPPAGE);
   const collectionsIn = nftsIn.map(
-    ({ collectionAddr }) => collectionAddr as AddressString,
+    ({ collectionAddress }) => collectionAddress as AddressString,
   );
   const tokenIdsIn = nftsIn.map(({ tokenId }) => BigInt(tokenId));
-  const quantitiesIn = nftsIn.map(({ quantity }) => BigInt(quantity));
+  const quantitiesIn = nftsIn.map(({ amount }) => BigInt(amount));
   const collectionsOut = nftsOut.map(
-    ({ collectionAddr }) => collectionAddr as AddressString,
+    ({ collectionAddress }) => collectionAddress as AddressString,
   );
   const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
-  const quantitiesOut = nftsOut.map(({ quantity }) => BigInt(quantity));
+  const quantitiesOut = nftsOut.map(({ amount }) => BigInt(amount));
   const deadline = BigInt(
     Math.floor(Date.now() / 1000) + (state?.deadline || 30) * 60,
   );
@@ -246,7 +241,7 @@ export const useSwap = ({
         return;
       }
 
-      if (tokenIn.isNFT && tokenOut.isNFT) {
+      if (tokenIn.isVault && tokenOut.isVault) {
         // NFT-NFT
         return swapNFTForNFT.writeContractAsync({
           address: routerAddress,
@@ -264,8 +259,8 @@ export const useSwap = ({
         });
       }
 
-      if (tokenIn.isNFT) {
-        if (tokenOut.isETH) {
+      if (tokenIn.isVault) {
+        if (tokenOut.isEth) {
           // NFT-ETH
           return swapNFTForETH.writeContractAsync({
             address: routerAddress,
@@ -296,8 +291,8 @@ export const useSwap = ({
         });
       }
 
-      if (tokenOut.isNFT) {
-        if (tokenIn.isETH) {
+      if (tokenOut.isVault) {
+        if (tokenIn.isEth) {
           // ETH-NFT
           return swapETHForNFT.writeContractAsync({
             address: routerAddress,
@@ -328,7 +323,7 @@ export const useSwap = ({
         });
       }
 
-      if (tokenIn.isETH) {
+      if (tokenIn.isEth) {
         // ETH-ERC20 exact out
         if (isExactOut) {
           return swapETHForExactTokens.writeContractAsync({
@@ -346,7 +341,7 @@ export const useSwap = ({
         });
       }
 
-      if (tokenOut.isETH) {
+      if (tokenOut.isEth) {
         // ERC20-ETH exact out
         if (isExactOut) {
           return swapTokensForExactETH.writeContractAsync({

@@ -1,33 +1,35 @@
 import gql from "graphql-tag";
 
 export const TOKEN_FRAGMENT = gql`
-  fragment TokenFragment on Token {
-    id
+  fragment TokenFragment on token {
+    chainId
+    address
     name
     symbol
+    image
     decimals
-    derivedMAGIC
-    isNFT
-    isMAGIC
-    isETH
-    vaultCollections {
-      collection {
-        id
-        type
+    derivedMagic
+    isVault
+    isMagic
+    isEth
+    collectionAddress
+    collectionTokenIds
+    collectionType
+    collectionName
+    collectionImage
+    reserveItems {
+      items {
+        tokenId
+        amount
       }
-      tokenIds
-    }
-    vaultReserveItems {
-      tokenId
-      amount
     }
   }
 `;
 
 export const getToken = gql`
   ${TOKEN_FRAGMENT}
-  query GetToken($id: ID!) {
-    token(id: $id) {
+  query GetToken($chainId: Float!, $address: String!) {
+    token(chainId: $chainId, address: $address) {
       ...TokenFragment
     }
   }
@@ -36,44 +38,45 @@ export const getToken = gql`
 export const getTokens = gql`
   ${TOKEN_FRAGMENT}
   query GetTokens(
-    $skip: Int = 0
-    $first: Int = 100
-    $where: Token_filter
-    $orderBy: Token_orderBy = symbol
-    $orderDirection: OrderDirection = asc
+    $where: tokenFilter
+    $limit: Int = 100
+    $orderBy: String = "symbol"
+    $orderDirection: String = "asc"
   ) {
     tokens(
-      skip: $skip
-      first: $first
       where: $where
+      limit: $limit
       orderBy: $orderBy
       orderDirection: $orderDirection
     ) {
-      ...TokenFragment
+      items {
+        ...TokenFragment
+      }
     }
   }
 `;
 
 export const getTokenVaultReserveItems = gql`
   query GetTokenVaultReserveItems(
-    $id: String!
-    $skip: Int = 0
-    $first: Int = 50
-    $orderBy: VaultReserveItem_orderBy = tokenId
-    $orderDirection: OrderDirection = asc
+    $chainId: Int!
+    $address: String!
+    $limit: Int = 50
+    $orderBy: String = "tokenId"
+    $orderDirection: String = "asc"
   ) {
     vaultReserveItems(
-      first: $first
-      skip: $skip
-      where: { vault: $id }
+      where: { chainId: $chainId, vaultAddress: $address }
+      limit: $limit
       orderBy: $orderBy
       orderDirection: $orderDirection
     ) {
-      collection {
-        id
+      items {
+        collectionAddress
+        tokenId
+        name
+        image
+        amount
       }
-      tokenId
-      amount
     }
   }
 `;

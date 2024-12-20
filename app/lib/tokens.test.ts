@@ -20,15 +20,11 @@ test("counts tokens with quantity", () => {
     countTokens([
       {
         ...TEST_TOKEN,
-        contractType: "ERC1155",
-        queryUserQuantityOwned: 10,
-        quantity: 1,
+        amount: 1,
       },
       {
         ...TEST_TOKEN,
-        contractType: "ERC1155",
-        queryUserQuantityOwned: 20,
-        quantity: 5,
+        amount: 5,
       },
     ]),
   ).toBe(6);

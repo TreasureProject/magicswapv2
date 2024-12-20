@@ -1,6 +1,6 @@
 import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
-import type { Version } from ".graphclient";
+import type { version as Version } from ".graphclient";
 
 import type { AddressString } from "~/types";
 
@@ -18,6 +18,7 @@ const CONTRACT_ADDRESSES = {
 type Contract = keyof (typeof CONTRACT_ADDRESSES)[42161];
 
 const useContractAddress = (contract: Contract) => {
+  // TODO: support other chains
   const chainId = useChainId();
   const addresses =
     CONTRACT_ADDRESSES[

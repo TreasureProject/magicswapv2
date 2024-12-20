@@ -16,7 +16,12 @@ import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
 import { http, WagmiProvider, createConfig } from "wagmi";
-import { arbitrum, arbitrumSepolia } from "wagmi/chains";
+import {
+  arbitrum,
+  arbitrumSepolia,
+  treasure,
+  treasureTopaz,
+} from "wagmi/chains";
 
 import { Layout } from "./components/Layout";
 import { AccountProvider } from "./contexts/account";
@@ -36,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       path: new URL(request.url).pathname,
     },
     env: {
-      PUBLIC_CHAIN_ID: ENV.PUBLIC_CHAIN_ID,
+      PUBLIC_IS_DEV: ENV.PUBLIC_IS_DEV,
       PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
       PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
       PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
@@ -58,16 +63,23 @@ export default function App() {
       getDefaultConfig({
         appName: "Magicswap",
         transports: {
-          [env.PUBLIC_CHAIN_ID]: http(
-            `https://${env.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          [treasure.id]: http(
+            `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          ),
+          [treasureTopaz.id]: http(
+            `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          ),
+          [arbitrum.id]: http(
+            `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          ),
+          [arbitrumSepolia.id]: http(
+            `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
           ),
         },
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-        chains: [
-          env.PUBLIC_CHAIN_ID === arbitrumSepolia.id
-            ? arbitrumSepolia
-            : arbitrum,
-        ],
+        chains: env.PUBLIC_IS_DEV
+          ? [arbitrumSepolia, treasureTopaz]
+          : [arbitrum, treasure],
       }),
     ),
   );

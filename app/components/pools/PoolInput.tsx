@@ -3,7 +3,7 @@ import { formatEther } from "viem";
 import { useAccount } from "~/contexts/account";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
-import type { Pool } from "~/lib/pools.server";
+import type { Pool } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
 
@@ -33,10 +33,11 @@ export const PoolInput = ({
             onChange={onUpdateAmount}
             disabled={!isConnected}
           />
-          {pool.reserveUSD ? (
+          {pool.reserveUsd ? (
             <span className="block text-night-400 text-sm">
               {formatUSD(
-                (pool.reserveUSD / bigIntToNumber(BigInt(pool.totalSupply))) *
+                (Number(pool.reserveUsd) /
+                  bigIntToNumber(BigInt(pool.totalSupply))) *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
                     ? 1
                     : Number(amount.replace(/,/g, ""))),
