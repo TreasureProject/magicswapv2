@@ -22,10 +22,16 @@ import { PoolTokenImage } from "./PoolTokenImage";
 type Props = {
   pool: Pool;
   balance: bigint;
+  magicUsd: number;
   onSuccess?: () => void;
 };
 
-export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
+export const PoolWithdrawTab = ({
+  pool,
+  balance,
+  magicUsd,
+  onSuccess,
+}: Props) => {
   const { address } = useAccount();
   const slippage = useSettingsStore((state) => state.slippage);
   const [{ amount: rawAmount, nfts0, nfts1 }, setTransaction] = useState({
@@ -64,8 +70,8 @@ export const PoolWithdrawTab = ({ pool, balance, onSuccess }: Props) => {
   const amountNFTs1 = pool.token1.isVault
     ? bigIntToNumber(amount1Min, pool.token1.decimals)
     : 0;
-  const priceUsd0 = 0; // TODO: calculate token price
-  const priceUsd1 = 0; // TODO: calculate token price
+  const priceUsd0 = Number(pool.token0.derivedMagic) * magicUsd;
+  const priceUsd1 = Number(pool.token1.derivedMagic) * magicUsd;
 
   const { isApproved, approve } = useApproval({
     operator: routerAddress,

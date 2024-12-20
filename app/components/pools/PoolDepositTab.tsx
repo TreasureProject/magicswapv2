@@ -38,12 +38,14 @@ type Props = {
     nftBalance0: Promise<number> | undefined;
     nftBalance1: Promise<number> | undefined;
   };
+  magicUsd: number;
   onSuccess?: () => void;
 };
 
 export const PoolDepositTab = ({
   pool,
   nftBalances: { nftBalance0, nftBalance1 },
+  magicUsd,
   onSuccess,
 }: Props) => {
   const { address } = useAccount();
@@ -270,7 +272,7 @@ export const PoolDepositTab = ({
           <PoolTokenInput
             token={pool.token0}
             balance={balance0}
-            priceUsd={0} // TODO: calculate price
+            priceUsd={Number(pool.token0.derivedMagic) * magicUsd}
             amount={
               isExact1
                 ? formatAmount(amount0, { decimals: pool.token0.decimals })
@@ -299,7 +301,7 @@ export const PoolDepositTab = ({
           <PoolTokenInput
             token={pool.token1}
             balance={balance1}
-            priceUsd={0} // TODO: calculate price
+            priceUsd={Number(pool.token1.derivedMagic) * magicUsd}
             amount={
               isExact1
                 ? rawAmount

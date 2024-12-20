@@ -457,6 +457,7 @@ export default function PoolDetailsPage() {
             className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
             pool={pool}
             lpBalance={lpBalance}
+            magicUsd={magicUsd}
             onSuccess={refetch}
           />
         </div>
@@ -543,6 +544,7 @@ export default function PoolDetailsPage() {
             className="mt-4 space-y-6"
             pool={pool}
             lpBalance={lpBalance}
+            magicUsd={magicUsd}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -554,11 +556,13 @@ export default function PoolDetailsPage() {
 const PoolManagementView = ({
   pool,
   lpBalance,
+  magicUsd,
   onSuccess,
   className,
 }: {
   pool: Pool;
   lpBalance: bigint;
+  magicUsd: number;
   onSuccess: () => void;
   className?: string;
 }) => {
@@ -596,6 +600,7 @@ const PoolManagementView = ({
         <PoolWithdrawTab
           pool={pool}
           balance={lpBalance}
+          magicUsd={magicUsd}
           onSuccess={onSuccess}
         />
       )}
@@ -603,6 +608,7 @@ const PoolManagementView = ({
         <PoolDepositTab
           pool={pool}
           nftBalances={nftBalances}
+          magicUsd={magicUsd}
           onSuccess={onSuccess}
         />
       )}

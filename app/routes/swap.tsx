@@ -109,7 +109,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
     tokenAddressOut
       ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
-      : null,
+      : undefined,
     fetchMagicUsd(),
   ]);
 
@@ -124,7 +124,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     pools,
     tokens: fetchTokens(),
     tokenIn,
-    tokenOut: tokenOut ?? null,
+    tokenOut,
     tokenInNFTBalance:
       address && tokenIn.isVault
         ? fetchPoolTokenBalance(tokenIn, address)
@@ -142,7 +142,7 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { magicUsd, ...loaderData } = useLoaderData<typeof loader>();
+  const { pools, tokenIn, tokenOut, magicUsd } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -161,7 +161,9 @@ export default function SwapPage() {
   };
 
   const swapRoute = useSwapRoute({
-    ...loaderData,
+    pools,
+    tokenIn,
+    tokenOut,
     amount,
     isExactOut,
   });
@@ -172,10 +174,10 @@ export default function SwapPage() {
   const {
     isValid: isValidSwapRoute,
     version = "V2",
+    reserveIn,
+    reserveOut,
     amountIn,
     amountOut,
-    tokenIn,
-    tokenOut,
     path,
     priceImpact,
   } = swapRoute;
@@ -302,7 +304,7 @@ export default function SwapPage() {
                 : formattedTokenInAmount
               : amount
           }
-          tokenReserve={0n} // TODO: find reserve
+          tokenReserve={reserveIn}
           tokenPriceUsd={Number(tokenIn.derivedMagic) * magicUsd}
           selectedNfts={nftsIn}
           requiredNftSelectionAmount={
@@ -365,7 +367,7 @@ export default function SwapPage() {
                 ? requiredNftsOut.toString()
                 : formattedTokenOutAmount
           }
-          tokenReserve={0n} // TODO: find reserve
+          tokenReserve={reserveOut}
           tokenPriceUsd={Number(tokenOut?.derivedMagic ?? 0) * magicUsd}
           selectedNfts={nftsOut}
           requiredNftSelectionAmount={
@@ -1024,9 +1026,11 @@ const TotalDisplay = ({
   amount: string;
   isExactOut: boolean;
 }) => {
-  const loaderData = useLoaderData<typeof loader>();
-  const { amountIn, amountOut, tokenIn, tokenOut } = useSwapRoute({
-    ...loaderData,
+  const { pools, tokenIn, tokenOut } = useLoaderData<typeof loader>();
+  const { amountIn, amountOut } = useSwapRoute({
+    pools,
+    tokenIn,
+    tokenOut,
     amount,
     isExactOut,
   });

@@ -7,7 +7,7 @@ import type { AddressString, NumberString, Pool, Token } from "~/types";
 
 type Props = {
   tokenIn: Token;
-  tokenOut: Token | null;
+  tokenOut: Token | undefined;
   pools: Pool[];
   amount: string;
   isExactOut: boolean;
@@ -75,6 +75,8 @@ export const useSwapRoute = ({
     amountOut: isSampleRoute ? 0n : amountOutBI,
     tokenIn: poolLegs[0]?.tokenFrom ?? tokenIn,
     tokenOut: poolLegs[poolLegs.length - 1]?.tokenTo ?? tokenOut ?? undefined,
+    reserveIn: poolLegs[0]?.reserveFrom ?? 0n,
+    reserveOut: poolLegs[poolLegs.length - 1]?.reserveTo ?? 0n,
     path: poolLegs.flatMap(({ tokenFrom, tokenTo }, i) =>
       i === poolLegs.length - 1
         ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
