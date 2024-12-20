@@ -91,15 +91,18 @@ export const fetchPoolTokenBalance = async (token: Token, address: string) => {
  * Fetches user's inventory with metadata for NFT vault
  */
 export const fetchVaultUserInventory = async ({
-  id,
-  address,
+  chainId,
+  vaultAddress,
+  userAddress,
 }: {
-  id: string;
-  address: string;
+  chainId: number;
+  vaultAddress: string;
+  userAddress: string;
 }): Promise<TokenWithAmount[]> => {
   // Fetch vault data from subgraph
   const result = (await execute(GetTokenDocument, {
-    id,
+    chainId,
+    address: vaultAddress,
   })) as ExecutionResult<GetTokenQuery>;
   const { token } = result.data ?? {};
   if (!token) {
@@ -110,7 +113,7 @@ export const fetchVaultUserInventory = async ({
   const url = new URL(
     `${CHAIN_ID_TO_TROVE_API_URL[token.chainId]}/tokens-for-user`,
   );
-  url.searchParams.append("userAddress", address);
+  url.searchParams.append("userAddress", userAddress);
 
   const tokenIds = token.collectionTokenIds ?? [];
   if (tokenIds.length > 0) {
@@ -150,17 +153,20 @@ export const fetchVaultUserInventory = async ({
  * Fetches NFT vault's reserves with metadata
  */
 export const fetchVaultReserveItems = async ({
-  id,
+  chainId,
+  address,
   page = 1,
   resultsPerPage = 25,
 }: {
-  id: string;
+  chainId: number;
+  address: string;
   page?: number;
   resultsPerPage?: number;
 }) => {
   // Fetch vault reserve items from subgraph
   const result = (await execute(GetTokenVaultReserveItemsDocument, {
-    id,
+    chainId,
+    address,
     first: resultsPerPage,
     skip: (page - 1) * resultsPerPage,
   })) as ExecutionResult<GetTokenVaultReserveItemsQuery>;

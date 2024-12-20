@@ -1,13 +1,14 @@
 import { useFetcher } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
-import type { FetchVaultItems } from "~/routes/resources.vaults.$id.items";
+import type { FetchVaultItems } from "~/routes/resources.vaults.$chainId.$address.items";
 import type { TokenWithAmount } from "~/types";
 
 type Props = {
-  id: string;
   type: "reserves" | "inventory";
-  address?: string;
+  chainId: number;
+  vaultAddress: string;
+  userAddress?: string;
   resultsPerPage?: number;
   enabled?: boolean;
 };
@@ -21,9 +22,10 @@ const DEFAULT_STATE = {
 };
 
 export const useVaultItems = ({
-  id,
   type,
-  address,
+  chainId,
+  vaultAddress,
+  userAddress,
   resultsPerPage = 25,
   enabled = true,
 }: Props) => {
@@ -60,16 +62,27 @@ export const useVaultItems = ({
         resultsPerPage: resultsPerPage.toString(),
       });
 
-      if (type === "inventory" && address) {
-        params.set("address", address);
+      if (type === "inventory" && userAddress) {
+        params.set("address", userAddress);
       }
 
       setState((curr) => ({ ...curr, isLoading: true }));
-      load(`/resources/vaults/${id}/items?${params.toString()}`);
+      load(
+        `/resources/vaults/${chainId}/${vaultAddress}/items?${params.toString()}`,
+      );
     } else {
       setState(DEFAULT_STATE);
     }
-  }, [enabled, id, type, address, page, resultsPerPage, load]);
+  }, [
+    enabled,
+    type,
+    chainId,
+    vaultAddress,
+    userAddress,
+    page,
+    resultsPerPage,
+    load,
+  ]);
 
   return {
     isLoading: isLoading || state === "loading",

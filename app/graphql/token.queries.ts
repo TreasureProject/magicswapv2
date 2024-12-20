@@ -59,13 +59,13 @@ export const getTokens = gql`
 export const getTokenVaultReserveItems = gql`
   query GetTokenVaultReserveItems(
     $chainId: Int!
-    $vaultAddress: String!
+    $address: String!
     $limit: Int = 50
     $orderBy: String = "tokenId"
     $orderDirection: String = "asc"
   ) {
     vaultReserveItems(
-      where: { chainId: $chainId, vaultAddress: $vaultAddress }
+      where: { chainId: $chainId, vaultAddress: $address }
       limit: $limit
       orderBy: $orderBy
       orderDirection: $orderDirection

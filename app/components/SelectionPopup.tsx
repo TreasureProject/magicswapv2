@@ -130,9 +130,10 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
     isLoading,
     refetch,
   } = useVaultItems({
-    id: token.address,
     type: type === "vault" ? "reserves" : "inventory",
-    address,
+    chainId: token.chainId,
+    vaultAddress: token.address,
+    userAddress: address,
     enabled: token.isVault,
   });
   const [selectedItems, setSelectedItems] = useState<TokenWithAmount[]>(

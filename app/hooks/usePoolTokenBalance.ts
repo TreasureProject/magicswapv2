@@ -1,7 +1,7 @@
 import { useFetcher } from "@remix-run/react";
 import { useEffect } from "react";
 
-import type { FetchNFTVaultBalance } from "~/routes/resources.vaults.$id.balance";
+import type { FetchNFTVaultBalance } from "~/routes/resources.vaults.$chainId.$address.balance";
 import type { AddressString, Token } from "~/types";
 import { useTokenBalance } from "./useTokenBalance";
 
@@ -33,9 +33,9 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
       address,
     });
     loadNFTBalance(
-      `/resources/vaults/${token.address}/balance?${params.toString()}`,
+      `/resources/vaults/${token.chainId}/${token.address}/balance?${params.toString()}`,
     );
-  }, [token.isVault, token.address, address, loadNFTBalance]);
+  }, [token.isVault, token.chainId, token.address, address, loadNFTBalance]);
 
   return {
     data: token.isVault

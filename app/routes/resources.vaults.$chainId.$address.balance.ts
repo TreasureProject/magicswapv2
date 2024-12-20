@@ -3,12 +3,12 @@ import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 
 import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
-import { ENV } from "~/lib/env.server";
 import type { Token } from "~/types";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { id } = params;
-  invariant(id, "Token ID required");
+  const { chainId, address: vaultAddress } = params;
+  invariant(chainId, "Chain ID required");
+  invariant(vaultAddress, "Vault address is required");
 
   const url = new URL(request.url);
   const address = url.searchParams.get("address");
@@ -19,10 +19,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   let token: Token | undefined;
   try {
-    // TODO: pass chain ID in params
     token = await fetchToken({
-      chainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
-      address: id,
+      chainId: Number(chainId),
+      address: vaultAddress,
     });
   } catch (err) {
     return createErrorResponse((err as Error).message);
