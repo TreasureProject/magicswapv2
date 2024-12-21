@@ -31,9 +31,12 @@ export function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search")?.toLowerCase();
   const game = url.searchParams.get("game");
+  const chainId = url.searchParams.get("chain");
 
   const fetchAndFilterPools = async () => {
-    const pools = await fetchPools();
+    const pools = await fetchPools(
+      chainId ? { chainId: Number(chainId) } : undefined,
+    );
     // TODO: filter by selected chain ID
     const gameTokenIdsMap = game
       ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)

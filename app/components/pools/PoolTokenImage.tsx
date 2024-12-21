@@ -1,8 +1,8 @@
-import { ChainIcon } from "connectkit";
 import type { HTMLAttributes } from "react";
 
 import { cn } from "~/lib/utils";
 import type { Optional } from "~/types";
+import { ChainIcon } from "../ChainIcon";
 
 export type Token = {
   chainId: number;
@@ -33,7 +33,7 @@ export const PoolTokenImage = ({
           "-right-1 -bottom-1 absolute flex h-full w-full items-end justify-end",
         )}
       >
-        <ChainIcon id={token.chainId} unsupported={false} size="40%" />
+        <ChainIcon chainId={token.chainId} className="h-3 w-3" />
       </div>
     ) : null}
     <div

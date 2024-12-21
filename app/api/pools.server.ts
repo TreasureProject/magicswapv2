@@ -14,6 +14,7 @@ import {
   type GetPairTransactionsQuery,
   GetPairsDocument,
   type GetPairsQuery,
+  type pairFilter as PairFilter,
   type transactionType as TransactionType,
   execute,
 } from "../../.graphclient";
@@ -128,10 +129,11 @@ export const pairToPool = (
   };
 };
 
-export const fetchPools = async (): Promise<Pool[]> => {
+export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
   const result = (await execute(GetPairsDocument, {
     where: {
       reserve0_not: "0",
+      ...where,
     },
     hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
