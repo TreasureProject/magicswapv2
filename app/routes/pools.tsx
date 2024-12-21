@@ -1,11 +1,6 @@
 import type { MetaFunction } from "@remix-run/react";
 import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  CircleCheckIcon,
-  SearchIcon,
-} from "lucide-react";
+import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
 import type { Chain } from "viem";
@@ -53,9 +48,6 @@ export default function PoolsListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const chainId = useChainId();
   const chains = useChains();
-  const [selectedChain, setSelectedChain] = useState<Chain | undefined>(
-    undefined,
-  );
 
   useDebounce(
     () => {
@@ -91,6 +83,25 @@ export default function PoolsListPage() {
       return curr;
     });
   };
+
+  const handleSelectChain = (chainId: number) => {
+    setSearchParams((curr) => {
+      if (chainId === -1) {
+        curr.delete("chain");
+      } else {
+        curr.set("chain", chainId.toString());
+      }
+
+      return curr;
+    });
+  };
+
+  const filterChainId = searchParams.get("chain")
+    ? Number(searchParams.get("chain"))
+    : undefined;
+  const filterChain = filterChainId
+    ? chains.find((chain) => chain.id === filterChainId)
+    : undefined;
 
   return (
     <main className="container space-y-8 py-5 md:py-7">
@@ -155,10 +166,10 @@ export default function PoolsListPage() {
                 variant="secondary"
                 className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
               >
-                {selectedChain ? (
+                {filterChain ? (
                   <>
-                    <ChainIcon chainId={selectedChain.id} />
-                    {selectedChain.name}
+                    <ChainIcon chainId={filterChain.id} />
+                    {filterChain.name}
                   </>
                 ) : (
                   "All Networks"
@@ -171,10 +182,10 @@ export default function PoolsListPage() {
                 <button
                   type="button"
                   className="flex w-full items-center justify-between gap-4 font-medium text-white"
-                  onClick={() => setSelectedChain(undefined)}
+                  onClick={() => handleSelectChain(-1)}
                 >
                   All Networks
-                  {!selectedChain ? <CheckIcon className="h-4 w-4" /> : null}
+                  {!filterChain ? <CheckIcon className="h-4 w-4" /> : null}
                 </button>
               </DropdownMenuItem>
               {chains.map((chain) => (
@@ -182,13 +193,13 @@ export default function PoolsListPage() {
                   <button
                     type="button"
                     className="flex w-full items-center justify-between gap-4 font-medium text-white"
-                    onClick={() => setSelectedChain(chain)}
+                    onClick={() => handleSelectChain(chain.id)}
                   >
                     <span className="flex items-center gap-2">
                       <ChainIcon chainId={chain.id} />
                       {chain.name}
                     </span>
-                    {chain.id === selectedChain?.id ? (
+                    {chain.id === filterChain?.id ? (
                       <CheckIcon className="h-4 w-4" />
                     ) : null}
                   </button>
