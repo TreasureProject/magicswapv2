@@ -3,20 +3,18 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
-    tags:
-      - v*
+      - feat/lp-rewards
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || 'development' }}
+    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'production' || 'development-staking' }}
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy
-        run: flyctl deploy --no-cache --config ./fly.toml --app ${{ vars.APP_NAME }} --remote-only --build-arg MAGICSWAPV2_API_URL=${{ vars.MAGICSWAPV2_API_URL }}
+        run: flyctl deploy --no-cache --config ./fly.toml --app magicswap-staking --remote-only --build-arg MAGICSWAPV2_API_URL=${{ vars.MAGICSWAPV2_API_URL }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - name: Purge Cloudflare cache
