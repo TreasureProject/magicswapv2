@@ -64,8 +64,8 @@ export const PoolInput = ({
         <div className="space-y-1.5">
           <div className="flex shrink-0 items-center justify-end">
             <PoolImage pool={pool} className="h-5 w-5" />
-            <p className="-ml-2 whitespace-nowrap font-medium text-lg text-night-100">
-              LP Tokens
+            <p className="-ml-1 whitespace-nowrap font-medium text-lg text-night-100">
+              MLP Tokens
             </p>
           </div>
           <button
