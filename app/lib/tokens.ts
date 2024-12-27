@@ -25,5 +25,5 @@ export const formatTokenReserve = (token: PoolToken) =>
     token.isNFT
       ? floorBigInt(BigInt(token.reserve), token.decimals)
       : BigInt(token.reserve),
-    { decimals: token.decimals },
+    { decimals: token.decimals, type: "compact" },
   );

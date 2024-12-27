@@ -73,6 +73,8 @@ import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import type { Optional, PoolToken, UserIncentive } from "~/types";
 
+type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
+
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
     fallback={
@@ -166,6 +168,11 @@ export default function PoolDetailsPage() {
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
   const { subscribeToIncentives } = useSubscribeToIncentives({});
+  const [tab, setTab] = useState<PoolManagementTab>("deposit");
+  const [
+    optimisticSubscribedIncentiveIds,
+    setOptimisticSubscribedIncentiveIds,
+  ] = useState<bigint[]>([]);
 
   const lpBalance = BigInt(userPosition.lpBalance);
   const lpStaked = BigInt(userPosition.lpStaked);
@@ -183,12 +190,15 @@ export default function PoolDetailsPage() {
 
   const subscribedIncentiveIds = userIncentives
     .filter((userIncentive) => userIncentive.isSubscribed)
-    .map((userIncentive) => userIncentive.incentive.incentiveId);
+    .map((userIncentive) => BigInt(userIncentive.incentive.incentiveId))
+    .concat(optimisticSubscribedIncentiveIds);
 
-  const unsubscribedIncentives = poolIncentives.filter(
-    (poolIncentive) =>
-      !subscribedIncentiveIds.includes(poolIncentive.incentiveId),
-  );
+  const unsubscribedIncentiveIds = poolIncentives
+    .filter(
+      (incentive) =>
+        !subscribedIncentiveIds.includes(BigInt(incentive.incentiveId)),
+    )
+    .map((incentive) => BigInt(incentive.incentiveId));
 
   useFocusInterval(refetch, 5_000);
 
@@ -198,6 +208,13 @@ export default function PoolDetailsPage() {
       : pool.token0;
   const quoteToken =
     baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
+
+  const handleSubscribeToAll = async () => {
+    await subscribeToIncentives(unsubscribedIncentiveIds);
+    setOptimisticSubscribedIncentiveIds((curr) =>
+      curr.concat(unsubscribedIncentiveIds),
+    );
+  };
 
   return (
     <main className="container py-5 md:py-7">
@@ -265,36 +282,21 @@ export default function PoolDetailsPage() {
               ))}
             </ul>
             <div className="h-[1px] bg-night-900" />
-            <div className="grid grid-cols-7 gap-3">
-              <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
-                <div>
-                  <h3 className="font-medium text-lg">Pool Reserves</h3>
-                  {pool.reserveUSD > 0 ? (
-                    <span className="text-night-400 text-sm">
-                      {formatUSD(pool.reserveUSD)}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  {[baseToken, quoteToken].map((token) => (
-                    <PoolTokenRow
-                      key={token.id}
-                      token={token}
-                      amount={formatTokenReserve(token)}
-                      amountUSD={
-                        bigIntToNumber(BigInt(token.reserve), token.decimals) *
-                        token.priceUSD
-                      }
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center justify-center gap-3 rounded-md bg-night-1200 p-3">
-                  <p className="justify-self-end text-night-400">
-                    <span className="text-night-100">1</span> {baseToken.symbol}
-                  </p>
-                  <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
-                  <p className="text-night-400">
-                    <span className="text-night-100">
+            <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+              <div className="space-y-6 p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">Pool Liquidity</h3>
+                    {pool.reserveUSD > 0 ? (
+                      <span className="text-night-400">
+                        {formatUSD(pool.reserveUSD)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center justify-center gap-3 rounded-lg border border-night-900 p-2 text-night-200">
+                    <p className="justify-self-end">1 {baseToken.symbol}</p>
+                    <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
+                    <p>
                       {BigInt(baseToken.reserve) > 0
                         ? formatAmount(
                             bigIntToNumber(
@@ -306,98 +308,149 @@ export default function PoolDetailsPage() {
                                 baseToken.decimals,
                               ),
                           )
-                        : 0}
-                    </span>{" "}
-                    {quoteToken.symbol}
-                  </p>
+                        : 0}{" "}
+                      {quoteToken.symbol}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between gap-3 text-[#FFFCF5]">
+                    <span className="flex items-center gap-1">
+                      <span className="text-sm">
+                        {formatTokenReserve(baseToken)}
+                      </span>
+                      <PoolTokenImage token={baseToken} className="h-5 w-5" />
+                      <span className="font-semibold">{baseToken.symbol}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-sm">
+                        {formatTokenReserve(quoteToken)}
+                      </span>
+                      <PoolTokenImage token={quoteToken} className="h-5 w-5" />
+                      <span className="font-semibold">{quoteToken.symbol}</span>
+                    </span>
+                  </div>
+                  <div />
+                  <div className="flex items-center justify-between gap-3 text-night-400 text-sm">
+                    <span>
+                      {baseToken.priceUSD
+                        ? formatUSD(
+                            bigIntToNumber(
+                              BigInt(baseToken.reserve),
+                              baseToken.decimals,
+                            ) * baseToken.priceUSD,
+                          )
+                        : null}
+                    </span>
+                    <span>
+                      {quoteToken.priceUSD
+                        ? formatUSD(
+                            bigIntToNumber(
+                              BigInt(quoteToken.reserve),
+                              quoteToken.decimals,
+                            ) * quoteToken.priceUSD,
+                          )
+                        : null}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="col-span-2">
-                <div className="space-y-3">
-                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                    <p className="text-night-500">Volume (24h)</p>
-                    <p className="font-medium text-night-100">
-                      {getPoolVolume24hDisplay(pool)}
-                    </p>
-                  </div>
-                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                    <p className="text-night-500">Fees (24h)</p>
-                    <p className="font-medium text-night-100">
-                      {getPoolFees24hDisplay(pool)}
-                    </p>
-                  </div>
-                  <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                    <p className="text-night-500">APY</p>
-                    <p className="font-medium text-night-100">
-                      {formatPercent(pool.apy)}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-3 divide-x divide-night-900 bg-night-1100 px-8 py-4 text-center text-[#FFFCF5]">
+                <div>
+                  <p className="text-night-400 text-sm">Volume (24h)</p>
+                  <p>{getPoolVolume24hDisplay(pool)}</p>
+                </div>
+                <div>
+                  <p className="text-night-400 text-sm">Fees (24h)</p>
+                  <p>{getPoolFees24hDisplay(pool)}</p>
+                </div>
+                <div>
+                  <p className="text-night-400 text-sm">APY</p>
+                  <p>{formatPercent(pool.apy)}</p>
                 </div>
               </div>
             </div>
             {poolIncentives.length > 0 ? (
-              <div className="col-span-5 space-y-4 rounded-md bg-night-1100 p-4">
-                <div className="flex justify-between">
-                  <h3 className="font-medium text-lg">Pool Rewards</h3>
-                  <Button
-                    size="xs"
-                    disabled={unsubscribedIncentives.length === 0}
-                    onClick={() => {
-                      subscribeToIncentives(
-                        unsubscribedIncentives.map(({ incentiveId }) =>
-                          BigInt(incentiveId),
-                        ),
-                      );
-                    }}
-                  >
-                    Start Earning
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {pool.incentives.map(
-                    ({
-                      incentiveId,
-                      rewardToken,
-                      rewardTokenAddress,
-                      remainingRewardAmount,
-                    }) => (
-                      <div
-                        key={incentiveId}
-                        className="flex items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-2 font-medium">
-                          {rewardToken ? (
-                            <PoolTokenImage
-                              className="h-6 w-6"
-                              token={rewardToken}
-                            />
-                          ) : null}
-                          <span className="text-night-100">
-                            {rewardToken?.symbol ??
-                              truncateEthAddress(rewardTokenAddress)}
-                          </span>
-                          {subscribedIncentiveIds.includes(incentiveId) && (
-                            <Badge size="xs">Earning</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-right">
-                          <span>
-                            {formatAmount(BigInt(remainingRewardAmount))}
-                          </span>
-                          {rewardToken?.priceUSD ? (
-                            <span className="text-night-400 text-sm">
-                              {formatUSD(
-                                bigIntToNumber(BigInt(remainingRewardAmount)) *
-                                  rewardToken.priceUSD,
-                                { notation: "compact" },
-                              )}
+              <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+                <div className="space-y-4 p-6">
+                  <div>
+                    <h3 className="font-semibold text-lg">Rewards</h3>
+                    <p className="text-night-400">
+                      Rewards are earned for staking in the pool
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {pool.incentives.map(
+                      ({
+                        incentiveId,
+                        rewardToken,
+                        rewardTokenAddress,
+                        remainingRewardAmount,
+                        endTime,
+                      }) => (
+                        <div
+                          key={incentiveId}
+                          className="flex items-center justify-between gap-3 rounded-md p-3 even:bg-night-1100"
+                        >
+                          <div className="flex items-center gap-2 font-medium">
+                            {rewardToken ? (
+                              <PoolTokenImage
+                                className="h-6 w-6"
+                                token={rewardToken}
+                              />
+                            ) : null}
+                            <span className="text-night-100">
+                              {rewardToken?.symbol ??
+                                truncateEthAddress(rewardTokenAddress)}
                             </span>
-                          ) : null}
+                            {subscribedIncentiveIds.includes(
+                              BigInt(incentiveId),
+                            ) ? (
+                              <Badge size="xs">Earning</Badge>
+                            ) : null}
+                          </div>
+                          <div className="text-right">
+                            <span>
+                              {formatAmount(BigInt(remainingRewardAmount))}{" "}
+                              available
+                            </span>{" "}
+                            <span className="text-night-400 text-sm">
+                              until{" "}
+                              {new Date(
+                                Number(endTime) * 1000,
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ),
-                  )}
+                      ),
+                    )}
+                  </div>
+                  {lpStaked > 0 && unsubscribedIncentiveIds.length > 0 ? (
+                    <Button className="w-full" onClick={handleSubscribeToAll}>
+                      Start earning all rewards
+                    </Button>
+                  ) : null}
                 </div>
+                {lpStaked > 0 ? (
+                  <div />
+                ) : (
+                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />
+                    <div className="relative flex w-full items-center justify-between gap-3">
+                      <span className="font-medium text-[#FFFDF6] text-xl">
+                        Start staking and{" "}
+                        <span className="text-honey-900">earn rewards</span>
+                      </span>
+                      <button
+                        type="button"
+                        className="rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-700 active:bg-honey-800"
+                        onClick={() => setTab("stake")}
+                      >
+                        Stake now
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : null}
             {lpBalance > 0 || lpStaked > 0 ? (
@@ -482,9 +535,11 @@ export default function PoolDetailsPage() {
           <PoolManagementView
             className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
             pool={pool}
+            tab={tab}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
             userIncentives={userIncentives}
+            onChangeTab={setTab}
             onSuccess={refetch}
           />
         </div>
@@ -570,9 +625,11 @@ export default function PoolDetailsPage() {
           <PoolManagementView
             className="mt-4 space-y-6"
             pool={pool}
+            tab={tab}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
             userIncentives={userIncentives}
+            onChangeTab={setTab}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -583,22 +640,23 @@ export default function PoolDetailsPage() {
 
 const PoolManagementView = ({
   pool,
+  tab,
   lpBalance,
   lpStaked,
   userIncentives,
+  onChangeTab,
   onSuccess,
   className,
 }: {
   pool: Pool;
+  tab: PoolManagementTab;
   lpBalance: bigint;
   lpStaked: bigint;
   userIncentives: UserIncentive[];
+  onChangeTab: (tab: PoolManagementTab) => void;
   onSuccess: () => void;
   className?: string;
 }) => {
-  const [tab, setTab] = useState<"deposit" | "withdraw" | "stake" | "unstake">(
-    "deposit",
-  );
   const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
     typeof loader
   >;
@@ -628,7 +686,7 @@ const PoolManagementView = ({
                 ? "border-b-[#DC2626] text-[#FFFCF3]"
                 : "border-b-transparent",
             )}
-            onClick={() => setTab(key as typeof tab)}
+            onClick={() => onChangeTab(key as typeof tab)}
           >
             {label}
           </button>
