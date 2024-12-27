@@ -542,6 +542,8 @@ export default function PoolDetailsPage() {
             tab={tab}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            canStake={activePoolIncentives.length > 0}
+            canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
             userIncentives={userIncentives}
             onChangeTab={setTab}
             onSuccess={refetch}
@@ -632,6 +634,8 @@ export default function PoolDetailsPage() {
             tab={tab}
             lpBalance={lpBalance}
             lpStaked={lpStaked}
+            canStake={activePoolIncentives.length > 0}
+            canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
             userIncentives={userIncentives}
             onChangeTab={setTab}
             onSuccess={refetch}
@@ -647,6 +651,8 @@ const PoolManagementView = ({
   tab,
   lpBalance,
   lpStaked,
+  canStake,
+  canUnstake,
   userIncentives,
   onChangeTab,
   onSuccess,
@@ -656,6 +662,8 @@ const PoolManagementView = ({
   tab: PoolManagementTab;
   lpBalance: bigint;
   lpStaked: bigint;
+  canStake: boolean;
+  canUnstake: boolean;
   userIncentives: UserIncentive[];
   onChangeTab: (tab: PoolManagementTab) => void;
   onSuccess: () => void;
@@ -677,8 +685,8 @@ const PoolManagementView = ({
         {[
           ["deposit", "Deposit"],
           ["withdraw", "Withdraw"],
-          ["stake", "Stake"],
-          ["unstake", "Unstake"],
+          ...(canStake ? [["stake", "Stake"]] : []),
+          ...(canUnstake ? [["unstake", "Unstake"]] : []),
         ].map(([key, label]) => (
           <button
             key={key}
