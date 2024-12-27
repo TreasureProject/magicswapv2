@@ -188,6 +188,10 @@ export default function PoolDetailsPage() {
     }
   }, [revalidator]);
 
+  const activePoolIncentives = poolIncentives.filter(
+    (incentive) => Number(incentive.endTime) > Date.now() / 1000,
+  );
+
   const subscribedIncentiveIds = userIncentives
     .filter((userIncentive) => userIncentive.isSubscribed)
     .map((userIncentive) => BigInt(userIncentive.incentive.incentiveId))
@@ -380,7 +384,7 @@ export default function PoolDetailsPage() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    {pool.incentives.map(
+                    {activePoolIncentives.map(
                       ({
                         incentiveId,
                         rewardToken,
