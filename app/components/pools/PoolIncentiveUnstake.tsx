@@ -62,6 +62,7 @@ export const PoolIncentiveUnstake = ({ pool, staked }: Props) => {
         pool={pool}
         balance={staked}
         amount={rawAmount}
+        isBalanceStaked
         onUpdateAmount={setRawAmount}
       />
       <TransactionButton
