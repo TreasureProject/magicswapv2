@@ -621,7 +621,7 @@ export default function PoolDetailsPage() {
         <SheetTrigger asChild>
           <div className="fixed right-0 bottom-12 left-0 flex justify-center lg:hidden">
             <Button size="lg" className="rounded-full">
-              My Positions
+              Manage Liquidity
             </Button>
           </div>
         </SheetTrigger>
