@@ -33,6 +33,7 @@
     "@sushiswap/tines": "^1.0.3",
     "@tanstack/react-query": "^5.28.6",
     "@treasure-project/branding": "^1.2.0",
+    "abitype": "^1.0.8",
     "buffer-polyfill": "npm:buffer@^6.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

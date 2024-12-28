@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
+import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
 import type { Pool } from "~/lib/pools.server";
-import type { NumberString, UserIncentive } from "~/types";
+import type { NumberString } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 

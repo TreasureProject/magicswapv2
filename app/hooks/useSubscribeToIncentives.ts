@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
+import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractSubscribeToIncentives } from "~/generated";
-import type { UserIncentive } from "~/types";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 

@@ -1,6 +1,10 @@
 import gql from "graphql-tag";
 
-import { PAIR_DAY_DATA_FRAGMENT, PAIR_FRAGMENT } from "./pair.queries";
+import {
+  INCENTIVE_FRAGMENT,
+  PAIR_DAY_DATA_FRAGMENT,
+  PAIR_FRAGMENT,
+} from "./pair.queries";
 import { TOKEN_FRAGMENT } from "./token.queries";
 
 export const getUserPositions = gql`
@@ -50,14 +54,18 @@ export const getUserPosition = gql`
   }
 `;
 
-export const getUserIncentive = gql`
-  query GetUserIncentive($id: String!, $pairId: String!) {
+export const getUserIncentives = gql`
+  ${INCENTIVE_FRAGMENT}
+  query GetUserIncentives($id: String!, $pairId: String!) {
     userIncentives(where: { user: $id, incentive_: { pair: $pairId } }) {
       id
       incentive {
-        incentiveId
+        ...IncentiveFragment
       }
       isSubscribed
+    }
+    userStakes(where: { user: $id, pair: $pairId }) {
+      amount
     }
   }
 `;

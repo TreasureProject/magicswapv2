@@ -171,50 +171,30 @@ export const fetchPoolIncentives = async (id: string) => {
   const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
     fetchTokensCollections(
       incentives
-        .map((incentive) => {
-          return incentive.rewardToken;
-        })
+        .map((incentive) => incentive.rewardToken)
         .filter(Boolean) as Token[],
     ),
     fetchMagicUSD(),
   ]);
 
   const enrichedIncentives = await Promise.all(
-    incentives.map(async (incentive) => {
-      if (!incentive.rewardToken?.isNFT) {
-        return {
-          ...incentive,
-          rewardToken: incentive.rewardToken
-            ? createPoolToken(
-                incentive.rewardToken,
-                collectionMapping,
-                tokenMapping,
-                magicUSD,
-              )
-            : null,
-          vaultItems: [],
-        };
-      }
-      return {
-        ...incentive,
-        rewardToken: incentive.rewardToken
-          ? createPoolToken(
-              incentive.rewardToken,
-              collectionMapping,
-              tokenMapping,
-              magicUSD,
-            )
-          : null,
-        vaultItems: await fetchVaultReserveItems({
-          id: incentive.rewardToken.id,
-        }),
-      };
-    }),
+    incentives.map(async (incentive) => ({
+      ...incentive,
+      rewardToken: incentive.rewardToken
+        ? createPoolToken(
+            incentive.rewardToken,
+            collectionMapping,
+            tokenMapping,
+            magicUSD,
+          )
+        : null,
+      vaultItems: incentive.rewardToken?.isNFT
+        ? await fetchVaultReserveItems({
+            id: incentive.rewardToken.id,
+          })
+        : [],
+    })),
   );
 
   return enrichedIncentives;
 };
-
-export type PoolIncentive = Awaited<
-  ReturnType<typeof fetchPoolIncentives>
->[number];

@@ -11,6 +11,7 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "@remix-run/react";
+import { MagicLogo } from "@treasure-project/branding";
 import {
   ArrowLeftRightIcon,
   ArrowRightIcon,
@@ -28,7 +29,6 @@ import {
 import invariant from "tiny-invariant";
 import type { TransactionType } from ".graphclient";
 
-import { MagicLogo } from "@treasure-project/branding";
 import type {
   PoolTransactionItem,
   PoolTransactionType,
@@ -38,14 +38,17 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { fetchUserIncentives, fetchUserPosition } from "~/api/user.server";
+import {
+  type UserIncentive,
+  fetchUserIncentives,
+  fetchUserPosition,
+} from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
-import { PoolIncentive } from "~/components/pools/PoolIncentive";
 import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
 import { PoolIncentiveUnstake } from "~/components/pools/PoolIncentiveUnstake";
 import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
@@ -56,6 +59,7 @@ import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
+import { useClaimRewards } from "~/hooks/useClaimRewards";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
@@ -63,7 +67,12 @@ import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
-import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
+import {
+  bigIntToNumber,
+  floorBigInt,
+  formatNumber,
+  formatPercent,
+} from "~/lib/number";
 import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
 import type { Pool } from "~/lib/pools.server";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
@@ -71,7 +80,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, PoolToken, UserIncentive } from "~/types";
+import type { Optional, PoolToken } from "~/types";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
 
@@ -123,11 +132,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
+  const [userPosition, userIncentives] = await Promise.all([
+    fetchUserPosition(address, params.id),
+    fetchUserIncentives(address, params.id),
+  ]);
+
   return defer({
     pool,
     poolIncentives,
-    userPosition: await fetchUserPosition(address, params.id),
-    userIncentives: await fetchUserIncentives(address, params.id),
+    userPosition,
+    userIncentives,
     vaultItems0:
       pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
         ? fetchVaultReserveItems({
@@ -173,6 +187,11 @@ export default function PoolDetailsPage() {
     optimisticSubscribedIncentiveIds,
     setOptimisticSubscribedIncentiveIds,
   ] = useState<bigint[]>([]);
+  const { claimRewards } = useClaimRewards({
+    onSuccess: useCallback(() => {
+      revalidator.revalidate();
+    }, [revalidator.revalidate]),
+  });
 
   const lpBalance = BigInt(userPosition.lpBalance);
   const lpStaked = BigInt(userPosition.lpStaked);
@@ -181,6 +200,9 @@ export default function PoolDetailsPage() {
   const lpStakedShare =
     bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
   const lpShare = lpBalanceShare + lpStakedShare;
+  const hasStakingRewards = userIncentives.some(
+    (userIncentive) => BigInt(userIncentive.reward) > 0n,
+  );
 
   const refetch = useCallback(() => {
     if (revalidator.state === "idle") {
@@ -218,6 +240,10 @@ export default function PoolDetailsPage() {
     setOptimisticSubscribedIncentiveIds((curr) =>
       curr.concat(unsubscribedIncentiveIds),
     );
+  };
+
+  const handleClaimRewards = async () => {
+    await claimRewards(subscribedIncentiveIds);
   };
 
   return (
@@ -379,7 +405,7 @@ export default function PoolDetailsPage() {
                 <div className="space-y-4 p-6">
                   <div>
                     <h3 className="font-semibold text-lg">Rewards</h3>
-                    <p className="text-night-400">
+                    <p className="text-night-400 text-sm">
                       Rewards are earned for staking in the pool
                     </p>
                   </div>
@@ -415,7 +441,9 @@ export default function PoolDetailsPage() {
                           </div>
                           <div className="text-right">
                             <span>
-                              {formatAmount(BigInt(remainingRewardAmount))}{" "}
+                              {formatAmount(BigInt(remainingRewardAmount), {
+                                type: "compact",
+                              })}{" "}
                               available
                             </span>{" "}
                             <span className="text-night-400 text-sm">
@@ -436,7 +464,51 @@ export default function PoolDetailsPage() {
                   ) : null}
                 </div>
                 {lpStaked > 0 ? (
-                  <div />
+                  <div className="space-y-6 bg-night-1100 px-6 py-4">
+                    <div className="space-y-3">
+                      <h4 className="text-[#FFFCF5]">Your earned rewards</h4>
+                      <ul className="flex flex-wrap items-start gap-8">
+                        {userIncentives.map((userIncentive) => (
+                          <li
+                            key={userIncentive.id}
+                            className="flex items-center gap-2"
+                          >
+                            {userIncentive.incentive.rewardToken ? (
+                              <PoolTokenImage
+                                token={userIncentive.incentive.rewardToken}
+                                className="h-10 w-10"
+                              />
+                            ) : null}
+                            <div className="text-lg">
+                              {formatAmount(
+                                userIncentive.incentive.isRewardRounded
+                                  ? floorBigInt(
+                                      BigInt(userIncentive.reward),
+                                      userIncentive.incentive.rewardToken
+                                        ?.decimals,
+                                    )
+                                  : BigInt(userIncentive.reward),
+                                {
+                                  decimals: Number(
+                                    userIncentive.incentive.rewardToken
+                                      ?.decimals ?? 18,
+                                  ),
+                                },
+                              )}
+                              <span className="block text-night-400 text-sm">
+                                {userIncentive.incentive.rewardToken?.symbol}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {hasStakingRewards ? (
+                      <Button className="w-full" onClick={handleClaimRewards}>
+                        Claim all rewards
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : (
                   <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />

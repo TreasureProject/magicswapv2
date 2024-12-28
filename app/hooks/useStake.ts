@@ -1,13 +1,14 @@
 import { useEffect, useMemo } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
+import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import {
   useWriteStakingContractStakeAndSubscribeToIncentives,
   useWriteStakingContractStakeToken,
 } from "~/generated";
 import type { Pool } from "~/lib/pools.server";
-import type { AddressString, UserIncentive } from "~/types";
+import type { AddressString } from "~/types";
 import { useApproval } from "./useApproval";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";

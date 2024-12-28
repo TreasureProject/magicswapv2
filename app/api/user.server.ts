@@ -1,19 +1,35 @@
 import type { ExecutionResult } from "graphql";
 
+import type {
+  AbiParametersToPrimitiveTypes,
+  ExtractAbiFunction,
+} from "abitype";
+import { CONTRACT_ADDRESSES, UINT112_MAX } from "~/consts";
+import { stakingContractAbi } from "~/generated";
 import { getCachedValue } from "~/lib/cache.server";
+import { client } from "~/lib/chain.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
-import type { AccountDomains } from "~/types";
+import { createPoolToken } from "~/lib/tokens.server";
+import type { AccountDomains, Token } from "~/types";
+import { fetchTokensCollections } from "./collections.server";
 import { createPoolsFromPairs } from "./pools.server";
+import { fetchMagicUSD } from "./stats.server";
+import { fetchVaultReserveItems } from "./tokens.server";
 import {
-  GetUserIncentiveDocument,
-  type GetUserIncentiveQuery,
+  GetUserIncentivesDocument,
+  type GetUserIncentivesQuery,
   GetUserPositionDocument,
   type GetUserPositionQuery,
   GetUserPositionsDocument,
   type GetUserPositionsQuery,
   execute,
 } from ".graphclient";
+
+type Incentive = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<typeof stakingContractAbi, "incentives">["outputs"],
+  "outputs"
+>;
 
 export const fetchUserPositions = async (address: string | undefined) => {
   if (!address) {
@@ -84,13 +100,109 @@ export const fetchUserIncentives = async (
     return [];
   }
 
-  const { data } = (await execute(GetUserIncentiveDocument, {
+  const { data } = (await execute(GetUserIncentivesDocument, {
     id: address,
     pairId: poolId,
-  })) as ExecutionResult<GetUserIncentiveQuery>;
+  })) as ExecutionResult<GetUserIncentivesQuery>;
 
-  return data?.userIncentives || [];
+  const userIncentives = data?.userIncentives ?? [];
+  if (userIncentives.length === 0) {
+    return [];
+  }
+
+  const [
+    incentives,
+    rewardsPerLiquidityLast,
+    [collectionMapping, tokenMapping],
+    magicUSD,
+  ] = await Promise.all([
+    client.multicall({
+      contracts: userIncentives.map((userIncentive) => ({
+        address: CONTRACT_ADDRESSES[ENV.PUBLIC_CHAIN_ID].stakingContract,
+        abi: stakingContractAbi,
+        functionName: "incentives",
+        args: [BigInt(userIncentive.incentive.incentiveId)],
+      })),
+    }),
+    client.multicall({
+      contracts: userIncentives.map((userIncentive) => ({
+        address: CONTRACT_ADDRESSES[ENV.PUBLIC_CHAIN_ID].stakingContract,
+        abi: stakingContractAbi,
+        functionName: "rewardPerLiquidityLast",
+        args: [address, BigInt(userIncentive.incentive.incentiveId)],
+      })),
+    }),
+    fetchTokensCollections(
+      userIncentives
+        .map((userIncentive) => userIncentive.incentive.rewardToken)
+        .filter(Boolean) as Token[],
+    ),
+    fetchMagicUSD(),
+  ]);
+
+  const usersLiquidity = BigInt(data?.userStakes[0]?.amount ?? "0");
+  const enrichedUserIncentives = await Promise.all(
+    userIncentives.map(async (userIncentive, i) => {
+      let [
+        ,
+        ,
+        ,
+        endTime = 0,
+        ,
+        rewardPerLiquidity = 0n,
+        lastRewardTime = 0,
+        rewardRemaining = 0n,
+        liquidityStaked = 0n,
+      ] = (incentives[i]?.result as unknown as Incentive | undefined) ?? [];
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      const maxTime = Math.min(currentTime, endTime);
+      if (liquidityStaked > 0 && lastRewardTime < maxTime) {
+        const totalTime = endTime - lastRewardTime;
+        const passedTime = maxTime - lastRewardTime;
+        const reward =
+          (rewardRemaining * BigInt(passedTime)) / BigInt(totalTime);
+        rewardPerLiquidity += (reward * UINT112_MAX) / liquidityStaked;
+        rewardRemaining -= reward;
+      }
+
+      const userRewardPerLiquidtyLast = rewardsPerLiquidityLast[i]?.result
+        ? (rewardsPerLiquidityLast[i].result as unknown as bigint)
+        : 0n;
+      const rewardPerLiquidityDelta =
+        rewardPerLiquidity - userRewardPerLiquidtyLast;
+      return {
+        ...userIncentive,
+        incentive: {
+          ...userIncentive.incentive,
+          rewardToken: userIncentive.incentive.rewardToken
+            ? createPoolToken(
+                userIncentive.incentive.rewardToken,
+                collectionMapping,
+                tokenMapping,
+                magicUSD,
+              )
+            : null,
+          vaultItems: userIncentive.incentive.rewardToken?.isNFT
+            ? await fetchVaultReserveItems({
+                id: userIncentive.incentive.rewardToken.id,
+              })
+            : [],
+        },
+        reward: (
+          (rewardPerLiquidityDelta * usersLiquidity) /
+          UINT112_MAX
+        ).toString(),
+        lastRewardTime,
+      };
+    }),
+  );
+  return enrichedUserIncentives;
 };
+
+export type UserIncentive = Awaited<
+  ReturnType<typeof fetchUserIncentives>
+>[number];
 
 export const fetchDomain = async (address: string) =>
   getCachedValue(`domain-${address}`, async () => {
