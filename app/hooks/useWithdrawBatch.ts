@@ -52,7 +52,7 @@ export const useWithdrawBatch = ({
     nftVaultApproveReceipt.isLoading;
 
   useToast({
-    title: "Withdrawing Rewards",
+    title: "Withdraw rewards",
     isLoading,
     isSuccess,
     isError:

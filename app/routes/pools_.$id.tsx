@@ -85,7 +85,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, PoolToken } from "~/types";
+import type { Optional, PoolToken, TroveTokenWithQuantity } from "~/types";
 import type { TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
@@ -197,8 +197,7 @@ export default function PoolDetailsPage() {
 
   const nftIncentive = userIncentives.find(
     (userIncentive) =>
-      userIncentive.incentive.rewardToken?.isNFT &&
-      BigInt(userIncentive.reward) > 0,
+      userIncentive.isActive && userIncentive.incentive.rewardToken?.isNFT,
   );
 
   const nftIncentiveDecimals =
@@ -226,24 +225,8 @@ export default function PoolDetailsPage() {
     refetchNftIncentiveTokenBalance();
   }, [revalidator, refetchNftIncentiveTokenBalance]);
 
-  const { subscribeToIncentives } = useSubscribeToIncentives({
-    onSuccess: useCallback(
-      (incentiveIds: bigint[]) => {
-        // API can be slow to update, so optimistically update the subscribed list
-        setOptimisticSubscribedIncentiveIds((curr) =>
-          curr.concat(incentiveIds),
-        );
-        refetch();
-      },
-      [refetch],
-    ),
-  });
-
-  const { claimRewards } = useClaimRewards({
-    // Doesn't need optimistic update because data is pulled directly from contract
-    onSuccess: refetch,
-  });
-
+  const { subscribeToIncentives } = useSubscribeToIncentives();
+  const { claimRewards } = useClaimRewards();
   const { withdrawBatch, isLoading: isLoadingWithdrawBatch } = useWithdrawBatch(
     {
       vaultAddress: nftIncentive?.incentive.rewardTokenAddress as
@@ -285,6 +268,32 @@ export default function PoolDetailsPage() {
       : pool.token0;
   const quoteToken =
     baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
+
+  const handleSubscribeToAll = async () => {
+    const incentiveIds = [...unsubscribedIncentiveIds];
+    await subscribeToIncentives(incentiveIds);
+    // API can be slow to update, so optimistically update the subscribed list
+    setOptimisticSubscribedIncentiveIds((curr) => curr.concat(incentiveIds));
+    refetch();
+  };
+
+  const handleClaimRewards = async () => {
+    await claimRewards(subscribedIncentiveIds);
+    // Doesn't need optimistic update because data is pulled directly from contract
+    refetch();
+  };
+
+  const handleWithdrawRewards = async (tokens: TroveTokenWithQuantity[]) => {
+    await withdrawBatch(
+      tokens.map((token) => ({
+        id: BigInt(token.tokenId),
+        amount: BigInt(token.quantity),
+        collectionId: token.collectionAddr as Address,
+      })),
+    );
+    setIsWithdrawingFromVault(false);
+    refetch();
+  };
 
   return (
     <main className="container py-5 md:py-7">
@@ -502,12 +511,7 @@ export default function PoolDetailsPage() {
                     )}
                   </div>
                   {lpStaked > 0 && unsubscribedIncentiveIds.length > 0 ? (
-                    <Button
-                      className="w-full"
-                      onClick={() =>
-                        subscribeToIncentives(unsubscribedIncentiveIds)
-                      }
-                    >
+                    <Button className="w-full" onClick={handleSubscribeToAll}>
                       Start earning all rewards
                     </Button>
                   ) : null}
@@ -544,10 +548,7 @@ export default function PoolDetailsPage() {
                       </ul>
                     </div>
                     {hasStakingRewards ? (
-                      <Button
-                        className="w-full"
-                        onClick={() => claimRewards(subscribedIncentiveIds)}
-                      >
+                      <Button className="w-full" onClick={handleClaimRewards}>
                         Claim all rewards
                       </Button>
                     ) : null}
@@ -771,16 +772,7 @@ export default function PoolDetailsPage() {
                 floorBigInt(nftIncentiveTokenBalance, nftIncentiveDecimals),
                 nftIncentiveDecimals,
               )}
-              onSubmit={async (tokens) => {
-                await withdrawBatch(
-                  tokens.map((token) => ({
-                    id: BigInt(token.tokenId),
-                    amount: BigInt(token.quantity),
-                    collectionId: token.collectionAddr as Address,
-                  })),
-                );
-                setIsWithdrawingFromVault(false);
-              }}
+              onSubmit={handleWithdrawRewards}
               isSubmitDisabled={isLoadingWithdrawBatch}
               keepOpenOnSubmit
             />

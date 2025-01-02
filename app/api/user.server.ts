@@ -185,6 +185,9 @@ export const fetchUserIncentives = async (
       const reward = (rewardPerLiquidityDelta * usersLiquidity) / UINT112_MAX;
       return {
         ...userIncentive,
+        isActive:
+          Number(userIncentive.incentive.endTime) >
+          Math.floor(Date.now() / 1000),
         incentive: {
           ...userIncentive.incentive,
           rewardToken: rewardToken,

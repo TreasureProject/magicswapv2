@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
-import type { UserIncentive } from "~/api/user.server";
+import { useEffect } from "react";
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractSubscribeToIncentives } from "~/generated";
 import { useContractAddress } from "./useContractAddress";
@@ -9,14 +8,10 @@ import { useToast } from "./useToast";
 
 type Props = {
   enabled?: boolean;
-  onSuccess?: (incentiveIds: bigint[]) => void;
+  onSuccess?: () => void;
 };
 
-export const useSubscribeToIncentives = ({
-  enabled = true,
-  onSuccess,
-}: Props) => {
-  const [lastIncentiveIds, setLastIncentiveIds] = useState<bigint[]>([]);
+export const useSubscribeToIncentives = (props?: Props) => {
   const { isConnected } = useAccount();
   const stakingContractAddress = useContractAddress("stakingContract");
   const subscribeToIncentives = useWriteStakingContractSubscribeToIncentives();
@@ -24,11 +19,11 @@ export const useSubscribeToIncentives = ({
     hash: subscribeToIncentives.data,
   });
 
-  const isEnabled = enabled && isConnected;
+  const isEnabled = isConnected && props?.enabled !== false;
   const isSuccess = subscribeToIncentivesReceipt.isSuccess;
 
   useToast({
-    title: "Subscribing to rewards",
+    title: "Subscribe to rewards",
     isLoading:
       subscribeToIncentives.isPending || subscribeToIncentivesReceipt.isLoading,
     isSuccess,
@@ -41,17 +36,15 @@ export const useSubscribeToIncentives = ({
 
   useEffect(() => {
     if (isSuccess) {
-      onSuccess?.(lastIncentiveIds);
+      props?.onSuccess?.();
     }
-  }, [isSuccess, onSuccess, lastIncentiveIds]);
+  }, [isSuccess, props?.onSuccess]);
 
   return {
     subscribeToIncentives: (incentiveIds: bigint[]) => {
       if (!isEnabled) {
         return;
       }
-
-      setLastIncentiveIds(incentiveIds);
 
       return subscribeToIncentives.writeContractAsync({
         address: stakingContractAddress,

@@ -11,7 +11,7 @@ type Props = {
   onSuccess?: () => void;
 };
 
-export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
+export const useClaimRewards = (props?: Props) => {
   const { isConnected } = useAccount();
   const stakingContractAddress = useContractAddress("stakingContract");
   const claimAllRewards = useWriteStakingContractClaimAllRewards();
@@ -19,7 +19,7 @@ export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
     hash: claimAllRewards.data,
   });
 
-  const isEnabled = enabled && isConnected;
+  const isEnabled = isConnected && props?.enabled !== false;
   const isSuccess = claimAllRewardsReceipt.isSuccess;
 
   useToast({
@@ -33,9 +33,9 @@ export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
 
   useEffect(() => {
     if (isSuccess) {
-      onSuccess?.();
+      props?.onSuccess?.();
     }
-  }, [isSuccess, onSuccess]);
+  }, [isSuccess, props?.onSuccess]);
 
   return {
     claimRewards: (incentiveIds: bigint[]) => {
