@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
 import type { UserIncentive } from "~/api/user.server";
@@ -9,28 +9,29 @@ import { useToast } from "./useToast";
 
 type Props = {
   enabled?: boolean;
-  onSuccess?: (incentives: UserIncentive[]) => void;
+  onSuccess?: (incentiveIds: bigint[]) => void;
 };
 
 export const useSubscribeToIncentives = ({
   enabled = true,
   onSuccess,
 }: Props) => {
+  const [lastIncentiveIds, setLastIncentiveIds] = useState<bigint[]>([]);
   const { isConnected } = useAccount();
   const stakingContractAddress = useContractAddress("stakingContract");
   const subscribeToIncentives = useWriteStakingContractSubscribeToIncentives();
   const subscribeToIncentivesReceipt = useWaitForTransactionReceipt({
     hash: subscribeToIncentives.data,
   });
-  const isEnabled = enabled && isConnected;
 
-  const isSuccessSubscribeToIncentives = subscribeToIncentivesReceipt.isSuccess;
+  const isEnabled = enabled && isConnected;
+  const isSuccess = subscribeToIncentivesReceipt.isSuccess;
 
   useToast({
     title: "Subscribing to rewards",
     isLoading:
       subscribeToIncentives.isPending || subscribeToIncentivesReceipt.isLoading,
-    isSuccess: isSuccessSubscribeToIncentives,
+    isSuccess,
     isError:
       subscribeToIncentives.isError || subscribeToIncentivesReceipt.isError,
     errorDescription: (
@@ -39,16 +40,18 @@ export const useSubscribeToIncentives = ({
   });
 
   useEffect(() => {
-    if (isSuccessSubscribeToIncentives) {
-      onSuccess?.([]);
+    if (isSuccess) {
+      onSuccess?.(lastIncentiveIds);
     }
-  }, [isSuccessSubscribeToIncentives, onSuccess]);
+  }, [isSuccess, onSuccess, lastIncentiveIds]);
 
   return {
     subscribeToIncentives: (incentiveIds: bigint[]) => {
       if (!isEnabled) {
         return;
       }
+
+      setLastIncentiveIds(incentiveIds);
 
       return subscribeToIncentives.writeContractAsync({
         address: stakingContractAddress,

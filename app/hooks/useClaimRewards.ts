@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
-import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractClaimAllRewards } from "~/generated";
 import { useContractAddress } from "./useContractAddress";
@@ -9,7 +8,7 @@ import { useToast } from "./useToast";
 
 type Props = {
   enabled?: boolean;
-  onSuccess?: (incentives: UserIncentive[]) => void;
+  onSuccess?: () => void;
 };
 
 export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
@@ -24,7 +23,7 @@ export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
   const isSuccess = claimAllRewardsReceipt.isSuccess;
 
   useToast({
-    title: "Subscribing to rewards",
+    title: "Claim rewards",
     isLoading: claimAllRewards.isPending || claimAllRewardsReceipt.isLoading,
     isSuccess,
     isError: claimAllRewards.isError || claimAllRewardsReceipt.isError,
@@ -34,7 +33,7 @@ export const useClaimRewards = ({ enabled = true, onSuccess }: Props) => {
 
   useEffect(() => {
     if (isSuccess) {
-      onSuccess?.([]);
+      onSuccess?.();
     }
   }, [isSuccess, onSuccess]);
 

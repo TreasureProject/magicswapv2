@@ -24,10 +24,11 @@ import {
   Fragment,
   Suspense as ReactSuspense,
   useCallback,
+  useEffect,
   useState,
 } from "react";
 import invariant from "tiny-invariant";
-import type { TransactionType } from ".graphclient";
+import { type Address, parseUnits } from "viem";
 
 import type {
   PoolTransactionItem,
@@ -45,6 +46,7 @@ import {
 } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
+import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
@@ -57,13 +59,16 @@ import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
+import { Dialog } from "~/components/ui/Dialog";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
+import { useAccount } from "~/contexts/account";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useClaimRewards } from "~/hooks/useClaimRewards";
-import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
 import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
+import { useTokenBalance } from "~/hooks/useTokenBalance";
+import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
@@ -81,6 +86,7 @@ import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
 import type { Optional, PoolToken } from "~/types";
+import type { TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
 
@@ -177,21 +183,74 @@ export default function PoolDetailsPage() {
     chainId,
   } = useLoaderData<typeof loader>();
 
+  const { address: userAddress } = useAccount();
   const revalidator = useRevalidator();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
-  const { subscribeToIncentives } = useSubscribeToIncentives({});
   const [tab, setTab] = useState<PoolManagementTab>("deposit");
   const [
     optimisticSubscribedIncentiveIds,
     setOptimisticSubscribedIncentiveIds,
   ] = useState<bigint[]>([]);
-  const { claimRewards } = useClaimRewards({
-    onSuccess: useCallback(() => {
-      revalidator.revalidate();
-    }, [revalidator.revalidate]),
+  const [isWithdrawingFromVault, setIsWithdrawingFromVault] = useState(false);
+
+  const nftIncentive = userIncentives.find(
+    (userIncentive) =>
+      userIncentive.incentive.rewardToken?.isNFT &&
+      BigInt(userIncentive.reward) > 0,
+  );
+
+  const nftIncentiveDecimals =
+    nftIncentive?.incentive.rewardToken?.decimals ?? 18;
+
+  const {
+    data: nftIncentiveTokenBalance,
+    refetch: refetchNftIncentiveTokenBalance,
+  } = useTokenBalance({
+    id: nftIncentive?.incentive.rewardTokenAddress as Address | undefined,
+    address: userAddress,
   });
+
+  useEffect(() => {
+    if (nftIncentiveTokenBalance > parseUnits("1", nftIncentiveDecimals)) {
+      setIsWithdrawingFromVault(true);
+    }
+  }, [nftIncentiveDecimals, nftIncentiveTokenBalance]);
+
+  const refetch = useCallback(() => {
+    if (revalidator.state === "idle") {
+      revalidator.revalidate();
+    }
+
+    refetchNftIncentiveTokenBalance();
+  }, [revalidator, refetchNftIncentiveTokenBalance]);
+
+  const { subscribeToIncentives } = useSubscribeToIncentives({
+    onSuccess: useCallback(
+      (incentiveIds: bigint[]) => {
+        // API can be slow to update, so optimistically update the subscribed list
+        setOptimisticSubscribedIncentiveIds((curr) =>
+          curr.concat(incentiveIds),
+        );
+        refetch();
+      },
+      [refetch],
+    ),
+  });
+
+  const { claimRewards } = useClaimRewards({
+    // Doesn't need optimistic update because data is pulled directly from contract
+    onSuccess: refetch,
+  });
+
+  const { withdrawBatch, isLoading: isLoadingWithdrawBatch } = useWithdrawBatch(
+    {
+      vaultAddress: nftIncentive?.incentive.rewardTokenAddress as
+        | Address
+        | undefined,
+    },
+  );
 
   const lpBalance = BigInt(userPosition.lpBalance);
   const lpStaked = BigInt(userPosition.lpStaked);
@@ -203,12 +262,6 @@ export default function PoolDetailsPage() {
   const hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
   );
-
-  const refetch = useCallback(() => {
-    if (revalidator.state === "idle") {
-      // revalidator.revalidate();
-    }
-  }, [revalidator]);
 
   const activePoolIncentives = poolIncentives.filter(
     (incentive) => Number(incentive.endTime) > Date.now() / 1000,
@@ -226,25 +279,12 @@ export default function PoolDetailsPage() {
     )
     .map((incentive) => BigInt(incentive.incentiveId));
 
-  useFocusInterval(refetch, 5_000);
-
   const baseToken =
     (pool.token1.isNFT && !pool.isNFTNFT) || pool.token1.isMAGIC
       ? pool.token1
       : pool.token0;
   const quoteToken =
     baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
-
-  const handleSubscribeToAll = async () => {
-    await subscribeToIncentives(unsubscribedIncentiveIds);
-    setOptimisticSubscribedIncentiveIds((curr) =>
-      curr.concat(unsubscribedIncentiveIds),
-    );
-  };
-
-  const handleClaimRewards = async () => {
-    await claimRewards(subscribedIncentiveIds);
-  };
 
   return (
     <main className="container py-5 md:py-7">
@@ -437,6 +477,10 @@ export default function PoolDetailsPage() {
                               BigInt(incentiveId),
                             ) ? (
                               <Badge size="xs">Earning</Badge>
+                            ) : lpStaked > 0 ? (
+                              <Badge size="xs" color="secondary">
+                                Not Earning
+                              </Badge>
                             ) : null}
                           </div>
                           <div className="text-right">
@@ -458,7 +502,12 @@ export default function PoolDetailsPage() {
                     )}
                   </div>
                   {lpStaked > 0 && unsubscribedIncentiveIds.length > 0 ? (
-                    <Button className="w-full" onClick={handleSubscribeToAll}>
+                    <Button
+                      className="w-full"
+                      onClick={() =>
+                        subscribeToIncentives(unsubscribedIncentiveIds)
+                      }
+                    >
                       Start earning all rewards
                     </Button>
                   ) : null}
@@ -504,7 +553,10 @@ export default function PoolDetailsPage() {
                       </ul>
                     </div>
                     {hasStakingRewards ? (
-                      <Button className="w-full" onClick={handleClaimRewards}>
+                      <Button
+                        className="w-full"
+                        onClick={() => claimRewards(subscribedIncentiveIds)}
+                      >
                         Claim all rewards
                       </Button>
                     ) : null}
@@ -714,6 +766,36 @@ export default function PoolDetailsPage() {
           />
         </SheetContent>
       </Sheet>
+      {nftIncentive?.incentive.rewardToken &&
+      nftIncentive.incentive.vaultItems.length > 0 ? (
+        <span>
+          <Dialog
+            open={isWithdrawingFromVault}
+            onOpenChange={setIsWithdrawingFromVault}
+          >
+            <SelectionPopup
+              type="vault"
+              token={nftIncentive.incentive.rewardToken}
+              requiredAmount={bigIntToNumber(
+                floorBigInt(nftIncentiveTokenBalance, nftIncentiveDecimals),
+                nftIncentiveDecimals,
+              )}
+              onSubmit={async (tokens) => {
+                await withdrawBatch(
+                  tokens.map((token) => ({
+                    id: BigInt(token.tokenId),
+                    amount: BigInt(token.quantity),
+                    collectionId: token.collectionAddr as Address,
+                  })),
+                );
+                setIsWithdrawingFromVault(false);
+              }}
+              isSubmitDisabled={isLoadingWithdrawBatch}
+              keepOpenOnSubmit
+            />
+          </Dialog>
+        </span>
+      ) : null}
     </main>
   );
 }
