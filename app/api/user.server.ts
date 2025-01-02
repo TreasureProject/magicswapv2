@@ -10,6 +10,7 @@ import { getCachedValue } from "~/lib/cache.server";
 import { client } from "~/lib/chain.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
+import { floorBigInt } from "~/lib/number";
 import { createPoolToken } from "~/lib/tokens.server";
 import type { AccountDomains, Token } from "~/types";
 import { fetchTokensCollections } from "./collections.server";
@@ -143,6 +144,16 @@ export const fetchUserIncentives = async (
   const usersLiquidity = BigInt(data?.userStakes[0]?.amount ?? "0");
   const enrichedUserIncentives = await Promise.all(
     userIncentives.map(async (userIncentive, i) => {
+      const rewardToken = userIncentive.incentive.rewardToken
+        ? createPoolToken(
+            userIncentive.incentive.rewardToken,
+            collectionMapping,
+            tokenMapping,
+            magicUSD,
+          )
+        : null;
+      const rewardTokenIsVault =
+        rewardToken?.isNFT ?? userIncentive.incentive.isRewardRounded;
       let [
         ,
         ,
@@ -171,28 +182,22 @@ export const fetchUserIncentives = async (
         : 0n;
       const rewardPerLiquidityDelta =
         rewardPerLiquidity - userRewardPerLiquidtyLast;
+      const reward = (rewardPerLiquidityDelta * usersLiquidity) / UINT112_MAX;
       return {
         ...userIncentive,
         incentive: {
           ...userIncentive.incentive,
-          rewardToken: userIncentive.incentive.rewardToken
-            ? createPoolToken(
-                userIncentive.incentive.rewardToken,
-                collectionMapping,
-                tokenMapping,
-                magicUSD,
-              )
-            : null,
-          vaultItems: userIncentive.incentive.rewardToken?.isNFT
-            ? await fetchVaultReserveItems({
-                id: userIncentive.incentive.rewardToken.id,
-              })
-            : [],
+          rewardToken: rewardToken,
+          vaultItems:
+            rewardToken && rewardTokenIsVault
+              ? await fetchVaultReserveItems({
+                  id: rewardToken.id,
+                })
+              : [],
         },
-        reward: (
-          (rewardPerLiquidityDelta * usersLiquidity) /
-          UINT112_MAX
-        ).toString(),
+        reward: rewardTokenIsVault
+          ? floorBigInt(reward, rewardToken?.decimals).toString()
+          : reward.toString(),
         lastRewardTime,
       };
     }),

@@ -529,21 +529,12 @@ export default function PoolDetailsPage() {
                               />
                             ) : null}
                             <div className="text-lg">
-                              {formatAmount(
-                                userIncentive.incentive.isRewardRounded
-                                  ? floorBigInt(
-                                      BigInt(userIncentive.reward),
-                                      userIncentive.incentive.rewardToken
-                                        ?.decimals,
-                                    )
-                                  : BigInt(userIncentive.reward),
-                                {
-                                  decimals: Number(
-                                    userIncentive.incentive.rewardToken
-                                      ?.decimals ?? 18,
-                                  ),
-                                },
-                              )}
+                              {formatAmount(BigInt(userIncentive.reward), {
+                                decimals: Number(
+                                  userIncentive.incentive.rewardToken
+                                    ?.decimals ?? 18,
+                                ),
+                              })}
                               <span className="block text-night-400 text-sm">
                                 {userIncentive.incentive.rewardToken?.symbol}
                               </span>
