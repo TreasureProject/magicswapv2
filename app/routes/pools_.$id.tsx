@@ -863,7 +863,11 @@ const PoolManagementView = ({
         />
       ) : null}
       {tab === "unstake" ? (
-        <PoolIncentiveUnstake pool={pool} staked={lpStaked} />
+        <PoolIncentiveUnstake
+          pool={pool}
+          staked={lpStaked}
+          onSuccess={onSuccess}
+        />
       ) : null}
     </div>
   );
