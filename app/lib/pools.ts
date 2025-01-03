@@ -6,9 +6,9 @@ import {
 } from "@sushiswap/tines";
 import { parseUnits } from "viem";
 
-import type { AddressString, PoolToken } from "~/types";
+import type { AddressString, Pool, Token } from "~/types";
 import { formatAmount, formatUSD } from "./currency";
-import type { Pool } from "./pools.server";
+import { bigIntToNumber } from "./number";
 import { tokenToRToken } from "./tokens";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
@@ -33,8 +33,8 @@ export const getAmountMin = (amount: bigint, slippage: number) =>
   amount - (amount * BigInt(Math.ceil(slippage * 1000))) / 1000n;
 
 export const createSwapRoute = (
-  tokenIn: PoolToken,
-  tokenOut: PoolToken | null,
+  tokenIn: Token,
+  tokenOut: Token | undefined,
   pools: Pool[],
   amount: bigint,
   isExactOut: boolean,
@@ -46,12 +46,21 @@ export const createSwapRoute = (
   const rTokenIn = tokenToRToken(tokenIn);
   const rTokenOut = tokenToRToken(tokenOut);
   const rPools = pools.map(
-    ({ id, token0, token1, reserve0, reserve1, totalFee }) => {
+    ({
+      address,
+      token0,
+      token1,
+      reserve0,
+      reserve1,
+      lpFee,
+      protocolFee,
+      royaltiesFee,
+    }) => {
       return new ConstantProductRPool(
-        id as AddressString,
+        address as AddressString,
         tokenToRToken(token0),
         tokenToRToken(token1),
-        Number(totalFee ?? 0),
+        Number(lpFee) + Number(protocolFee) + Number(royaltiesFee),
         parseUnits(reserve0.toString(), token0.decimals),
         parseUnits(reserve1.toString(), token0.decimals),
       );
@@ -83,51 +92,51 @@ export const createSwapRoute = (
 };
 
 export const getPoolVolume24hDisplay = (pool: Pool) => {
-  if (!pool.volume24hUSD) {
-    if (pool.isNFTNFT || !pool.token0.isNFT) {
+  if (!pool.volume24hUsd) {
+    if (pool.isVaultVault || !pool.token0.isVault) {
       return `${formatAmount(pool.volume24h0, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
     return `${formatAmount(pool.volume24h1, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
-  return formatUSD(pool.volume24hUSD);
+  return formatUSD(pool.volume24hUsd);
 };
 
 export const getPoolReserveDisplay = (pool: Pool) => {
-  if (!pool.reserveUSD) {
-    if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatAmount(BigInt(pool.token0.reserve) * 2n, { decimals: pool.token0.decimals, type: "compact" })} ${pool.token0.symbol}`;
+  if (pool.reserveUsd === "0") {
+    if (pool.isVaultVault || !pool.token0.isVault) {
+      return `${formatAmount(BigInt(pool.reserve0) * 2n, { decimals: pool.token0.decimals, type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(BigInt(pool.token1.reserve) * 2n, { decimals: pool.token1.decimals, type: "compact" })} ${pool.token1.symbol}`;
+    return `${formatAmount(BigInt(pool.reserve1) * 2n, { decimals: pool.token1.decimals, type: "compact" })} ${pool.token1.symbol}`;
   }
 
-  return formatUSD(pool.reserveUSD);
+  return formatUSD(pool.reserveUsd);
 };
 
 export const getPoolFeesDisplay = (pool: Pool) => {
   const fee = Number(pool.lpFee);
-  if (!pool.volumeUSD) {
-    if (pool.isNFTNFT || !pool.token0.isNFT) {
-      return `${formatAmount(pool.volume0 * fee, { type: "compact" })} ${pool.token0.symbol}`;
+  if (pool.volumeUsd === "0") {
+    if (pool.isVaultVault || !pool.token0.isVault) {
+      return `${formatAmount(bigIntToNumber(BigInt(pool.volume0), pool.token0.decimals) * fee, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
-    return `${formatAmount(pool.volume1 * fee, { type: "compact" })} ${pool.token1.symbol}`;
+    return `${formatAmount(bigIntToNumber(BigInt(pool.volume1), pool.token1.decimals) * fee, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
-  return formatUSD(pool.volumeUSD * fee);
+  return formatUSD(Number(pool.volumeUsd) * fee);
 };
 
 export const getPoolFees24hDisplay = (pool: Pool) => {
   const fee = Number(pool.lpFee);
-  if (!pool.volume24hUSD) {
-    if (pool.isNFTNFT || !pool.token0.isNFT) {
+  if (!pool.volume24hUsd) {
+    if (pool.isVaultVault || !pool.token0.isVault) {
       return `${formatAmount(pool.volume24h0 * fee, { type: "compact" })} ${pool.token0.symbol}`;
     }
 
     return `${formatAmount(pool.volume24h1 * fee, { type: "compact" })} ${pool.token1.symbol}`;
   }
 
-  return formatUSD(pool.volume24hUSD * fee);
+  return formatUSD(pool.volume24hUsd * fee);
 };

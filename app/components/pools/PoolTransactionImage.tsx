@@ -1,9 +1,9 @@
 import type { PoolTransactionItem } from "~/api/pools.server";
-import type { PoolToken } from "~/types";
+import type { Token } from "~/types";
 import { PoolTokenImage } from "./PoolTokenImage";
 
 type Props = {
-  token: PoolToken;
+  token: Token;
   items: PoolTransactionItem[];
 };
 
@@ -16,7 +16,9 @@ export const PoolTransactionImage = ({ token, items }: Props) => {
             key={item.tokenId}
             className="h-4 w-4 overflow-hidden rounded-sm"
           >
-            <img src={item.image} title={item.name} alt="" />
+            {item.image ? (
+              <img src={item.image} title={item.name} alt="" />
+            ) : null}
           </div>
         ))}
       </div>
@@ -26,7 +28,9 @@ export const PoolTransactionImage = ({ token, items }: Props) => {
   if (items[0]) {
     return (
       <div className="h-9 w-9 overflow-hidden rounded">
-        <img src={items[0].image} title={items[0].name} alt="" />
+        {items[0].image ? (
+          <img src={items[0].image} title={items[0].name} alt="" />
+        ) : null}
       </div>
     );
   }

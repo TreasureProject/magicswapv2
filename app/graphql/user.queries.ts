@@ -12,30 +12,36 @@ export const getUserPositions = gql`
   ${PAIR_FRAGMENT}
   ${PAIR_DAY_DATA_FRAGMENT}
   query GetUserPositions(
-    $id: ID!
-    $skip: Int = 0
-    $first: Int = 100
-    $where: LiquidityPosition_filter
-    $dayDataWhere: PairDayData_filter
-    $orderBy: LiquidityPosition_orderBy = balance
-    $orderDirection: OrderDirection = desc
+    $address: String!
+    $where: liquidityPositionFilter
+    $limit: Int = 100
+    $dayDataWhere: pairDayDataFilter
+    $orderBy: String = "balance"
+    $orderDirection: String = "desc"
   ) {
-    user(id: $id) {
+    user(address: $address) {
       liquidityPositionCount
       liquidityPositions(
-        first: $first
-        skip: $skip
         where: $where
+        limit: $limit
         orderBy: $orderBy
         orderDirection: $orderDirection
       ) {
-        pair {
-          ...PairFragment
-          dayData(where: $dayDataWhere, orderBy: date, orderDirection: desc) {
-            ...PairDayDataFragment
+        items {
+          pair {
+            ...PairFragment
+            dayData(
+              where: $dayDataWhere
+              orderBy: "date"
+              orderDirection: "desc"
+            ) {
+              items {
+                ...PairDayDataFragment
+              }
+            }
           }
+          balance
         }
-        balance
       }
     }
   }
@@ -44,28 +50,40 @@ export const getUserPositions = gql`
 export const getUserPosition = gql`
   ${TOKEN_FRAGMENT}
   ${PAIR_FRAGMENT}
-  query GetUserPosition($id: String!, $pairId: String!) {
-    liquidityPositions(where: { user: $id, pair: $pairId }) {
-      balance
-    }
-    userStakes(where: { user: $id, pair: $pairId }) {
-      amount
-    }
-  }
-`;
-
-export const getUserIncentives = gql`
-  ${INCENTIVE_FRAGMENT}
-  query GetUserIncentives($id: String!, $pairId: String!) {
-    userIncentives(where: { user: $id, incentive_: { pair: $pairId } }) {
-      id
-      incentive {
-        ...IncentiveFragment
+  query GetUserPosition(
+    $chainId: Int!
+    $pairAddress: String!
+    $userAddress: String!
+  ) {
+    liquidityPositions(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        balance
       }
-      isSubscribed
     }
-    userStakes(where: { user: $id, pair: $pairId }) {
-      amount
+    userIncentives(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        incentive {
+          ...IncentiveFragment
+        }
+        isSubscribed
+      }
+    }
+    userPairStakes(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        amount
+      }
     }
   }
 `;

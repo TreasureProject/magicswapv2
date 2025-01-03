@@ -31,18 +31,22 @@ export function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search")?.toLowerCase();
   const game = url.searchParams.get("game");
+  const chainId = url.searchParams.get("chain");
 
   const fetchAndFilterPools = async () => {
-    const pools = await fetchPools();
+    const pools = await fetchPools(
+      chainId ? { chainId: Number(chainId) } : undefined,
+    );
+    // TODO: filter by selected chain ID
     const gameTokenIdsMap = game
-      ? getTokenIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
     const gameCollectionIdsMap = game
-      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_CHAIN_ID)
+      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
       : {};
 
     return pools.filter(
-      ({ name, token0, token1, collections }) =>
+      ({ name, token0, token1 }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -50,22 +54,21 @@ export function loader({ request }: LoaderFunctionArgs) {
           token1.symbol.toLowerCase().includes(search) ||
           token0.name.toLowerCase().includes(search) ||
           token1.name.toLowerCase().includes(search) ||
-          collections.some((collection) =>
-            collection.name.toLowerCase().includes(search),
-          )) &&
+          token0.collectionName?.toLowerCase().includes(search) ||
+          token1.collectionName?.toLowerCase().includes(search)) &&
         // Filter by selected game
         (!game ||
-          !!gameTokenIdsMap[token0.id] ||
-          !!gameTokenIdsMap[token1.id] ||
-          collections.some(
-            (collection) => gameCollectionIdsMap[collection.id.toLowerCase()],
-          )),
+          !!gameTokenIdsMap[token0.address] ||
+          !!gameTokenIdsMap[token1.address] ||
+          (token0.collectionAddress &&
+            gameCollectionIdsMap[token0.collectionAddress]) ||
+          (token1.collectionAddress &&
+            gameCollectionIdsMap[token1.collectionAddress])),
     );
   };
 
   return defer({
     pools: fetchAndFilterPools(),
-    chainId: ENV.PUBLIC_CHAIN_ID,
   });
 }
 
@@ -99,7 +102,7 @@ const RowSkeleton = () => (
 );
 
 export default function PoolsListPage() {
-  const { pools, chainId } = useLoaderData<typeof loader>();
+  const { pools } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
 
@@ -148,18 +151,20 @@ export default function PoolsListPage() {
               pools.map((pool) => (
                 // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                 <tr
-                  key={pool.id}
+                  key={pool.address}
                   className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
-                  onClick={() => navigate(`/pools/${pool.id}`)}
+                  onClick={() =>
+                    navigate(`/pools/${pool.chainId}/${pool.address}`)
+                  }
                 >
                   <td className="px-4 py-3.5 text-left font-medium text-white sm:px-5">
                     <Link
-                      to={`/pools/${pool.id}`}
+                      to={`/pools/${pool.chainId}/${pool.address}`}
                       prefetch="intent"
                       className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <PoolImage chainId={chainId} pool={pool} />
+                      <PoolImage pool={pool} showChainIcon />
                       <div className="-ml-2 space-y-1 sm:ml-0">
                         <span className="block">{pool.name}</span>
                         <div className="flex items-center gap-1">

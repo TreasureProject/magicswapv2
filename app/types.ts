@@ -1,36 +1,40 @@
-import type { SetOptional } from "type-fest";
+import type { SetNonNullable, SetOptional, SetRequired } from "type-fest";
+
+import type { CONTRACT_ADDRESSES } from "./consts";
 import type { GetPairsQuery } from ".graphclient";
 
 export type Optional<T> = T | undefined;
 
 export type AddressString = `0x${string}`;
 export type NumberString = `${number}`;
+export type ChainId = keyof typeof CONTRACT_ADDRESSES;
 
 /** Data Transfer Objects */
 // Subgraph
-export type Pair = SetOptional<
-  GetPairsQuery["pairs"][number],
-  "hourData" | "dayData"
->;
-
-export type Token = Pair["token0"];
-export type Collection = NonNullable<
-  Token["vaultCollections"]
->[number]["collection"];
-
-// Trove
-export type TroveCollection = {
-  collectionAddr: string;
-  contractType: "ERC721" | "ERC1155";
-  displayName: string;
-  thumbnailUri: string;
-  urlSlug: string;
-  symbol: string;
-  numTokensOwnedByUser: number;
+type Pair = GetPairsQuery["pairs"]["items"][number];
+export type Pool = SetRequired<
+  SetNonNullable<
+    SetOptional<Pair, "hourData" | "dayData">,
+    "token0" | "token1"
+  >,
+  "token0" | "token1"
+> & {
+  volume24h0: number;
+  volume24h1: number;
+  volume24hUsd: number;
+  volume1wUsd: number;
+  apy: number;
+};
+export type Token = Pool["token0"];
+export type TokenWithAmount = {
+  name: string;
+  image?: string | null;
+  collectionAddress: string;
+  tokenId: string;
+  amount: number | string;
 };
 
-export type TroveCollectionMapping = Record<string, TroveCollection>;
-
+// Trove
 export type TroveToken = {
   collectionAddr: string;
   contractType: "ERC721" | "ERC1155";
@@ -50,12 +54,6 @@ export type TroveToken = {
   queryUserQuantityOwned?: number;
 };
 
-export type TroveTokenWithQuantity = TroveToken & {
-  quantity: number;
-};
-
-export type TroveTokenMapping = Record<string, Record<string, TroveToken>>;
-
 type DomainType = "ens" | "smol" | "treasuretag" | "address";
 
 type DomainInfo = {
@@ -70,27 +68,4 @@ export type AccountDomains = {
   smol?: DomainInfo;
   treasuretag?: DomainInfo;
   preferredDomainType?: DomainType;
-};
-
-/** Magicswap Objects */
-export type PoolTokenCollection = {
-  id: string;
-  urlSlug: string;
-  tokenIds: string[];
-  name: string;
-  symbol: string;
-  type: "ERC721" | "ERC1155";
-  image: string;
-};
-
-export type PoolToken = Omit<Token, "decimals"> & {
-  type?: "ERC721" | "ERC1155";
-  decimals: number;
-  image?: string;
-  collections: PoolTokenCollection[];
-  urlSlug: string;
-  collectionId: string;
-  collectionTokenIds: string[];
-  priceUSD: number;
-  reserve: string;
 };

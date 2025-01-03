@@ -17,9 +17,12 @@ import { formatTokenReserve } from "~/lib/tokens";
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { origin } = new URL(request.url);
 
-  invariant(params.id, "Missing pool id");
+  invariant(params.address, "Pool address required");
 
-  const pool = await fetchPool(params.id);
+  const pool = await fetchPool({
+    chainId: Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID),
+    address: params.address,
+  });
   if (!pool) {
     return new Response(undefined, {
       status: 404,
@@ -32,8 +35,14 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const token0 = pool.token0;
   const token1 = pool.token1;
-  const baseToken = token1.isNFT && !pool.isNFTNFT ? token1 : token0;
-  const quoteToken = token1.isNFT && !pool.isNFTNFT ? token0 : token1;
+  const [baseToken, baseReserve] =
+    token1.isVault && !pool.isVaultVault
+      ? [token1, BigInt(pool.reserve1)]
+      : [token0, BigInt(pool.reserve0)];
+  const [quoteToken, quoteReserve] =
+    token1.isVault && !pool.isVaultVault
+      ? [token0, BigInt(pool.reserve0)]
+      : [token1, BigInt(pool.reserve1)];
 
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
@@ -58,7 +67,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                {formatTokenReserve(token0)}
+                {formatTokenReserve(token0, BigInt(pool.reserve0))}
               </div>
               <div
                 style={{
@@ -76,7 +85,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
                   color: NIGHT_100,
                 }}
               >
-                {formatTokenReserve(token1)}
+                {formatTokenReserve(token1, BigInt(pool.reserve1))}
               </div>
               <div
                 style={{
@@ -169,8 +178,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         >
           <span>
             {formatAmount(
-              bigIntToNumber(BigInt(quoteToken.reserve), quoteToken.decimals) /
-                bigIntToNumber(BigInt(baseToken.reserve), baseToken.decimals),
+              bigIntToNumber(quoteReserve, quoteToken.decimals) /
+                bigIntToNumber(baseReserve, baseToken.decimals),
             )}
           </span>
           <span

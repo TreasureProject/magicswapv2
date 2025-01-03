@@ -1,10 +1,19 @@
 import type { MetaFunction } from "@remix-run/react";
 import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
-import { SearchIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
-import { useChainId } from "wagmi";
+import type { Chain } from "viem";
+import { useChainId, useChains } from "wagmi";
+import { ChainIcon } from "~/components/ChainIcon";
 
+import { Button } from "~/components/ui/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/Dropdown";
 import { Input } from "~/components/ui/Input";
 import { GAME_METADATA } from "~/consts";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
@@ -38,6 +47,7 @@ export default function PoolsListPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const chainId = useChainId();
+  const chains = useChains();
 
   useDebounce(
     () => {
@@ -74,6 +84,25 @@ export default function PoolsListPage() {
     });
   };
 
+  const handleSelectChain = (chainId: number) => {
+    setSearchParams((curr) => {
+      if (chainId === -1) {
+        curr.delete("chain");
+      } else {
+        curr.set("chain", chainId.toString());
+      }
+
+      return curr;
+    });
+  };
+
+  const filterChainId = searchParams.get("chain")
+    ? Number(searchParams.get("chain"))
+    : undefined;
+  const filterChain = filterChainId
+    ? chains.find((chain) => chain.id === filterChainId)
+    : undefined;
+
   return (
     <main className="container space-y-8 py-5 md:py-7">
       <div className="space-y-1">
@@ -104,12 +133,12 @@ export default function PoolsListPage() {
           </Link>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-md border border-night-800 pl-2">
-            <SearchIcon className="h-5 w-5 text-night-400" />
+          <div className="flex items-center rounded-md border border-night-900 bg-night-1100 pl-2">
+            <SearchIcon className="h-5 w-5 text-night-500" />
             <Input
               type="search"
               placeholder="Search"
-              className="w-auto border-none ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
+              className="h-9 w-auto border-none ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -131,6 +160,53 @@ export default function PoolsListPage() {
                 </button>
               ) : null,
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
+              >
+                {filterChain ? (
+                  <>
+                    <ChainIcon chainId={filterChain.id} />
+                    {filterChain.name}
+                  </>
+                ) : (
+                  "All Networks"
+                )}
+                <ChevronDownIcon className="h-3.5 w-3.5 text-night-600" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-4 font-medium text-white"
+                  onClick={() => handleSelectChain(-1)}
+                >
+                  All Networks
+                  {!filterChain ? <CheckIcon className="h-4 w-4" /> : null}
+                </button>
+              </DropdownMenuItem>
+              {chains.map((chain) => (
+                <DropdownMenuItem key={chain.id}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 font-medium text-white"
+                    onClick={() => handleSelectChain(chain.id)}
+                  >
+                    <span className="flex items-center gap-2">
+                      <ChainIcon chainId={chain.id} />
+                      {chain.name}
+                    </span>
+                    {chain.id === filterChain?.id ? (
+                      <CheckIcon className="h-4 w-4" />
+                    ) : null}
+                  </button>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <Outlet />
       </div>

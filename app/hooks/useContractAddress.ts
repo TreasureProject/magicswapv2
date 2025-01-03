@@ -1,17 +1,12 @@
-import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
-import type { Version } from ".graphclient";
 
-import { CONTRACT_ADDRESSES, type Contract } from "~/consts";
-import type { AddressString } from "~/types";
+import type { Contract } from "~/consts";
+import { getContractAddress } from "~/lib/address";
+import type { version as Version } from ".graphclient";
 
 export const useContractAddress = (contract: Contract) => {
   const chainId = useChainId();
-  const addresses =
-    CONTRACT_ADDRESSES[
-      chainId === arbitrumSepolia.id ? arbitrumSepolia.id : arbitrum.id
-    ];
-  return addresses[contract] as AddressString;
+  return getContractAddress({ chainId, contract });
 };
 
 export const useRouterAddress = (version: Version) =>

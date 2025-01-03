@@ -1,5 +1,10 @@
 import { zeroAddress } from "viem";
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import {
+  arbitrum,
+  arbitrumSepolia,
+  treasure,
+  treasureTopaz,
+} from "viem/chains";
 
 export const PRIVACY_POLICY_URL = "https://app.treasure.lol/privacy-policy";
 export const TERMS_OF_SERVICE_URL = "https://app.treasure.lol/terms-of-service";
@@ -129,6 +134,19 @@ export const TOKEN_METADATA = {
     },
   ],
 } as const;
+export const CHAIN_ID_TO_TROVE_API_URL: Record<number, string> = {
+  [treasure.id]: "https://trove-api.treasure.lol",
+  [treasureTopaz.id]: "https://trove-api-dev.treasure.lol",
+  [arbitrum.id]: "https://trove-api.treasure.lol",
+  [arbitrumSepolia.id]: "https://trove-api-dev.treasure.lol",
+};
+
+export const CHAIN_ID_TO_TROVE_API_NETWORK: Record<number, string> = {
+  [treasure.id]: "treasure",
+  [treasureTopaz.id]: "topaz",
+  [arbitrum.id]: "arb",
+  [arbitrumSepolia.id]: "arbsepolia",
+};
 
 export const GAME_METADATA: Record<
   string,
@@ -183,10 +201,6 @@ export const GAME_METADATA: Record<
     },
   },
 };
-
-export const BLOCKED_PAIRS = [
-  "0xf904469497e6a179a9d47a7b468e4be42ec56e65", // MAGIC-ELM v1
-];
 
 export const BLOCKED_TOKENS = [
   "0x45d55eadf0ed5495b369e040af0717eafae3b731", // ELM v1

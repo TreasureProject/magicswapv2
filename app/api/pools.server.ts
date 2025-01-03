@@ -1,81 +1,70 @@
 import type { ExecutionResult } from "graphql";
 
-import { BLOCKED_PAIRS } from "~/consts";
-import { uniswapV2PairAbi } from "~/generated";
-import { client } from "~/lib/chain.server";
+import { aprToApy } from "~/lib/apr";
 import {
   getOneDayAgoTimestamp,
   getOneWeekAgoTimestamp,
 } from "~/lib/date.server";
-import { createPoolFromPair } from "~/lib/pools.server";
-import { createPoolToken, itemToTroveTokenItem } from "~/lib/tokens.server";
-import type { AddressString, Pair, Token } from "~/types";
+import { bigIntToNumber } from "~/lib/number";
+import type { Pool } from "~/types";
 import {
   GetPairDocument,
-  GetPairIncentivesDocument,
-  type GetPairIncentivesQuery,
   type GetPairQuery,
   GetPairTransactionsDocument,
   type GetPairTransactionsQuery,
   GetPairsDocument,
   type GetPairsQuery,
-  type TransactionType,
+  type pairFilter as PairFilter,
+  type transactionType as TransactionType,
   execute,
 } from "../../.graphclient";
-import { fetchTokensCollections } from "./collections.server";
-import { fetchMagicUSD } from "./stats.server";
-import {
-  fetchTroveTokenMapping,
-  fetchVaultReserveItems,
-} from "./tokens.server";
 import { fetchDomains } from "./user.server";
 
 export const fetchPoolTransactions = async ({
-  id,
+  chainId,
+  address,
   page = 1,
   resultsPerPage = 25,
   type,
 }: {
-  id: string;
+  chainId: number;
+  address: string;
   page?: number;
   resultsPerPage?: number;
   type?: TransactionType;
 }) => {
   const result = (await execute(GetPairTransactionsDocument, {
-    pair: id,
+    chainId,
+    address,
     first: resultsPerPage,
     skip: (page - 1) * resultsPerPage,
     ...(type ? { where: { type } } : undefined),
   })) as ExecutionResult<GetPairTransactionsQuery>;
   const { pair } = result.data ?? {};
   if (!pair) {
-    throw new Error(`Pair not found: ${id}`);
+    throw new Error(`Pair not found: ${address}`);
   }
 
-  const transactions = pair.transactions;
-  const [tokens, domains] = await Promise.all([
-    fetchTroveTokenMapping([
-      ...new Set(
-        transactions.flatMap(({ items }) =>
-          items.map(({ collection, tokenId }) => `${collection.id}/${tokenId}`),
-        ),
-      ),
-    ]),
-    fetchDomains(transactions.map(({ user }) => user?.id ?? "")),
-  ]);
+  const domains = await fetchDomains(
+    pair.transactions?.items.map(({ userAddress }) => userAddress ?? "") ?? [],
+  );
 
-  return transactions.map(({ items, ...transaction }) => ({
-    ...transaction,
-    userDomain: transaction.user ? domains[transaction.user.id] : undefined,
-    items0:
-      items
-        ?.filter(({ vault }) => vault.id === pair.token0.id)
-        .map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
-    items1:
-      items
-        ?.filter(({ vault }) => vault.id === pair.token1.id)
-        .map((item) => itemToTroveTokenItem(item, tokens)) ?? [],
-  }));
+  return (
+    pair.transactions?.items.map(({ items, ...transaction }) => ({
+      ...transaction,
+      userDomain: transaction.userAddress
+        ? domains[transaction.userAddress]
+        : undefined,
+      items0:
+        items?.items.filter(
+          ({ vaultAddress }) => vaultAddress === pair.token0Address,
+        ) ?? [],
+      items1:
+        items?.items.filter(
+          ({ vaultAddress }) => vaultAddress === pair.token1Address,
+        ) ?? [],
+    })) ?? []
+  );
 };
 
 type PoolTransaction = Awaited<
@@ -84,117 +73,87 @@ type PoolTransaction = Awaited<
 export type PoolTransactionType = NonNullable<PoolTransaction["type"]>;
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
-export const createPoolsFromPairs = async (pairs: Pair[]) => {
-  const [[collectionMapping, tokenMapping], magicUSD, reserves] =
-    await Promise.all([
-      fetchTokensCollections(
-        pairs.flatMap(({ token0, token1, incentives }) => {
-          const tokens = [token0, token1];
-          for (const { rewardToken } of incentives) {
-            if (rewardToken) {
-              tokens.push(rewardToken);
-            }
-          }
+export const pairToPool = (
+  pair: GetPairsQuery["pairs"]["items"][number],
+): Pool => {
+  const token0 = pair.token0!;
+  const token1 = pair.token1!;
+  const dayData = pair.dayData?.items ?? [];
+  const hourData = pair.hourData?.items ?? [];
 
-          return tokens;
-        }),
-      ),
-      fetchMagicUSD(),
-      client.multicall({
-        contracts: pairs.map(({ id }) => ({
-          address: id as AddressString,
-          abi: uniswapV2PairAbi,
-          functionName: "getReserves",
-        })),
-      }),
-    ]);
-  return pairs.map((pair, i) => {
-    const reserve = reserves[i] as {
-      result: [bigint, bigint, number];
-      status: "success" | "reverted";
-    };
+  const volume1wUsd =
+    dayData.reduce((total, { volumeUsd }) => total + Number(volumeUsd), 0) ?? 0;
+  const volume1w0 =
+    dayData.reduce(
+      (total, { volume0 }) =>
+        total + bigIntToNumber(BigInt(volume0), token0.decimals),
+      0,
+    ) ?? 0;
+  const volume1w1 =
+    dayData.reduce(
+      (total, { volume1 }) =>
+        total + bigIntToNumber(BigInt(volume1), token1.decimals),
+      0,
+    ) ?? 0;
+  const volume1w = pair.isVaultVault || !token0.isVault ? volume1w0 : volume1w1;
 
-    return createPoolFromPair(
-      pair,
-      collectionMapping,
-      tokenMapping,
-      magicUSD,
-      reserve?.status === "success"
-        ? [reserve.result[0], reserve.result[1]]
-        : undefined,
-    );
-  });
+  const aprReserve =
+    pair.isVaultVault || !token0.isVault
+      ? bigIntToNumber(BigInt(pair.reserve0), token0.decimals)
+      : bigIntToNumber(BigInt(pair.reserve1), token1.decimals);
+  const apr =
+    aprReserve > 0
+      ? ((volume1w / 7) * 365 * Number(pair.lpFee)) / aprReserve
+      : 0;
+  return {
+    ...pair,
+    token0,
+    token1,
+    volume24h0:
+      hourData.reduce(
+        (total, { volume0 }) =>
+          total + bigIntToNumber(BigInt(volume0), token0.decimals),
+        0,
+      ) ?? 0,
+    volume24h1:
+      hourData.reduce(
+        (total, { volume1 }) =>
+          total + bigIntToNumber(BigInt(volume1), token1.decimals),
+        0,
+      ) ?? 0,
+    volume24hUsd:
+      hourData.reduce((total, { volumeUsd }) => total + Number(volumeUsd), 0) ??
+      0,
+    volume1wUsd,
+    apy: aprToApy(apr),
+  };
 };
 
-export const fetchPools = async () => {
+export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
   const result = (await execute(GetPairsDocument, {
     where: {
-      id_not_in: BLOCKED_PAIRS,
-      reserve0_gt: 0,
+      reserve0_not: "0",
+      ...where,
     },
     hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
       date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetPairsQuery>;
-  const { pairs = [] } = result.data ?? {};
-  return createPoolsFromPairs(pairs);
+  return result.data?.pairs.items.map((pair) => pairToPool(pair)) ?? [];
 };
 
-export const fetchPool = async (id: string) => {
+export const fetchPool = async (params: {
+  chainId: number;
+  address: string;
+}): Promise<Pool | undefined> => {
   const result = (await execute(GetPairDocument, {
-    id,
+    ...params,
     hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
       date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;
-  if (!pair) {
-    return undefined;
-  }
-
-  const pools = await createPoolsFromPairs([pair]);
-  return pools[0];
-};
-
-export const fetchPoolIncentives = async (id: string) => {
-  const result = (await execute(GetPairIncentivesDocument, {
-    id,
-  })) as ExecutionResult<GetPairIncentivesQuery>;
-
-  const incentives = result.data?.incentives;
-  if (!incentives) {
-    return [];
-  }
-
-  const [[collectionMapping, tokenMapping], magicUSD] = await Promise.all([
-    fetchTokensCollections(
-      incentives
-        .map((incentive) => incentive.rewardToken)
-        .filter(Boolean) as Token[],
-    ),
-    fetchMagicUSD(),
-  ]);
-
-  const enrichedIncentives = await Promise.all(
-    incentives.map(async (incentive) => ({
-      ...incentive,
-      rewardToken: incentive.rewardToken
-        ? createPoolToken(
-            incentive.rewardToken,
-            collectionMapping,
-            tokenMapping,
-            magicUSD,
-          )
-        : null,
-      vaultItems: incentive.rewardToken?.isNFT
-        ? await fetchVaultReserveItems({
-            id: incentive.rewardToken.id,
-          })
-        : [],
-    })),
-  );
-
-  return enrichedIncentives;
+  return pair ? pairToPool(pair) : undefined;
 };

@@ -30,20 +30,17 @@ import {
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
 
-import type {
-  PoolTransactionItem,
-  PoolTransactionType,
+import {
+  type PoolTransactionItem,
+  type PoolTransactionType,
+  fetchPool,
 } from "~/api/pools.server";
-import { fetchPool, fetchPoolIncentives } from "~/api/pools.server";
+import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import {
-  type UserIncentive,
-  fetchUserIncentives,
-  fetchUserPosition,
-} from "~/api/user.server";
+import { type UserIncentive, fetchUserPosition } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
@@ -79,14 +76,13 @@ import {
   formatPercent,
 } from "~/lib/number";
 import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
-import type { Pool } from "~/lib/pools.server";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, PoolToken, TroveTokenWithQuantity } from "~/types";
-import type { TransactionType } from ".graphclient";
+import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
+import type { transactionType as TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
 
@@ -123,12 +119,16 @@ export const meta: MetaFunction<
 };
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  invariant(params.id, "Pool ID required");
+  invariant(params.address, "Pool address required");
 
-  const [pool, session, poolIncentives] = await Promise.all([
-    fetchPool(params.id),
+  const chainId = Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID);
+  const [pool, session, magicUsd] = await Promise.all([
+    fetchPool({
+      chainId,
+      address: params.address,
+    }),
     getSession(request.headers.get("Cookie")),
-    fetchPoolIncentives(params.id),
+    fetchMagicUsd(),
   ]);
 
   if (!pool) {
@@ -138,53 +138,55 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  const [userPosition, userIncentives] = await Promise.all([
-    fetchUserPosition(address, params.id),
-    fetchUserIncentives(address, params.id),
-  ]);
+  const userPosition = address
+    ? await fetchUserPosition({
+        chainId,
+        pairAddress: params.address,
+        userAddress: address,
+      })
+    : undefined;
 
   return defer({
     pool,
-    poolIncentives,
-    userPosition,
-    userIncentives,
-    vaultItems0:
-      pool.token0.isNFT && pool.token0.collectionTokenIds.length !== 1
-        ? fetchVaultReserveItems({
-            id: pool.token0.id,
-          })
-        : undefined,
-    vaultItems1:
-      pool.token1.isNFT && pool.token1.collectionTokenIds.length !== 1
-        ? fetchVaultReserveItems({
-            id: pool.token1.id,
-          })
-        : undefined,
+    lpBalance: userPosition?.lpBalance ?? "0",
+    lpStaked: userPosition?.lpStaked ?? "0",
+    userIncentives: userPosition?.userIncentives ?? [],
+    vaultItems0: pool.token0.isVault
+      ? fetchVaultReserveItems({
+          chainId: pool.token0.chainId,
+          address: pool.token0.address,
+        })
+      : undefined,
+    vaultItems1: pool.token1.isVault
+      ? fetchVaultReserveItems({
+          chainId: pool.token1.chainId,
+          address: pool.token1.address,
+        })
+      : undefined,
     nftBalance0:
-      pool.token0.isNFT && address
+      pool.token0.isVault && address
         ? fetchPoolTokenBalance(pool.token0, address)
         : undefined,
     nftBalance1:
-      pool.token1.isNFT && address
+      pool.token1.isVault && address
         ? fetchPoolTokenBalance(pool.token1, address)
         : undefined,
-    chainId: ENV.PUBLIC_CHAIN_ID,
+    magicUsd,
   });
 }
 
 export default function PoolDetailsPage() {
   const {
     pool,
-    poolIncentives,
-    userPosition,
+    lpBalance: lpBalanceStr,
+    lpStaked: lpStakedStr,
     userIncentives,
     vaultItems0,
     vaultItems1,
-    chainId,
+    magicUsd,
   } = useLoaderData<typeof loader>();
-
-  const { address: userAddress } = useAccount();
   const revalidator = useRevalidator();
+  const { address: userAddress } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
@@ -195,11 +197,12 @@ export default function PoolDetailsPage() {
   ] = useState<bigint[]>([]);
   const [isWithdrawingFromVault, setIsWithdrawingFromVault] = useState(false);
 
+  const poolIncentives = pool.incentives?.items ?? [];
+
   const nftIncentive = userIncentives.find(
     (userIncentive) =>
-      userIncentive.isActive && userIncentive.incentive.rewardToken?.isNFT,
+      userIncentive.isActive && userIncentive.incentive.rewardToken?.isVault,
   );
-
   const nftIncentiveDecimals =
     nftIncentive?.incentive.rewardToken?.decimals ?? 18;
 
@@ -235,14 +238,14 @@ export default function PoolDetailsPage() {
     },
   );
 
-  const lpBalance = BigInt(userPosition.lpBalance);
-  const lpStaked = BigInt(userPosition.lpStaked);
+  const lpBalance = BigInt(lpBalanceStr);
+  const lpStaked = BigInt(lpStakedStr);
   const lpBalanceShare =
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
   const lpStakedShare =
     bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
-  const lpShare = lpBalanceShare + lpStakedShare;
-  const hasStakingRewards = userIncentives.some(
+  const _lpShare = lpBalanceShare + lpStakedShare;
+  const _hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
   );
 
@@ -252,7 +255,7 @@ export default function PoolDetailsPage() {
 
   const subscribedIncentiveIds = userIncentives
     .filter((userIncentive) => userIncentive.isSubscribed)
-    .map((userIncentive) => BigInt(userIncentive.incentive.incentiveId))
+    .map((userIncentive) => BigInt(userIncentive.incentive?.incentiveId ?? 0n))
     .concat(optimisticSubscribedIncentiveIds);
 
   const unsubscribedIncentiveIds = poolIncentives
@@ -262,12 +265,16 @@ export default function PoolDetailsPage() {
     )
     .map((incentive) => BigInt(incentive.incentiveId));
 
-  const baseToken =
-    (pool.token1.isNFT && !pool.isNFTNFT) || pool.token1.isMAGIC
-      ? pool.token1
-      : pool.token0;
-  const quoteToken =
-    baseToken.id === pool.token1.id ? pool.token0 : pool.token1;
+  const [baseToken, baseReserve] =
+    (pool.token1.isVault && !pool.isVaultVault) || pool.token1.isMagic
+      ? [pool.token1, BigInt(pool.reserve1)]
+      : [pool.token0, BigInt(pool.reserve0)];
+  const [quoteToken, quoteReserve] =
+    baseToken.address === pool.token1.address
+      ? [pool.token0, BigInt(pool.reserve0)]
+      : [pool.token1, BigInt(pool.reserve1)];
+  const lpShare =
+    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
 
   const handleSubscribeToAll = async () => {
     const incentiveIds = [...unsubscribedIncentiveIds];
@@ -283,12 +290,12 @@ export default function PoolDetailsPage() {
     refetch();
   };
 
-  const handleWithdrawRewards = async (tokens: TroveTokenWithQuantity[]) => {
+  const handleWithdrawRewards = async (tokens: TokenWithAmount[]) => {
     await withdrawBatch(
       tokens.map((token) => ({
         id: BigInt(token.tokenId),
-        amount: BigInt(token.quantity),
-        collectionId: token.collectionAddr as Address,
+        amount: BigInt(token.amount),
+        collectionId: token.collectionAddress as Address,
       })),
     );
     setIsWithdrawingFromVault(false);
@@ -309,14 +316,10 @@ export default function PoolDetailsPage() {
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
             <div className="-space-x-2 flex items-center">
-              <PoolImage
-                chainId={chainId}
-                pool={pool}
-                className="h-auto w-14"
-              />
+              <PoolImage pool={pool} className="h-auto w-14" showChainIcon />
               <div className="flex flex-col text-2xl">
                 <a
-                  href={`${blockExplorer.url}/address/${pool.id}`}
+                  href={`${blockExplorer.url}/address/${pool.address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold hover:underline"
@@ -329,36 +332,46 @@ export default function PoolDetailsPage() {
               </div>
             </div>
             <ul className="flex flex-wrap items-center gap-5 text-night-100 text-sm">
-              {[pool.token0, pool.token1].map(({ id, name, isNFT }) => (
-                <li key={id} className="flex items-center gap-1.5">
-                  <span className="font-medium">
-                    {isNFT ? `${name} Vault` : name}
-                  </span>{" "}
-                  <a
-                    href={`${blockExplorer.url}/address/${id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-0.5 text-night-400 hover:underline"
-                  >
-                    {truncateEthAddress(id)}{" "}
-                    <ExternalLinkIcon className="h-4 w-4" />
-                  </a>
-                </li>
-              ))}
-              {pool.collections.map(({ id, name }) => (
-                <li key={id} className="flex items-center gap-1.5">
-                  <span className="font-medium">{name}</span>{" "}
-                  <a
-                    href={`${blockExplorer.url}/address/${id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-0.5 text-night-400 hover:underline"
-                  >
-                    {truncateEthAddress(id)}{" "}
-                    <ExternalLinkIcon className="h-4 w-4" />
-                  </a>
-                </li>
-              ))}
+              {[pool.token0, pool.token1].map(
+                ({
+                  address,
+                  name,
+                  isVault,
+                  collectionAddress,
+                  collectionName,
+                }) => (
+                  <Fragment key={address}>
+                    <li className="flex items-center gap-1.5">
+                      <span className="font-medium">
+                        {isVault ? `${name} Vault` : name}
+                      </span>{" "}
+                      <a
+                        href={`${blockExplorer.url}/address/${address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:underline"
+                      >
+                        {truncateEthAddress(address)}{" "}
+                        <ExternalLinkIcon className="h-2.5 w-2.5" />
+                      </a>
+                    </li>
+                    {collectionAddress ? (
+                      <li className="flex items-center gap-1.5">
+                        <span className="font-medium">{collectionName}</span>{" "}
+                        <a
+                          href={`${blockExplorer.url}/address/${collectionAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 hover:underline"
+                        >
+                          {truncateEthAddress(collectionAddress)}{" "}
+                          <ExternalLinkIcon className="h-2.5 w-2.5" />
+                        </a>
+                      </li>
+                    ) : null}
+                  </Fragment>
+                ),
+              )}
             </ul>
             <div className="h-[1px] bg-night-900" />
             <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
@@ -366,9 +379,9 @@ export default function PoolDetailsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-lg">Pool Liquidity</h3>
-                    {pool.reserveUSD > 0 ? (
+                    {Number(pool.reserveUsd) > 0 ? (
                       <span className="text-night-400">
-                        {formatUSD(pool.reserveUSD)}
+                        {formatUSD(pool.reserveUsd)}
                       </span>
                     ) : null}
                   </div>
@@ -376,16 +389,10 @@ export default function PoolDetailsPage() {
                     <p className="justify-self-end">1 {baseToken.symbol}</p>
                     <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                     <p>
-                      {BigInt(baseToken.reserve) > 0
+                      {baseReserve > 0
                         ? formatAmount(
-                            bigIntToNumber(
-                              BigInt(quoteToken.reserve),
-                              quoteToken.decimals,
-                            ) /
-                              bigIntToNumber(
-                                BigInt(baseToken.reserve),
-                                baseToken.decimals,
-                              ),
+                            bigIntToNumber(quoteReserve, quoteToken.decimals) /
+                              bigIntToNumber(baseReserve, baseToken.decimals),
                           )
                         : 0}{" "}
                       {quoteToken.symbol}
@@ -396,14 +403,14 @@ export default function PoolDetailsPage() {
                   <div className="flex items-center justify-between gap-3 text-[#FFFCF5]">
                     <span className="flex items-center gap-1">
                       <span className="text-sm">
-                        {formatTokenReserve(baseToken)}
+                        {formatTokenReserve(baseToken, baseReserve)}
                       </span>
                       <PoolTokenImage token={baseToken} className="h-5 w-5" />
                       <span className="font-semibold">{baseToken.symbol}</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="text-sm">
-                        {formatTokenReserve(quoteToken)}
+                        {formatTokenReserve(quoteToken, quoteReserve)}
                       </span>
                       <PoolTokenImage token={quoteToken} className="h-5 w-5" />
                       <span className="font-semibold">{quoteToken.symbol}</span>
@@ -412,22 +419,20 @@ export default function PoolDetailsPage() {
                   <div />
                   <div className="flex items-center justify-between gap-3 text-night-400 text-sm">
                     <span>
-                      {baseToken.priceUSD
+                      {Number(baseToken.derivedMagic) > 0
                         ? formatUSD(
-                            bigIntToNumber(
-                              BigInt(baseToken.reserve),
-                              baseToken.decimals,
-                            ) * baseToken.priceUSD,
+                            bigIntToNumber(baseReserve, baseToken.decimals) *
+                              Number(baseToken.derivedMagic) *
+                              magicUsd,
                           )
                         : null}
                     </span>
                     <span>
-                      {quoteToken.priceUSD
+                      {Number(quoteToken.derivedMagic) > 0
                         ? formatUSD(
-                            bigIntToNumber(
-                              BigInt(quoteToken.reserve),
-                              quoteToken.decimals,
-                            ) * quoteToken.priceUSD,
+                            bigIntToNumber(quoteReserve, quoteToken.decimals) *
+                              Number(quoteToken.derivedMagic) *
+                              magicUsd,
                           )
                         : null}
                     </span>
@@ -523,7 +528,7 @@ export default function PoolDetailsPage() {
                       <ul className="flex flex-wrap items-start gap-8">
                         {userIncentives.map((userIncentive) => (
                           <li
-                            key={userIncentive.id}
+                            key={userIncentive.incentive.incentiveId}
                             className="flex items-center gap-2"
                           >
                             {userIncentive.incentive.rewardToken ? (
@@ -547,18 +552,18 @@ export default function PoolDetailsPage() {
                         ))}
                       </ul>
                     </div>
-                    {hasStakingRewards ? (
-                      <Button className="w-full" onClick={handleClaimRewards}>
-                        Claim all rewards
-                      </Button>
-                    ) : null}
+                    hasStakingRewards ? (
+                    <Button className="w-full" onClick={handleClaimRewards}>
+                      Claim all rewards
+                    </Button>
+                    ) : null
                   </div>
                 ) : (
                   <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />
                     <div className="relative flex w-full items-center justify-between gap-3">
                       <span className="font-medium text-[#FFFDF6] text-xl">
-                        Start staking and{" "}
+                        Start staking and" "
                         <span className="text-honey-900">earn rewards</span>
                       </span>
                       <button
@@ -577,9 +582,9 @@ export default function PoolDetailsPage() {
               <div className="space-y-4 rounded-md bg-night-1100 p-4">
                 <div>
                   <h3 className="font-medium text-lg">My Position</h3>
-                  {pool.reserveUSD > 0 ? (
+                  {Number(pool.reserveUsd) > 0 ? (
                     <span className="text-night-400 text-sm">
-                      {formatUSD(lpShare * pool.reserveUSD)}
+                      {formatUSD(lpShare * Number(pool.reserveUsd))}
                     </span>
                   ) : null}
                 </div>
@@ -588,54 +593,84 @@ export default function PoolDetailsPage() {
                     <h3 className="text-night-200">Unstaked</h3>
                     <PoolLpAmount pool={pool} amount={lpBalance} />
                     <div className="space-y-2">
-                      {[baseToken, quoteToken].map((token) => (
-                        <PoolTokenRow
-                          key={token.id}
-                          token={token}
+                      {/* <PoolTokenRow
+                          token={baseToken}
                           amount={
                             lpBalanceShare *
                             bigIntToNumber(
-                              BigInt(token.reserve),
-                              token.decimals,
+                              baseReserve,
+                              baseToken.decimals,
                             )
                           }
                           amountUSD={
                             lpBalanceShare *
                             bigIntToNumber(
-                              BigInt(token.reserve),
-                              token.decimals,
+                              baseReserve,
+                              baseToken.decimals,
                             ) *
-                            token.priceUSD
+                            baseToken.priceUSD
                           }
                         />
-                      ))}
+                        <PoolTokenRow
+                          token={quoteToken}
+                          amount={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            ) *
+                            quoteToken.priceUSD
+                          }
+                        /> */}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-night-200">Staked</h3>
                     <PoolLpAmount pool={pool} amount={lpStaked} />
                     <div className="space-y-2">
-                      {[baseToken, quoteToken].map((token) => (
-                        <PoolTokenRow
-                          key={token.id}
-                          token={token}
+                      {/* <PoolTokenRow
+                          token={baseToken}
                           amount={
                             lpStakedShare *
                             bigIntToNumber(
-                              BigInt(token.reserve),
-                              token.decimals,
+                              baseReserve,
+                              baseToken.decimals,
                             )
                           }
                           amountUSD={
                             lpStakedShare *
                             bigIntToNumber(
-                              BigInt(token.reserve),
-                              token.decimals,
+                              baseReserve,
+                              baseToken.decimals,
                             ) *
-                            token.priceUSD
+                            baseToken.priceUSD
                           }
                         />
-                      ))}
+                        <PoolTokenRow
+                          token={quoteToken}
+                          amount={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            ) *
+                            quoteToken.priceUSD
+                          }
+                        /> */}
                     </div>
                   </div>
                 </div>
@@ -662,10 +697,11 @@ export default function PoolDetailsPage() {
             canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
             userIncentives={userIncentives}
             onChangeTab={setTab}
+            magicUsd={magicUsd}
             onSuccess={refetch}
           />
         </div>
-        {pool.hasNFT ? (
+        {pool.hasVault ? (
           <div className="mt-12 space-y-3.5">
             {vaultItems0 ? (
               <Suspense>
@@ -754,6 +790,7 @@ export default function PoolDetailsPage() {
             canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
             userIncentives={userIncentives}
             onChangeTab={setTab}
+            magicUsd={magicUsd}
             onSuccess={refetch}
           />
         </SheetContent>
@@ -788,6 +825,7 @@ const PoolManagementView = ({
   tab,
   lpBalance,
   lpStaked,
+  magicUsd,
   canStake,
   canUnstake,
   userIncentives,
@@ -799,6 +837,7 @@ const PoolManagementView = ({
   tab: PoolManagementTab;
   lpBalance: bigint;
   lpStaked: bigint;
+  magicUsd: number;
   canStake: boolean;
   canUnstake: boolean;
   userIncentives: UserIncentive[];
@@ -806,9 +845,10 @@ const PoolManagementView = ({
   onSuccess: () => void;
   className?: string;
 }) => {
-  const nftBalances = useRouteLoaderData("routes/pools_.$id") as SerializeFrom<
-    typeof loader
-  >;
+  const [_activeTab, _setActiveTab] = useState<string>("deposit");
+  const nftBalances = useRouteLoaderData(
+    "routes/pools_.($chainId).$address",
+  ) as SerializeFrom<typeof loader>;
 
   return (
     <div className={className}>
@@ -845,12 +885,14 @@ const PoolManagementView = ({
         <PoolDepositTab
           pool={pool}
           nftBalances={nftBalances}
+          magicUsd={magicUsd}
           onSuccess={onSuccess}
         />
       ) : null}
       {tab === "withdraw" ? (
         <PoolWithdrawTab
           pool={pool}
+          magicUsd={magicUsd}
           balance={lpBalance}
           onSuccess={onSuccess}
         />
@@ -889,7 +931,11 @@ const PoolActivityTable = ({
     hasNextPage,
     goToPreviousPage,
     goToNextPage,
-  } = usePoolTransactions({ id: pool.id, type });
+  } = usePoolTransactions({
+    chainId: pool.chainId,
+    address: pool.address,
+    type,
+  });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const blockExplorer = useBlockExplorer();
 
@@ -926,10 +972,10 @@ const PoolActivityTable = ({
         </thead>
         <tbody>
           {transactions.map((tx) => {
-            let tokenA: PoolToken;
+            let tokenA: Token;
             let amountA: string;
             let itemsA: PoolTransactionItem[];
-            let tokenB: PoolToken;
+            let tokenB: Token;
             let amountB: string;
             let itemsB: PoolTransactionItem[];
             const isSwap = tx.type === "Swap";
@@ -952,7 +998,7 @@ const PoolActivityTable = ({
             } else {
               tokenA = pool.token0;
               tokenB = pool.token1;
-              if (tokenA.id === pool.token0.id) {
+              if (tokenA.address === pool.token0Address) {
                 amountA = tx.amount0;
                 itemsA = tx.items0;
                 amountB = tx.amount1;
@@ -966,7 +1012,7 @@ const PoolActivityTable = ({
             }
 
             return (
-              <Fragment key={tx.id}>
+              <Fragment key={tx.hash}>
                 <tr className="border-b border-b-night-900 transition-colors">
                   <td className="px-4 py-3.5 text-left sm:px-5">
                     <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
@@ -999,7 +1045,7 @@ const PoolActivityTable = ({
                     {tx.type}
                   </td>
                   <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                    {Number(tx.amountUSD) > 0 ? formatUSD(tx.amountUSD) : "-"}
+                    {Number(tx.amountUsd) > 0 ? formatUSD(tx.amountUsd) : "-"}
                   </td>
                   <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                     {tx.userDomain?.treasuretag ? (
@@ -1009,7 +1055,9 @@ const PoolActivityTable = ({
                       </span>
                     ) : (
                       <span className="font-mono">
-                        {tx.user ? truncateEthAddress(tx.user.id) : "-"}
+                        {tx.userAddress
+                          ? truncateEthAddress(tx.userAddress)
+                          : "-"}
                       </span>
                     )}
                   </td>
@@ -1048,7 +1096,7 @@ const PoolActivityTable = ({
                         exit={{ height: "0px", opacity: 0 }}
                         className={cn("grid w-full bg-night-1100 px-3 py-6")}
                       >
-                        {token0.isNFT &&
+                        {token0.isVault &&
                           token0.reserveItems.map(
                             ({ tokenId, name, image, amount }) => (
                               <div
@@ -1111,27 +1159,28 @@ const PoolActivityTable = ({
   );
 };
 
-const PoolTokenRow = ({
-  token,
-  amount,
-  amountUSD,
-}: {
-  token: PoolToken;
-  amount: number | string;
-  amountUSD: number;
-}) => (
-  <div className="flex items-center justify-between gap-3">
-    <div className="flex items-center gap-2 font-medium">
-      <PoolTokenImage className="h-6 w-6" token={token} />
-      <span className="text-night-100">{token.symbol}</span>
-    </div>
-    <div className="flex items-center gap-2 text-right">
-      <span>{typeof amount === "string" ? amount : formatAmount(amount)}</span>
-      {amountUSD > 0 ? (
-        <span className="text-night-400 text-sm">
-          {formatUSD(amountUSD, { notation: "compact" })}
-        </span>
-      ) : null}
-    </div>
-  </div>
-);
+// const PoolTokenRow = ({
+//   token,
+//   items,
+// }: {
+//   token: Token;
+//   items: TokenWithAmount[];
+// }) => {
+//   const numVaultItems = sumArray(items.map(({ amount }) => amount));
+//   return (
+//     <div className="flex items-center justify-between gap-3">
+//       <div className="flex items-center gap-2 font-medium">
+//         <PoolTokenImage className="h-6 w-6" token={token} />
+//         <span className="text-night-100">{token.symbol}</span>
+//       </div>
+//       <div className="flex items-center gap-2 text-right">
+//         <span>{typeof amount === "string" ? amount : formatAmount(amount)}</span>
+//         {amountUSD > 0 ? (
+//           <span className="text-night-400 text-sm">
+//             {formatUSD(amountUSD, { notation: "compact" })}
+//           </span>
+//         ) : null}
+//       </div>
+//     </div>
+//   );
+// );
