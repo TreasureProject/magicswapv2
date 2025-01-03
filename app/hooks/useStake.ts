@@ -7,8 +7,7 @@ import {
   useWriteStakingContractStakeAndSubscribeToIncentives,
   useWriteStakingContractStakeToken,
 } from "~/generated";
-import type { Pool } from "~/lib/pools.server";
-import type { AddressString } from "~/types";
+import type { AddressString, Pool } from "~/types";
 import { useApproval } from "./useApproval";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
@@ -34,7 +33,7 @@ export const useStake = ({
   const isEnabled = enabled && isConnected && amount > 0;
   const { isApproved, approve } = useApproval({
     operator: stakingContractAddress,
-    token: pool.id,
+    token: pool.address,
     amount,
     enabled: isEnabled,
   });
@@ -58,8 +57,10 @@ export const useStake = ({
       .filter((userIncentive) => userIncentive.isSubscribed)
       .map((userIncentive) => userIncentive.incentive.incentiveId);
 
-    return pool.incentives.filter(
-      (incentive) => !subscribedIncentiveIds.includes(incentive.incentiveId),
+    return (
+      pool.incentives?.items.filter(
+        (incentive) => !subscribedIncentiveIds.includes(incentive.incentiveId),
+      ) ?? []
     );
   }, [pool, userIncentives]);
 
@@ -89,15 +90,9 @@ export const useStake = ({
 
   useEffect(() => {
     if (isSuccessStakeToken) {
-      onSuccess?.(
-        unsubscribedIncentives.map(({ incentiveId }) => ({
-          id: incentiveId,
-          incentive: { incentiveId },
-          isSubscribed: true,
-        })),
-      );
+      onSuccess?.([]); // TODO: resolve this
     }
-  }, [isSuccessStakeToken, onSuccess, unsubscribedIncentives]);
+  }, [isSuccessStakeToken, onSuccess]);
 
   return {
     isApproved,
@@ -109,13 +104,14 @@ export const useStake = ({
       if (unsubscribedIncentives.length === 0) {
         return stakeToken.writeContractAsync({
           address: stakingContractAddress,
-          args: [pool.id as AddressString, amount, false],
+          args: [pool.address as AddressString, amount, false],
         });
       }
+
       return stakeAndSubscribe.writeContractAsync({
         address: stakingContractAddress,
         args: [
-          pool.id as AddressString,
+          pool.address as AddressString,
           amount,
           unsubscribedIncentives.map(({ incentiveId }) => BigInt(incentiveId)),
           true,

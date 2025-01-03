@@ -4,8 +4,7 @@ import { parseEther } from "viem";
 import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
-import type { Pool } from "~/lib/pools.server";
-import type { NumberString } from "~/types";
+import type { NumberString, Pool } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 
@@ -31,16 +30,20 @@ export const PoolIncentiveStake = ({
     pool,
     amount,
     userIncentives: tempUserIncentives,
-    onSuccess: useCallback((newIncentives: UserIncentive[]) => {
+    onSuccess: useCallback((newUserIncentives: UserIncentive[]) => {
       setRawAmount("0");
       setUserIncentives((curr) => {
         if (
-          newIncentives.some(
-            (newIncentive) =>
-              !curr.find((incentive) => incentive.id === newIncentive.id),
+          newUserIncentives.some(
+            (newUserIncentive) =>
+              !curr.find(
+                (userIncentive) =>
+                  userIncentive.incentive.incentiveId ===
+                  newUserIncentive.incentive.incentiveId,
+              ),
           )
         ) {
-          return curr.concat(newIncentives);
+          return curr.concat(newUserIncentives);
         }
         return curr;
       });

@@ -4,20 +4,18 @@ import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { sumArray } from "~/lib/array";
 import { formatNumber } from "~/lib/number";
 
-import type { PoolToken, TroveToken } from "~/types";
+import type { Token, TokenWithAmount } from "~/types";
 
 export const PoolTokenCollectionInventory = ({
   token,
   items,
 }: {
-  token: PoolToken;
-  items: TroveToken[];
+  token: Token;
+  items: TokenWithAmount[];
 }) => {
-  const numVaultItems = sumArray(
-    items.map(({ queryUserQuantityOwned }) => queryUserQuantityOwned ?? 1),
-  );
+  const numVaultItems = sumArray(items.map((item) => Number(item.amount)));
   return (
-    <div key={token.id} className="rounded-lg bg-night-1100">
+    <div className="rounded-lg bg-night-1100">
       <Dialog>
         <div className="space-y-5 p-6">
           <div className="flex items-center gap-3">
@@ -35,14 +33,12 @@ export const PoolTokenCollectionInventory = ({
                 key={item.tokenId}
                 className="relative overflow-hidden rounded"
               >
-                <img
-                  src={item.image.uri}
-                  alt={item.metadata.name}
-                  title={item.metadata.name}
-                />
-                {(item.queryUserQuantityOwned ?? 1) > 1 ? (
+                {item.image ? (
+                  <img src={item.image} alt={item.name} title={item.name} />
+                ) : null}
+                {Number(item.amount) > 1 ? (
                   <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-                    {formatNumber(item.queryUserQuantityOwned ?? 1)}x
+                    {formatNumber(item.amount)}x
                   </span>
                 ) : null}
               </div>

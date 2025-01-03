@@ -3,8 +3,7 @@ import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractUnstakeToken } from "~/generated";
-import type { Pool } from "~/lib/pools.server";
-import type { AddressString } from "~/types";
+import type { AddressString, Pool } from "~/types";
 import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
@@ -55,7 +54,7 @@ export const useUnstake = ({
 
       return unstake.writeContractAsync({
         address: stakingContractAddress,
-        args: [pool.id as AddressString, amount, true],
+        args: [pool.address as AddressString, amount, true],
       });
     },
   };

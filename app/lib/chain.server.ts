@@ -1,15 +1,26 @@
 import { http, createPublicClient, fallback } from "viem";
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import { arbitrum } from "viem/chains";
 
+import { CHAIN_ID_TO_CHAIN } from "~/consts";
 import { ENV } from "./env.server";
 
-export const client = createPublicClient({
-  chain:
-    ENV.PUBLIC_CHAIN_ID === arbitrumSepolia.id ? arbitrumSepolia : arbitrum,
-  transport: fallback([
-    http(
-      `https://${ENV.PUBLIC_CHAIN_ID}.rpc.thirdweb.com/${ENV.PUBLIC_THIRDWEB_CLIENT_ID}`,
-    ),
-    http(),
-  ]),
-});
+const CACHED_VIEM_CLIENTS: Record<
+  number,
+  ReturnType<typeof createPublicClient>
+> = {};
+
+export const getViemClient = (chainId: number) => {
+  if (!CACHED_VIEM_CLIENTS[chainId]) {
+    CACHED_VIEM_CLIENTS[chainId] = createPublicClient({
+      chain: CHAIN_ID_TO_CHAIN[chainId] ?? arbitrum,
+      transport: fallback([
+        http(
+          `https://${chainId}.rpc.thirdweb.com/${ENV.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          { batch: true },
+        ),
+        http(undefined, { batch: true }),
+      ]),
+    });
+  }
+  return CACHED_VIEM_CLIENTS[chainId];
+};

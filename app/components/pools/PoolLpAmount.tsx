@@ -1,5 +1,5 @@
 import { formatAmount } from "~/lib/currency";
-import type { Pool } from "~/lib/pools.server";
+import type { Pool } from "~/types";
 import { PoolImage } from "./PoolImage";
 
 type Props = {

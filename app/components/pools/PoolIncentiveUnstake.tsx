@@ -3,8 +3,7 @@ import { parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useUnstake } from "~/hooks/useUnstake";
-import type { Pool } from "~/lib/pools.server";
-import type { NumberString } from "~/types";
+import type { NumberString, Pool } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 
