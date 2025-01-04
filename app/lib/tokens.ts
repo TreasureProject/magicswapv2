@@ -17,8 +17,8 @@ export const tokenToRToken = ({
   decimals,
 });
 
-export const countTokens = (tokens: { amount: number }[]) =>
-  sumArray(tokens.map(({ amount }) => amount));
+export const countTokens = (tokens: { amount: number | string }[]) =>
+  sumArray(tokens.map(({ amount }) => Number(amount)));
 
 export const formatTokenReserve = (token: Token, reserve: bigint) =>
   formatAmount(token.isVault ? floorBigInt(reserve, token.decimals) : reserve, {

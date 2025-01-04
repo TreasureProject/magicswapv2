@@ -1,10 +1,14 @@
 import Decimal from "decimal.js-light";
 import { formatUnits } from "viem";
 
-export const formatUSD = (value: number | string) =>
+export const formatUSD = (
+  value: number | string,
+  options?: Intl.NumberFormatOptions,
+) =>
   `$${Number(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: Number(value) < 0.01 ? 4 : 2,
+    ...options,
   })}`;
 
 export const formatAmount = (

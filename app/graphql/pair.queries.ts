@@ -1,7 +1,5 @@
 import gql from "graphql-tag";
 
-import { TOKEN_FRAGMENT } from "./token.queries";
-
 const TRANSACTION_ITEM_FRAGMENT = gql`
   fragment TransactionItemFragment on transactionItem {
     chainId
@@ -42,6 +40,20 @@ export const PAIR_FRAGMENT = gql`
     protocolFee
     royaltiesFee
     royaltiesBeneficiary
+    incentives {
+      items {
+        incentiveId
+        startTime
+        endTime
+        rewardTokenAddress
+        rewardToken {
+          ...TokenFragment
+        }
+        rewardAmount
+        remainingRewardAmount
+        isRewardRounded
+      }
+    }
   }
 `;
 
@@ -112,7 +124,6 @@ export const getPairTransactions = gql`
 `;
 
 export const getPairs = gql`
-  ${TOKEN_FRAGMENT}
   ${PAIR_HOUR_DATA_FRAGMENT}
   ${PAIR_DAY_DATA_FRAGMENT}
   ${PAIR_FRAGMENT}
@@ -156,7 +167,6 @@ export const getPairs = gql`
 `;
 
 export const getPair = gql`
-  ${TOKEN_FRAGMENT}
   ${PAIR_HOUR_DATA_FRAGMENT}
   ${PAIR_DAY_DATA_FRAGMENT}
   ${PAIR_FRAGMENT}
@@ -185,6 +195,25 @@ export const getPair = gql`
         items {
           ...PairDayDataFragment
         }
+      }
+    }
+  }
+`;
+
+export const getPairIncentives = gql`
+  query GetPairIncentives($id: String!) {
+    incentives(where: { pairAddress: $id }) {
+      items {
+        incentiveId
+        startTime
+        endTime
+        rewardTokenAddress
+        rewardToken {
+          ...TokenFragment
+        }
+        rewardAmount
+        remainingRewardAmount
+        isRewardRounded
       }
     }
   }

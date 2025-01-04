@@ -1,17 +1,34 @@
+import type {
+  AbiParametersToPrimitiveTypes,
+  ExtractAbiFunction,
+} from "abitype";
 import type { ExecutionResult } from "graphql";
-
 import { arbitrum } from "viem/chains";
+
+import { UINT112_MAX } from "~/consts";
 import { CHAIN_ID_TO_TROVE_API_URL } from "~/consts";
+import { stakingContractAbi } from "~/generated";
+import { getContractAddress } from "~/lib/address";
 import { getCachedValue } from "~/lib/cache.server";
+import { getViemClient } from "~/lib/chain.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
+import { floorBigInt } from "~/lib/number";
 import type { AccountDomains } from "~/types";
 import { pairToPool } from "./pools.server";
+import { fetchVaultReserveItems } from "./tokens.server";
 import {
+  GetUserPositionDocument,
+  type GetUserPositionQuery,
   GetUserPositionsDocument,
   type GetUserPositionsQuery,
   execute,
 } from ".graphclient";
+
+type Incentive = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<typeof stakingContractAbi, "incentives">["outputs"],
+  "outputs"
+>;
 
 export const fetchUserPositions = async (address: string | undefined) => {
   if (!address) {
@@ -42,6 +59,105 @@ export const fetchUserPositions = async (address: string | undefined) => {
         ...liquidityPosition,
         pool: pairToPool(pair!),
       })) ?? [],
+  };
+};
+
+export const fetchUserPosition = async (params: {
+  chainId: number;
+  pairAddress: string;
+  userAddress: string;
+}) => {
+  const { chainId, userAddress } = params;
+  const result = (await execute(
+    GetUserPositionDocument,
+    params,
+  )) as ExecutionResult<GetUserPositionQuery>;
+  const userIncentives = result.data?.userIncentives.items ?? [];
+
+  const client = getViemClient(chainId);
+  const [incentives, rewardsPerLiquidityLast] = await Promise.all([
+    client.multicall({
+      contracts: userIncentives.map((userIncentive) => ({
+        address: getContractAddress({ chainId, contract: "stakingContract" }),
+        abi: stakingContractAbi,
+        functionName: "incentives",
+        args: [BigInt(userIncentive.incentive?.incentiveId ?? 0n)],
+      })),
+    }),
+    client.multicall({
+      contracts: userIncentives.map((userIncentive) => ({
+        address: getContractAddress({ chainId, contract: "stakingContract" }),
+        abi: stakingContractAbi,
+        functionName: "rewardPerLiquidityLast",
+        args: [userAddress, BigInt(userIncentive.incentive?.incentiveId ?? 0n)],
+      })),
+    }),
+  ]);
+
+  const usersLiquidity = BigInt(
+    result.data?.userPairStakes.items[0]?.amount ?? 0,
+  );
+  return {
+    lpBalance: result.data?.liquidityPositions.items[0]?.balance ?? "0",
+    lpStaked: result.data?.userPairStakes.items[0]?.amount ?? "0",
+    userIncentives: await Promise.all(
+      userIncentives.map(async (userIncentive, i) => {
+        const rewardToken = userIncentive.incentive?.rewardToken;
+        const rewardTokenIsVault =
+          rewardToken?.isVault ??
+          userIncentive.incentive?.isRewardRounded ??
+          false;
+        let [
+          ,
+          ,
+          ,
+          endTime = 0,
+          ,
+          rewardPerLiquidity = 0n,
+          lastRewardTime = 0,
+          rewardRemaining = 0n,
+          liquidityStaked = 0n,
+        ] = (incentives[i]?.result as unknown as Incentive | undefined) ?? [];
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        const maxTime = Math.min(currentTime, endTime);
+        if (liquidityStaked > 0 && lastRewardTime < maxTime) {
+          const totalTime = endTime - lastRewardTime;
+          const passedTime = maxTime - lastRewardTime;
+          const reward =
+            (rewardRemaining * BigInt(passedTime)) / BigInt(totalTime);
+          rewardPerLiquidity += (reward * UINT112_MAX) / liquidityStaked;
+          rewardRemaining -= reward;
+        }
+
+        const userRewardPerLiquidtyLast = rewardsPerLiquidityLast[i]?.result
+          ? (rewardsPerLiquidityLast[i].result as unknown as bigint)
+          : 0n;
+        const rewardPerLiquidityDelta =
+          rewardPerLiquidity - userRewardPerLiquidtyLast;
+        const reward = (rewardPerLiquidityDelta * usersLiquidity) / UINT112_MAX;
+        return {
+          ...userIncentive,
+          isActive:
+            Number(userIncentive.incentive?.endTime ?? 0) >
+            Math.floor(Date.now() / 1000),
+          incentive: {
+            ...userIncentive.incentive,
+            vaultItems:
+              rewardToken && rewardTokenIsVault
+                ? await fetchVaultReserveItems({
+                    chainId,
+                    address: rewardToken.address,
+                  })
+                : [],
+          },
+          reward: rewardTokenIsVault
+            ? floorBigInt(reward, rewardToken?.decimals).toString()
+            : reward.toString(),
+          lastRewardTime,
+        };
+      }),
+    ),
   };
 };
 

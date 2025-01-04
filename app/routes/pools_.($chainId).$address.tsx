@@ -11,76 +11,80 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "@remix-run/react";
+import { MagicLogo } from "@treasure-project/branding";
 import {
   ArrowLeftRightIcon,
   ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowDownToLineIcon as DepositIcon,
-  ExternalLinkIcon,
   PlusIcon,
-  ArrowUpToLineIcon as WithdrawIcon,
 } from "lucide-react";
 import type React from "react";
 import {
   Fragment,
   Suspense as ReactSuspense,
   useCallback,
+  useEffect,
   useState,
 } from "react";
-import { ClientOnly } from "remix-utils/client-only";
 import invariant from "tiny-invariant";
-import type { transactionType as TransactionType } from ".graphclient";
+import { type Address, parseUnits } from "viem";
 
-import { MagicLogo } from "@treasure-project/branding";
-import type {
-  PoolTransactionItem,
-  PoolTransactionType,
+import {
+  type PoolTransactionItem,
+  type PoolTransactionType,
+  fetchPool,
 } from "~/api/pools.server";
-import { fetchPool } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { LoaderIcon } from "~/components/Icons";
+import { fetchUserPosition } from "~/api/user.server";
+import { Badge } from "~/components/Badge";
+import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
+import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
+import { PoolIncentiveUnstake } from "~/components/pools/PoolIncentiveUnstake";
+import { PoolLpAmount } from "~/components/pools/PoolLpAmount";
+import { PoolTokenCollectionInventory } from "~/components/pools/PoolTokenCollectionInventory";
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
 import { Button } from "~/components/ui/Button";
-import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
-import { MultiSelect } from "~/components/ui/MultiSelect";
+import { Dialog } from "~/components/ui/Dialog";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useAccount } from "~/contexts/account";
 import { useBlockExplorer } from "~/hooks/useBlockExplorer";
-import { useFocusInterval } from "~/hooks/useFocusInterval";
+import { useClaimRewards } from "~/hooks/useClaimRewards";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
+import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
+import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
-import { sumArray } from "~/lib/array";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
-import { bigIntToNumber, formatNumber, formatPercent } from "~/lib/number";
+import {
+  bigIntToNumber,
+  floorBigInt,
+  formatNumber,
+  formatPercent,
+} from "~/lib/number";
 import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type {
-  AddressString,
-  Optional,
-  Pool,
-  Token,
-  TokenWithAmount,
-  TroveToken,
-} from "~/types";
+import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
+import type { transactionType as TransactionType } from ".graphclient";
+
+type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
 
 const Suspense = ({ children }: { children: React.ReactNode }) => (
   <ReactSuspense
@@ -117,9 +121,10 @@ export const meta: MetaFunction<
 export async function loader({ params, request }: LoaderFunctionArgs) {
   invariant(params.address, "Pool address required");
 
+  const chainId = Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID);
   const [pool, session, magicUsd] = await Promise.all([
     fetchPool({
-      chainId: Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID),
+      chainId,
       address: params.address,
     }),
     getSession(request.headers.get("Cookie")),
@@ -133,8 +138,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
+  const userPosition = address
+    ? await fetchUserPosition({
+        chainId,
+        pairAddress: params.address,
+        userAddress: address,
+      })
+    : undefined;
+
   return defer({
     pool,
+    lpBalance: userPosition?.lpBalance ?? "0",
+    lpStaked: userPosition?.lpStaked ?? "0",
+    userIncentives: userPosition?.userIncentives ?? [],
     vaultItems0: pool.token0.isVault
       ? fetchVaultReserveItems({
           chainId: pool.token0.chainId,
@@ -160,28 +176,94 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function PoolDetailsPage() {
-  const { pool, vaultItems0, vaultItems1, magicUsd } =
-    useLoaderData<typeof loader>();
+  const {
+    pool,
+    lpBalance: lpBalanceStr,
+    lpStaked: lpStakedStr,
+    userIncentives,
+    vaultItems0,
+    vaultItems1,
+    magicUsd,
+  } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
-  const { address } = useAccount();
+  const { address: userAddress } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
   const blockExplorer = useBlockExplorer();
+  const [tab, setTab] = useState<PoolManagementTab>("deposit");
+  const [
+    optimisticSubscribedIncentiveIds,
+    setOptimisticSubscribedIncentiveIds,
+  ] = useState<bigint[]>([]);
+  const [isWithdrawingFromVault, setIsWithdrawingFromVault] = useState(false);
 
-  const { data: lpBalance = 0n, refetch: refetchLpBalance } = useTokenBalance({
-    id: pool.address as AddressString,
-    address,
+  const poolIncentives = pool.incentives?.items ?? [];
+
+  const nftIncentive = userIncentives.find(
+    (userIncentive) =>
+      userIncentive.isActive && userIncentive.incentive.rewardToken?.isVault,
+  );
+  const nftIncentiveDecimals =
+    nftIncentive?.incentive.rewardToken?.decimals ?? 18;
+
+  const {
+    data: nftIncentiveTokenBalance,
+    refetch: refetchNftIncentiveTokenBalance,
+  } = useTokenBalance({
+    id: nftIncentive?.incentive.rewardTokenAddress as Address | undefined,
+    address: userAddress,
   });
+
+  useEffect(() => {
+    if (nftIncentiveTokenBalance > parseUnits("1", nftIncentiveDecimals)) {
+      setIsWithdrawingFromVault(true);
+    }
+  }, [nftIncentiveDecimals, nftIncentiveTokenBalance]);
 
   const refetch = useCallback(() => {
     if (revalidator.state === "idle") {
-      // revalidator.revalidate();
+      revalidator.revalidate();
     }
 
-    refetchLpBalance();
-  }, [revalidator, refetchLpBalance]);
+    refetchNftIncentiveTokenBalance();
+  }, [revalidator, refetchNftIncentiveTokenBalance]);
 
-  useFocusInterval(refetch, 5_000);
+  const { subscribeToIncentives } = useSubscribeToIncentives();
+  const { claimRewards } = useClaimRewards();
+  const { withdrawBatch, isLoading: isLoadingWithdrawBatch } = useWithdrawBatch(
+    {
+      vaultAddress: nftIncentive?.incentive.rewardTokenAddress as
+        | Address
+        | undefined,
+    },
+  );
+
+  const lpBalance = BigInt(lpBalanceStr);
+  const lpStaked = BigInt(lpStakedStr);
+  const lpBalanceShare =
+    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+  const lpStakedShare =
+    bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
+  const lpShare = lpBalanceShare + lpStakedShare;
+  const hasStakingRewards = userIncentives.some(
+    (userIncentive) => BigInt(userIncentive.reward) > 0n,
+  );
+
+  const activePoolIncentives = poolIncentives.filter(
+    (incentive) => Number(incentive.endTime) > Date.now() / 1000,
+  );
+
+  const subscribedIncentiveIds = userIncentives
+    .filter((userIncentive) => userIncentive.isSubscribed)
+    .map((userIncentive) => BigInt(userIncentive.incentive?.incentiveId ?? 0n))
+    .concat(optimisticSubscribedIncentiveIds);
+
+  const unsubscribedIncentiveIds = poolIncentives
+    .filter(
+      (incentive) =>
+        !subscribedIncentiveIds.includes(BigInt(incentive.incentiveId)),
+    )
+    .map((incentive) => BigInt(incentive.incentiveId));
 
   const [baseToken, baseReserve] =
     (pool.token1.isVault && !pool.isVaultVault) || pool.token1.isMagic
@@ -191,8 +273,49 @@ export default function PoolDetailsPage() {
     baseToken.address === pool.token1.address
       ? [pool.token0, BigInt(pool.reserve0)]
       : [pool.token1, BigInt(pool.reserve1)];
-  const lpShare =
-    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+
+  const memoizedUnsubscribedIncentiveIds = unsubscribedIncentiveIds.join(",");
+  const handlePoolManagementSuccess = useCallback(
+    (tab: PoolManagementTab) => {
+      if (tab === "stake") {
+        const incentiveIds = memoizedUnsubscribedIncentiveIds
+          .split(",")
+          .map((id) => BigInt(id));
+        setOptimisticSubscribedIncentiveIds((curr) =>
+          curr.concat(incentiveIds),
+        );
+      }
+
+      refetch();
+    },
+    [memoizedUnsubscribedIncentiveIds, refetch],
+  );
+
+  const handleSubscribeToAll = async () => {
+    const incentiveIds = [...unsubscribedIncentiveIds];
+    await subscribeToIncentives(incentiveIds);
+    // API can be slow to update, so optimistically update the subscribed list
+    setOptimisticSubscribedIncentiveIds((curr) => curr.concat(incentiveIds));
+    refetch();
+  };
+
+  const handleClaimRewards = async () => {
+    await claimRewards(subscribedIncentiveIds);
+    // Doesn't need optimistic update because data is pulled directly from contract
+    refetch();
+  };
+
+  const handleWithdrawRewards = async (tokens: TokenWithAmount[]) => {
+    await withdrawBatch(
+      tokens.map((token) => ({
+        id: BigInt(token.tokenId),
+        amount: BigInt(token.amount),
+        collectionId: token.collectionAddress as Address,
+      })),
+    );
+    setIsWithdrawingFromVault(false);
+    refetch();
+  };
 
   return (
     <main className="container py-5 md:py-7">
@@ -214,7 +337,7 @@ export default function PoolDetailsPage() {
                   href={`${blockExplorer.url}/address/${pool.address}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium hover:underline"
+                  className="font-semibold hover:underline"
                 >
                   {pool.name}
                 </a>
@@ -266,201 +389,332 @@ export default function PoolDetailsPage() {
               )}
             </ul>
             <div className="h-[1px] bg-night-900" />
-            <ClientOnly
-              fallback={
-                <div className="flex h-52 items-center justify-center">
-                  <LoaderIcon className="h-10 w-10" />
+            <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+              <div className="space-y-6 p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">Pool Liquidity</h3>
+                    {Number(pool.reserveUsd) > 0 ? (
+                      <span className="text-night-400">
+                        {formatUSD(pool.reserveUsd)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center justify-center gap-3 rounded-lg border border-night-900 p-2 text-night-200">
+                    <p className="justify-self-end">1 {baseToken.symbol}</p>
+                    <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
+                    <p>
+                      {baseReserve > 0
+                        ? formatAmount(
+                            bigIntToNumber(quoteReserve, quoteToken.decimals) /
+                              bigIntToNumber(baseReserve, baseToken.decimals),
+                          )
+                        : 0}{" "}
+                      {quoteToken.symbol}
+                    </p>
+                  </div>
                 </div>
-              }
-            >
-              {() => (
-                <>
-                  {address && lpBalance > 0 ? (
-                    <div className="space-y-4 rounded-md bg-night-900 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-medium">Your Position</h3>
-                        {pool.reserveUsd !== "0" ? (
-                          <span className="text-night-200">
-                            {formatUSD(lpShare * Number(pool.reserveUsd))}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="-space-x-1 flex items-center py-1.5">
-                        <PoolImage pool={pool} className="h-10 w-10" />
-                        <p className="flex items-center gap-1.5 text-2xl text-night-400">
-                          <span className="text-3xl text-night-100">
-                            {formatAmount(lpBalance)}
-                          </span>{" "}
-                          MLP
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {[pool.token0, pool.token1].map((token) => (
-                          <div key={token.address} className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <p className="font-medium text-night-100">
-                                {token.name}
-                              </p>
-                              {token.name.toUpperCase() !==
-                              token.symbol.toUpperCase() ? (
-                                <>
-                                  <div className="h-3 w-[1px] bg-night-400" />
-                                  <p className="font-regular text-night-300 uppercase">
-                                    {token.symbol}
-                                  </p>
-                                </>
-                              ) : null}
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <PoolTokenImage
-                                  className="h-6 w-6"
-                                  token={token}
-                                />
-                                <p className="text-night-100">
-                                  {formatAmount(
-                                    lpShare *
-                                      bigIntToNumber(
-                                        BigInt(
-                                          token.address === pool.token0.address
-                                            ? pool.reserve0
-                                            : pool.reserve1,
-                                        ),
-                                        token.decimals,
-                                      ),
-                                  )}
-                                </p>
-                              </div>
-                              {Number(token.derivedMagic) > 0 ? (
-                                <p className="text-night-500 text-xs">
-                                  {formatUSD(
-                                    lpShare *
-                                      bigIntToNumber(
-                                        BigInt(
-                                          token.address === pool.token0.address
-                                            ? pool.reserve0
-                                            : pool.reserve1,
-                                        ),
-                                        token.decimals,
-                                      ) *
-                                      Number(token.derivedMagic) *
-                                      magicUsd,
-                                  )}
-                                </p>
-                              ) : null}
-                            </div>
+                <div>
+                  <div className="flex items-center justify-between gap-3 text-[#FFFCF5]">
+                    <span className="flex items-center gap-1">
+                      <span className="text-sm">
+                        {formatTokenReserve(baseToken, baseReserve)}
+                      </span>
+                      <PoolTokenImage token={baseToken} className="h-5 w-5" />
+                      <span className="font-semibold">{baseToken.symbol}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-sm">
+                        {formatTokenReserve(quoteToken, quoteReserve)}
+                      </span>
+                      <PoolTokenImage token={quoteToken} className="h-5 w-5" />
+                      <span className="font-semibold">{quoteToken.symbol}</span>
+                    </span>
+                  </div>
+                  <div />
+                  <div className="flex items-center justify-between gap-3 text-night-400 text-sm">
+                    <span>
+                      {Number(baseToken.derivedMagic) > 0
+                        ? formatUSD(
+                            bigIntToNumber(baseReserve, baseToken.decimals) *
+                              Number(baseToken.derivedMagic) *
+                              magicUsd,
+                          )
+                        : null}
+                    </span>
+                    <span>
+                      {Number(quoteToken.derivedMagic) > 0
+                        ? formatUSD(
+                            bigIntToNumber(quoteReserve, quoteToken.decimals) *
+                              Number(quoteToken.derivedMagic) *
+                              magicUsd,
+                          )
+                        : null}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 divide-x divide-night-900 bg-night-1100 px-8 py-4 text-center text-[#FFFCF5]">
+                <div>
+                  <p className="text-night-400 text-sm">Volume (24h)</p>
+                  <p>{getPoolVolume24hDisplay(pool)}</p>
+                </div>
+                <div>
+                  <p className="text-night-400 text-sm">Fees (24h)</p>
+                  <p>{getPoolFees24hDisplay(pool)}</p>
+                </div>
+                <div>
+                  <p className="text-night-400 text-sm">APY</p>
+                  <p>{formatPercent(pool.apy)}</p>
+                </div>
+              </div>
+            </div>
+            {poolIncentives.length > 0 ? (
+              <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+                <div className="space-y-4 p-6">
+                  <div>
+                    <h3 className="font-semibold text-lg">Rewards</h3>
+                    <p className="text-night-400 text-sm">
+                      Rewards are earned for staking in the pool
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {activePoolIncentives.map(
+                      ({
+                        incentiveId,
+                        rewardToken,
+                        rewardTokenAddress,
+                        remainingRewardAmount,
+                        endTime,
+                      }) => (
+                        <div
+                          key={incentiveId}
+                          className="flex items-center justify-between gap-3 rounded-md p-3 even:bg-night-1100"
+                        >
+                          <div className="flex items-center gap-2 font-medium">
+                            {rewardToken ? (
+                              <PoolTokenImage
+                                className="h-6 w-6"
+                                token={rewardToken}
+                              />
+                            ) : null}
+                            <span className="text-night-100">
+                              {rewardToken?.symbol ??
+                                truncateEthAddress(rewardTokenAddress)}
+                            </span>
+                            {lpStaked > 0 &&
+                            subscribedIncentiveIds.includes(
+                              BigInt(incentiveId),
+                            ) ? (
+                              <Badge size="xs">Earning</Badge>
+                            ) : lpStaked > 0 ? (
+                              <Badge size="xs" color="secondary">
+                                Not Earning
+                              </Badge>
+                            ) : null}
                           </div>
-                        ))}
-                      </div>
-                      <Table
-                        items={[
-                          // { label: "Initial LP Tokens", value: 0.0 },
-                          // { label: "Rewards Earned", value: 0.0 },
-                          {
-                            label: "Current share of pool",
-                            value: formatPercent(lpShare),
-                          },
-                        ]}
-                      />
-                    </div>
+                          <div className="text-right">
+                            <span>
+                              {formatAmount(BigInt(remainingRewardAmount), {
+                                type: "compact",
+                              })}{" "}
+                              available
+                            </span>{" "}
+                            <span className="text-night-400 text-sm">
+                              until{" "}
+                              {new Date(
+                                Number(endTime) * 1000,
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                  {lpStaked > 0 && unsubscribedIncentiveIds.length > 0 ? (
+                    <Button className="w-full" onClick={handleSubscribeToAll}>
+                      Start earning all rewards
+                    </Button>
                   ) : null}
-                </>
-              )}
-            </ClientOnly>
-            <div className="rounded-md bg-night-1100 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-medium">Pool Reserves</h3>
-                {pool.reserveUsd !== "0" ? (
-                  <span className="text-night-200">
-                    {formatUSD(pool.reserveUsd)}
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-4 grid grid-cols-[1fr,max-content,1fr] items-center gap-4">
-                <p className="justify-self-end text-night-400">
-                  <span className="text-night-100">1</span> {baseToken.symbol}
-                </p>
-                <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
-                <p className="text-night-400">
-                  <span className="text-night-100">
-                    {baseReserve > 0
-                      ? formatAmount(
-                          bigIntToNumber(quoteReserve, quoteToken.decimals) /
-                            bigIntToNumber(baseReserve, baseToken.decimals),
-                        )
-                      : 0}
-                  </span>{" "}
-                  {quoteToken.symbol}
-                </p>
-                {[baseToken, null, quoteToken].map((token) => {
-                  if (!token) {
-                    return <div className="hidden sm:block" key="empty" />;
-                  }
-                  return (
-                    <div
-                      key={token.address}
-                      className="col-span-3 flex flex-1 items-center justify-between gap-3 rounded-md bg-night-1200 p-3 sm:col-span-1"
-                    >
-                      <div className="flex items-center gap-2 font-medium">
-                        <PoolTokenImage className="h-6 w-6" token={token} />
-                        <span className="text-night-100">{token.symbol}</span>
-                      </div>
-                      <div className="space-y-0.5 text-right">
-                        <p className="text-night-100">
-                          {formatTokenReserve(
-                            token,
-                            token.address === baseToken.address
-                              ? baseReserve
-                              : quoteReserve,
-                          )}
-                        </p>
-                        {Number(token.derivedMagic) > 0 ? (
-                          <p className="text-night-400 text-xs">
-                            {formatUSD(
-                              bigIntToNumber(
-                                token.address === baseToken.address
-                                  ? baseReserve
-                                  : quoteReserve,
-                                token.decimals,
-                              ) *
-                                Number(token.derivedMagic) *
-                                magicUsd,
-                            )}
-                          </p>
-                        ) : null}
-                      </div>
+                </div>
+                {lpStaked > 0 ? (
+                  <div className="space-y-6 bg-night-1100 px-6 py-4">
+                    <div className="space-y-3">
+                      <h4 className="text-[#FFFCF5]">Your earned rewards</h4>
+                      <ul className="flex flex-wrap items-start gap-8">
+                        {userIncentives.map((userIncentive) => (
+                          <li
+                            key={userIncentive.incentive.incentiveId}
+                            className="flex items-center gap-2"
+                          >
+                            {userIncentive.incentive.rewardToken ? (
+                              <PoolTokenImage
+                                token={userIncentive.incentive.rewardToken}
+                                className="h-10 w-10"
+                              />
+                            ) : null}
+                            <div className="text-lg">
+                              {formatAmount(BigInt(userIncentive.reward), {
+                                decimals: Number(
+                                  userIncentive.incentive.rewardToken
+                                    ?.decimals ?? 18,
+                                ),
+                              })}
+                              <span className="block text-night-400 text-sm">
+                                {userIncentive.incentive.rewardToken?.symbol}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  );
-                })}
+                    {hasStakingRewards ? (
+                      <Button className="w-full" onClick={handleClaimRewards}>
+                        Claim all rewards
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />
+                    <div className="relative flex w-full items-center justify-between gap-3">
+                      <span className="font-medium text-[#FFFDF6] text-xl">
+                        Start staking and{" "}
+                        <span className="text-honey-900">earn rewards</span>
+                      </span>
+                      <button
+                        type="button"
+                        className="rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-700 active:bg-honey-800"
+                        onClick={() => setTab("stake")}
+                      >
+                        Stake now
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row">
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Volume (24h)</p>
-                <p className="font-medium text-night-100">
-                  {getPoolVolume24hDisplay(pool)}
-                </p>
+            ) : null}
+            {lpBalance > 0 || lpStaked > 0 ? (
+              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+                <div>
+                  <h3 className="font-medium text-lg">My Position</h3>
+                  {Number(pool.reserveUsd) > 0 ? (
+                    <span className="text-night-400 text-sm">
+                      {formatUSD(lpShare * Number(pool.reserveUsd))}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-2">
+                    <h3 className="text-night-200">Unstaked</h3>
+                    <PoolLpAmount pool={pool} amount={lpBalance} />
+                    <div className="space-y-2">
+                      {/* <PoolTokenRow
+                          token={baseToken}
+                          amount={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              baseReserve,
+                              baseToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              baseReserve,
+                              baseToken.decimals,
+                            ) *
+                            baseToken.priceUSD
+                          }
+                        />
+                        <PoolTokenRow
+                          token={quoteToken}
+                          amount={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpBalanceShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            ) *
+                            quoteToken.priceUSD
+                          }
+                        /> */}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-night-200">Staked</h3>
+                    <PoolLpAmount pool={pool} amount={lpStaked} />
+                    <div className="space-y-2">
+                      {/* <PoolTokenRow
+                          token={baseToken}
+                          amount={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              baseReserve,
+                              baseToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              baseReserve,
+                              baseToken.decimals,
+                            ) *
+                            baseToken.priceUSD
+                          }
+                        />
+                        <PoolTokenRow
+                          token={quoteToken}
+                          amount={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            )
+                          }
+                          amountUSD={
+                            lpStakedShare *
+                            bigIntToNumber(
+                              quoteReserve,
+                              quoteToken.decimals,
+                            ) *
+                            quoteToken.priceUSD
+                          }
+                        /> */}
+                    </div>
+                  </div>
+                </div>
+                <Table
+                  items={[
+                    // { label: "Initial LP Tokens", value: 0.0 },
+                    // { label: "Rewards Earned", value: 0.0 },
+                    {
+                      label: "Current share of pool",
+                      value: formatPercent(lpShare),
+                    },
+                  ]}
+                />
               </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">Fees (24h)</p>
-                <p className="font-medium text-night-100">
-                  {getPoolFees24hDisplay(pool)}
-                </p>
-              </div>
-              <div className="flex w-full flex-col gap-0.5 rounded-lg bg-night-1100 px-4 py-3">
-                <p className="text-night-500">APY</p>
-                <p className="font-medium text-night-100">
-                  {formatPercent(pool.apy)}
-                </p>
-              </div>
-            </div>
+            ) : null}
           </div>
           <PoolManagementView
             className="sticky top-4 col-span-3 hidden space-y-4 p-4 lg:block"
             pool={pool}
+            tab={tab}
             lpBalance={lpBalance}
+            lpStaked={lpStaked}
+            canStake={activePoolIncentives.length > 0}
+            canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
+            unsubscribedIncentiveIds={unsubscribedIncentiveIds}
             magicUsd={magicUsd}
-            onSuccess={refetch}
+            onChangeTab={setTab}
+            onSuccess={handlePoolManagementSuccess}
           />
         </div>
         {pool.hasVault ? (
@@ -537,7 +791,7 @@ export default function PoolDetailsPage() {
         <SheetTrigger asChild>
           <div className="fixed right-0 bottom-12 left-0 flex justify-center lg:hidden">
             <Button size="lg" className="rounded-full">
-              My Positions
+              Manage Liquidity
             </Button>
           </div>
         </SheetTrigger>
@@ -545,30 +799,69 @@ export default function PoolDetailsPage() {
           <PoolManagementView
             className="mt-4 space-y-6"
             pool={pool}
+            tab={tab}
             lpBalance={lpBalance}
+            lpStaked={lpStaked}
+            canStake={activePoolIncentives.length > 0}
+            canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
+            unsubscribedIncentiveIds={unsubscribedIncentiveIds}
             magicUsd={magicUsd}
-            onSuccess={refetch}
+            onChangeTab={setTab}
+            onSuccess={handlePoolManagementSuccess}
           />
         </SheetContent>
       </Sheet>
+      {nftIncentive?.incentive.rewardToken &&
+      nftIncentive.incentive.vaultItems.length > 0 ? (
+        <span>
+          <Dialog
+            open={isWithdrawingFromVault}
+            onOpenChange={setIsWithdrawingFromVault}
+          >
+            <SelectionPopup
+              type="vault"
+              token={nftIncentive.incentive.rewardToken}
+              requiredAmount={bigIntToNumber(
+                floorBigInt(nftIncentiveTokenBalance, nftIncentiveDecimals),
+                nftIncentiveDecimals,
+              )}
+              onSubmit={handleWithdrawRewards}
+              isSubmitDisabled={isLoadingWithdrawBatch}
+              keepOpenOnSubmit
+            />
+          </Dialog>
+        </span>
+      ) : null}
     </main>
   );
 }
 
 const PoolManagementView = ({
   pool,
+  tab,
   lpBalance,
+  lpStaked,
   magicUsd,
+  canStake,
+  canUnstake,
+  unsubscribedIncentiveIds,
+  onChangeTab,
   onSuccess,
   className,
 }: {
   pool: Pool;
+  tab: PoolManagementTab;
   lpBalance: bigint;
+  lpStaked: bigint;
   magicUsd: number;
-  onSuccess: () => void;
+  canStake: boolean;
+  canUnstake: boolean;
+  unsubscribedIncentiveIds: bigint[];
+  onChangeTab: (tab: PoolManagementTab) => void;
+  onSuccess: (tab: PoolManagementTab) => void;
   className?: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<string>("deposit");
+  const [_activeTab, _setActiveTab] = useState<string>("deposit");
   const nftBalances = useRouteLoaderData(
     "routes/pools_.($chainId).$address",
   ) as SerializeFrom<typeof loader>;
@@ -581,39 +874,60 @@ const PoolManagementView = ({
         </h1>
         <SettingsDropdownMenu />
       </div>
-      <MultiSelect
-        className="bg-night-1200 sm:bg-night-1100"
-        tabs={[
-          {
-            id: "deposit",
-            icon: DepositIcon,
-            name: "Add",
-          },
-          {
-            id: "withdraw",
-            icon: WithdrawIcon,
-            name: "Remove",
-          },
-        ]}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      {activeTab === "withdraw" && (
-        <PoolWithdrawTab
-          pool={pool}
-          balance={lpBalance}
-          magicUsd={magicUsd}
-          onSuccess={onSuccess}
-        />
-      )}
-      {activeTab === "deposit" && (
+      <div className="flex h-[41px] items-center border-b-2 border-b-[#2C4868] font-medium text-[#9FA3A9]">
+        {[
+          ["deposit", "Deposit"],
+          ["withdraw", "Withdraw"],
+          ...(canStake ? [["stake", "Stake"]] : []),
+          ...(canUnstake ? [["unstake", "Unstake"]] : []),
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            className={cn(
+              "h-11 border-b-2 px-3 hover:text-[#FFFCF3]",
+              key === tab
+                ? "border-b-[#DC2626] text-[#FFFCF3]"
+                : "border-b-transparent",
+            )}
+            onClick={() => onChangeTab(key as typeof tab)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {tab === "deposit" ? (
         <PoolDepositTab
           pool={pool}
           nftBalances={nftBalances}
           magicUsd={magicUsd}
-          onSuccess={onSuccess}
+          onSuccess={() => onSuccess("deposit")}
         />
-      )}
+      ) : null}
+      {tab === "withdraw" ? (
+        <PoolWithdrawTab
+          pool={pool}
+          magicUsd={magicUsd}
+          balance={lpBalance}
+          onSuccess={() => onSuccess("withdraw")}
+        />
+      ) : null}
+      {tab === "stake" ? (
+        <PoolIncentiveStake
+          pool={pool}
+          balance={lpBalance}
+          unsubscribedIncentiveIds={unsubscribedIncentiveIds}
+          onSuccess={() => onSuccess("stake")}
+        />
+      ) : null}
+      {tab === "unstake" ? (
+        <PoolIncentiveUnstake
+          pool={pool}
+          staked={lpStaked}
+          onSuccess={() => onSuccess("unstake")}
+        />
+      ) : null}
     </div>
   );
 };
@@ -862,57 +1176,28 @@ const PoolActivityTable = ({
   );
 };
 
-const PoolTokenCollectionInventory = ({
-  token,
-  items,
-}: {
-  token: Token;
-  items: TokenWithAmount[];
-}) => {
-  const numVaultItems = sumArray(items.map(({ amount }) => amount));
-  return (
-    <div key={token.address} className="rounded-lg bg-night-1100">
-      <Dialog>
-        <div className="space-y-5 p-6">
-          <div className="flex items-center gap-3">
-            <span className="font-medium">{token.name} Vault</span>
-            {token.name !== token.symbol ? (
-              <>
-                <span className="h-3 w-[1px] bg-night-400" />
-                <span className="text-night-400 uppercase">{token.symbol}</span>
-              </>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
-            {items.map((item) => (
-              <div
-                key={item.tokenId}
-                className="relative overflow-hidden rounded"
-              >
-                {item.image ? (
-                  <img src={item.image} alt={item.name} title={item.name} />
-                ) : null}
-                {item.amount > 1 ? (
-                  <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
-                    {formatNumber(item.amount)}x
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="h-[1px] bg-night-800" />
-        <div className="flex items-center justify-between px-6 py-3">
-          <span className="text-night-400 text-sm">
-            {formatNumber(numVaultItems)}{" "}
-            {numVaultItems === 1 ? "item" : "items"}
-          </span>
-          <DialogTrigger asChild>
-            <Button variant="ghost">View All</Button>
-          </DialogTrigger>
-        </div>
-        <SelectionPopup type="vault" viewOnly token={token} />
-      </Dialog>
-    </div>
-  );
-};
+// const PoolTokenRow = ({
+//   token,
+//   items,
+// }: {
+//   token: Token;
+//   items: TokenWithAmount[];
+// }) => {
+//   const numVaultItems = sumArray(items.map(({ amount }) => amount));
+//   return (
+//     <div className="flex items-center justify-between gap-3">
+//       <div className="flex items-center gap-2 font-medium">
+//         <PoolTokenImage className="h-6 w-6" token={token} />
+//         <span className="text-night-100">{token.symbol}</span>
+//       </div>
+//       <div className="flex items-center gap-2 text-right">
+//         <span>{typeof amount === "string" ? amount : formatAmount(amount)}</span>
+//         {amountUSD > 0 ? (
+//           <span className="text-night-400 text-sm">
+//             {formatUSD(amountUSD, { notation: "compact" })}
+//           </span>
+//         ) : null}
+//       </div>
+//     </div>
+//   );
+// );

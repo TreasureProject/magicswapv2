@@ -37,6 +37,7 @@ export function loader({ request }: LoaderFunctionArgs) {
     const pools = await fetchPools(
       chainId ? { chainId: Number(chainId) } : undefined,
     );
+
     // TODO: filter by selected chain ID
     const gameTokenIdsMap = game
       ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)

@@ -42,3 +42,53 @@ export const getUserPositions = gql`
     }
   }
 `;
+
+export const getUserPosition = gql`
+  ${TOKEN_FRAGMENT}
+  ${PAIR_FRAGMENT}
+  query GetUserPosition(
+    $chainId: Int!
+    $pairAddress: String!
+    $userAddress: String!
+  ) {
+    liquidityPositions(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        balance
+      }
+    }
+    userIncentives(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        incentive {
+          incentiveId
+          startTime
+          endTime
+          rewardTokenAddress
+          rewardToken {
+            ...TokenFragment
+          }
+          rewardAmount
+          remainingRewardAmount
+          isRewardRounded
+        }
+        isSubscribed
+      }
+    }
+    userPairStakes(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        amount
+      }
+    }
+  }
+`;

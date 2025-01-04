@@ -91,3 +91,24 @@ export const MagicTextLogo = ({ className }: Props) => (
     />
   </svg>
 );
+
+export const ExternalLinkIcon = ({ className }: Props) => (
+  <svg viewBox="0 0 20 20" className={className}>
+    <g id="arrow-up-right">
+      <path
+        d="M14.3753 12.7083V5.625H7.29199"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14.1667 5.83331L5.625 14.375"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </g>
+  </svg>
+);

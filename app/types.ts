@@ -1,10 +1,13 @@
 import type { SetNonNullable, SetOptional, SetRequired } from "type-fest";
+
+import type { CONTRACT_ADDRESSES } from "./consts";
 import type { GetPairsQuery } from ".graphclient";
 
 export type Optional<T> = T | undefined;
 
 export type AddressString = `0x${string}`;
 export type NumberString = `${number}`;
+export type ChainId = keyof typeof CONTRACT_ADDRESSES;
 
 /** Data Transfer Objects */
 // Subgraph
@@ -28,7 +31,7 @@ export type TokenWithAmount = {
   image?: string | null;
   collectionAddress: string;
   tokenId: string;
-  amount: number;
+  amount: number | string;
 };
 
 // Trove

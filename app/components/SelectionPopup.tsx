@@ -61,7 +61,7 @@ const ItemCard = ({
             )}
           />
         ) : null}
-        {item.amount > 1 ? (
+        {Number(item.amount) > 1 ? (
           <span className="absolute right-1.5 bottom-1.5 rounded-lg bg-night-700/80 px-2 py-0.5 font-bold text-night-100 text-xs">
             {formatNumber(item.amount)}x
           </span>
@@ -117,6 +117,8 @@ type EditableProps = BaseProps & {
   viewOnly?: false;
   selectedTokens?: TokenWithAmount[];
   requiredAmount?: number;
+  keepOpenOnSubmit?: boolean;
+  isSubmitDisabled?: boolean;
   onSubmit: (items: TokenWithAmount[]) => void;
   children?: (renderProps: { amount: string }) => React.ReactNode;
 };
@@ -142,7 +144,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
   const [isCompactMode, setIsCompactMode] = useState(false);
 
   const selectedQuantity = selectedItems.reduce(
-    (acc, curr) => acc + curr.amount,
+    (acc, curr) => acc + Number(curr.amount),
     0,
   );
   const selectionDisabled =
@@ -243,7 +245,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                         !props.viewOnly && props.requiredAmount
                           ? Math.min(
                               props.requiredAmount - selectedQuantity,
-                              item.amount ?? 1,
+                              Number(item.amount),
                             )
                           : 1,
                     });
@@ -313,8 +315,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                 ),
                               );
                             }}
-                            value={item.amount}
-                            max={item.amount || 1}
+                            value={Number(item.amount)}
+                            max={Number(item.amount)}
                           />
                         )}
                         <Button
@@ -342,10 +344,15 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                 })}
               <DialogClose asChild>
                 <Button
-                  disabled={buttonDisabled}
+                  disabled={buttonDisabled || props.isSubmitDisabled}
                   size="md"
                   className="w-full"
-                  onClick={() => props.onSubmit(selectedItems)}
+                  onClick={(event) => {
+                    props.onSubmit(selectedItems);
+                    if (props.keepOpenOnSubmit) {
+                      event.preventDefault();
+                    }
+                  }}
                 >
                   {props.requiredAmount && buttonDisabled
                     ? `Select ${props.requiredAmount} ${

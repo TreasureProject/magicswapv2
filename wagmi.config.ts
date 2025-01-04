@@ -4,6 +4,9 @@ import { erc20Abi, erc721Abi } from "viem";
 
 import { erc1155Abi } from "./artifacts/ERC1155";
 import { magicSwapV2RouterAbi } from "./artifacts/MagicSwapV2Router";
+import { nftVaultAbi } from "./artifacts/NftVault";
+import { nftVaultManagerAbi } from "./artifacts/NftVaultManager";
+import { stakingContractAbi } from "./artifacts/StakingContract";
 import { uniswapV2PairAbi } from "./artifacts/UniswapV2Pair";
 
 export default defineConfig({
@@ -28,6 +31,18 @@ export default defineConfig({
     {
       name: "MagicSwapV2Router",
       abi: magicSwapV2RouterAbi,
+    },
+    {
+      name: "StakingContract",
+      abi: stakingContractAbi,
+    },
+    {
+      name: "NftVault",
+      abi: nftVaultAbi,
+    },
+    {
+      name: "NftVaultManager",
+      abi: nftVaultManagerAbi,
     },
   ],
   plugins: [react()],
