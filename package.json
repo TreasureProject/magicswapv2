@@ -90,6 +90,7 @@
   "optionalDependencies": {
     "@biomejs/cli-linux-x64": "^1.9.4",
     "@esbuild/linux-x64": "^0.24.0",
+    "@resvg/resvg-js-linux-x64-gnu": "^2.6.2",
     "@rollup/rollup-linux-x64-gnu": "^4.24.0"
   },
   "engines": {
