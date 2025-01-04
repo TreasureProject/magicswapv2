@@ -87,6 +87,11 @@
     "vite-tsconfig-paths": "^5.0.1",
     "vitest": "^2.0.1"
   },
+  "optionalDependencies": {
+    "@biomejs/cli-linux-x64": "^1.9.4",
+    "@esbuild/linux-x64": "^0.24.0",
+    "@rollup/rollup-linux-x64-gnu": "^4.24.0"
+  },
   "engines": {
     "node": ">=20"
   },
