@@ -161,10 +161,6 @@ export const fetchUserPosition = async (params: {
   };
 };
 
-export type UserIncentive = Awaited<
-  ReturnType<typeof fetchUserPosition>
->["userIncentives"][number];
-
 export const fetchDomain = async (address: string) =>
   getCachedValue(`domain-${address}`, async () => {
     const response = await fetch(

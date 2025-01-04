@@ -1,10 +1,6 @@
 import gql from "graphql-tag";
 
-import {
-  INCENTIVE_FRAGMENT,
-  PAIR_DAY_DATA_FRAGMENT,
-  PAIR_FRAGMENT,
-} from "./pair.queries";
+import { PAIR_DAY_DATA_FRAGMENT, PAIR_FRAGMENT } from "./pair.queries";
 import { TOKEN_FRAGMENT } from "./token.queries";
 
 export const getUserPositions = gql`
@@ -71,7 +67,16 @@ export const getUserPosition = gql`
     }) {
       items {
         incentive {
-          ...IncentiveFragment
+          incentiveId
+          startTime
+          endTime
+          rewardTokenAddress
+          rewardToken {
+            ...TokenFragment
+          }
+          rewardAmount
+          remainingRewardAmount
+          isRewardRounded
         }
         isSubscribed
       }

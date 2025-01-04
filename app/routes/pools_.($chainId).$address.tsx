@@ -40,7 +40,7 @@ import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
-import { type UserIncentive, fetchUserPosition } from "~/api/user.server";
+import { fetchUserPosition } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
@@ -244,8 +244,8 @@ export default function PoolDetailsPage() {
     bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
   const lpStakedShare =
     bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
-  const _lpShare = lpBalanceShare + lpStakedShare;
-  const _hasStakingRewards = userIncentives.some(
+  const lpShare = lpBalanceShare + lpStakedShare;
+  const hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
   );
 
@@ -273,8 +273,23 @@ export default function PoolDetailsPage() {
     baseToken.address === pool.token1.address
       ? [pool.token0, BigInt(pool.reserve0)]
       : [pool.token1, BigInt(pool.reserve1)];
-  const lpShare =
-    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+
+  const memoizedUnsubscribedIncentiveIds = unsubscribedIncentiveIds.join(",");
+  const handlePoolManagementSuccess = useCallback(
+    (tab: PoolManagementTab) => {
+      if (tab === "stake") {
+        const incentiveIds = memoizedUnsubscribedIncentiveIds
+          .split(",")
+          .map((id) => BigInt(id));
+        setOptimisticSubscribedIncentiveIds((curr) =>
+          curr.concat(incentiveIds),
+        );
+      }
+
+      refetch();
+    },
+    [memoizedUnsubscribedIncentiveIds, refetch],
+  );
 
   const handleSubscribeToAll = async () => {
     const incentiveIds = [...unsubscribedIncentiveIds];
@@ -487,7 +502,8 @@ export default function PoolDetailsPage() {
                               {rewardToken?.symbol ??
                                 truncateEthAddress(rewardTokenAddress)}
                             </span>
-                            {subscribedIncentiveIds.includes(
+                            {lpStaked > 0 &&
+                            subscribedIncentiveIds.includes(
                               BigInt(incentiveId),
                             ) ? (
                               <Badge size="xs">Earning</Badge>
@@ -552,18 +568,18 @@ export default function PoolDetailsPage() {
                         ))}
                       </ul>
                     </div>
-                    hasStakingRewards ? (
-                    <Button className="w-full" onClick={handleClaimRewards}>
-                      Claim all rewards
-                    </Button>
-                    ) : null
+                    {hasStakingRewards ? (
+                      <Button className="w-full" onClick={handleClaimRewards}>
+                        Claim all rewards
+                      </Button>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />
                     <div className="relative flex w-full items-center justify-between gap-3">
                       <span className="font-medium text-[#FFFDF6] text-xl">
-                        Start staking and" "
+                        Start staking and{" "}
                         <span className="text-honey-900">earn rewards</span>
                       </span>
                       <button
@@ -695,10 +711,10 @@ export default function PoolDetailsPage() {
             lpStaked={lpStaked}
             canStake={activePoolIncentives.length > 0}
             canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
-            userIncentives={userIncentives}
-            onChangeTab={setTab}
+            unsubscribedIncentiveIds={unsubscribedIncentiveIds}
             magicUsd={magicUsd}
-            onSuccess={refetch}
+            onChangeTab={setTab}
+            onSuccess={handlePoolManagementSuccess}
           />
         </div>
         {pool.hasVault ? (
@@ -788,10 +804,10 @@ export default function PoolDetailsPage() {
             lpStaked={lpStaked}
             canStake={activePoolIncentives.length > 0}
             canUnstake={activePoolIncentives.length > 0 || lpStaked > 0}
-            userIncentives={userIncentives}
-            onChangeTab={setTab}
+            unsubscribedIncentiveIds={unsubscribedIncentiveIds}
             magicUsd={magicUsd}
-            onSuccess={refetch}
+            onChangeTab={setTab}
+            onSuccess={handlePoolManagementSuccess}
           />
         </SheetContent>
       </Sheet>
@@ -828,7 +844,7 @@ const PoolManagementView = ({
   magicUsd,
   canStake,
   canUnstake,
-  userIncentives,
+  unsubscribedIncentiveIds,
   onChangeTab,
   onSuccess,
   className,
@@ -840,9 +856,9 @@ const PoolManagementView = ({
   magicUsd: number;
   canStake: boolean;
   canUnstake: boolean;
-  userIncentives: UserIncentive[];
+  unsubscribedIncentiveIds: bigint[];
   onChangeTab: (tab: PoolManagementTab) => void;
-  onSuccess: () => void;
+  onSuccess: (tab: PoolManagementTab) => void;
   className?: string;
 }) => {
   const [_activeTab, _setActiveTab] = useState<string>("deposit");
@@ -886,7 +902,7 @@ const PoolManagementView = ({
           pool={pool}
           nftBalances={nftBalances}
           magicUsd={magicUsd}
-          onSuccess={onSuccess}
+          onSuccess={() => onSuccess("deposit")}
         />
       ) : null}
       {tab === "withdraw" ? (
@@ -894,21 +910,22 @@ const PoolManagementView = ({
           pool={pool}
           magicUsd={magicUsd}
           balance={lpBalance}
-          onSuccess={onSuccess}
+          onSuccess={() => onSuccess("withdraw")}
         />
       ) : null}
       {tab === "stake" ? (
         <PoolIncentiveStake
           pool={pool}
           balance={lpBalance}
-          userIncentives={userIncentives}
+          unsubscribedIncentiveIds={unsubscribedIncentiveIds}
+          onSuccess={() => onSuccess("stake")}
         />
       ) : null}
       {tab === "unstake" ? (
         <PoolIncentiveUnstake
           pool={pool}
           staked={lpStaked}
-          onSuccess={onSuccess}
+          onSuccess={() => onSuccess("unstake")}
         />
       ) : null}
     </div>

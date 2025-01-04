@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
-import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
 import type { NumberString, Pool } from "~/types";
@@ -11,17 +10,18 @@ import { PoolInput } from "./PoolInput";
 type Props = {
   pool: Pool;
   balance: bigint;
-  userIncentives: UserIncentive[];
+  unsubscribedIncentiveIds: bigint[];
+  onSuccess?: () => void;
 };
 
 export const PoolIncentiveStake = ({
   pool,
   balance,
-  userIncentives,
+  unsubscribedIncentiveIds,
+  onSuccess,
 }: Props) => {
   const [rawAmount, setRawAmount] = useState("0");
   const { isConnected } = useAccount();
-  const [tempUserIncentives, setUserIncentives] = useState(userIncentives);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
@@ -29,25 +29,10 @@ export const PoolIncentiveStake = ({
   const { isApproved, approve, stake } = useStake({
     pool,
     amount,
-    userIncentives: tempUserIncentives,
-    onSuccess: useCallback((newUserIncentives: UserIncentive[]) => {
+    onSuccess: useCallback(() => {
       setRawAmount("0");
-      setUserIncentives((curr) => {
-        if (
-          newUserIncentives.some(
-            (newUserIncentive) =>
-              !curr.find(
-                (userIncentive) =>
-                  userIncentive.incentive.incentiveId ===
-                  newUserIncentive.incentive.incentiveId,
-              ),
-          )
-        ) {
-          return curr.concat(newUserIncentives);
-        }
-        return curr;
-      });
-    }, []),
+      onSuccess?.();
+    }, [onSuccess]),
   });
 
   return (
@@ -71,7 +56,7 @@ export const PoolIncentiveStake = ({
           className="w-full"
           size="lg"
           disabled={!isConnected || !isApproved || !hasAmount}
-          onClick={() => stake()}
+          onClick={() => stake(unsubscribedIncentiveIds)}
         >
           Stake
         </TransactionButton>

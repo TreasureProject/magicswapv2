@@ -1,7 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useWaitForTransactionReceipt } from "wagmi";
 
-import type { UserIncentive } from "~/api/user.server";
 import { useAccount } from "~/contexts/account";
 import {
   useWriteStakingContractStakeAndSubscribeToIncentives,
@@ -16,27 +15,17 @@ type Props = {
   pool: Pool;
   amount: bigint;
   enabled?: boolean;
-  userIncentives: UserIncentive[];
-  onSuccess?: (incentives: UserIncentive[]) => void;
+  onSuccess?: () => void;
 };
 
 export const useStake = ({
   pool,
   amount,
   enabled = true,
-  userIncentives,
   onSuccess,
 }: Props) => {
   const { isConnected } = useAccount();
   const stakingContractAddress = useContractAddress("stakingContract");
-
-  const isEnabled = enabled && isConnected && amount > 0;
-  const { isApproved, approve } = useApproval({
-    operator: stakingContractAddress,
-    token: pool.address,
-    amount,
-    enabled: isEnabled,
-  });
 
   const stakeAndSubscribe =
     useWriteStakingContractStakeAndSubscribeToIncentives();
@@ -49,20 +38,16 @@ export const useStake = ({
     hash: stakeToken.data,
   });
 
-  const isSuccessStakeAndSubscribe = stakeAndSubscribeReceipt.isSuccess;
-  const isSuccessStakeToken = stakeTokenReceipt.isSuccess;
+  const isEnabled = enabled && isConnected && amount > 0;
+  const isSuccess =
+    stakeTokenReceipt.isSuccess || stakeAndSubscribeReceipt.isSuccess;
 
-  const unsubscribedIncentives = useMemo(() => {
-    const subscribedIncentiveIds = userIncentives
-      .filter((userIncentive) => userIncentive.isSubscribed)
-      .map((userIncentive) => userIncentive.incentive.incentiveId);
-
-    return (
-      pool.incentives?.items.filter(
-        (incentive) => !subscribedIncentiveIds.includes(incentive.incentiveId),
-      ) ?? []
-    );
-  }, [pool, userIncentives]);
+  const { isApproved, approve } = useApproval({
+    operator: stakingContractAddress,
+    token: pool.address,
+    amount,
+    enabled: isEnabled,
+  });
 
   useToast({
     title: `Staking ${pool.name} MLP`,
@@ -71,7 +56,7 @@ export const useStake = ({
       stakeAndSubscribeReceipt.isLoading ||
       stakeToken.isPending ||
       stakeTokenReceipt.isLoading,
-    isSuccess: isSuccessStakeAndSubscribe || isSuccessStakeToken,
+    isSuccess,
     isError:
       stakeAndSubscribe.isError ||
       stakeAndSubscribeReceipt.isError ||
@@ -83,25 +68,20 @@ export const useStake = ({
   });
 
   useEffect(() => {
-    if (isSuccessStakeAndSubscribe) {
-      onSuccess?.([]);
+    if (isSuccess) {
+      onSuccess?.();
     }
-  }, [isSuccessStakeAndSubscribe, onSuccess]);
-
-  useEffect(() => {
-    if (isSuccessStakeToken) {
-      onSuccess?.([]); // TODO: resolve this
-    }
-  }, [isSuccessStakeToken, onSuccess]);
+  }, [isSuccess, onSuccess]);
 
   return {
     isApproved,
     approve,
-    stake: () => {
+    stake: (newIncentiveIds: bigint[]) => {
       if (!isEnabled || !isApproved) {
         return;
       }
-      if (unsubscribedIncentives.length === 0) {
+
+      if (newIncentiveIds.length === 0) {
         return stakeToken.writeContractAsync({
           address: stakingContractAddress,
           args: [pool.address as AddressString, amount, false],
@@ -110,12 +90,7 @@ export const useStake = ({
 
       return stakeAndSubscribe.writeContractAsync({
         address: stakingContractAddress,
-        args: [
-          pool.address as AddressString,
-          amount,
-          unsubscribedIncentives.map(({ incentiveId }) => BigInt(incentiveId)),
-          true,
-        ],
+        args: [pool.address as AddressString, amount, newIncentiveIds, false],
       });
     },
   };
