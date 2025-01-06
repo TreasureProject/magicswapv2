@@ -189,7 +189,7 @@ export default function PoolDetailsPage() {
   const { address: userAddress } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<PoolTransactionType>>();
-  const blockExplorer = useBlockExplorer();
+  const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
   const [tab, setTab] = useState<PoolManagementTab>("deposit");
   const [
     optimisticSubscribedIncentiveIds,
@@ -954,7 +954,7 @@ const PoolActivityTable = ({
     type,
   });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const blockExplorer = useBlockExplorer();
+  const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
 
   const isMounted = useIsMounted();
   if (!isMounted || isLoading)
