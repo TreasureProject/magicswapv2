@@ -15,6 +15,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import NProgress from "nprogress";
 import { useEffect, useMemo, useState } from "react";
+import { fallback } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import {
   arbitrum,
@@ -63,17 +64,45 @@ export default function App() {
       getDefaultConfig({
         appName: "Magicswap",
         transports: {
-          [treasure.id]: http(
-            `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          [treasure.id]: fallback(
+            [
+              http(
+                `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+                { batch: true },
+              ),
+              http(undefined, { batch: true }),
+            ],
+            { rank: true },
           ),
-          [treasureTopaz.id]: http(
-            `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          [treasureTopaz.id]: fallback(
+            [
+              http(
+                `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+                { batch: true },
+              ),
+              http(undefined, { batch: true }),
+            ],
+            { rank: true },
           ),
-          [arbitrum.id]: http(
-            `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          [arbitrum.id]: fallback(
+            [
+              http(
+                `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+                { batch: true },
+              ),
+              http(undefined, { batch: true }),
+            ],
+            { rank: true },
           ),
-          [arbitrumSepolia.id]: http(
-            `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          [arbitrumSepolia.id]: fallback(
+            [
+              http(
+                `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+                { batch: true },
+              ),
+              http(undefined, { batch: true }),
+            ],
+            { rank: true },
           ),
         },
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
