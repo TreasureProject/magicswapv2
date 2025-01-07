@@ -3,7 +3,6 @@ import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
-import type { Chain } from "viem";
 import { useChainId, useChains } from "wagmi";
 import { ChainIcon } from "~/components/ChainIcon";
 
@@ -103,6 +102,8 @@ export default function PoolsListPage() {
     ? chains.find((chain) => chain.id === filterChainId)
     : undefined;
 
+  const filterGame = GAME_METADATA[searchParams.get("game") || ""];
+
   return (
     <main className="container space-y-8 py-5 md:py-7">
       <div className="space-y-1">
@@ -143,23 +144,63 @@ export default function PoolsListPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {Object.entries(GAME_METADATA).map(
-            ([id, { name, image, tokens, collections }]) =>
-              chainId in tokens || chainId in collections ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
+              >
+                {filterGame ? (
+                  <>
+                    <img
+                      src={filterGame.image}
+                      alt=""
+                      className="h-5 w-5 rounded"
+                    />
+                    {filterGame.name}
+                  </>
+                ) : (
+                  "All Games"
+                )}
+                <ChevronDownIcon className="h-3.5 w-3.5 text-night-600" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
                 <button
-                  key={id}
                   type="button"
-                  className={cn(
-                    "flex items-center gap-1 rounded-full border border-night-800 px-3 py-2 text-sm transition-colors hover:bg-night-800 active:bg-night-900",
-                    searchParams.get("game") === id && "bg-night-900",
-                  )}
-                  onClick={() => handleSelectGame(id)}
+                  className="flex w-full items-center justify-between gap-4 font-medium text-white"
+                  onClick={() => handleSelectGame("")}
                 >
-                  <img src={image} alt="" className="h-5 w-5 rounded" />
-                  {name}
+                  All Games
+                  {!filterGame ? <CheckIcon className="h-4 w-4" /> : null}
                 </button>
-              ) : null,
-          )}
+              </DropdownMenuItem>
+              {Object.entries(GAME_METADATA)
+                .filter(
+                  ([_id, { tokens, collections }]) =>
+                    chainId in tokens || chainId in collections,
+                )
+                .map(([id, { name, image }]) => (
+                  <DropdownMenuItem key={id}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-4 font-medium text-white"
+                      onClick={() => handleSelectGame(id)}
+                    >
+                      <span className="flex items-center gap-2">
+                        <img src={image} alt="" className="h-5 w-5 rounded" />
+                        {name}
+                      </span>
+                      {id === searchParams.get("game") ? (
+                        <CheckIcon className="h-4 w-4" />
+                      ) : null}
+                    </button>
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
