@@ -65,15 +65,40 @@ export const fetchToken = async (params: {
 export const fetchPoolTokenBalance = async (token: Token, address: string) => {
   const viemClient = getViemClient(token.chainId);
   if (token.collectionType === "ERC1155") {
+    const collectionTokenIds = token.collectionTokenIds || [];
+
+    // If no token IDs are provided, fetch all tokens for the collection
+    if (collectionTokenIds.length === 0) {
+      const url = new URL(
+        `${CHAIN_ID_TO_TROVE_API_URL[token.chainId]}/tokens-for-user`,
+      );
+      url.searchParams.append("userAddress", address);
+      url.searchParams.append("projection", "queryUserQuantityOwned");
+      url.searchParams.append(
+        "slugs",
+        `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${
+          token.collectionAddress
+        }`,
+      );
+
+      const response = await fetch(url, {
+        headers: {
+          "X-API-Key": ENV.TROVE_API_KEY,
+        },
+      });
+      const result = (await response.json()) as TroveToken[];
+      return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
+    }
+
     const balances = await viemClient.readContract({
       address: token.collectionAddress as AddressString,
       abi: erc1155Abi,
       functionName: "balanceOfBatch",
       args: [
         Array.from({
-          length: (token.collectionTokenIds || []).length,
+          length: collectionTokenIds.length,
         }).fill(address) as AddressString[],
-        (token.collectionTokenIds || []).map((tokenId) => BigInt(tokenId)),
+        collectionTokenIds.map((tokenId) => BigInt(tokenId)),
       ],
     });
     return sumArray(balances.map(Number));
