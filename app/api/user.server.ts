@@ -7,14 +7,14 @@ import { arbitrum } from "viem/chains";
 
 import { UINT112_MAX } from "~/consts";
 import { CHAIN_ID_TO_TROVE_API_URL } from "~/consts";
-import { stakingContractAbi } from "~/generated";
+import { erc20Abi, stakingContractAbi } from "~/generated";
 import { getContractAddress } from "~/lib/address";
 import { getCachedValue } from "~/lib/cache.server";
 import { getViemClient } from "~/lib/chain.server";
 import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
 import { floorBigInt } from "~/lib/number";
-import type { AccountDomains } from "~/types";
+import type { AccountDomains, AddressString } from "~/types";
 import { pairToPool } from "./pools.server";
 import { fetchVaultReserveItems } from "./tokens.server";
 import {
@@ -75,7 +75,7 @@ export const fetchUserPosition = async (params: {
   const userIncentives = result.data?.userIncentives.items ?? [];
 
   const client = getViemClient(chainId);
-  const [incentives, rewardsPerLiquidityLast] = await Promise.all([
+  const [incentives, rewardsPerLiquidityLast, lpBalance] = await Promise.all([
     client.multicall({
       contracts: userIncentives.map((userIncentive) => ({
         address: getContractAddress({ chainId, contract: "stakingContract" }),
@@ -92,13 +92,19 @@ export const fetchUserPosition = async (params: {
         args: [userAddress, BigInt(userIncentive.incentive?.incentiveId ?? 0n)],
       })),
     }),
+    client.readContract({
+      address: params.pairAddress as AddressString,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [userAddress as AddressString],
+    }),
   ]);
 
   const usersLiquidity = BigInt(
     result.data?.userPairStakes.items[0]?.amount ?? 0,
   );
   return {
-    lpBalance: result.data?.liquidityPositions.items[0]?.balance ?? "0",
+    lpBalance: lpBalance.toString(),
     lpStaked: result.data?.userPairStakes.items[0]?.amount ?? "0",
     userIncentives: await Promise.all(
       userIncentives.map(async (userIncentive, i) => {

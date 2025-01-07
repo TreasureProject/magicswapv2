@@ -5,9 +5,16 @@ import {
   CHAIN_ID_TO_TROVE_API_NETWORK,
   CHAIN_ID_TO_TROVE_API_URL,
 } from "~/consts";
+import { erc721Abi, erc1155Abi } from "~/generated";
 import { sumArray } from "~/lib/array";
+import { getViemClient } from "~/lib/chain.server";
 import { ENV } from "~/lib/env.server";
-import type { Token, TokenWithAmount, TroveToken } from "~/types";
+import type {
+  AddressString,
+  Token,
+  TokenWithAmount,
+  TroveToken,
+} from "~/types";
 import {
   GetTokenDocument,
   type GetTokenQuery,
@@ -29,7 +36,9 @@ export const fetchTokens = async () => {
   })) as ExecutionResult<GetTokensQuery>;
   if (errors) {
     throw new Error(
-      `Error fetching tokens: ${errors.map((error) => error.message).join(", ")}`,
+      `Error fetching tokens: ${errors
+        .map((error) => error.message)
+        .join(", ")}`,
     );
   }
 
@@ -54,37 +63,32 @@ export const fetchToken = async (params: {
  * Fetches user's balance for NFT vault
  */
 export const fetchPoolTokenBalance = async (token: Token, address: string) => {
-  const url = new URL(
-    `${CHAIN_ID_TO_TROVE_API_URL[token.chainId]}/tokens-for-user`,
-  );
-  url.searchParams.append("userAddress", address);
-  url.searchParams.append("projection", "queryUserQuantityOwned");
-
-  const tokenIds = token.collectionTokenIds ?? [];
-  if (tokenIds.length > 0) {
-    url.searchParams.append(
-      "ids",
-      tokenIds
-        .map(
-          (tokenId) =>
-            `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}/${tokenId}`,
-        )
-        .join(","),
-    );
-  } else {
-    url.searchParams.append(
-      "slugs",
-      `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}`,
-    );
+  const viemClient = getViemClient(token.chainId);
+  if (token.collectionType === "ERC1155") {
+    const balances = await viemClient.readContract({
+      address: token.collectionAddress as AddressString,
+      abi: erc1155Abi,
+      functionName: "balanceOfBatch",
+      args: [
+        Array.from({
+          length: (token.collectionTokenIds || []).length,
+        }).fill(address) as AddressString[],
+        (token.collectionTokenIds || []).map((tokenId) => BigInt(tokenId)),
+      ],
+    });
+    return sumArray(balances.map(Number));
+  }
+  if (token.collectionType === "ERC721") {
+    const balance = await viemClient.readContract({
+      address: token.collectionAddress as AddressString,
+      abi: erc721Abi,
+      functionName: "balanceOf",
+      args: [address as AddressString],
+    });
+    return Number(balance);
   }
 
-  const response = await fetch(url, {
-    headers: {
-      "X-API-Key": ENV.TROVE_API_KEY,
-    },
-  });
-  const result = (await response.json()) as TroveToken[];
-  return sumArray(result.map((token) => token.queryUserQuantityOwned ?? 0));
+  return 0;
 };
 
 /**
@@ -122,7 +126,9 @@ export const fetchVaultUserInventory = async ({
       tokenIds
         .map(
           (tokenId) =>
-            `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}/${tokenId}`,
+            `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${
+              token.collectionAddress
+            }/${tokenId}`,
         )
         .join(","),
     );
@@ -130,7 +136,9 @@ export const fetchVaultUserInventory = async ({
     // TODO: switch to single collection query
     url.searchParams.append(
       "slugs",
-      `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${token.collectionAddress}`,
+      `${CHAIN_ID_TO_TROVE_API_NETWORK[token.chainId]}/${
+        token.collectionAddress
+      }`,
     );
   }
 
