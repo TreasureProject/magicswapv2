@@ -81,7 +81,13 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
+import type {
+  AddressString,
+  Optional,
+  Pool,
+  Token,
+  TokenWithAmount,
+} from "~/types";
 import type { transactionType as TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
@@ -185,6 +191,7 @@ export default function PoolDetailsPage() {
     vaultItems1,
     magicUsd,
   } = useLoaderData<typeof loader>();
+
   const revalidator = useRevalidator();
   const { address: userAddress } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
@@ -900,8 +907,8 @@ const PoolManagementView = ({
       {tab === "deposit" ? (
         <PoolDepositTab
           pool={pool}
-          nftBalances={nftBalances}
           magicUsd={magicUsd}
+          nftBalances={nftBalances}
           onSuccess={() => onSuccess("deposit")}
         />
       ) : null}
