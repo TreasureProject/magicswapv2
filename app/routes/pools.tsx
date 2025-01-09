@@ -272,6 +272,15 @@ export default function PoolsListPage() {
             <MagicStarsIcon className="h-3.5 w-3.5 text-honey-700" />
             Incentivized
           </Button>
+          {searchParams.size > 0 && (
+            <Button
+              variant="link"
+              className="text-primary-foreground"
+              onClick={() => setSearchParams({})}
+            >
+              Reset
+            </Button>
+          )}
         </div>
         <Outlet />
       </div>
