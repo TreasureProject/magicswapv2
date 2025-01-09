@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useDebounce } from "react-use";
 import { useChainId, useChains } from "wagmi";
 import { ChainIcon } from "~/components/ChainIcon";
+import { MagicStarsIcon } from "~/components/ConnectButton";
 
 import { Button } from "~/components/ui/Button";
 import {
@@ -91,6 +92,17 @@ export default function PoolsListPage() {
         curr.set("chain", chainId.toString());
       }
 
+      return curr;
+    });
+  };
+
+  const handleToggleIncentivized = () => {
+    setSearchParams((curr) => {
+      if (curr.get("incentivized") === "true") {
+        curr.delete("incentivized");
+      } else {
+        curr.set("incentivized", "true");
+      }
       return curr;
     });
   };
@@ -248,6 +260,18 @@ export default function PoolsListPage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Button
+            variant="secondary"
+            className={cn(
+              "flex items-center gap-1.5 border border-night-900 bg-night-1100",
+              searchParams.get("incentivized") === "true" && "bg-night-800",
+            )}
+            onClick={() => handleToggleIncentivized()}
+          >
+            <MagicStarsIcon className="h-3.5 w-3.5 text-honey-700" />
+            Incentivized
+          </Button>
         </div>
         <Outlet />
       </div>
