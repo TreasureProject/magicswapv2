@@ -10,6 +10,7 @@ import { Suspense, useCallback } from "react";
 
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
+import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
@@ -32,6 +33,7 @@ export function loader({ request }: LoaderFunctionArgs) {
   const search = url.searchParams.get("search")?.toLowerCase();
   const game = url.searchParams.get("game");
   const chainId = url.searchParams.get("chain");
+  const areIncentivized = url.searchParams.get("incentivized") === "true";
 
   const fetchAndFilterPools = async () => {
     const pools = await fetchPools(
@@ -47,7 +49,7 @@ export function loader({ request }: LoaderFunctionArgs) {
       : {};
 
     return pools.filter(
-      ({ name, token0, token1 }) =>
+      ({ name, token0, token1, incentives }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -64,7 +66,8 @@ export function loader({ request }: LoaderFunctionArgs) {
           (token0.collectionAddress &&
             gameCollectionIdsMap[token0.collectionAddress]) ||
           (token1.collectionAddress &&
-            gameCollectionIdsMap[token1.collectionAddress])),
+            gameCollectionIdsMap[token1.collectionAddress])) &&
+        (!areIncentivized || !!incentives?.items.length),
     );
   };
 
@@ -180,6 +183,14 @@ export default function PoolsListPage() {
                           <Badge size="xs">
                             {formatPercent(pool.lpFee, 3)}
                           </Badge>
+                          {pool.incentives &&
+                            pool.incentives.items.length > 0 && (
+                              <Badge size="xs" color="secondary">
+                                <div className="flex h-3.5 items-center">
+                                  <MagicStarsIcon className="h-3" />
+                                </div>
+                              </Badge>
+                            )}
                         </div>
                       </div>
                     </Link>
