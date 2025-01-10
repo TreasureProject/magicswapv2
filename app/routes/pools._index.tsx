@@ -1,21 +1,14 @@
 import { type LoaderFunctionArgs, defer } from "@remix-run/node";
-import {
-  Await,
-  Link,
-  useLoaderData,
-  useNavigate,
-  useRevalidator,
-} from "@remix-run/react";
-import { Suspense, useCallback } from "react";
+import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
+import { Suspense } from "react";
 
+import { type Address, isAddressEqual } from "viem";
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { useFocusInterval } from "~/hooks/useFocusInterval";
-import { ENV } from "~/lib/env.server";
-import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
+import { GAME_METADATA } from "~/consts";
 import { formatPercent } from "~/lib/number";
 import {
   getPoolFeesDisplay,
@@ -31,25 +24,19 @@ export const handle: PoolsHandle = {
 export function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search")?.toLowerCase();
-  const game = url.searchParams.get("game");
+  const gameId = url.searchParams.get("game");
   const chainId = url.searchParams.get("chain");
   const areIncentivized = url.searchParams.get("incentivized") === "true";
+  const game =
+    gameId && gameId in GAME_METADATA ? GAME_METADATA[gameId] : undefined;
 
   const fetchAndFilterPools = async () => {
     const pools = await fetchPools(
       chainId ? { chainId: Number(chainId) } : undefined,
     );
 
-    // TODO: filter by selected chain ID
-    const gameTokenIdsMap = game
-      ? getTokenIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
-      : {};
-    const gameCollectionIdsMap = game
-      ? getCollectionIdsMapForGame(game, ENV.PUBLIC_DEFAULT_CHAIN_ID)
-      : {};
-
     return pools.filter(
-      ({ name, token0, token1, incentives }) =>
+      ({ chainId, name, token0, token1, incentives }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -61,12 +48,30 @@ export function loader({ request }: LoaderFunctionArgs) {
           token1.collectionName?.toLowerCase().includes(search)) &&
         // Filter by selected game
         (!game ||
-          !!gameTokenIdsMap[token0.address] ||
-          !!gameTokenIdsMap[token1.address] ||
-          (token0.collectionAddress &&
-            gameCollectionIdsMap[token0.collectionAddress]) ||
-          (token1.collectionAddress &&
-            gameCollectionIdsMap[token1.collectionAddress])) &&
+          game.tokens.some(
+            (gameToken) =>
+              gameToken[0] === chainId &&
+              (isAddressEqual(gameToken[1], token0.address as Address) ||
+                isAddressEqual(gameToken[1], token1.address as Address)),
+          ) ||
+          (!!token0.collectionAddress &&
+            game.collections.some(
+              (gameCollection) =>
+                gameCollection[0] === chainId &&
+                isAddressEqual(
+                  gameCollection[1],
+                  token0.collectionAddress as Address,
+                ),
+            )) ||
+          (!!token1.collectionAddress &&
+            game.collections.some(
+              (gameCollection) =>
+                gameCollection[0] === chainId &&
+                isAddressEqual(
+                  gameCollection[1],
+                  token1.collectionAddress as Address,
+                ),
+            ))) &&
         (!areIncentivized || !!incentives?.items.length),
     );
   };
@@ -107,16 +112,7 @@ const RowSkeleton = () => (
 
 export default function PoolsListPage() {
   const { pools } = useLoaderData<typeof loader>();
-  const revalidator = useRevalidator();
   const navigate = useNavigate();
-
-  const refetch = useCallback(() => {
-    if (revalidator.state === "idle") {
-      // revalidator.revalidate();
-    }
-  }, [revalidator]);
-
-  useFocusInterval(refetch, 5_000);
 
   return (
     <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">

@@ -16,12 +16,11 @@ import {
   ArrowDownIcon,
   ChevronDownIcon,
   LayersIcon,
-  SearchIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
-import { formatUnits } from "viem";
+import { type Address, formatUnits, isAddressEqual } from "viem";
 import { useChainId } from "wagmi";
 
 import { fetchPools } from "~/api/pools.server";
@@ -31,8 +30,11 @@ import {
   fetchToken,
   fetchTokens,
 } from "~/api/tokens.server";
+import { ChainFilter } from "~/components/ChainFilter";
 import { CurrencyInput } from "~/components/CurrencyInput";
+import { GameFilter } from "~/components/GameFilter";
 import { LoaderIcon, SwapIcon, TokenIcon } from "~/components/Icons";
+import { SearchFilter } from "~/components/SearchFilter";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { VisibleOnClient } from "~/components/VisibleOnClient";
@@ -49,7 +51,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { InfoPopover } from "~/components/ui/InfoPopover";
-import { Input } from "~/components/ui/Input";
 import { GAME_METADATA } from "~/consts";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
@@ -61,7 +62,6 @@ import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
-import { getCollectionIdsMapForGame, getTokenIdsMapForGame } from "~/lib/game";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens, parseTokenParams } from "~/lib/tokens";
@@ -1071,18 +1071,21 @@ const TokenSelectDialog = ({
   onSelect: (token: Token) => void;
 }) => {
   const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
-  const [search, setSearch] = useState("");
-  const [game, setGame] = useState("");
-  const chainId = useChainId();
+  const [search, setSearch] = useState<string | undefined>();
+  const [gameId, setGameId] = useState<string | undefined>();
+  const [chainId, setChainId] = useState<number | undefined>();
   const { tokens } = useLoaderData<typeof loader>();
+  const game =
+    gameId && gameId in GAME_METADATA ? GAME_METADATA[gameId] : undefined;
 
-  const gameTokenIdsMap = game ? getTokenIdsMapForGame(game, chainId) : {};
-  const gameCollectionIdsMap = game
-    ? getCollectionIdsMapForGame(game, chainId)
-    : {};
+  const handleClearFilters = () => {
+    setSearch(undefined);
+    setGameId(undefined);
+    setChainId(undefined);
+  };
 
   return (
-    <DialogContent>
+    <DialogContent className="sm:max-w-2xl">
       <DialogHeader>
         <DialogTitle>Select an asset to {isOut ? "buy" : "sell"}</DialogTitle>
         <DialogDescription>
@@ -1129,33 +1132,26 @@ const TokenSelectDialog = ({
             </button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-md border border-night-800 pl-2">
-              <SearchIcon className="h-5 w-5 text-night-400" />
-              <Input
-                type="search"
-                placeholder="Search"
-                className="h-auto w-auto max-w-[128px] border-none px-2 py-1.5 ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            {Object.entries(GAME_METADATA).map(
-              ([id, { name, image, tokens, collections }]) =>
-                chainId in tokens || chainId in collections ? (
-                  <button
-                    key={id}
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1 rounded-full border border-night-800 px-2.5 py-1.5 text-xs transition-colors hover:bg-night-800 active:bg-night-900",
-                      game === id && "bg-night-900",
-                    )}
-                    onClick={() => (game === id ? setGame("") : setGame(id))}
-                  >
-                    <img src={image} alt="" className="h-4 w-4 rounded" />
-                    {name}
-                  </button>
-                ) : null,
-            )}
+            <SearchFilter className="w-28" onChange={setSearch} />
+            <GameFilter
+              selectedGameId={gameId}
+              onChange={setGameId}
+              onClear={() => setGameId(undefined)}
+            />
+            <ChainFilter
+              selectedChainId={chainId}
+              onChange={setChainId}
+              onClear={() => setChainId(undefined)}
+            />
+            {search || gameId || chainId ? (
+              <Button
+                variant="link"
+                className="text-primary-foreground"
+                onClick={handleClearFilters}
+              >
+                Reset
+              </Button>
+            ) : null}
           </div>
         </div>
         <Suspense
@@ -1171,6 +1167,7 @@ const TokenSelectDialog = ({
                 {tokens
                   .filter(
                     ({
+                      chainId,
                       address,
                       symbol,
                       name,
@@ -1187,9 +1184,20 @@ const TokenSelectDialog = ({
                           .includes(search.toLowerCase())) &&
                       // Filter by selected game
                       (!game ||
-                        !!gameTokenIdsMap[address] ||
-                        (collectionAddress &&
-                          gameCollectionIdsMap[collectionAddress])) &&
+                        game.tokens.some(
+                          (gameToken) =>
+                            gameToken[0] === chainId &&
+                            isAddressEqual(gameToken[1], address as Address),
+                        ) ||
+                        (!!collectionAddress &&
+                          game.collections.some(
+                            (gameCollection) =>
+                              gameCollection[0] === chainId &&
+                              isAddressEqual(
+                                gameCollection[1],
+                                collectionAddress as Address,
+                              ),
+                          ))) &&
                       // Filter by selected tab
                       (tab === "all" ||
                         (tab === "collections" ? isVault : !isVault)),

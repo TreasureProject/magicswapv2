@@ -64,46 +64,34 @@ export default function App() {
       getDefaultConfig({
         appName: "Magicswap",
         transports: {
-          [treasure.id]: fallback(
-            [
-              http(
-                `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-                { batch: true },
-              ),
-              http(undefined, { batch: true }),
-            ],
-            { rank: true },
-          ),
-          [treasureTopaz.id]: fallback(
-            [
-              http(
-                `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-                { batch: true },
-              ),
-              http(undefined, { batch: true }),
-            ],
-            { rank: true },
-          ),
-          [arbitrum.id]: fallback(
-            [
-              http(
-                `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-                { batch: true },
-              ),
-              http(undefined, { batch: true }),
-            ],
-            { rank: true },
-          ),
-          [arbitrumSepolia.id]: fallback(
-            [
-              http(
-                `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-                { batch: true },
-              ),
-              http(undefined, { batch: true }),
-            ],
-            { rank: true },
-          ),
+          [treasure.id]: fallback([
+            http(
+              `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+              { batch: true },
+            ),
+            http(undefined, { batch: true }),
+          ]),
+          [treasureTopaz.id]: fallback([
+            http(
+              `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+              { batch: true },
+            ),
+            http(undefined, { batch: true }),
+          ]),
+          [arbitrum.id]: fallback([
+            http(
+              `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+              { batch: true },
+            ),
+            http(undefined, { batch: true }),
+          ]),
+          [arbitrumSepolia.id]: fallback([
+            http(
+              `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
+              { batch: true },
+            ),
+            http(undefined, { batch: true }),
+          ]),
         },
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
         chains: env.PUBLIC_IS_DEV
