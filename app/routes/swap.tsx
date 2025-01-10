@@ -689,6 +689,7 @@ const SwapTokenInput = ({
                 (address) => !!address,
               ) as string[]
             }
+            defaultChainId={otherToken?.chainId}
             isOut={isOut}
             onSelect={onSelect}
           />
@@ -998,6 +999,7 @@ const SwapTokenInput = ({
         disabledTokenIds={
           [otherToken?.address].filter((address) => !!address) as string[]
         }
+        defaultChainId={otherToken?.chainId}
         isOut={isOut}
         onSelect={onSelect}
       />
@@ -1063,17 +1065,19 @@ const TotalDisplay = ({
 
 const TokenSelectDialog = ({
   disabledTokenIds = [],
+  defaultChainId,
   isOut,
   onSelect,
 }: {
   disabledTokenIds?: string[];
+  defaultChainId?: number;
   isOut: boolean;
   onSelect: (token: Token) => void;
 }) => {
   const [tab, setTab] = useState<"all" | "tokens" | "collections">("all");
   const [search, setSearch] = useState<string | undefined>();
   const [gameId, setGameId] = useState<string | undefined>();
-  const [chainId, setChainId] = useState<number | undefined>();
+  const [chainId, setChainId] = useState<number | undefined>(defaultChainId);
   const { tokens } = useLoaderData<typeof loader>();
   const game =
     gameId && gameId in GAME_METADATA ? GAME_METADATA[gameId] : undefined;
@@ -1167,13 +1171,13 @@ const TokenSelectDialog = ({
                 {tokens
                   .filter(
                     ({
-                      chainId,
                       address,
                       symbol,
                       name,
                       collectionAddress,
                       collectionName,
                       isVault,
+                      ...token
                     }) =>
                       // Filter by search query
                       (!search ||
@@ -1186,18 +1190,20 @@ const TokenSelectDialog = ({
                       (!game ||
                         game.tokens.some(
                           (gameToken) =>
-                            gameToken[0] === chainId &&
+                            gameToken[0] === token.chainId &&
                             isAddressEqual(gameToken[1], address as Address),
                         ) ||
                         (!!collectionAddress &&
                           game.collections.some(
                             (gameCollection) =>
-                              gameCollection[0] === chainId &&
+                              gameCollection[0] === token.chainId &&
                               isAddressEqual(
                                 gameCollection[1],
                                 collectionAddress as Address,
                               ),
                           ))) &&
+                      // Filter by selected chain
+                      (!chainId || chainId === token.chainId) &&
                       // Filter by selected tab
                       (tab === "all" ||
                         (tab === "collections" ? isVault : !isVault)),

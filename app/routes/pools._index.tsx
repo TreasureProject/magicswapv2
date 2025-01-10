@@ -36,7 +36,7 @@ export function loader({ request }: LoaderFunctionArgs) {
     );
 
     return pools.filter(
-      ({ chainId, name, token0, token1, incentives }) =>
+      ({ name, token0, token1, incentives, ...pool }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -50,14 +50,14 @@ export function loader({ request }: LoaderFunctionArgs) {
         (!game ||
           game.tokens.some(
             (gameToken) =>
-              gameToken[0] === chainId &&
+              gameToken[0] === pool.chainId &&
               (isAddressEqual(gameToken[1], token0.address as Address) ||
                 isAddressEqual(gameToken[1], token1.address as Address)),
           ) ||
           (!!token0.collectionAddress &&
             game.collections.some(
               (gameCollection) =>
-                gameCollection[0] === chainId &&
+                gameCollection[0] === pool.chainId &&
                 isAddressEqual(
                   gameCollection[1],
                   token0.collectionAddress as Address,
@@ -66,12 +66,13 @@ export function loader({ request }: LoaderFunctionArgs) {
           (!!token1.collectionAddress &&
             game.collections.some(
               (gameCollection) =>
-                gameCollection[0] === chainId &&
+                gameCollection[0] === pool.chainId &&
                 isAddressEqual(
                   gameCollection[1],
                   token1.collectionAddress as Address,
                 ),
             ))) &&
+        // Filter by incentivized
         (!areIncentivized || !!incentives?.items.length),
     );
   };
