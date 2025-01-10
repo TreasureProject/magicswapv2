@@ -30,7 +30,13 @@ type Incentive = AbiParametersToPrimitiveTypes<
   "outputs"
 >;
 
-export const fetchUserPositions = async (address: string | undefined) => {
+export const fetchUserPositions = async ({
+  address,
+  chainId,
+}: {
+  address: string | undefined;
+  chainId?: number;
+}) => {
   if (!address) {
     return {
       total: 0,
@@ -39,7 +45,10 @@ export const fetchUserPositions = async (address: string | undefined) => {
   }
 
   const result = (await execute(GetUserPositionsDocument, {
-    id: address,
+    address: address.toLowerCase(),
+    where: {
+      chainId,
+    },
     dayDataWhere: {
       date_gte: getOneWeekAgoTimestamp(),
     },

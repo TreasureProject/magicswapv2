@@ -7,6 +7,7 @@ type Props = {
   color?: "default" | "primary" | "secondary";
   rounded?: "full" | "partially";
   size?: "xs" | "sm";
+  title?: string;
 };
 
 export const Badge = ({
@@ -14,6 +15,7 @@ export const Badge = ({
   color = "default",
   rounded = "full",
   size = "sm",
+  title,
 }: Props) => (
   <div
     className={cn(
@@ -23,6 +25,7 @@ export const Badge = ({
       rounded === "partially" && "rounded-md",
       size === "xs" && "px-1.5 font-normal text-[0.6rem]",
     )}
+    title={title}
   >
     {children}
   </div>

@@ -6,6 +6,7 @@ import { type Address, isAddressEqual } from "viem";
 
 import { fetchUserPositions } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
+import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { GAME_METADATA } from "~/consts";
@@ -24,14 +25,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
   const gameId = url.searchParams.get("game");
+  const chainId = url.searchParams.get("chain");
+  const areIncentivized = url.searchParams.get("incentivized") === "true";
   const game = gameId ? GAME_METADATA[gameId] : undefined;
 
   const fetchAndFilterUserPositions = async () => {
-    const { total, positions } = await fetchUserPositions(address);
+    const { total, positions } = await fetchUserPositions({
+      address,
+      chainId: chainId ? Number(chainId) : undefined,
+    });
     return {
       total,
       positions: positions.filter(
-        ({ pool: { chainId, name, token0, token1 } }) =>
+        ({ pool: { chainId, name, token0, token1, incentives } }) =>
           // Filter by search query
           (!search ||
             name.toLowerCase().includes(search) ||
@@ -66,7 +72,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
                     gameCollection[1],
                     token1.collectionAddress as Address,
                   ),
-              ))),
+              ))) &&
+          // Filter by incentivized
+          (!areIncentivized || !!incentives?.items.length),
       ),
     };
   };
@@ -162,6 +170,18 @@ export default function UserPositionsListPage() {
                             <Badge size="xs">
                               {formatPercent(pool.lpFee, 3)}
                             </Badge>
+                            {pool.incentives &&
+                              pool.incentives.items.length > 0 && (
+                                <Badge
+                                  size="xs"
+                                  color="secondary"
+                                  title="Incentivized Pool"
+                                >
+                                  <div className="flex h-3.5 items-center">
+                                    <MagicStarsIcon className="h-3" />
+                                  </div>
+                                </Badge>
+                              )}
                           </div>
                         </div>
                       </Link>

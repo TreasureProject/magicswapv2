@@ -182,7 +182,11 @@ export default function PoolsListPage() {
                           </Badge>
                           {pool.incentives &&
                             pool.incentives.items.length > 0 && (
-                              <Badge size="xs" color="secondary">
+                              <Badge
+                                size="xs"
+                                color="secondary"
+                                title="Incentivized Pool"
+                              >
                                 <div className="flex h-3.5 items-center">
                                   <MagicStarsIcon className="h-3" />
                                 </div>
