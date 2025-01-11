@@ -91,13 +91,9 @@ export const useSwapRoute = ({
           bigIntToNumber(reserveTo, tokenTo.decimals),
       ),
     ),
-    lpFee: sumArray(poolLegs.map(({ lpFee }) => Number(lpFee))),
-    protocolFee: sumArray(
-      poolLegs.map(({ protocolFee }) => Number(protocolFee)),
-    ),
-    royaltiesFee: sumArray(
-      poolLegs.map(({ royaltiesFee }) => Number(royaltiesFee)),
-    ),
+    lpFee: sumArray(poolLegs.map((leg) => leg.lpFee)),
+    protocolFee: sumArray(poolLegs.map((leg) => leg.protocolFee)),
+    royaltiesFee: sumArray(poolLegs.map((leg) => leg.royaltiesFee)),
   };
 };
 

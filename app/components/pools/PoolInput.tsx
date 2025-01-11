@@ -53,8 +53,7 @@ export const PoolInput = ({
           {pool.reserveUsd ? (
             <span className="block text-night-400 text-sm">
               {formatUSD(
-                (Number(pool.reserveUsd) /
-                  bigIntToNumber(BigInt(pool.totalSupply))) *
+                (pool.reserveUsd / bigIntToNumber(pool.totalSupply)) *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
                     ? 1
                     : Number(amount.replace(/,/g, ""))),

@@ -139,8 +139,7 @@ export default function UserPositionsListPage() {
             {({ positions }) =>
               positions.map(({ balance, pool }) => {
                 const lpShare =
-                  bigIntToNumber(BigInt(balance)) /
-                  bigIntToNumber(BigInt(pool.totalSupply));
+                  bigIntToNumber(balance) / bigIntToNumber(pool.totalSupply);
                 return (
                   // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                   <tr
@@ -187,8 +186,8 @@ export default function UserPositionsListPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3.5 text-right text-night-200 text-sm sm:px-5">
-                      {Number(pool.reserveUsd) > 0
-                        ? formatUSD(lpShare * Number(pool.reserveUsd))
+                      {pool.reserveUsd > 0
+                        ? formatUSD(lpShare * pool.reserveUsd)
                         : `${formatAmount(lpShare)} MLP`}
                     </td>
                     <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">

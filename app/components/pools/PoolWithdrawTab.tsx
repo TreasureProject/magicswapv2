@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { parseEther } from "viem";
+import { formatEther, parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
@@ -70,8 +70,8 @@ export const PoolWithdrawTab = ({
   const amountNFTs1 = pool.token1.isVault
     ? bigIntToNumber(amount1Min, pool.token1.decimals)
     : 0;
-  const priceUsd0 = Number(pool.token0.derivedMagic) * magicUsd;
-  const priceUsd1 = Number(pool.token1.derivedMagic) * magicUsd;
+  const priceUsd0 = bigIntToNumber(pool.token0.derivedMagic) * magicUsd;
+  const priceUsd1 = bigIntToNumber(pool.token1.derivedMagic) * magicUsd;
 
   const { isApproved, approve } = useApproval({
     operator: routerAddress,
@@ -281,8 +281,8 @@ export const PoolWithdrawTab = ({
             !address ||
             !isApproved ||
             !hasAmount ||
-            Number(amountNFTs0) !== countTokens(nfts0) ||
-            Number(amountNFTs1) !== countTokens(nfts1)
+            amountNFTs0 !== countTokens(nfts0) ||
+            amountNFTs1 !== countTokens(nfts1)
           }
           onClick={() => removeLiquidity?.()}
         >

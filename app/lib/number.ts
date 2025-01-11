@@ -37,5 +37,5 @@ export const ceilBigInt = (value: bigint, decimals = 18) =>
     decimals,
   );
 
-export const bigIntToNumber = (value: bigint, decimals = 18) =>
-  Number(formatUnits(value, decimals));
+export const bigIntToNumber = (value: bigint | string, decimals = 18) =>
+  Number(formatUnits(BigInt(value), decimals));

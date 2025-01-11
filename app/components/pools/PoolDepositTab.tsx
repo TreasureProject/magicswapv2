@@ -276,7 +276,7 @@ export const PoolDepositTab = ({
           <PoolTokenInput
             token={pool.token0}
             balance={balance0}
-            priceUsd={Number(pool.token0.derivedMagic) * magicUsd}
+            priceUsd={bigIntToNumber(pool.token0.derivedMagic) * magicUsd}
             amount={
               isExact1
                 ? formatAmount(amount0, { decimals: pool.token0.decimals })
@@ -305,7 +305,7 @@ export const PoolDepositTab = ({
           <PoolTokenInput
             token={pool.token1}
             balance={balance1}
-            priceUsd={Number(pool.token1.derivedMagic) * magicUsd}
+            priceUsd={bigIntToNumber(pool.token1.derivedMagic) * magicUsd}
             amount={
               isExact1
                 ? rawAmount
@@ -339,7 +339,7 @@ export const PoolDepositTab = ({
             value: formatPercent(
               BigInt(pool.totalSupply) > 0
                 ? bigIntToNumber(estimatedLp) /
-                    (bigIntToNumber(BigInt(pool.totalSupply)) +
+                    (bigIntToNumber(pool.totalSupply) +
                       bigIntToNumber(estimatedLp))
                 : 0,
             ),

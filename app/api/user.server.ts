@@ -62,7 +62,7 @@ export const fetchUserPositions = async ({
 
   const { user } = result.data;
   return {
-    total: Number(user.liquidityPositionCount),
+    total: user.liquidityPositionCount,
     positions:
       user.liquidityPositions?.items.map(({ pair, ...liquidityPosition }) => ({
         ...liquidityPosition,

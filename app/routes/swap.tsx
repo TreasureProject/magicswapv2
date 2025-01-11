@@ -22,6 +22,7 @@ import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { type Address, formatUnits, isAddressEqual } from "viem";
 import { useChainId } from "wagmi";
+import { bigint } from "zod";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
@@ -305,7 +306,7 @@ export default function SwapPage() {
               : amount
           }
           tokenReserve={reserveIn}
-          tokenPriceUsd={Number(tokenIn.derivedMagic) * magicUsd}
+          tokenPriceUsd={bigIntToNumber(tokenIn.derivedMagic) * magicUsd}
           selectedNfts={nftsIn}
           requiredNftSelectionAmount={
             isExactOut && amountNFTsOut > 0 ? requiredNftsIn : undefined
@@ -368,7 +369,9 @@ export default function SwapPage() {
                 : formattedTokenOutAmount
           }
           tokenReserve={reserveOut}
-          tokenPriceUsd={Number(tokenOut?.derivedMagic ?? 0) * magicUsd}
+          tokenPriceUsd={
+            bigIntToNumber(tokenOut?.derivedMagic ?? 0n) * magicUsd
+          }
           selectedNfts={nftsOut}
           requiredNftSelectionAmount={
             !isExactOut && amountNFTsIn > 0 ? requiredNftsOut : undefined

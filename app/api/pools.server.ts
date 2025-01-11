@@ -82,29 +82,25 @@ export const pairToPool = (
   const hourData = pair.hourData?.items ?? [];
 
   const volume1wUsd =
-    dayData.reduce((total, { volumeUsd }) => total + Number(volumeUsd), 0) ?? 0;
+    dayData.reduce((total, { volumeUsd }) => total + volumeUsd, 0) ?? 0;
   const volume1w0 =
     dayData.reduce(
-      (total, { volume0 }) =>
-        total + bigIntToNumber(BigInt(volume0), token0.decimals),
+      (total, { volume0 }) => total + bigIntToNumber(volume0, token0.decimals),
       0,
     ) ?? 0;
   const volume1w1 =
     dayData.reduce(
-      (total, { volume1 }) =>
-        total + bigIntToNumber(BigInt(volume1), token1.decimals),
+      (total, { volume1 }) => total + bigIntToNumber(volume1, token1.decimals),
       0,
     ) ?? 0;
   const volume1w = pair.isVaultVault || !token0.isVault ? volume1w0 : volume1w1;
 
   const aprReserve =
     pair.isVaultVault || !token0.isVault
-      ? bigIntToNumber(BigInt(pair.reserve0), token0.decimals)
-      : bigIntToNumber(BigInt(pair.reserve1), token1.decimals);
+      ? bigIntToNumber(pair.reserve0, token0.decimals)
+      : bigIntToNumber(pair.reserve1, token1.decimals);
   const apr =
-    aprReserve > 0
-      ? ((volume1w / 7) * 365 * Number(pair.lpFee)) / aprReserve
-      : 0;
+    aprReserve > 0 ? ((volume1w / 7) * 365 * pair.lpFee) / aprReserve : 0;
   return {
     ...pair,
     token0,
@@ -112,18 +108,17 @@ export const pairToPool = (
     volume24h0:
       hourData.reduce(
         (total, { volume0 }) =>
-          total + bigIntToNumber(BigInt(volume0), token0.decimals),
+          total + bigIntToNumber(volume0, token0.decimals),
         0,
       ) ?? 0,
     volume24h1:
       hourData.reduce(
         (total, { volume1 }) =>
-          total + bigIntToNumber(BigInt(volume1), token1.decimals),
+          total + bigIntToNumber(volume1, token1.decimals),
         0,
       ) ?? 0,
     volume24hUsd:
-      hourData.reduce((total, { volumeUsd }) => total + Number(volumeUsd), 0) ??
-      0,
+      hourData.reduce((total, { volumeUsd }) => total + volumeUsd, 0) ?? 0,
     volume1wUsd,
     apy: aprToApy(apr),
   };

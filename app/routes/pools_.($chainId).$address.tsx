@@ -248,9 +248,9 @@ export default function PoolDetailsPage() {
   const lpBalance = BigInt(lpBalanceStr);
   const lpStaked = BigInt(lpStakedStr);
   const lpBalanceShare =
-    bigIntToNumber(lpBalance) / bigIntToNumber(BigInt(pool.totalSupply));
+    bigIntToNumber(lpBalance) / bigIntToNumber(pool.totalSupply);
   const lpStakedShare =
-    bigIntToNumber(lpStaked) / bigIntToNumber(BigInt(pool.totalSupply));
+    bigIntToNumber(lpStaked) / bigIntToNumber(pool.totalSupply);
   const lpShare = lpBalanceShare + lpStakedShare;
   const hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
@@ -441,19 +441,19 @@ export default function PoolDetailsPage() {
                   <div />
                   <div className="flex items-center justify-between gap-3 text-night-400 text-sm">
                     <span>
-                      {Number(baseToken.derivedMagic) > 0
+                      {BigInt(baseToken.derivedMagic) > 0
                         ? formatUSD(
                             bigIntToNumber(baseReserve, baseToken.decimals) *
-                              Number(baseToken.derivedMagic) *
+                              bigIntToNumber(baseToken.derivedMagic) *
                               magicUsd,
                           )
                         : null}
                     </span>
                     <span>
-                      {Number(quoteToken.derivedMagic) > 0
+                      {BigInt(quoteToken.derivedMagic) > 0
                         ? formatUSD(
                             bigIntToNumber(quoteReserve, quoteToken.decimals) *
-                              Number(quoteToken.derivedMagic) *
+                              bigIntToNumber(quoteToken.derivedMagic) *
                               magicUsd,
                           )
                         : null}
@@ -605,9 +605,9 @@ export default function PoolDetailsPage() {
               <div className="space-y-4 rounded-md bg-night-1100 p-4">
                 <div>
                   <h3 className="font-medium text-lg">My Position</h3>
-                  {Number(pool.reserveUsd) > 0 ? (
+                  {pool.reserveUsd > 0 ? (
                     <span className="text-night-400 text-sm">
-                      {formatUSD(lpShare * Number(pool.reserveUsd))}
+                      {formatUSD(lpShare * pool.reserveUsd)}
                     </span>
                   ) : null}
                 </div>
@@ -997,40 +997,40 @@ const PoolActivityTable = ({
         <tbody>
           {transactions.map((tx) => {
             let tokenA: Token;
-            let amountA: string;
+            let amountA: bigint;
             let itemsA: PoolTransactionItem[];
             let tokenB: Token;
-            let amountB: string;
+            let amountB: bigint;
             let itemsB: PoolTransactionItem[];
             const isSwap = tx.type === "Swap";
             if (isSwap) {
               if (tx.isAmount1Out) {
                 tokenA = pool.token0;
-                amountA = tx.amount0;
+                amountA = BigInt(tx.amount0);
                 itemsA = tx.items0 ?? [];
                 tokenB = pool.token1;
-                amountB = tx.amount1;
+                amountB = BigInt(tx.amount1);
                 itemsB = tx.items1;
               } else {
                 tokenA = pool.token1;
-                amountA = tx.amount1;
+                amountA = BigInt(tx.amount1);
                 itemsA = tx.items1;
                 tokenB = pool.token0;
-                amountB = tx.amount0;
+                amountB = BigInt(tx.amount0);
                 itemsB = tx.items0;
               }
             } else {
               tokenA = pool.token0;
               tokenB = pool.token1;
               if (tokenA.address === pool.token0Address) {
-                amountA = tx.amount0;
+                amountA = BigInt(tx.amount0);
                 itemsA = tx.items0;
-                amountB = tx.amount1;
+                amountB = BigInt(tx.amount1);
                 itemsB = tx.items1;
               } else {
-                amountA = tx.amount1;
+                amountA = BigInt(tx.amount1);
                 itemsA = tx.items1;
-                amountB = tx.amount0;
+                amountB = BigInt(tx.amount0);
                 itemsB = tx.items0;
               }
             }
@@ -1044,7 +1044,9 @@ const PoolActivityTable = ({
                         <PoolTransactionImage token={tokenA} items={itemsA} />
                         <span>
                           <span className="text-honey-25">
-                            {formatAmount(amountA)}
+                            {formatAmount(amountA, {
+                              decimals: tokenA.decimals,
+                            })}
                           </span>{" "}
                           {tokenA.symbol}
                         </span>
@@ -1058,7 +1060,9 @@ const PoolActivityTable = ({
                         <PoolTransactionImage token={tokenB} items={itemsB} />
                         <span>
                           <span className="text-honey-25">
-                            {formatAmount(amountB)}
+                            {formatAmount(amountB, {
+                              decimals: tokenB.decimals,
+                            })}
                           </span>{" "}
                           {tokenB.symbol}
                         </span>
@@ -1069,7 +1073,7 @@ const PoolActivityTable = ({
                     {tx.type}
                   </td>
                   <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
-                    {Number(tx.amountUsd) > 0 ? formatUSD(tx.amountUsd) : "-"}
+                    {tx.amountUsd > 0 ? formatUSD(tx.amountUsd) : "-"}
                   </td>
                   <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
                     {tx.userDomain?.treasuretag ? (
