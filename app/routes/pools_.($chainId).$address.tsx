@@ -948,11 +948,12 @@ const PoolActivityTable = ({
 }) => {
   const {
     isLoading,
-    results: transactions,
     page,
-    resultsPerPage,
+    items: transactions,
+    limit,
     hasPreviousPage,
     hasNextPage,
+    totalCount,
     goToPreviousPage,
     goToNextPage,
   } = usePoolTransactions({
@@ -1155,24 +1156,20 @@ const PoolActivityTable = ({
           <ChevronLeftIcon className="w-4" />
           <p className="text-sm">Previous</p>
         </Button>
-        <p className="text-night-500">
-          Showing{" "}
-          <span className="text-night-200">
-            {formatNumber((page - 1) * resultsPerPage + 1)}
-          </span>{" "}
-          to{" "}
-          <span className="text-night-200">
-            {formatNumber((page - 1) * resultsPerPage + transactions.length)}
-          </span>{" "}
-          {!type ? (
-            <>
-              of{" "}
-              <span className="text-night-200">
-                {formatNumber(pool.txCount)}
-              </span>
-            </>
-          ) : null}
-        </p>
+        {totalCount > 0 ? (
+          <p className="text-night-500">
+            Showing{" "}
+            <span className="text-night-200">
+              {formatNumber((page - 1) * limit + 1)}
+            </span>{" "}
+            to{" "}
+            <span className="text-night-200">
+              {formatNumber((page - 1) * limit + transactions.length)}
+            </span>{" "}
+            of{" "}
+            <span className="text-night-200">{formatNumber(totalCount)}</span>
+          </p>
+        ) : null}
         <Button
           variant="ghost"
           className="pr-2 pl-3.5"

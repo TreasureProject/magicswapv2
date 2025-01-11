@@ -89,18 +89,22 @@ export const getPairTransactions = gql`
     $chainId: Float!
     $address: String!
     $where: transactionFilter
-    $limit: Int = 15
     $orderBy: String = "timestamp"
     $orderDirection: String = "desc"
+    $limit: Int = 15
+    $before: String
+    $after: String
   ) {
     pair(chainId: $chainId, address: $address) {
       token0Address
       token1Address
       transactions(
         where: $where
-        limit: $limit
         orderBy: $orderBy
         orderDirection: $orderDirection
+        limit: $limit
+        before: $before
+        after: $after
       ) {
         items {
           chainId
@@ -118,6 +122,13 @@ export const getPairTransactions = gql`
             }
           }
         }
+        pageInfo {
+          startCursor
+          endCursor
+          hasPreviousPage
+          hasNextPage
+        }
+        totalCount
       }
     }
   }

@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
+
 import { fetchPoolTransactions } from "~/api/pools.server";
 import type { transactionType as TransactionType } from ".graphclient";
 
@@ -13,19 +14,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   invariant(address, "Pool address required");
 
   const url = new URL(request.url);
-  const page = url.searchParams.get("page");
-  const resultsPerPage = url.searchParams.get("resultsPerPage");
   const type = url.searchParams.get("type");
 
   try {
-    const results = await fetchPoolTransactions({
+    const data = await fetchPoolTransactions({
       chainId: Number(chainId),
       address,
-      page: page ? Number(page) : undefined,
-      resultsPerPage: resultsPerPage ? Number(resultsPerPage) : undefined,
       type: type ? (type as TransactionType) : undefined,
+      limit: url.searchParams.get("limit")
+        ? Number(url.searchParams.get("limit"))
+        : undefined,
+      after: url.searchParams.get("after") || undefined,
     });
-    return json({ ok: true, results } as const);
+    return json({ ok: true, data } as const);
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }

@@ -7,12 +7,14 @@ type Props = {
   chainId: number;
   address: string;
   type?: TransactionType;
-  resultsPerPage?: number;
+  limit?: number;
   enabled?: boolean;
 };
 
 const DEFAULT_STATE = {
   page: 1,
+  before: undefined,
+  after: undefined,
   isLoading: false,
 };
 
@@ -20,59 +22,90 @@ export const usePoolTransactions = ({
   chainId,
   address,
   type,
-  resultsPerPage = 25,
+  limit = 15,
   enabled = true,
 }: Props) => {
   const { load, state, data } = useFetcher<FetchPoolTransactions>();
-  const [{ page, isLoading }, setState] = useState<{
+  const [{ page, before, after, isLoading }, setState] = useState<{
     page: number;
+    before: string | undefined;
+    after: string | undefined;
     isLoading: boolean;
   }>(DEFAULT_STATE);
   const lastType = useRef<TransactionType | undefined>();
-  const results = data?.ok ? data.results : [];
-  const hasPreviousPage = page > 1;
-  const hasNextPage = results.length === resultsPerPage;
 
   useEffect(() => {
-    if (enabled) {
-      if (type !== lastType.current) {
-        lastType.current = type;
-        setState(DEFAULT_STATE);
-      }
+    if (!enabled) {
+      setState(DEFAULT_STATE);
+      return;
+    }
 
-      const params = new URLSearchParams({
-        page: page.toString(),
-        resultsPerPage: resultsPerPage.toString(),
-      });
-
-      if (type) {
-        params.set("type", type);
-      }
-
-      setState((curr) => ({ ...curr, isLoading: true }));
-      load(
-        `/resources/pools/${chainId}/${address}/transactions?${params.toString()}`,
-      );
-      setState((curr) => ({ ...curr, isLoading: false }));
-    } else {
+    if (type !== lastType.current) {
+      lastType.current = type;
       setState(DEFAULT_STATE);
     }
-  }, [enabled, chainId, address, type, page, resultsPerPage, load]);
+
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+    });
+
+    if (before) {
+      params.set("before", before);
+    }
+
+    if (after) {
+      params.set("after", after);
+    }
+
+    if (type) {
+      params.set("type", type);
+    }
+
+    setState((curr) => ({ ...curr, isLoading: true }));
+    load(
+      `/resources/pools/${chainId}/${address}/transactions?${params.toString()}`,
+    );
+    setState((curr) => ({ ...curr, isLoading: false }));
+  }, [enabled, chainId, address, type, limit, before, after, load]);
+
+  const hasPreviousPage = data?.ok
+    ? !!data.data.pageInfo?.hasPreviousPage
+    : false;
+  const hasNextPage = data?.ok ? !!data.data.pageInfo?.hasNextPage : false;
 
   return {
     isLoading: isLoading || state === "loading",
-    results,
+    items: data?.ok ? data.data.items : [],
     page,
-    resultsPerPage,
+    limit,
     hasPreviousPage,
     hasNextPage,
+    totalCount: data?.ok ? (data.data.totalCount ?? 0) : 0,
     goToPreviousPage: () =>
       setState((curr) =>
-        hasPreviousPage ? { ...curr, page: curr.page - 1 } : curr,
+        hasPreviousPage
+          ? {
+              ...curr,
+              page: curr.page - 1,
+              before: data?.ok
+                ? data.data.pageInfo?.startCursor || undefined
+                : undefined,
+              after: undefined,
+            }
+          : curr,
       ),
     goToNextPage: () =>
       setState((curr) =>
-        hasNextPage ? { ...curr, page: curr.page + 1 } : curr,
+        hasNextPage
+          ? {
+              ...curr,
+              page: curr.page + 1,
+              before: undefined,
+              after: data?.ok
+                ? data.data.pageInfo?.endCursor || undefined
+                : undefined,
+            }
+          : curr,
       ),
     refetch: () => setState({ ...DEFAULT_STATE, isLoading: true }),
     error: !data?.ok ? data?.error : undefined,

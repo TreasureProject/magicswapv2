@@ -23,21 +23,24 @@ import { fetchDomains } from "./user.server";
 export const fetchPoolTransactions = async ({
   chainId,
   address,
-  page = 1,
-  resultsPerPage = 25,
   type,
+  limit,
+  before,
+  after,
 }: {
   chainId: number;
   address: string;
-  page?: number;
-  resultsPerPage?: number;
   type?: TransactionType;
+  limit?: number;
+  before?: string;
+  after?: string;
 }) => {
   const result = (await execute(GetPairTransactionsDocument, {
     chainId,
     address,
-    first: resultsPerPage,
-    skip: (page - 1) * resultsPerPage,
+    limit,
+    before,
+    after,
     ...(type ? { where: { type } } : undefined),
   })) as ExecutionResult<GetPairTransactionsQuery>;
   const { pair } = result.data ?? {};
@@ -49,27 +52,29 @@ export const fetchPoolTransactions = async ({
     pair.transactions?.items.map(({ userAddress }) => userAddress ?? "") ?? [],
   );
 
-  return (
-    pair.transactions?.items.map(({ items, ...transaction }) => ({
-      ...transaction,
-      userDomain: transaction.userAddress
-        ? domains[transaction.userAddress]
-        : undefined,
-      items0:
-        items?.items.filter(
-          ({ vaultAddress }) => vaultAddress === pair.token0Address,
-        ) ?? [],
-      items1:
-        items?.items.filter(
-          ({ vaultAddress }) => vaultAddress === pair.token1Address,
-        ) ?? [],
-    })) ?? []
-  );
+  return {
+    ...pair.transactions,
+    items:
+      pair.transactions?.items.map(({ items, ...transaction }) => ({
+        ...transaction,
+        userDomain: transaction.userAddress
+          ? domains[transaction.userAddress]
+          : undefined,
+        items0:
+          items?.items.filter(
+            ({ vaultAddress }) => vaultAddress === pair.token0Address,
+          ) ?? [],
+        items1:
+          items?.items.filter(
+            ({ vaultAddress }) => vaultAddress === pair.token1Address,
+          ) ?? [],
+      })) ?? [],
+  };
 };
 
 type PoolTransaction = Awaited<
   ReturnType<typeof fetchPoolTransactions>
->[number];
+>["items"][number];
 export type PoolTransactionType = NonNullable<PoolTransaction["type"]>;
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
