@@ -30,11 +30,7 @@ import {
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
 
-import {
-  type PoolTransactionItem,
-  type PoolTransactionType,
-  fetchPool,
-} from "~/api/pools.server";
+import { type PoolTransactionItem, fetchPool } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
@@ -195,7 +191,7 @@ export default function PoolDetailsPage() {
   const revalidator = useRevalidator();
   const { address: userAddress } = useAccount();
   const [poolActivityFilter, setPoolActivityFilter] =
-    useState<Optional<PoolTransactionType>>();
+    useState<Optional<TransactionType>>();
   const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
   const [tab, setTab] = useState<PoolManagementTab>("deposit");
   const [

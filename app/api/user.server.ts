@@ -196,7 +196,9 @@ export const fetchDomain = async (address: string) =>
   });
 
 export const fetchDomains = async (addresses: string[]) => {
-  const uniqueAddresses = [...new Set(addresses.filter((address) => address))];
+  const uniqueAddresses = [
+    ...new Set(addresses.filter((address) => address)),
+  ].sort();
   return getCachedValue(`domains-${uniqueAddresses.join(",")}`, async () => {
     const response = await fetch(
       `${CHAIN_ID_TO_TROVE_API_URL[arbitrum.id]}/batch-domains`,

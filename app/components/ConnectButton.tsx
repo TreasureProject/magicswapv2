@@ -27,21 +27,7 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
   const { openProfile } = useModal();
   const [error, setError] = useState(false);
-
-  const truncatedAddress = truncateEthAddress(address);
-  const domain = data?.ok ? data.domain : null;
-  const preferredDomainType = domain?.preferredDomainType ?? "address";
-  const domainType = domain?.[preferredDomainType];
-  const name =
-    typeof domainType === "string"
-      ? truncatedAddress
-      : (domainType?.name ?? truncatedAddress);
-  const image =
-    (domainType &&
-      typeof domainType !== "string" &&
-      "pfp" in domainType &&
-      domainType?.pfp) ??
-    (domain?.treasuretag?.pfp || domain?.smol?.pfp || domain?.ens?.pfp);
+  const domain = data?.ok ? data.domain : undefined;
 
   useEffect(() => {
     load(`/resources/domain?address=${address}`);
@@ -60,32 +46,31 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
           </div>
         ) : (
           <AnimatePresence>
-            {!error && image && (
+            {!error && domain?.treasuretag?.pfp ? (
               <motion.img
-                key={name}
-                src={image}
-                alt={name}
+                src={domain.treasuretag.pfp}
+                alt=""
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 h-full w-full"
                 onError={() => setError(true)}
               />
-            )}
+            ) : null}
           </AnimatePresence>
         )}
       </div>
       <div className="flex items-center space-x-1 px-3">
         <AnimatePresence mode="wait" initial={false}>
-          {preferredDomainType === "treasuretag" ? (
-            <TreasureTag name={name} />
+          {domain?.treasuretag ? (
+            <TreasureTag name={domain.treasuretag.name} />
           ) : (
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {name}
+              {truncateEthAddress(address)}
             </motion.span>
           )}
         </AnimatePresence>

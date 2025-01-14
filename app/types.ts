@@ -54,18 +54,11 @@ export type TroveToken = {
   queryUserQuantityOwned?: number;
 };
 
-type DomainType = "ens" | "smol" | "treasuretag" | "address";
-
-type DomainInfo = {
-  name: string;
-  pfp: string | null;
-  banner: string | null;
-};
-
 export type AccountDomains = {
   address: string;
-  ens?: DomainInfo;
-  smol?: DomainInfo;
-  treasuretag?: DomainInfo;
-  preferredDomainType?: DomainType;
+  treasuretag?: {
+    name: string;
+    pfp: string | null;
+    banner: string | null;
+  };
 };

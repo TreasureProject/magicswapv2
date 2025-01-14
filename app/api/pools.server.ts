@@ -49,7 +49,7 @@ export const fetchPoolTransactions = async ({
   }
 
   const domains = await fetchDomains(
-    pair.transactions?.items.map(({ userAddress }) => userAddress ?? "") ?? [],
+    pair.transactions?.items.map((item) => item.userAddress ?? "") ?? [],
   );
 
   return {
@@ -75,14 +75,17 @@ export const fetchPoolTransactions = async ({
 type PoolTransaction = Awaited<
   ReturnType<typeof fetchPoolTransactions>
 >["items"][number];
-export type PoolTransactionType = NonNullable<PoolTransaction["type"]>;
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
 export const pairToPool = (
   pair: GetPairsQuery["pairs"]["items"][number],
 ): Pool => {
-  const token0 = pair.token0!;
-  const token1 = pair.token1!;
+  if (!pair.token0 || !pair.token1) {
+    throw new Error("Invalid pair");
+  }
+
+  const token0 = pair.token0;
+  const token1 = pair.token1;
   const dayData = pair.dayData?.items ?? [];
   const hourData = pair.hourData?.items ?? [];
 
