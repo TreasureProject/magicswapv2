@@ -1,6 +1,9 @@
 import type { ExecutionResult } from "graphql";
+import type { Address } from "viem";
 
+import { uniswapV2PairAbi } from "~/generated";
 import { aprToApy } from "~/lib/apr";
+import { getViemClient } from "~/lib/chain.server";
 import {
   getOneDayAgoTimestamp,
   getOneWeekAgoTimestamp,
@@ -77,12 +80,19 @@ type PoolTransaction = Awaited<
 >["items"][number];
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
-export const pairToPool = (
+export const pairToPool = async (
   pair: GetPairsQuery["pairs"]["items"][number],
-): Pool => {
+): Promise<Pool> => {
   if (!pair.token0 || !pair.token1) {
     throw new Error("Invalid pair");
   }
+
+  const client = getViemClient(pair.chainId);
+  const [reserve0, reserve1] = await client.readContract({
+    address: pair.address as Address,
+    abi: uniswapV2PairAbi,
+    functionName: "getReserves",
+  });
 
   const token0 = pair.token0;
   const token1 = pair.token1;
@@ -105,14 +115,16 @@ export const pairToPool = (
 
   const aprReserve =
     pair.isVaultVault || !token0.isVault
-      ? bigIntToNumber(pair.reserve0, token0.decimals)
-      : bigIntToNumber(pair.reserve1, token1.decimals);
+      ? bigIntToNumber(reserve0, token0.decimals)
+      : bigIntToNumber(reserve1, token1.decimals);
   const apr =
     aprReserve > 0 ? ((volume1w / 7) * 365 * pair.lpFee) / aprReserve : 0;
   return {
     ...pair,
     token0,
     token1,
+    reserve0: reserve0.toString(),
+    reserve1: reserve1.toString(),
     volume24h0:
       hourData.reduce(
         (total, { volume0 }) =>
@@ -140,7 +152,9 @@ export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
       date_gte: getOneWeekAgoTimestamp(),
     },
   })) as ExecutionResult<GetPairsQuery>;
-  return result.data?.pairs.items.map((pair) => pairToPool(pair)) ?? [];
+  return Promise.all(
+    result.data?.pairs.items.map((pair) => pairToPool(pair)) ?? [],
+  );
 };
 
 export const fetchPool = async (params: {

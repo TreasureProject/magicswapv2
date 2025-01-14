@@ -63,11 +63,14 @@ export const fetchUserPositions = async ({
   const { user } = result.data;
   return {
     total: user.liquidityPositionCount,
-    positions:
-      user.liquidityPositions?.items.map(({ pair, ...liquidityPosition }) => ({
-        ...liquidityPosition,
-        pool: pairToPool(pair!),
-      })) ?? [],
+    positions: await Promise.all(
+      user.liquidityPositions?.items.map(
+        async ({ pair, ...liquidityPosition }) => ({
+          ...liquidityPosition,
+          pool: await pairToPool(pair!),
+        }),
+      ) ?? [],
+    ),
   };
 };
 

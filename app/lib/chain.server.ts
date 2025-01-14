@@ -15,7 +15,7 @@ export const getViemClient = (chainId: number) => {
       chain: CHAIN_ID_TO_CHAIN[chainId] ?? arbitrum,
       transport: fallback([
         http(
-          `https://${chainId}.rpc.thirdweb.com/${ENV.PUBLIC_THIRDWEB_CLIENT_ID}`,
+          `https://${chainId}.rpc.thirdweb.com/${ENV.BACKEND_THIRDWEB_CLIENT_ID}`,
           { batch: true },
         ),
         http(undefined, { batch: true }),
