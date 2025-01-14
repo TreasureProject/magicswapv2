@@ -7,17 +7,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/Dropdown";
-import { GAME_METADATA } from "~/consts";
 
 type Props = {
+  games: {
+    id: string;
+    name: string;
+    image: string;
+  }[];
   selectedGameId?: string;
   onChange: (gameId: string) => void;
   onClear: () => void;
 };
 
-export const GameFilter = ({ selectedGameId, onChange, onClear }: Props) => {
+export const GameFilter = ({
+  games,
+  selectedGameId,
+  onChange,
+  onClear,
+}: Props) => {
   const selectedGame = selectedGameId
-    ? GAME_METADATA[selectedGameId]
+    ? games.find((game) => game.id === selectedGameId)
     : undefined;
   return (
     <DropdownMenu>
@@ -52,7 +61,7 @@ export const GameFilter = ({ selectedGameId, onChange, onClear }: Props) => {
             {!selectedGame ? <CheckIcon className="h-4 w-4" /> : null}
           </button>
         </DropdownMenuItem>
-        {Object.entries(GAME_METADATA).map(([id, { name, image }]) => (
+        {games.map(({ id, name, image }) => (
           <DropdownMenuItem key={id}>
             <button
               type="button"

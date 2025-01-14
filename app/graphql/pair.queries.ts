@@ -139,7 +139,7 @@ export const getPairs = gql`
   ${PAIR_DAY_DATA_FRAGMENT}
   ${PAIR_FRAGMENT}
   query GetPairs(
-    $where: pairFilter = { reserve0_not: "0" }
+    $where: pairFilter
     $limit: Int = 100
     $orderBy: String = "reserveUsd"
     $orderDirection: String = "desc"

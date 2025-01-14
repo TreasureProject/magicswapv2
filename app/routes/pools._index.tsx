@@ -2,13 +2,11 @@ import { type LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense } from "react";
 
-import { type Address, isAddressEqual } from "viem";
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { GAME_METADATA } from "~/consts";
 import { formatPercent } from "~/lib/number";
 import {
   getPoolFeesDisplay,
@@ -27,16 +25,15 @@ export function loader({ request }: LoaderFunctionArgs) {
   const gameId = url.searchParams.get("game");
   const chainId = url.searchParams.get("chain");
   const areIncentivized = url.searchParams.get("incentivized") === "true";
-  const game =
-    gameId && gameId in GAME_METADATA ? GAME_METADATA[gameId] : undefined;
 
   const fetchAndFilterPools = async () => {
-    const pools = await fetchPools(
-      chainId ? { chainId: Number(chainId) } : undefined,
-    );
+    const pools = await fetchPools({
+      ...(chainId ? { chainId: Number(chainId) } : undefined),
+      ...(gameId ? { gameId } : undefined),
+    });
 
     return pools.filter(
-      ({ name, token0, token1, incentives, ...pool }) =>
+      ({ name, token0, token1, incentives }) =>
         // Filter by search query
         (!search ||
           name.toLowerCase().includes(search) ||
@@ -46,32 +43,6 @@ export function loader({ request }: LoaderFunctionArgs) {
           token1.name.toLowerCase().includes(search) ||
           token0.collectionName?.toLowerCase().includes(search) ||
           token1.collectionName?.toLowerCase().includes(search)) &&
-        // Filter by selected game
-        (!game ||
-          game.tokens.some(
-            (gameToken) =>
-              gameToken[0] === pool.chainId &&
-              (isAddressEqual(gameToken[1], token0.address as Address) ||
-                isAddressEqual(gameToken[1], token1.address as Address)),
-          ) ||
-          (!!token0.collectionAddress &&
-            game.collections.some(
-              (gameCollection) =>
-                gameCollection[0] === pool.chainId &&
-                isAddressEqual(
-                  gameCollection[1],
-                  token0.collectionAddress as Address,
-                ),
-            )) ||
-          (!!token1.collectionAddress &&
-            game.collections.some(
-              (gameCollection) =>
-                gameCollection[0] === pool.chainId &&
-                isAddressEqual(
-                  gameCollection[1],
-                  token1.collectionAddress as Address,
-                ),
-            ))) &&
         // Filter by incentivized
         (!areIncentivized || !!incentives?.items.length),
     );

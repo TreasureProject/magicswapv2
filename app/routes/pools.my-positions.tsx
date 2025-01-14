@@ -2,14 +2,12 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import { defer } from "@remix-run/node";
 import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense } from "react";
-import { type Address, isAddressEqual } from "viem";
 
 import { fetchUserPositions } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { GAME_METADATA } from "~/consts";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getSession } from "~/sessions";
@@ -24,10 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const address = session.get("address");
   const url = new URL(request.url);
   const search = url.searchParams.get("search");
-  const gameId = url.searchParams.get("game");
   const chainId = url.searchParams.get("chain");
-  const areIncentivized = url.searchParams.get("incentivized") === "true";
-  const game = gameId ? GAME_METADATA[gameId] : undefined;
 
   const fetchAndFilterUserPositions = async () => {
     const { total, positions } = await fetchUserPositions({
@@ -37,44 +32,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return {
       total,
       positions: positions.filter(
-        ({ pool: { chainId, name, token0, token1, incentives } }) =>
+        ({ pool: { name, token0, token1 } }) =>
           // Filter by search query
-          (!search ||
-            name.toLowerCase().includes(search) ||
-            token0.symbol.toLowerCase().includes(search) ||
-            token1.symbol.toLowerCase().includes(search) ||
-            token0.name.toLowerCase().includes(search) ||
-            token1.name.toLowerCase().includes(search) ||
-            token0.collectionName?.toLowerCase().includes(search) ||
-            token1.collectionName?.toLowerCase().includes(search)) &&
-          // Filter by selected game
-          (!game ||
-            game.tokens.some(
-              (gameToken) =>
-                gameToken[0] === chainId &&
-                (isAddressEqual(gameToken[1], token0.address as Address) ||
-                  isAddressEqual(gameToken[1], token1.address as Address)),
-            ) ||
-            (!!token0.collectionAddress &&
-              game.collections.some(
-                (gameCollection) =>
-                  gameCollection[0] === chainId &&
-                  isAddressEqual(
-                    gameCollection[1],
-                    token0.collectionAddress as Address,
-                  ),
-              )) ||
-            (!!token1.collectionAddress &&
-              game.collections.some(
-                (gameCollection) =>
-                  gameCollection[0] === chainId &&
-                  isAddressEqual(
-                    gameCollection[1],
-                    token1.collectionAddress as Address,
-                  ),
-              ))) &&
-          // Filter by incentivized
-          (!areIncentivized || !!incentives?.items.length),
+          !search ||
+          name.toLowerCase().includes(search) ||
+          token0.symbol.toLowerCase().includes(search) ||
+          token1.symbol.toLowerCase().includes(search) ||
+          token0.name.toLowerCase().includes(search) ||
+          token1.name.toLowerCase().includes(search) ||
+          token0.collectionName?.toLowerCase().includes(search) ||
+          token1.collectionName?.toLowerCase().includes(search),
       ),
     };
   };

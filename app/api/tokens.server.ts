@@ -1,7 +1,6 @@
 import type { ExecutionResult } from "graphql";
 
 import {
-  BLOCKED_TOKENS,
   CHAIN_ID_TO_TROVE_API_NETWORK,
   CHAIN_ID_TO_TROVE_API_URL,
 } from "~/consts";
@@ -29,11 +28,10 @@ import {
  * Fetches tokens available for swapping
  */
 export const fetchTokens = async () => {
-  const { data, errors } = (await execute(GetTokensDocument, {
-    where: {
-      address_not_in: BLOCKED_TOKENS,
-    },
-  })) as ExecutionResult<GetTokensQuery>;
+  const { data, errors } = (await execute(
+    GetTokensDocument,
+    {},
+  )) as ExecutionResult<GetTokensQuery>;
   if (errors) {
     throw new Error(
       `Error fetching tokens: ${errors

@@ -23,6 +23,7 @@ import { ClientOnly } from "remix-utils/client-only";
 import { type Address, formatUnits, isAddressEqual } from "viem";
 import { useChainId } from "wagmi";
 import { bigint } from "zod";
+import { fetchGames } from "~/api/games.server";
 
 import { fetchPools } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
@@ -52,7 +53,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/Dialog";
 import { InfoPopover } from "~/components/ui/InfoPopover";
-import { GAME_METADATA } from "~/consts";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRouterAddress } from "~/hooks/useContractAddress";
@@ -104,15 +104,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
       defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
     });
 
-  const [session, pools, tokenIn, tokenOut, magicUsd] = await Promise.all([
-    getSession(request.headers.get("Cookie")),
-    fetchPools(),
-    fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
-    tokenAddressOut
-      ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
-      : undefined,
-    fetchMagicUsd(),
-  ]);
+  const [session, games, pools, tokenIn, tokenOut, magicUsd] =
+    await Promise.all([
+      getSession(request.headers.get("Cookie")),
+      fetchGames(),
+      fetchPools(),
+      fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
+      tokenAddressOut
+        ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
+        : undefined,
+      fetchMagicUsd(),
+    ]);
 
   if (!tokenIn) {
     throw new Response("Input token not found", {
@@ -122,6 +124,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const address = session.get("address");
   return defer({
+    games,
     pools,
     tokens: fetchTokens(),
     tokenIn,
@@ -1081,9 +1084,7 @@ const TokenSelectDialog = ({
   const [search, setSearch] = useState<string | undefined>();
   const [gameId, setGameId] = useState<string | undefined>();
   const [chainId, setChainId] = useState<number | undefined>(defaultChainId);
-  const { tokens } = useLoaderData<typeof loader>();
-  const game =
-    gameId && gameId in GAME_METADATA ? GAME_METADATA[gameId] : undefined;
+  const { games, tokens } = useLoaderData<typeof loader>();
 
   const handleClearFilters = () => {
     setSearch(undefined);
@@ -1141,6 +1142,7 @@ const TokenSelectDialog = ({
           <div className="flex flex-wrap items-center gap-2">
             <SearchFilter className="w-28" onChange={setSearch} />
             <GameFilter
+              games={games}
               selectedGameId={gameId}
               onChange={setGameId}
               onClear={() => setGameId(undefined)}
@@ -1190,21 +1192,7 @@ const TokenSelectDialog = ({
                           ?.toLowerCase()
                           .includes(search.toLowerCase())) &&
                       // Filter by selected game
-                      (!game ||
-                        game.tokens.some(
-                          (gameToken) =>
-                            gameToken[0] === token.chainId &&
-                            isAddressEqual(gameToken[1], address as Address),
-                        ) ||
-                        (!!collectionAddress &&
-                          game.collections.some(
-                            (gameCollection) =>
-                              gameCollection[0] === token.chainId &&
-                              isAddressEqual(
-                                gameCollection[1],
-                                collectionAddress as Address,
-                              ),
-                          ))) &&
+                      (!gameId || token.gameId === gameId) &&
                       // Filter by selected chain
                       (!chainId || chainId === token.chainId) &&
                       // Filter by selected tab

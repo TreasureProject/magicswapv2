@@ -1,5 +1,12 @@
 import type { MetaFunction } from "@remix-run/react";
-import { Link, Outlet, useMatches, useSearchParams } from "@remix-run/react";
+import {
+  Link,
+  Outlet,
+  useLoaderData,
+  useMatches,
+  useSearchParams,
+} from "@remix-run/react";
+import { fetchGames } from "~/api/games.server";
 
 import { ChainFilter } from "~/components/ChainFilter";
 import { MagicStarsIcon } from "~/components/ConnectButton";
@@ -29,7 +36,14 @@ export const meta: MetaFunction<
   });
 };
 
+export async function loader() {
+  return {
+    games: await fetchGames(),
+  };
+}
+
 export default function PoolsListPage() {
+  const { games } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const matches = useMatches();
   const match = matches[matches.length - 1];
@@ -85,6 +99,8 @@ export default function PoolsListPage() {
     });
   };
 
+  const isMyPositions = match?.pathname === "/pools/my-positions";
+
   return (
     <main className="container space-y-8 py-5 md:py-7">
       <div className="space-y-1">
@@ -116,11 +132,14 @@ export default function PoolsListPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SearchFilter onChange={handleSearch} />
-          <GameFilter
-            selectedGameId={searchParams.get("game") || undefined}
-            onChange={handleSelectGame}
-            onClear={() => handleSelectGame("")}
-          />
+          {!isMyPositions ? (
+            <GameFilter
+              games={games}
+              selectedGameId={searchParams.get("game") || undefined}
+              onChange={handleSelectGame}
+              onClear={() => handleSelectGame("")}
+            />
+          ) : null}
           <ChainFilter
             selectedChainId={
               searchParams.get("chain")
@@ -130,17 +149,19 @@ export default function PoolsListPage() {
             onChange={handleSelectChain}
             onClear={() => handleSelectChain(-1)}
           />
-          <Button
-            variant="secondary"
-            className={cn(
-              "flex items-center gap-1.5 border border-night-900 bg-night-1100",
-              searchParams.get("incentivized") === "true" && "bg-night-800",
-            )}
-            onClick={() => handleToggleIncentivized()}
-          >
-            <MagicStarsIcon className="h-3.5 w-3.5 text-honey-700" />
-            Incentivized
-          </Button>
+          {!isMyPositions ? (
+            <Button
+              variant="secondary"
+              className={cn(
+                "flex items-center gap-1.5 border border-night-900 bg-night-1100",
+                searchParams.get("incentivized") === "true" && "bg-night-800",
+              )}
+              onClick={() => handleToggleIncentivized()}
+            >
+              <MagicStarsIcon className="h-3.5 w-3.5 text-honey-700" />
+              Incentivized
+            </Button>
+          ) : null}
           {searchParams.size > 0 && (
             <Button
               variant="link"

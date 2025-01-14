@@ -134,10 +134,7 @@ export const pairToPool = (
 
 export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
   const result = (await execute(GetPairsDocument, {
-    where: {
-      reserve0_not: "0",
-      ...where,
-    },
+    where,
     hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
     dayDataWhere: {
       date_gte: getOneWeekAgoTimestamp(),

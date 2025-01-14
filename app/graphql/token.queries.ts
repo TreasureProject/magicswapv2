@@ -7,6 +7,7 @@ export const TOKEN_FRAGMENT = gql`
     name
     symbol
     image
+    gameId
     decimals
     derivedMagic
     isVault
