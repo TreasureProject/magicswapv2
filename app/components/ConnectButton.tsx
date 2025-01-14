@@ -27,11 +27,13 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
   const { openProfile } = useModal();
   const [error, setError] = useState(false);
-  const domain = data?.ok ? data.domain : undefined;
 
   useEffect(() => {
     load(`/resources/domain?address=${address}`);
   }, [address, load]);
+
+  const domain = data?.ok ? data.domain : undefined;
+  const pfp = domain?.pfp ?? domain?.treasuretag?.pfp;
 
   return (
     <motion.div
@@ -46,9 +48,9 @@ const ConnectedButton = ({ address }: { address: AddressString }) => {
           </div>
         ) : (
           <AnimatePresence>
-            {!error && domain?.treasuretag?.pfp ? (
+            {!error && pfp ? (
               <motion.img
-                src={domain.treasuretag.pfp}
+                src={pfp}
                 alt=""
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

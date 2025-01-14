@@ -56,6 +56,7 @@ export type TroveToken = {
 
 export type AccountDomains = {
   address: string;
+  pfp?: string | null;
   treasuretag?: {
     name: string;
     pfp: string | null;
