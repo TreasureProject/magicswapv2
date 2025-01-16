@@ -42,6 +42,7 @@ export const PoolIncentiveUnstake = ({ pool, staked, onSuccess }: Props) => {
         className="w-full"
         size="lg"
         disabled={!isConnected || !hasAmount}
+        chainId={pool.chainId}
         onClick={() => unstake()}
       >
         Unstake

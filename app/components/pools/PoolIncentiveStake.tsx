@@ -47,6 +47,7 @@ export const PoolIncentiveStake = ({
         <TransactionButton
           className="w-full"
           size="lg"
+          chainId={pool.chainId}
           onClick={() => approve?.()}
         >
           Approve MLP token
@@ -56,6 +57,7 @@ export const PoolIncentiveStake = ({
           className="w-full"
           size="lg"
           disabled={!isConnected || !isApproved || !hasAmount}
+          chainId={pool.chainId}
           onClick={() => stake(unsubscribedIncentiveIds)}
         >
           Stake

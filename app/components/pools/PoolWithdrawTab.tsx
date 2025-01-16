@@ -269,6 +269,7 @@ export const PoolWithdrawTab = ({
         <TransactionButton
           className="w-full"
           size="lg"
+          chainId={pool.chainId}
           onClick={() => approve?.()}
         >
           Approve MLP token
@@ -284,6 +285,7 @@ export const PoolWithdrawTab = ({
             amountNFTs0 !== countTokens(nfts0) ||
             amountNFTs1 !== countTokens(nfts1)
           }
+          chainId={pool.chainId}
           onClick={() => removeLiquidity?.()}
         >
           Remove liquidity

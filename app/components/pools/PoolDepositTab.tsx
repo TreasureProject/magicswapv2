@@ -367,6 +367,7 @@ export const PoolDepositTab = ({
             insufficientBalanceB ||
             (requiresTerms && !checkedTerms)
           }
+          chainId={pool.chainId}
           onClick={() => {
             if (!isApproved0) {
               return approve0?.();

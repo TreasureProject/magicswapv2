@@ -1,9 +1,9 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { ConnectKitButton, useIsMounted, useModal } from "connectkit";
-import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
 import * as React from "react";
+import { useSwitchChain } from "wagmi";
 
 import { cn } from "~/lib/utils";
 
@@ -73,19 +73,29 @@ CloseButton.displayName = "CloseButton";
 
 export const TransactionButton = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps
->(({ children, disabled, onClick, ...props }, ref) => {
+  ButtonProps & {
+    chainId?: number;
+  }
+>(({ chainId, children, disabled, onClick, ...props }, ref) => {
   const isMounted = useIsMounted();
   const { openSwitchNetworks } = useModal();
+
+  const { switchChainAsync } = useSwitchChain();
   return (
     <ConnectKitButton.Custom>
       {({ isConnected, chain, show }) => {
-        const unsupported = chain?.unsupported ?? false;
-        const isDisabled = disabled && isConnected && !unsupported;
+        const unsupportedChain = chain?.unsupported ?? false;
+        const wrongChain = !!chainId && chain?.id !== chainId;
+        const isDisabled = disabled && isConnected;
 
-        const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+        const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (
+          e,
+        ) => {
           if (isConnected) {
-            if (unsupported) {
+            if (wrongChain) {
+              await switchChainAsync({ chainId });
+              onClick?.(e);
+            } else if (unsupportedChain) {
               openSwitchNetworks();
             } else {
               onClick?.(e);
@@ -95,30 +105,20 @@ export const TransactionButton = React.forwardRef<
           }
         };
 
-        return (
-          <AnimatePresence>
-            {isMounted && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <Button
-                  ref={ref}
-                  disabled={isDisabled}
-                  onClick={handleClick}
-                  {...props}
-                >
-                  {isConnected
-                    ? unsupported
-                      ? "Wrong Network"
-                      : children
-                    : "Connect Wallet"}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        );
+        return isMounted ? (
+          <Button
+            ref={ref}
+            disabled={isDisabled}
+            onClick={handleClick}
+            {...props}
+          >
+            {isConnected
+              ? unsupportedChain
+                ? "Switch Network"
+                : children
+              : "Connect Wallet"}
+          </Button>
+        ) : null;
       }}
     </ConnectKitButton.Custom>
   );

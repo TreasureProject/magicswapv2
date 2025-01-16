@@ -20,9 +20,7 @@ import {
 import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
-import { type Address, formatUnits, isAddressEqual } from "viem";
-import { useChainId } from "wagmi";
-import { bigint } from "zod";
+import { formatUnits } from "viem";
 import { fetchGames } from "~/api/games.server";
 
 import { fetchPools } from "~/api/pools.server";
@@ -438,6 +436,7 @@ export default function SwapPage() {
                   hasAmounts &&
                   (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
                   <TransactionButton
+                    chainId={tokenIn.chainId}
                     className="w-full"
                     size="lg"
                     onClick={() => approveTokenIn()}
@@ -448,6 +447,7 @@ export default function SwapPage() {
                   <Dialog open={swapModalOpen} onOpenChange={setSwapModalOpen}>
                     <DialogTrigger asChild>
                       <TransactionButton
+                        chainId={tokenIn.chainId}
                         className="w-full"
                         size="lg"
                         disabled={
@@ -603,13 +603,14 @@ export default function SwapPage() {
                           }
                         />
                         <div className="mt-4 grid grid-cols-3 gap-3">
-                          <Button
+                          <TransactionButton
+                            chainId={tokenIn.chainId}
                             size="lg"
                             className="col-span-full sm:col-span-2"
                             onClick={() => swap()}
                           >
                             Confirm Swap
-                          </Button>
+                          </TransactionButton>
                           <DialogClose asChild>
                             <Button
                               size="lg"
