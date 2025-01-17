@@ -41,7 +41,6 @@ import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
-import { Table } from "~/components/Table";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
 import { PoolImage } from "~/components/pools/PoolImage";
 import { PoolIncentiveStake } from "~/components/pools/PoolIncentiveStake";
@@ -393,8 +392,8 @@ export default function PoolDetailsPage() {
             </ul>
             <div className="h-[1px] bg-night-900" />
             <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
-              <div className="space-y-6 p-6">
-                <div className="flex items-start justify-between gap-3">
+              <div className="space-y-6 p-4 sm:p-6">
+                <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                   <div>
                     <h3 className="font-semibold text-lg">Pool Liquidity</h3>
                     {Number(pool.reserveUsd) > 0 ? (
@@ -403,7 +402,7 @@ export default function PoolDetailsPage() {
                       </span>
                     ) : null}
                   </div>
-                  <div className="flex items-center justify-center gap-3 rounded-lg border border-night-900 p-2 text-night-200">
+                  <div className="flex w-full items-center justify-center gap-3 rounded-lg border border-night-900 p-2 text-night-200 sm:w-auto">
                     <p className="justify-self-end">1 {baseToken.symbol}</p>
                     <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
                     <p>
@@ -474,7 +473,7 @@ export default function PoolDetailsPage() {
             </div>
             {poolIncentives.length > 0 ? (
               <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
-                <div className="space-y-4 p-6">
+                <div className="space-y-4 p-4 sm:p-6">
                   <div>
                     <h3 className="font-semibold text-lg">Rewards</h3>
                     <p className="text-night-400 text-sm">
@@ -520,11 +519,10 @@ export default function PoolDetailsPage() {
                             <span>
                               {formatAmount(BigInt(remainingRewardAmount), {
                                 type: "compact",
-                              })}{" "}
-                              available
+                              })}
                             </span>{" "}
-                            <span className="text-night-400 text-sm">
-                              until{" "}
+                            <span className="block text-night-400 text-xs sm:inline sm:text-sm">
+                              available until{" "}
                               {new Date(
                                 Number(endTime) * 1000,
                               ).toLocaleDateString()}
@@ -541,7 +539,7 @@ export default function PoolDetailsPage() {
                   ) : null}
                 </div>
                 {lpStaked > 0 ? (
-                  <div className="space-y-6 bg-night-1100 px-6 py-4">
+                  <div className="space-y-6 bg-night-1100 px-4 py-4 sm:px-6">
                     <div className="space-y-3">
                       <h4 className="text-[#FFFCF5]">Your earned rewards</h4>
                       <ul className="flex flex-wrap items-start gap-8">
@@ -607,7 +605,7 @@ export default function PoolDetailsPage() {
                     </span>
                   ) : null}
                 </div>
-                <div className="grid grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-10">
                   <div className="space-y-2">
                     <h3 className="text-night-200">Unstaked</h3>
                     <PoolLpAmount pool={pool} amount={lpBalance} />
@@ -693,16 +691,6 @@ export default function PoolDetailsPage() {
                     </div>
                   </div>
                 </div>
-                <Table
-                  items={[
-                    // { label: "Initial LP Tokens", value: 0.0 },
-                    // { label: "Rewards Earned", value: 0.0 },
-                    {
-                      label: "Current share of pool",
-                      value: formatPercent(lpShare),
-                    },
-                  ]}
-                />
               </div>
             ) : null}
           </div>
@@ -722,7 +710,7 @@ export default function PoolDetailsPage() {
         </div>
         {pool.hasVault ? (
           <div className="mt-12 space-y-3.5">
-            {vaultItems0 ? (
+            {vaultItems0 && pool.token0.collectionTokenIds?.length !== 1 ? (
               <Suspense>
                 <Await resolve={vaultItems0}>
                   {(vaultItems0) => (
@@ -734,7 +722,7 @@ export default function PoolDetailsPage() {
                 </Await>
               </Suspense>
             ) : null}
-            {vaultItems1 ? (
+            {vaultItems1 && pool.token1.collectionTokenIds?.length !== 1 ? (
               <Suspense>
                 <Await resolve={vaultItems1}>
                   {(vaultItems1) => (

@@ -17,7 +17,7 @@ export const PoolTokenCollectionInventory = ({
   return (
     <div className="rounded-lg bg-night-1100">
       <Dialog>
-        <div className="space-y-5 p-6">
+        <div className="space-y-5 p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <span className="font-medium">{token.name} Vault</span>
             {token.name !== token.symbol ? (
@@ -27,7 +27,7 @@ export const PoolTokenCollectionInventory = ({
               </>
             ) : null}
           </div>
-          <div className="grid grid-cols-5 items-center gap-2 lg:grid-cols-10">
+          <div className="grid grid-cols-3 items-center gap-2 sm:grid-cols-5 lg:grid-cols-10">
             {items.map((item) => (
               <div
                 key={item.tokenId}
@@ -46,7 +46,7 @@ export const PoolTokenCollectionInventory = ({
           </div>
         </div>
         <div className="h-[1px] bg-night-800" />
-        <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-night-400 text-sm">
             {formatNumber(numVaultItems)}{" "}
             {numVaultItems === 1 ? "item" : "items"}
