@@ -102,7 +102,7 @@ export const getPoolVolume24hDisplay = (pool: Pool) => {
     }
   }
 
-  return formatUSD(pool.volume24hUsd);
+  return formatUSD(pool.volume24hUsd, { notation: "compact" });
 };
 
 export const getPoolReserveDisplay = (pool: Pool) => {
@@ -119,25 +119,7 @@ export const getPoolReserveDisplay = (pool: Pool) => {
     }
   }
 
-  return formatUSD(pool.reserveUsd);
-};
-
-export const getPoolFeesDisplay = (pool: Pool) => {
-  const fee = pool.lpFee;
-  if (pool.volumeUsd === 0) {
-    if (
-      BigInt(pool.volume0) > 0 &&
-      (pool.isVaultVault || !pool.token0.isVault)
-    ) {
-      return `${formatAmount(bigIntToNumber(pool.volume0, pool.token0.decimals) * fee, { type: "compact" })} ${pool.token0.symbol}`;
-    }
-
-    if (BigInt(pool.volume1) > 0) {
-      return `${formatAmount(bigIntToNumber(pool.volume1, pool.token1.decimals) * fee, { type: "compact" })} ${pool.token1.symbol}`;
-    }
-  }
-
-  return formatUSD(pool.volumeUsd * fee);
+  return formatUSD(pool.reserveUsd, { notation: "compact" });
 };
 
 export const getPoolFees24hDisplay = (pool: Pool) => {
@@ -152,5 +134,5 @@ export const getPoolFees24hDisplay = (pool: Pool) => {
     }
   }
 
-  return formatUSD(pool.volume24hUsd * fee);
+  return formatUSD(pool.volume24hUsd * fee, { notation: "compact" });
 };

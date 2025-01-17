@@ -9,7 +9,7 @@ import { PoolImage } from "~/components/pools/PoolImage";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { formatPercent } from "~/lib/number";
 import {
-  getPoolFeesDisplay,
+  getPoolFees24hDisplay,
   getPoolReserveDisplay,
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
@@ -102,7 +102,7 @@ export default function PoolsListPage() {
             </abbr>
           </th>
           <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
-            LP Fees
+            LP Fees (24h)
           </th>
           <th className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">
             <abbr title="Annual Percentage Yield" className="no-underline">
@@ -174,7 +174,7 @@ export default function PoolsListPage() {
                     {getPoolReserveDisplay(pool)}
                   </td>
                   <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
-                    {getPoolFeesDisplay(pool)}
+                    {getPoolFees24hDisplay(pool)}
                   </td>
                   <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
                     {formatPercent(pool.apy)}
