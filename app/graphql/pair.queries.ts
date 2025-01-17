@@ -32,7 +32,6 @@ export const PAIR_FRAGMENT = gql`
     reserve1
     reserveUsd
     totalSupply
-    txCount
     volume0
     volume1
     volumeUsd
@@ -66,7 +65,6 @@ export const PAIR_HOUR_DATA_FRAGMENT = gql`
     volume0
     volume1
     volumeUsd
-    txCount
   }
 `;
 
@@ -79,7 +77,6 @@ export const PAIR_DAY_DATA_FRAGMENT = gql`
     volume0
     volume1
     volumeUsd
-    txCount
   }
 `;
 
