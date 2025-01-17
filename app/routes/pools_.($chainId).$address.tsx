@@ -50,7 +50,7 @@ import { PoolTokenCollectionInventory } from "~/components/pools/PoolTokenCollec
 import { PoolTokenImage } from "~/components/pools/PoolTokenImage";
 import { PoolTransactionImage } from "~/components/pools/PoolTransactionImage";
 import { PoolWithdrawTab } from "~/components/pools/PoolWithdrawTab";
-import { Button } from "~/components/ui/Button";
+import { Button, TransactionButton } from "~/components/ui/Button";
 import { Dialog } from "~/components/ui/Dialog";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useAccount } from "~/contexts/account";
@@ -533,9 +533,13 @@ export default function PoolDetailsPage() {
                     )}
                   </div>
                   {lpStaked > 0 && unsubscribedIncentiveIds.length > 0 ? (
-                    <Button className="w-full" onClick={handleSubscribeToAll}>
+                    <TransactionButton
+                      chainId={pool.chainId}
+                      className="w-full"
+                      onClick={handleSubscribeToAll}
+                    >
                       Start earning all rewards
-                    </Button>
+                    </TransactionButton>
                   ) : null}
                 </div>
                 {lpStaked > 0 ? (
@@ -570,9 +574,13 @@ export default function PoolDetailsPage() {
                       </ul>
                     </div>
                     {hasStakingRewards ? (
-                      <Button className="w-full" onClick={handleClaimRewards}>
+                      <TransactionButton
+                        chainId={pool.chainId}
+                        className="w-full"
+                        onClick={handleClaimRewards}
+                      >
                         Claim all rewards
-                      </Button>
+                      </TransactionButton>
                     ) : null}
                   </div>
                 ) : (
