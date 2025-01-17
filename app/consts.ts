@@ -19,9 +19,9 @@ export const TWITTER_URL = "https://twitter.com/MagicSwap_";
 
 export const CONTRACT_ADDRESSES = {
   [treasure.id]: {
-    magicswapV1Router: "0x95aff54273275f2d9623f12a7e689dfaa5eba311",
-    magicswapV2Router: "0xf7c8f888720d5af7c54dfc04afe876673d7f5f43",
-    stakingContract: "0xb331c6ee51e1af84aeae6f363feac3596201ee76",
+    magicswapV1Router: zeroAddress,
+    magicswapV2Router: "0xd38f4a9baeb461b124c1b462653363aafe0b3405",
+    stakingContract: "0xd5d369e15891074711ba80d80295e2a6d3ae32ee",
     nftVaultManager: zeroAddress,
   },
   [treasureTopaz.id]: {
