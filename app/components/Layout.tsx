@@ -33,20 +33,20 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-h-full flex-col">
       <header className="h-20 border-night-900 border-b bg-night-1200">
-        <div className="container flex h-full items-center">
-          <div className="flex items-center gap-7 divide-x divide-night-900">
+        <div className="container flex h-full items-center justify-between">
+          <div className="flex items-center gap-3 divide-x divide-night-900 lg:gap-7">
             <Link to="/">
               <MagicSwapLogoFull className="hidden h-7 md:block" />
               <MagicSwapLogo className="h-8 md:hidden" />
             </Link>
-            <div className="hidden items-center lg:flex">
+            <div className="flex items-center">
               {NAV.map(({ name, href }) => (
                 <NavLink
                   key={name}
                   prefetch="intent"
                   className={({ isActive }) =>
                     cn(
-                      "ml-3 cursor-pointer rounded-md px-5 py-2 font-medium text-night-500 transition-colors hover:bg-night-1100 hover:text-night-200",
+                      "ml-3 cursor-pointer rounded-md px-1 py-2 font-medium text-night-500 transition-colors hover:text-night-200 lg:px-5 lg:hover:bg-night-1100",
                       isActive && "text-honey-25 hover:text-honey-25",
                     )
                   }
@@ -57,83 +57,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               ))}
             </div>
           </div>
-          <div className="flex flex-1 items-center justify-end gap-3">
-            <div className="lg:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" className="w-9 px-0">
-                    <MenuIcon className="w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem
-                      asChild
-                      className="font-medium text-night-200 hover:text-night-100"
-                    >
-                      <Link to="/swap">Swap</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="font-medium text-night-200 hover:text-night-100"
-                    >
-                      <Link to="/pools">Pools</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <Link to={DOCS_URL} target="_blank" rel="noopener noreferrer">
-                    <DropdownMenuItem>
-                      <span>Documentation</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link
-                    to={TERMS_OF_SERVICE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuItem>
-                      <span>Terms of Service</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link
-                    to={PRIVACY_POLICY_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuItem>
-                      <span>Privacy Policy</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link
-                    to={GOVERNANCE_FORUM_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuItem>
-                      <span>Governance Forum</span>
-                    </DropdownMenuItem>
-                  </Link>
-                  <div className="flex items-center gap-3 p-3">
-                    <Link
-                      to={DISCORD_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <DiscordIcon className="w-7 text-night-600 transition-colors hover:text-night-100" />
-                    </Link>
-                    <Link
-                      to={TWITTER_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <TwitterIcon className="w-4 text-night-600 transition-colors hover:text-night-100" />
-                    </Link>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <ConnectButton />
-          </div>
+          <ConnectButton />
         </div>
       </header>
       <div className="relative flex-1">{children}</div>
