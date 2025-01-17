@@ -275,60 +275,70 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
             {selectedItems.length > 0 ? (
               <div className="mt-2 flex flex-1 flex-col gap-2 overflow-auto pr-2">
                 <AnimatePresence initial={false} mode="popLayout">
-                  {selectedItems.map((item) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex w-full items-center justify-between space-x-2 rounded-lg bg-night-900 p-2"
-                      key={item.tokenId}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-10 w-10 rounded"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded bg-night-800" />
-                        )}
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <p className="truncate font-medium text-honey-25 text-sm">
-                            {item.name}
-                          </p>
-                          <p className="text-night-400 text-sm">
-                            #{item.tokenId}
-                          </p>
+                  {selectedItems.map((item) => {
+                    const vaultItem = vaultItems.find(
+                      ({ collectionAddress, tokenId }) =>
+                        collectionAddress.toLowerCase() ===
+                          item.collectionAddress.toLowerCase() &&
+                        tokenId === item.tokenId,
+                    );
+                    return (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex w-full items-center justify-between space-x-2 rounded-lg bg-night-900 p-2"
+                        key={item.tokenId}
+                      >
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-10 w-10 rounded"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded bg-night-800" />
+                          )}
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <p className="truncate font-medium text-honey-25 text-sm">
+                              {item.name}
+                            </p>
+                            <p className="text-night-400 text-sm">
+                              #{item.tokenId}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {token.collectionType === "ERC1155" && (
-                          <NumberSelect
-                            onChange={(num) => {
-                              setSelectedItems((prev) =>
-                                prev.map((i) =>
-                                  i.tokenId === item.tokenId
-                                    ? { ...i, quantity: num }
-                                    : i,
-                                ),
-                              );
-                            }}
-                            value={Number(item.amount)}
-                            max={Number(item.amount)}
-                          />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => selectionHandler(item)}
-                        >
-                          <XIcon className="w-4 text-night-400" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+                        <div className="flex items-center gap-2">
+                          {token.collectionType === "ERC1155" && (
+                            <NumberSelect
+                              onChange={(num) => {
+                                setSelectedItems((prev) =>
+                                  prev.map((i) =>
+                                    i.tokenId === item.tokenId
+                                      ? { ...i, amount: num }
+                                      : i,
+                                  ),
+                                );
+                              }}
+                              value={Number(item.amount)}
+                              max={
+                                vaultItem ? Number(vaultItem.amount) : undefined
+                              }
+                            />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={() => selectionHandler(item)}
+                          >
+                            <XIcon className="w-4 text-night-400" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
               </div>
             ) : (
