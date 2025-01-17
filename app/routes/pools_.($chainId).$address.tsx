@@ -111,10 +111,8 @@ export const meta: MetaFunction<
   const url = generateUrl(requestInfo?.origin, location.pathname);
   return getSocialMetas({
     url,
-    title: generateTitle(
-      `${pool?.token0.symbol}/${pool?.token1.symbol} Liquidity Pool`,
-    ),
-    description: `Provide liquidity for ${pool?.token0.symbol}/${pool?.token1.symbol} on Magicswap`,
+    title: generateTitle(`${pool?.name} Liquidity Pool`),
+    description: `Provide liquidity for ${pool?.name} on Magicswap`,
     image: `${url}.png`,
   });
 };
