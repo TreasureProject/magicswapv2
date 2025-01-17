@@ -4,10 +4,6 @@ import type { Address } from "viem";
 import { uniswapV2PairAbi } from "~/generated";
 import { aprToApy } from "~/lib/apr";
 import { getViemClient } from "~/lib/chain.server";
-import {
-  getOneDayAgoTimestamp,
-  getOneWeekAgoTimestamp,
-} from "~/lib/date.server";
 import { bigIntToNumber } from "~/lib/number";
 import type { Pool } from "~/types";
 import {
@@ -145,11 +141,14 @@ export const pairToPool = async (
 };
 
 export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
+  const now = Math.floor(Date.now() / 1000);
   const result = (await execute(GetPairsDocument, {
     where,
-    hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
+    hourDataWhere: {
+      date_gte: now - 86400, // 1 day ago
+    },
     dayDataWhere: {
-      date_gte: getOneWeekAgoTimestamp(),
+      date_gte: now - 86400 * 7, // 7 days ago
     },
   })) as ExecutionResult<GetPairsQuery>;
   return Promise.all(
@@ -161,11 +160,14 @@ export const fetchPool = async (params: {
   chainId: number;
   address: string;
 }): Promise<Pool | undefined> => {
+  const now = Math.floor(Date.now() / 1000);
   const result = (await execute(GetPairDocument, {
     ...params,
-    hourDataWhere: { date_gte: getOneDayAgoTimestamp() },
+    hourDataWhere: {
+      date_gte: now - 86400, // 1 day ago
+    },
     dayDataWhere: {
-      date_gte: getOneWeekAgoTimestamp(),
+      date_gte: now - 86400 * 7, // 7 days ago
     },
   })) as ExecutionResult<GetPairQuery>;
   const pair = result.data?.pair;

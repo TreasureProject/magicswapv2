@@ -11,7 +11,6 @@ import { erc20Abi, stakingContractAbi } from "~/generated";
 import { getContractAddress } from "~/lib/address";
 import { getCachedValue } from "~/lib/cache.server";
 import { getViemClient } from "~/lib/chain.server";
-import { getOneWeekAgoTimestamp } from "~/lib/date.server";
 import { ENV } from "~/lib/env.server";
 import { floorBigInt } from "~/lib/number";
 import type { AccountDomains, AddressString } from "~/types";
@@ -50,7 +49,7 @@ export const fetchUserPositions = async ({
       chainId,
     },
     dayDataWhere: {
-      date_gte: getOneWeekAgoTimestamp(),
+      date_gte: Math.floor(Date.now() / 1000) - 86400 * 7, // 7 days ago
     },
   })) as ExecutionResult<GetUserPositionsQuery>;
   if (!result.data?.user) {

@@ -1037,6 +1037,7 @@ const PoolActivityTable = ({
                           <span className="text-honey-25">
                             {formatAmount(amountA, {
                               decimals: tokenA.decimals,
+                              type: "compact",
                             })}
                           </span>{" "}
                           {tokenA.symbol}
@@ -1053,6 +1054,7 @@ const PoolActivityTable = ({
                           <span className="text-honey-25">
                             {formatAmount(amountB, {
                               decimals: tokenB.decimals,
+                              type: "compact",
                             })}
                           </span>{" "}
                           {tokenB.symbol}
