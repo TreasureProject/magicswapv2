@@ -22,7 +22,6 @@ export const ConnectButton = () => (
   </ConnectKitButton.Custom>
 );
 
-// TODO: fallback to truncate addy if it errors out
 const ConnectedButton = ({ address }: { address: AddressString }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
   const { openProfile } = useModal();

@@ -8,7 +8,6 @@ import { parseUnits } from "viem";
 
 import type { AddressString, Pool, Token } from "~/types";
 import { formatAmount, formatUSD } from "./currency";
-import { bigIntToNumber } from "./number";
 import { tokenToRToken } from "./tokens";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
