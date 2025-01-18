@@ -3,6 +3,7 @@ import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
+  chainId?: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export const useApproval = ({
+  chainId,
   operator,
   token,
   amount,
@@ -19,6 +21,7 @@ export const useApproval = ({
 }: Props) => {
   const isETH = typeof token !== "string" && !!token.isEth;
   const { isApproved, allowance, refetch } = useIsApproved({
+    chainId,
     operator,
     token,
     amount,

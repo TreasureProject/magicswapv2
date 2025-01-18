@@ -9,6 +9,7 @@ import {
 import type { AddressString, Token } from "~/types";
 
 type Props = {
+  chainId?: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export const useIsApproved = ({
+  chainId,
   operator,
   token,
   amount = 0n,
@@ -33,6 +35,7 @@ export const useIsApproved = ({
   const isEnabled = !!address && enabled;
 
   const { data: allowance, refetch: refetchAllowance } = useReadErc20Allowance({
+    chainId,
     address: tokenAddress,
     args: [addressArg, operator],
     query: {
@@ -44,6 +47,7 @@ export const useIsApproved = ({
     data: erc721IsApprovedForAll,
     refetch: refetchERC721IsApprovedForAll,
   } = useReadErc721IsApprovedForAll({
+    chainId,
     address: collectionAddress,
     args: [addressArg, operator],
     query: {
@@ -55,6 +59,7 @@ export const useIsApproved = ({
     data: erc1155IsApprovedForAll,
     refetch: refetchERC1155IsApprovedForAll,
   } = useReadErc1155IsApprovedForAll({
+    chainId,
     address: collectionAddress,
     args: [addressArg, operator],
     query: {

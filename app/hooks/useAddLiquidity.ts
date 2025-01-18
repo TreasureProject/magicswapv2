@@ -124,9 +124,10 @@ export const useAddLiquidity = ({
   }, [isSuccess, onSuccess]);
 
   const isTokenAToken1 =
-    isExact1 ||
-    pool.token1.isEth ||
-    (pool.token1.isVault && !pool.isVaultVault && !pool.token0.isEth);
+    !pool.token0.isEth &&
+    (isExact1 ||
+      pool.token1.isEth ||
+      (pool.token1.isVault && !pool.isVaultVault));
   const tokenA = (
     isTokenAToken1 ? pool.token1Address : pool.token0Address
   ) as AddressString;

@@ -4,6 +4,7 @@ import { useReadErc20BalanceOf } from "~/generated";
 import type { AddressString } from "~/types";
 
 type Props = {
+  chainId?: number;
   id?: AddressString;
   address: AddressString | undefined;
   isETH?: boolean;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export const useTokenBalance = ({
+  chainId,
   id,
   address,
   isETH = false,
@@ -21,6 +23,7 @@ export const useTokenBalance = ({
     isLoading,
     refetch,
   } = useReadErc20BalanceOf({
+    chainId,
     address: id,
     args: [address as AddressString],
     query: {
@@ -32,7 +35,7 @@ export const useTokenBalance = ({
     data: ethData,
     isLoading: isLoadingEthBalance,
     refetch: refetchEthBalance,
-  } = useBalance({ address: isETH ? address : undefined });
+  } = useBalance({ chainId, address: isETH ? address : undefined });
 
   return {
     data: isETH ? (ethData?.value ?? 0n) : data,

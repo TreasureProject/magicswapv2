@@ -86,6 +86,7 @@ export const PoolDepositTab = ({
 
   // Fetch balance of token0 if it's an ERC20
   const { data: balance0, refetch: refetchBalance0 } = useTokenBalance({
+    chainId: pool.chainId,
     id: pool.token0Address as AddressString,
     address,
     isETH: pool.token0.isEth,
@@ -94,6 +95,7 @@ export const PoolDepositTab = ({
 
   // Fetch balance of token1 if it's an ERC20
   const { data: balance1, refetch: refetchBalance1 } = useTokenBalance({
+    chainId: pool.chainId,
     id: pool.token1Address as AddressString,
     address,
     isETH: pool.token1.isEth,
@@ -106,6 +108,7 @@ export const PoolDepositTab = ({
     allowance: allowance0,
     approve: approve0,
   } = useApproval({
+    chainId: pool.chainId,
     operator: routerAddress,
     token: pool.token0,
     amount: amount0,
@@ -118,6 +121,7 @@ export const PoolDepositTab = ({
     allowance: allowance1,
     approve: approve1,
   } = useApproval({
+    chainId: pool.chainId,
     operator: routerAddress,
     token: pool.token1,
     amount: amount1,
