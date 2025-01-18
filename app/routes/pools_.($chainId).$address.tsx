@@ -55,7 +55,6 @@ import { Button, TransactionButton } from "~/components/ui/Button";
 import { Dialog } from "~/components/ui/Dialog";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/Sheet";
 import { useAccount } from "~/contexts/account";
-import { useBlockExplorer } from "~/hooks/useBlockExplorer";
 import { useClaimRewards } from "~/hooks/useClaimRewards";
 import { useIsMounted } from "~/hooks/useIsMounted";
 import { usePoolTransactions } from "~/hooks/usePoolTransactions";
@@ -63,6 +62,7 @@ import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
+import { getBlockExplorerUrl } from "~/lib/chain";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import {
@@ -191,7 +191,7 @@ export default function PoolDetailsPage() {
   const { switchChainAsync } = useSwitchChain();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<TransactionType>>();
-  const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
+  const blockExplorer = getBlockExplorerUrl({ chainId: pool.chainId });
   const [tab, setTab] = useState<PoolManagementTab>("deposit");
   const [
     optimisticSubscribedIncentiveIds,
@@ -961,7 +961,7 @@ const PoolActivityTable = ({
     type,
   });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
+  const blockExplorer = getBlockExplorerUrl({ chainId: pool.chainId });
 
   const isMounted = useIsMounted();
   if (!isMounted || isLoading)
