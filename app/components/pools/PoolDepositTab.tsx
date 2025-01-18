@@ -132,12 +132,8 @@ export const PoolDepositTab = ({
     pool,
     amount0,
     amount1,
-    amount0Min: isExact1
-      ? getAmountMin(amount0, slippage || DEFAULT_SLIPPAGE)
-      : amount0,
-    amount1Min: isExact1
-      ? amount1
-      : getAmountMin(amount1, slippage || DEFAULT_SLIPPAGE),
+    amount0Min: getAmountMin(amount0, slippage || DEFAULT_SLIPPAGE),
+    amount1Min: getAmountMin(amount1, slippage || DEFAULT_SLIPPAGE),
     nfts0,
     nfts1,
     isExact1,

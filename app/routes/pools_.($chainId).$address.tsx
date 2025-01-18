@@ -221,12 +221,9 @@ export default function PoolDetailsPage() {
   }, [nftIncentiveDecimals, nftIncentiveTokenBalance]);
 
   const refetch = useCallback(() => {
-    if (revalidator.state === "idle") {
-      revalidator.revalidate();
-    }
-
+    revalidator.revalidate();
     refetchNftIncentiveTokenBalance();
-  }, [revalidator, refetchNftIncentiveTokenBalance]);
+  }, [revalidator.revalidate, refetchNftIncentiveTokenBalance]);
 
   const { subscribeToIncentives } = useSubscribeToIncentives();
   const { claimRewards } = useClaimRewards();
@@ -899,7 +896,7 @@ const PoolManagementView = ({
           pool={pool}
           magicUsd={magicUsd}
           nftBalances={nftBalances}
-          onSuccess={() => onSuccess("deposit")}
+          onSuccess={useCallback(() => onSuccess("deposit"), [onSuccess])}
         />
       ) : null}
       {tab === "withdraw" ? (
@@ -907,7 +904,7 @@ const PoolManagementView = ({
           pool={pool}
           magicUsd={magicUsd}
           balance={lpBalance}
-          onSuccess={() => onSuccess("withdraw")}
+          onSuccess={useCallback(() => onSuccess("withdraw"), [onSuccess])}
         />
       ) : null}
       {tab === "stake" ? (
@@ -915,14 +912,14 @@ const PoolManagementView = ({
           pool={pool}
           balance={lpBalance}
           unsubscribedIncentiveIds={unsubscribedIncentiveIds}
-          onSuccess={() => onSuccess("stake")}
+          onSuccess={useCallback(() => onSuccess("stake"), [onSuccess])}
         />
       ) : null}
       {tab === "unstake" ? (
         <PoolIncentiveUnstake
           pool={pool}
           staked={lpStaked}
-          onSuccess={() => onSuccess("unstake")}
+          onSuccess={useCallback(() => onSuccess("unstake"), [onSuccess])}
         />
       ) : null}
     </div>

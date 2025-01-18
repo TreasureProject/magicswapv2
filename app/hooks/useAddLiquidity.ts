@@ -220,9 +220,10 @@ export const useAddLiquidity = ({
 
       if (pool.token0.isEth || pool.token1.isEth) {
         // ERC20-ETH
+        // TODO: match Sushi https://github.com/sushiswap/sushiswap-interface/blob/master/src/features/onsen/PoolAddLiquidity.tsx#L100
         return addLiquidityETH.writeContractAsync({
           address: routerAddress,
-          args: [tokenB, amountB, amountBMin, amountA, addressArg, deadline],
+          args: [tokenB, amountB, amountBMin, amountAMin, addressArg, deadline],
           value: amountA,
         });
       }
