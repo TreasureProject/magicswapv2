@@ -133,8 +133,6 @@ export const PoolDepositTab = ({
     enabled: hasAmount,
   });
 
-  console.log(allowance1);
-
   const { addLiquidity } = useAddLiquidity({
     pool,
     amount0,

@@ -233,12 +233,12 @@ export default function SwapPage() {
     nftsOut,
     path,
     enabled: isConnected && !!tokenOut && hasAmounts && isValidSwapRoute,
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       setTrade(DEFAULT_STATE);
       refetch();
       setSwapModalOpen(false);
       setPriceImpactOptIn(false);
-    },
+    }, [refetch]),
   });
 
   const { isApproved: isTokenInApproved, approve: approveTokenIn } =
