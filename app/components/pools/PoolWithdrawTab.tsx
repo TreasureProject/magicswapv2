@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import { formatEther, parseEther } from "viem";
+import { parseEther } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
-import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
+import { getRouterContractAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
@@ -39,7 +39,6 @@ export const PoolWithdrawTab = ({
     nfts0: [] as TokenWithAmount[],
     nfts1: [] as TokenWithAmount[],
   });
-  const routerAddress = useRouterAddress(pool.version);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
@@ -74,7 +73,11 @@ export const PoolWithdrawTab = ({
   const priceUsd1 = bigIntToNumber(pool.token1.derivedMagic) * magicUsd;
 
   const { isApproved, approve } = useApproval({
-    operator: routerAddress,
+    chainId: pool.chainId,
+    operator: getRouterContractAddress({
+      chainId: pool.chainId,
+      version: pool.version,
+    }),
     token: pool.address,
     amount,
     enabled: hasAmount,

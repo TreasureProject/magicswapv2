@@ -7,12 +7,14 @@ import type { AddressString, Optional } from "~/types";
 
 type State = {
   isConnected: boolean;
+  connectedChainId: number | undefined;
   address: Optional<AddressString>;
   addressArg: AddressString;
 };
 
 const Context = createContext({
   isConnected: false,
+  connectedChainId: undefined,
   address: undefined,
   addressArg: "0x0",
 } as State);
@@ -31,7 +33,7 @@ export const useAccount = () => {
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { submit } = useFetcher();
-  const { isConnected, address } = wagmiUseAccount();
+  const { isConnected, address, chainId: connectedChainId } = wagmiUseAccount();
 
   useEffect(() => {
     if (address) {
@@ -45,6 +47,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     <Context.Provider
       value={{
         isConnected,
+        connectedChainId,
         address,
         addressArg: address ?? "0x0",
       }}

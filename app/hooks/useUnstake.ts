@@ -3,8 +3,8 @@ import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractUnstakeToken } from "~/generated";
+import { getContractAddress } from "~/lib/address";
 import type { AddressString, Pool } from "~/types";
-import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -21,7 +21,10 @@ export const useUnstake = ({
   onSuccess,
 }: Props) => {
   const { isConnected } = useAccount();
-  const stakingContractAddress = useContractAddress("stakingContract");
+  const stakingContractAddress = getContractAddress({
+    chainId: pool.chainId,
+    contract: "stakingContract",
+  });
 
   const isEnabled = enabled && isConnected && amount > 0;
 
@@ -53,6 +56,7 @@ export const useUnstake = ({
       }
 
       return unstake.writeContractAsync({
+        chainId: pool.chainId,
         address: stakingContractAddress,
         args: [pool.address as AddressString, amount, true],
       });

@@ -9,7 +9,7 @@ import {
 import type { AddressString, Token } from "~/types";
 
 type Props = {
-  chainId?: number;
+  chainId: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;

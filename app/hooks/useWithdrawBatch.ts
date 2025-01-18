@@ -9,25 +9,31 @@ import {
 } from "~/generated";
 
 import { type Address, parseEther, zeroAddress } from "viem";
-import { useContractAddress } from "./useContractAddress";
+import { getContractAddress } from "~/lib/address";
 import { useToast } from "./useToast";
 
 type Props = {
+  chainId: number;
   vaultAddress?: Address;
   enabled?: boolean;
   onSuccess?: () => void;
 };
 
 export const useWithdrawBatch = ({
+  chainId,
   vaultAddress,
   enabled = true,
   onSuccess,
 }: Props) => {
   const { isConnected, address } = useAccount();
-  const nftVaultManagerAddress = useContractAddress("nftVaultManager");
+  const nftVaultManagerAddress = getContractAddress({
+    chainId,
+    contract: "nftVaultManager",
+  });
   const isEnabled = enabled && isConnected && address && !!vaultAddress;
 
   const nftVaultAllowance = useReadNftVaultAllowance({
+    chainId,
     address: vaultAddress,
     args: [address || zeroAddress, nftVaultManagerAddress],
     query: {
@@ -91,12 +97,14 @@ export const useWithdrawBatch = ({
 
       if (!nftVaultAllowance.data || totalAmountWei > nftVaultAllowance.data) {
         await nftVaultApprove.writeContractAsync({
+          chainId,
           address: vaultAddress,
           args: [nftVaultManagerAddress, totalAmountWei],
         });
       }
 
       return withdrawBatch.writeContractAsync({
+        chainId,
         address: nftVaultManagerAddress,
         args: [
           vaultAddress,

@@ -5,7 +5,7 @@ import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
-  chainId?: number;
+  chainId: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;
@@ -30,6 +30,7 @@ export const useApproval = ({
     enabled: enabled && !isETH,
   });
   const { approve } = useApprove({
+    chainId,
     operator,
     token,
     amount,

@@ -9,9 +9,9 @@ import {
   useWriteMagicSwapV2RouterRemoveLiquidityNfteth,
   useWriteMagicSwapV2RouterRemoveLiquidityNftnft,
 } from "~/generated";
+import { getRouterContractAddress } from "~/lib/address";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, Pool, TokenWithAmount } from "~/types";
-import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -36,7 +36,10 @@ export const useRemoveLiquidity = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useRouterAddress(pool.version);
+  const routerAddress = getRouterContractAddress({
+    chainId: pool.chainId,
+    version: pool.version,
+  });
   const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;
@@ -144,6 +147,7 @@ export const useRemoveLiquidity = ({
       if (pool.isVaultVault) {
         // NFT-NFT
         return removeLiquidityNFTNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -175,6 +179,7 @@ export const useRemoveLiquidity = ({
         if (pool.token0.isEth || pool.token1.isEth) {
           // NFT-ETH
           return removeLiquidityNFTETH.writeContractAsync({
+            chainId: pool.chainId,
             address: routerAddress,
             args: [
               {
@@ -197,6 +202,7 @@ export const useRemoveLiquidity = ({
 
         // NFT-ERC20
         return removeLiquidityNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -221,6 +227,7 @@ export const useRemoveLiquidity = ({
       if (pool.token0.isEth || pool.token1.isEth) {
         // ERC20-ETH
         return removeLiquidityETH.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             tokenB,
@@ -235,6 +242,7 @@ export const useRemoveLiquidity = ({
 
       // ERC20-ERC20
       return removeLiquidity.writeContractAsync({
+        chainId: pool.chainId,
         address: routerAddress,
         args: [
           tokenA,

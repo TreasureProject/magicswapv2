@@ -9,9 +9,9 @@ import {
   useWriteMagicSwapV2RouterAddLiquidityNfteth,
   useWriteMagicSwapV2RouterAddLiquidityNftnft,
 } from "~/generated";
+import { getRouterContractAddress } from "~/lib/address";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, Pool, TokenWithAmount } from "~/types";
-import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -40,7 +40,10 @@ export const useAddLiquidity = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useRouterAddress(pool.version);
+  const routerAddress = getRouterContractAddress({
+    chainId: pool.chainId,
+    version: pool.version,
+  });
   const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;
@@ -149,6 +152,7 @@ export const useAddLiquidity = ({
       if (pool.isVaultVault) {
         // NFT-NFT
         return addLiquidityNFTNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -179,6 +183,7 @@ export const useAddLiquidity = ({
         if (pool.token0.isEth || pool.token1.isEth) {
           // NFT-ETH
           return addLiquidityNFTETH.writeContractAsync({
+            chainId: pool.chainId,
             address: routerAddress,
             args: [
               {
@@ -199,6 +204,7 @@ export const useAddLiquidity = ({
 
         // NFT-ERC20
         return addLiquidityNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -222,6 +228,7 @@ export const useAddLiquidity = ({
         // ERC20-ETH
         // TODO: match Sushi https://github.com/sushiswap/sushiswap-interface/blob/master/src/features/onsen/PoolAddLiquidity.tsx#L100
         return addLiquidityETH.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [tokenB, amountB, amountBMin, amountAMin, addressArg, deadline],
           value: amountA,
@@ -230,6 +237,7 @@ export const useAddLiquidity = ({
 
       // ERC20-ERC20
       return addLiquidity.writeContractAsync({
+        chainId: pool.chainId,
         address: routerAddress,
         args: [
           tokenA,

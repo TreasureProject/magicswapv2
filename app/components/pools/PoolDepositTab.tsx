@@ -6,8 +6,8 @@ import { formatEther, formatUnits, parseUnits } from "viem";
 import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApproval } from "~/hooks/useApproval";
-import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
+import { getRouterContractAddress } from "~/lib/address";
 import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
@@ -60,7 +60,6 @@ export const PoolDepositTab = ({
     });
   const [selectingToken, setSelectingToken] = useState<Optional<Token>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
-  const routerAddress = useRouterAddress(pool.version);
   const isSelectingToken1 = selectingToken?.address === pool.token1Address;
 
   const amount = parseUnits(
@@ -87,8 +86,8 @@ export const PoolDepositTab = ({
   // Fetch balance of token0 if it's an ERC20
   const { data: balance0, refetch: refetchBalance0 } = useTokenBalance({
     chainId: pool.chainId,
-    id: pool.token0Address as AddressString,
-    address,
+    tokenAddress: pool.token0Address as AddressString,
+    userAddress: address,
     isETH: pool.token0.isEth,
     enabled: !pool.token0.isVault,
   });
@@ -96,8 +95,8 @@ export const PoolDepositTab = ({
   // Fetch balance of token1 if it's an ERC20
   const { data: balance1, refetch: refetchBalance1 } = useTokenBalance({
     chainId: pool.chainId,
-    id: pool.token1Address as AddressString,
-    address,
+    tokenAddress: pool.token1Address as AddressString,
+    userAddress: address,
     isETH: pool.token1.isEth,
     enabled: !pool.token1.isVault,
   });
@@ -109,7 +108,10 @@ export const PoolDepositTab = ({
     approve: approve0,
   } = useApproval({
     chainId: pool.chainId,
-    operator: routerAddress,
+    operator: getRouterContractAddress({
+      chainId: pool.chainId,
+      version: pool.version,
+    }),
     token: pool.token0,
     amount: amount0,
     enabled: hasAmount,
@@ -122,7 +124,10 @@ export const PoolDepositTab = ({
     approve: approve1,
   } = useApproval({
     chainId: pool.chainId,
-    operator: routerAddress,
+    operator: getRouterContractAddress({
+      chainId: pool.chainId,
+      version: pool.version,
+    }),
     token: pool.token1,
     amount: amount1,
     enabled: hasAmount,

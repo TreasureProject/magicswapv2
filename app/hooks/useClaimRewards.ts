@@ -3,23 +3,28 @@ import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractClaimAllRewards } from "~/generated";
-import { useContractAddress } from "./useContractAddress";
+import { getContractAddress } from "~/lib/address";
 import { useToast } from "./useToast";
 
 type Props = {
+  chainId: number;
   enabled?: boolean;
   onSuccess?: () => void;
 };
 
-export const useClaimRewards = (props?: Props) => {
+export const useClaimRewards = ({
+  chainId,
+  enabled = true,
+  onSuccess,
+}: Props) => {
   const { isConnected } = useAccount();
-  const stakingContractAddress = useContractAddress("stakingContract");
+
   const claimAllRewards = useWriteStakingContractClaimAllRewards();
   const claimAllRewardsReceipt = useWaitForTransactionReceipt({
     hash: claimAllRewards.data,
   });
 
-  const isEnabled = isConnected && props?.enabled !== false;
+  const isEnabled = isConnected && enabled;
   const isSuccess = claimAllRewardsReceipt.isSuccess;
 
   useToast({
@@ -33,9 +38,9 @@ export const useClaimRewards = (props?: Props) => {
 
   useEffect(() => {
     if (isSuccess) {
-      props?.onSuccess?.();
+      onSuccess?.();
     }
-  }, [isSuccess, props?.onSuccess]);
+  }, [isSuccess, onSuccess]);
 
   return {
     claimRewards: (incentiveIds: bigint[]) => {
@@ -44,7 +49,8 @@ export const useClaimRewards = (props?: Props) => {
       }
 
       return claimAllRewards.writeContractAsync({
-        address: stakingContractAddress,
+        chainId,
+        address: getContractAddress({ chainId, contract: "stakingContract" }),
         args: [incentiveIds],
       });
     },
