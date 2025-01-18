@@ -215,13 +215,10 @@ export default function SwapPage() {
     });
 
   const refetch = useCallback(() => {
-    if (revalidator.state === "idle") {
-      // revalidator.revalidate();
-    }
-
+    revalidator.revalidate();
     refetchTokenInBalance();
     refetchTokenOutBalance();
-  }, [revalidator, refetchTokenInBalance, refetchTokenOutBalance]);
+  }, [revalidator.revalidate, refetchTokenInBalance, refetchTokenOutBalance]);
 
   useFocusInterval(refetch, 5_000);
 

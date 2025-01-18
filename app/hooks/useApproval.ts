@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import type { AddressString, Token } from "~/types";
 import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
@@ -33,10 +35,10 @@ export const useApproval = ({
     token,
     amount,
     enabled: enabled && !isApproved && !isETH,
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       refetch();
       onSuccess?.();
-    },
+    }, [refetch, onSuccess]),
   });
   return {
     isApproved: isApproved || isETH,
