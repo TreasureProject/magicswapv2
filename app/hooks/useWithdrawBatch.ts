@@ -97,12 +97,14 @@ export const useWithdrawBatch = ({
 
       if (!nftVaultAllowance.data || totalAmountWei > nftVaultAllowance.data) {
         await nftVaultApprove.writeContractAsync({
+          chainId,
           address: vaultAddress,
           args: [nftVaultManagerAddress, totalAmountWei],
         });
       }
 
       return withdrawBatch.writeContractAsync({
+        chainId,
         address: nftVaultManagerAddress,
         args: [
           vaultAddress,

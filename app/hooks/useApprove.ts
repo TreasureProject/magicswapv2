@@ -9,6 +9,7 @@ import type { AddressString, Token } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {
+  chainId: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export const useApprove = ({
+  chainId,
   operator,
   token,
   amount = 0n,
@@ -79,6 +81,7 @@ export const useApprove = ({
 
       if (typeof token !== "string" && token.collectionType === "ERC721") {
         return erc721Approve.writeContractAsync({
+          chainId,
           address: token.collectionAddress as AddressString,
           args: [operator, true],
         });
@@ -86,12 +89,14 @@ export const useApprove = ({
 
       if (typeof token !== "string" && token.collectionType === "ERC1155") {
         return erc1155Approve.writeContractAsync({
+          chainId,
           address: token.collectionAddress as AddressString,
           args: [operator, true],
         });
       }
 
       return erc20Approve.writeContractAsync({
+        chainId,
         address: (typeof token === "string"
           ? token
           : token.address) as AddressString,

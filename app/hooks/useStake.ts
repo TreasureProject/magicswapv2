@@ -87,12 +87,14 @@ export const useStake = ({
 
       if (newIncentiveIds.length === 0) {
         return stakeToken.writeContractAsync({
+          chainId: pool.chainId,
           address: stakingContractAddress,
           args: [pool.address as AddressString, amount, false],
         });
       }
 
       return stakeAndSubscribe.writeContractAsync({
+        chainId: pool.chainId,
         address: stakingContractAddress,
         args: [pool.address as AddressString, amount, newIncentiveIds, false],
       });

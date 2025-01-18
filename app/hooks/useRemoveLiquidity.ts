@@ -147,6 +147,7 @@ export const useRemoveLiquidity = ({
       if (pool.isVaultVault) {
         // NFT-NFT
         return removeLiquidityNFTNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -178,6 +179,7 @@ export const useRemoveLiquidity = ({
         if (pool.token0.isEth || pool.token1.isEth) {
           // NFT-ETH
           return removeLiquidityNFTETH.writeContractAsync({
+            chainId: pool.chainId,
             address: routerAddress,
             args: [
               {
@@ -200,6 +202,7 @@ export const useRemoveLiquidity = ({
 
         // NFT-ERC20
         return removeLiquidityNFT.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             {
@@ -224,6 +227,7 @@ export const useRemoveLiquidity = ({
       if (pool.token0.isEth || pool.token1.isEth) {
         // ERC20-ETH
         return removeLiquidityETH.writeContractAsync({
+          chainId: pool.chainId,
           address: routerAddress,
           args: [
             tokenB,
@@ -238,6 +242,7 @@ export const useRemoveLiquidity = ({
 
       // ERC20-ERC20
       return removeLiquidity.writeContractAsync({
+        chainId: pool.chainId,
         address: routerAddress,
         args: [
           tokenA,

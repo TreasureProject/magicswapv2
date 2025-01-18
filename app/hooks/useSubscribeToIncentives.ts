@@ -52,6 +52,7 @@ export const useSubscribeToIncentives = ({
       }
 
       return subscribeToIncentives.writeContractAsync({
+        chainId,
         address: getContractAddress({ chainId, contract: "stakingContract" }),
         args: [incentiveIds],
       });

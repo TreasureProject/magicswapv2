@@ -247,6 +247,7 @@ export const useSwap = ({
       if (tokenIn.isVault && tokenOut.isVault) {
         // NFT-NFT
         return swapNFTForNFT.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [
             collectionsIn,
@@ -266,6 +267,7 @@ export const useSwap = ({
         if (tokenOut.isEth) {
           // NFT-ETH
           return swapNFTForETH.writeContractAsync({
+            chainId: tokenIn.chainId,
             address: routerAddress,
             args: [
               collectionsIn,
@@ -281,6 +283,7 @@ export const useSwap = ({
 
         // NFT-ERC20
         return swapNFTForTokens.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [
             collectionsIn,
@@ -298,6 +301,7 @@ export const useSwap = ({
         if (tokenIn.isEth) {
           // ETH-NFT
           return swapETHForNFT.writeContractAsync({
+            chainId: tokenIn.chainId,
             address: routerAddress,
             args: [
               collectionsOut,
@@ -313,6 +317,7 @@ export const useSwap = ({
 
         // ERC20-NFT
         return swapTokensForNFT.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [
             collectionsOut,
@@ -330,6 +335,7 @@ export const useSwap = ({
         // ETH-ERC20 exact out
         if (isExactOut) {
           return swapETHForExactTokens.writeContractAsync({
+            chainId: tokenIn.chainId,
             address: routerAddress,
             args: [amountOut, path, addressArg, deadline],
             value: amountInMax,
@@ -338,6 +344,7 @@ export const useSwap = ({
 
         // ETH-ERC20 exact in
         return swapExactETHForTokens.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [amountOutMin, path, addressArg, deadline],
           value: amountIn,
@@ -348,6 +355,7 @@ export const useSwap = ({
         // ERC20-ETH exact out
         if (isExactOut) {
           return swapTokensForExactETH.writeContractAsync({
+            chainId: tokenIn.chainId,
             address: routerAddress,
             args: [amountOut, amountInMax, path, addressArg, deadline],
           });
@@ -355,6 +363,7 @@ export const useSwap = ({
 
         // ERC20-ETH exact in
         return swapExactTokensForETH.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [amountIn, amountOutMin, path, addressArg, deadline],
         });
@@ -363,6 +372,7 @@ export const useSwap = ({
       // ERC20-ERC20 exact out
       if (isExactOut) {
         return swapTokensForExactTokens.writeContractAsync({
+          chainId: tokenIn.chainId,
           address: routerAddress,
           args: [amountOut, amountInMax, path, addressArg, deadline],
         });
@@ -370,6 +380,7 @@ export const useSwap = ({
 
       // ERC20-ERC20 exact in
       return swapExactTokensForTokens.writeContractAsync({
+        chainId: tokenIn.chainId,
         address: routerAddress,
         args: [amountIn, amountOutMin, path, addressArg, deadline],
       });

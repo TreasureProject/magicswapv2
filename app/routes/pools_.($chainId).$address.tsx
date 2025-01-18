@@ -30,6 +30,7 @@ import {
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
 
+import { useSwitchChain } from "wagmi";
 import { type PoolTransactionItem, fetchPool } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
@@ -186,7 +187,8 @@ export default function PoolDetailsPage() {
   } = useLoaderData<typeof loader>();
 
   const revalidator = useRevalidator();
-  const { address: userAddress } = useAccount();
+  const { address: userAddress, connectedChainId } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<TransactionType>>();
   const blockExplorer = useBlockExplorer({ chainId: pool.chainId });
@@ -312,6 +314,10 @@ export default function PoolDetailsPage() {
   };
 
   const handleWithdrawRewards = async (tokens: TokenWithAmount[]) => {
+    if (connectedChainId !== pool.chainId) {
+      await switchChainAsync({ chainId: pool.chainId });
+    }
+
     await withdrawBatch(
       tokens.map((token) => ({
         id: BigInt(token.tokenId),

@@ -56,6 +56,7 @@ export const useUnstake = ({
       }
 
       return unstake.writeContractAsync({
+        chainId: pool.chainId,
         address: stakingContractAddress,
         args: [pool.address as AddressString, amount, true],
       });

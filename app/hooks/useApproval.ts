@@ -28,6 +28,7 @@ export const useApproval = ({
     enabled: enabled && !isETH,
   });
   const { approve } = useApprove({
+    chainId,
     operator,
     token,
     amount,

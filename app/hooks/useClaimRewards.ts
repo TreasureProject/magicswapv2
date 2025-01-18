@@ -49,6 +49,7 @@ export const useClaimRewards = ({
       }
 
       return claimAllRewards.writeContractAsync({
+        chainId,
         address: getContractAddress({ chainId, contract: "stakingContract" }),
         args: [incentiveIds],
       });
