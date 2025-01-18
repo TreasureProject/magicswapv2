@@ -60,7 +60,7 @@ export const PoolDepositTab = ({
     });
   const [selectingToken, setSelectingToken] = useState<Optional<Token>>();
   const [checkedTerms, setCheckedTerms] = useState(false);
-  const routerAddress = useRouterAddress(pool.version);
+  const routerAddress = useRouterAddress(pool.version, pool.chainId);
   const isSelectingToken1 = selectingToken?.address === pool.token1Address;
 
   const amount = parseUnits(
@@ -127,6 +127,8 @@ export const PoolDepositTab = ({
     amount: amount1,
     enabled: hasAmount,
   });
+
+  console.log(allowance1);
 
   const { addLiquidity } = useAddLiquidity({
     pool,

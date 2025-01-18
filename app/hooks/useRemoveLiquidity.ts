@@ -36,7 +36,7 @@ export const useRemoveLiquidity = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useRouterAddress(pool.version);
+  const routerAddress = useRouterAddress(pool.version, pool.chainId);
   const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;

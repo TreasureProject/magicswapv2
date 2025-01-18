@@ -39,7 +39,7 @@ export const PoolWithdrawTab = ({
     nfts0: [] as TokenWithAmount[],
     nfts1: [] as TokenWithAmount[],
   });
-  const routerAddress = useRouterAddress(pool.version);
+  const routerAddress = useRouterAddress(pool.version, pool.chainId);
 
   const amount = parseEther(rawAmount as NumberString);
   const hasAmount = amount > 0;
