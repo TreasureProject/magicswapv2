@@ -210,8 +210,11 @@ export default function PoolDetailsPage() {
     data: nftIncentiveTokenBalance,
     refetch: refetchNftIncentiveTokenBalance,
   } = useTokenBalance({
-    id: nftIncentive?.incentive.rewardTokenAddress as Address | undefined,
-    address: userAddress,
+    chainId: pool.chainId,
+    tokenAddress: nftIncentive?.incentive.rewardTokenAddress as
+      | Address
+      | undefined,
+    userAddress,
   });
 
   useEffect(() => {
@@ -228,10 +231,13 @@ export default function PoolDetailsPage() {
     refetchNftIncentiveTokenBalance();
   }, [revalidator, refetchNftIncentiveTokenBalance]);
 
-  const { subscribeToIncentives } = useSubscribeToIncentives();
-  const { claimRewards } = useClaimRewards();
+  const { subscribeToIncentives } = useSubscribeToIncentives({
+    chainId: pool.chainId,
+  });
+  const { claimRewards } = useClaimRewards({ chainId: pool.chainId });
   const { withdrawBatch, isLoading: isLoadingWithdrawBatch } = useWithdrawBatch(
     {
+      chainId: pool.chainId,
       vaultAddress: nftIncentive?.incentive.rewardTokenAddress as
         | Address
         | undefined,

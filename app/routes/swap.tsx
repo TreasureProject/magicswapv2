@@ -53,12 +53,12 @@ import {
 import { InfoPopover } from "~/components/ui/InfoPopover";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
-import { useRouterAddress } from "~/hooks/useContractAddress";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
 import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
+import { getRouterContractAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
@@ -184,8 +184,6 @@ export default function SwapPage() {
     priceImpact,
   } = swapRoute;
 
-  const routerAddress = useRouterAddress(version);
-
   const requiredNftsIn = Math.ceil(bigIntToNumber(amountIn, tokenIn.decimals));
   const requiredNftsOut = Math.floor(
     bigIntToNumber(amountOut, tokenOut?.decimals),
@@ -200,16 +198,18 @@ export default function SwapPage() {
 
   const { data: tokenInBalance, refetch: refetchTokenInBalance } =
     useTokenBalance({
-      id: tokenIn.address as AddressString,
-      address,
+      chainId: tokenIn.chainId,
+      tokenAddress: tokenIn.address as AddressString,
+      userAddress: address,
       isETH: tokenIn.isEth,
       enabled: !tokenIn.isVault,
     });
 
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
     useTokenBalance({
-      id: tokenOut?.address as AddressString,
-      address,
+      chainId: tokenOut?.chainId,
+      tokenAddress: tokenOut?.address as AddressString,
+      userAddress: address,
       isETH: tokenOut?.isEth,
       enabled: !tokenOut?.isVault,
     });
@@ -246,7 +246,8 @@ export default function SwapPage() {
 
   const { isApproved: isTokenInApproved, approve: approveTokenIn } =
     useApproval({
-      operator: routerAddress,
+      chainId: tokenIn.chainId,
+      operator: getRouterContractAddress({ chainId: tokenIn.chainId, version }),
       token: tokenIn,
       amount: amountInMax,
       enabled: isConnected && hasAmounts,

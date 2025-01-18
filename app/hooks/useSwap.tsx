@@ -15,12 +15,12 @@ import {
   useWriteMagicSwapV2RouterSwapTokensForExactTokens,
   useWriteMagicSwapV2RouterSwapTokensForNft,
 } from "~/generated";
+import { getRouterContractAddress } from "~/lib/address";
 import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type { AddressString, Optional, Token, TokenWithAmount } from "~/types";
-import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 import type { version as Version } from ".graphclient";
 
@@ -52,7 +52,10 @@ export const useSwap = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useRouterAddress(version);
+  const routerAddress = getRouterContractAddress({
+    chainId: tokenIn.chainId,
+    version,
+  });
   const state = useSettingsStore();
 
   const isEnabled = enabled && !!address && !!tokenOut;

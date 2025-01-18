@@ -18,8 +18,9 @@ export const usePoolTokenBalance = ({ token, address }: Props) => {
   } = useFetcher<FetchNFTVaultBalance>();
 
   const { data: erc20Balance = 0n, isLoading } = useTokenBalance({
-    id: token.address as AddressString,
-    address,
+    chainId: token.chainId,
+    tokenAddress: token.address as AddressString,
+    userAddress: address,
     isETH: token.isEth,
     enabled: !!address && !token.isVault,
   });

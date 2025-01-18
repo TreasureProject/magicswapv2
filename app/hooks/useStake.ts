@@ -6,9 +6,9 @@ import {
   useWriteStakingContractStakeAndSubscribeToIncentives,
   useWriteStakingContractStakeToken,
 } from "~/generated";
+import { getContractAddress } from "~/lib/address";
 import type { AddressString, Pool } from "~/types";
 import { useApproval } from "./useApproval";
-import { useContractAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -25,7 +25,10 @@ export const useStake = ({
   onSuccess,
 }: Props) => {
   const { isConnected } = useAccount();
-  const stakingContractAddress = useContractAddress("stakingContract");
+  const stakingContractAddress = getContractAddress({
+    chainId: pool.chainId,
+    contract: "stakingContract",
+  });
 
   const stakeAndSubscribe =
     useWriteStakingContractStakeAndSubscribeToIncentives();
@@ -43,6 +46,7 @@ export const useStake = ({
     stakeTokenReceipt.isSuccess || stakeAndSubscribeReceipt.isSuccess;
 
   const { isApproved, approve } = useApproval({
+    chainId: pool.chainId,
     operator: stakingContractAddress,
     token: pool.address,
     amount,

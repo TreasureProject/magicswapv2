@@ -9,9 +9,9 @@ import {
   useWriteMagicSwapV2RouterRemoveLiquidityNfteth,
   useWriteMagicSwapV2RouterRemoveLiquidityNftnft,
 } from "~/generated";
+import { getRouterContractAddress } from "~/lib/address";
 import { useSettingsStore } from "~/store/settings";
 import type { AddressString, Pool, TokenWithAmount } from "~/types";
-import { useRouterAddress } from "./useContractAddress";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -36,7 +36,10 @@ export const useRemoveLiquidity = ({
   onSuccess,
 }: Props) => {
   const { address, addressArg } = useAccount();
-  const routerAddress = useRouterAddress(pool.version, pool.chainId);
+  const routerAddress = getRouterContractAddress({
+    chainId: pool.chainId,
+    version: pool.version,
+  });
   const deadlineMinutes = useSettingsStore((state) => state.deadline);
 
   const isEnabled = enabled && !!address;

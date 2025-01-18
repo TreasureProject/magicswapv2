@@ -3,7 +3,7 @@ import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
-  chainId?: number;
+  chainId: number;
   operator: AddressString;
   token: Token | string;
   amount?: bigint;
