@@ -1,7 +1,14 @@
+import type { ExecutionResult } from "graphql";
+import {
+  GetMagicPriceDocument,
+  type GetMagicPriceQuery,
+  execute,
+} from ".graphclient";
+
 export const fetchMagicUsd = async () => {
-  const response = await fetch("https://api.treasure.lol/magic/price");
-  const result = (await response.json()) as {
-    magicUsd: number;
-  };
-  return result.magicUsd;
+  const result = (await execute(
+    GetMagicPriceDocument,
+    {},
+  )) as ExecutionResult<GetMagicPriceQuery>;
+  return result.data?.price?.magicUsd ?? 0;
 };
