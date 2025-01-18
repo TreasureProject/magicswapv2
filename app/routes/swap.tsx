@@ -20,7 +20,7 @@ import {
 import { Suspense, useCallback, useEffect, useState } from "react";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { fetchGames } from "~/api/games.server";
 
 import { fetchPools } from "~/api/pools.server";
@@ -672,7 +672,7 @@ const SwapTokenInput = ({
   onSelectNfts: (tokens: TokenWithAmount[]) => void;
   className?: string;
 }) => {
-  const parsedAmount = Number(amount);
+  const parsedAmount = Number(amount.replace(/,/g, ""));
   const amountPriceUSD =
     tokenPriceUsd *
     (Number.isNaN(parsedAmount) || parsedAmount === 0 ? 1 : parsedAmount);
@@ -681,10 +681,19 @@ const SwapTokenInput = ({
   const [ref, bounds] = useMeasure();
   const [openSelectionModal, setOpenSelectionModal] = useState(false);
 
-  const buttonText =
-    amount === "0"
-      ? "Select items"
-      : `Select ${amount} ${Number(amount) === 1 ? "item" : "items"}`;
+  const handleSelectMax = () => {
+    if (!token) {
+      return;
+    }
+
+    let maxAmount = balance;
+    // Subtract gas fees if native token
+    if (token.isEth) {
+      maxAmount -= parseUnits(token.isMagic ? "0.1" : "0.01", token.decimals);
+    }
+
+    onUpdateAmount(formatUnits(maxAmount, token.decimals));
+  };
 
   return token ? (
     <div className={cn("overflow-hidden rounded-lg bg-night-1100", className)}>
@@ -822,7 +831,9 @@ const SwapTokenInput = ({
                       size="md"
                       onClick={() => setOpenSelectionModal(true)}
                     >
-                      {buttonText}
+                      {amount === "0"
+                        ? "Select items"
+                        : `Select ${amount} ${Number(amount) === 1 ? "item" : "items"}`}
                     </Button>
                   </>
                 )}
@@ -957,13 +968,7 @@ const SwapTokenInput = ({
             </InfoPopover>
           ) : null}
           {!token?.isVault && !otherToken?.isVault && !isOut ? (
-            <Button
-              size="xs"
-              variant="secondary"
-              onClick={() =>
-                onUpdateAmount(formatUnits(balance, token.decimals))
-              }
-            >
+            <Button size="xs" variant="secondary" onClick={handleSelectMax}>
               Max
             </Button>
           ) : null}
