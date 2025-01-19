@@ -250,6 +250,7 @@ export default function PoolDetailsPage() {
   const lpStakedShare =
     bigIntToNumber(lpStaked) / bigIntToNumber(pool.totalSupply);
   const lpShare = lpBalanceShare + lpStakedShare;
+  console.log(bigIntToNumber(lpBalance), bigIntToNumber(pool.totalSupply));
   const hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
   );
@@ -629,92 +630,20 @@ export default function PoolDetailsPage() {
                     </span>
                   ) : null}
                 </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-10">
-                  <div className="space-y-2">
-                    <h3 className="text-night-200">Unstaked</h3>
-                    <PoolLpAmount pool={pool} amount={lpBalance} />
+                {poolIncentives.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-10">
                     <div className="space-y-2">
-                      {/* <PoolTokenRow
-                          token={baseToken}
-                          amount={
-                            lpBalanceShare *
-                            bigIntToNumber(
-                              baseReserve,
-                              baseToken.decimals,
-                            )
-                          }
-                          amountUSD={
-                            lpBalanceShare *
-                            bigIntToNumber(
-                              baseReserve,
-                              baseToken.decimals,
-                            ) *
-                            baseToken.priceUSD
-                          }
-                        />
-                        <PoolTokenRow
-                          token={quoteToken}
-                          amount={
-                            lpBalanceShare *
-                            bigIntToNumber(
-                              quoteReserve,
-                              quoteToken.decimals,
-                            )
-                          }
-                          amountUSD={
-                            lpBalanceShare *
-                            bigIntToNumber(
-                              quoteReserve,
-                              quoteToken.decimals,
-                            ) *
-                            quoteToken.priceUSD
-                          }
-                        /> */}
+                      <h3 className="text-night-200">Unstaked</h3>
+                      <PoolLpAmount pool={pool} amount={lpBalance} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-night-200">Staked</h3>
+                      <PoolLpAmount pool={pool} amount={lpStaked} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-night-200">Staked</h3>
-                    <PoolLpAmount pool={pool} amount={lpStaked} />
-                    <div className="space-y-2">
-                      {/* <PoolTokenRow
-                          token={baseToken}
-                          amount={
-                            lpStakedShare *
-                            bigIntToNumber(
-                              baseReserve,
-                              baseToken.decimals,
-                            )
-                          }
-                          amountUSD={
-                            lpStakedShare *
-                            bigIntToNumber(
-                              baseReserve,
-                              baseToken.decimals,
-                            ) *
-                            baseToken.priceUSD
-                          }
-                        />
-                        <PoolTokenRow
-                          token={quoteToken}
-                          amount={
-                            lpStakedShare *
-                            bigIntToNumber(
-                              quoteReserve,
-                              quoteToken.decimals,
-                            )
-                          }
-                          amountUSD={
-                            lpStakedShare *
-                            bigIntToNumber(
-                              quoteReserve,
-                              quoteToken.decimals,
-                            ) *
-                            quoteToken.priceUSD
-                          }
-                        /> */}
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <PoolLpAmount pool={pool} amount={lpBalance} />
+                )}
               </div>
             ) : null}
           </div>
@@ -1193,29 +1122,3 @@ const PoolActivityTable = ({
     </div>
   );
 };
-
-// const PoolTokenRow = ({
-//   token,
-//   items,
-// }: {
-//   token: Token;
-//   items: TokenWithAmount[];
-// }) => {
-//   const numVaultItems = sumArray(items.map(({ amount }) => amount));
-//   return (
-//     <div className="flex items-center justify-between gap-3">
-//       <div className="flex items-center gap-2 font-medium">
-//         <PoolTokenImage className="h-6 w-6" token={token} />
-//         <span className="text-night-100">{token.symbol}</span>
-//       </div>
-//       <div className="flex items-center gap-2 text-right">
-//         <span>{typeof amount === "string" ? amount : formatAmount(amount)}</span>
-//         {amountUSD > 0 ? (
-//           <span className="text-night-400 text-sm">
-//             {formatUSD(amountUSD, { notation: "compact" })}
-//           </span>
-//         ) : null}
-//       </div>
-//     </div>
-//   );
-// );

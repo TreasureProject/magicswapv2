@@ -84,11 +84,18 @@ export const pairToPool = async (
   }
 
   const client = getViemClient(pair.chainId);
-  const [reserve0, reserve1] = await client.readContract({
-    address: pair.address as Address,
-    abi: uniswapV2PairAbi,
-    functionName: "getReserves",
-  });
+  const [[reserve0, reserve1], totalSupply] = await Promise.all([
+    client.readContract({
+      address: pair.address as Address,
+      abi: uniswapV2PairAbi,
+      functionName: "getReserves",
+    }),
+    client.readContract({
+      address: pair.address as Address,
+      abi: uniswapV2PairAbi,
+      functionName: "totalSupply",
+    }),
+  ]);
 
   const token0 = pair.token0;
   const token1 = pair.token1;
@@ -119,6 +126,7 @@ export const pairToPool = async (
     ...pair,
     token0,
     token1,
+    totalSupply: totalSupply.toString(),
     reserve0: reserve0.toString(),
     reserve1: reserve1.toString(),
     volume24h0:
