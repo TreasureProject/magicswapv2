@@ -39,7 +39,7 @@ import {
 } from "~/api/tokens.server";
 import { fetchUserPosition } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
-import { ExternalLinkIcon, LoaderIcon } from "~/components/Icons";
+import { ExternalLinkIcon, LoaderIcon, SwapIcon } from "~/components/Icons";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { SettingsDropdownMenu } from "~/components/SettingsDropdownMenu";
 import { PoolDepositTab } from "~/components/pools/PoolDepositTab";
@@ -62,7 +62,7 @@ import { useSubscribeToIncentives } from "~/hooks/useSubscribeToIncentives";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
-import { getBlockExplorerUrl } from "~/lib/chain";
+import { getBlockExplorer } from "~/lib/chain";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { ENV } from "~/lib/env.server";
 import {
@@ -191,7 +191,7 @@ export default function PoolDetailsPage() {
   const { switchChainAsync } = useSwitchChain();
   const [poolActivityFilter, setPoolActivityFilter] =
     useState<Optional<TransactionType>>();
-  const blockExplorer = getBlockExplorerUrl({ chainId: pool.chainId });
+  const blockExplorer = getBlockExplorer({ chainId: pool.chainId });
   const [tab, setTab] = useState<PoolManagementTab>("deposit");
   const [
     optimisticSubscribedIncentiveIds,
@@ -339,21 +339,30 @@ export default function PoolDetailsPage() {
       <div className="mt-6">
         <div className="relative grid grid-cols-1 items-start gap-10 lg:grid-cols-7">
           <div className="space-y-6 md:flex-row lg:col-span-4">
-            <div className="-space-x-2 flex items-center">
-              <PoolImage pool={pool} className="h-auto w-14" showChainIcon />
-              <div className="flex flex-col text-2xl">
-                <a
-                  href={`${blockExplorer.url}/address/${pool.address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold hover:underline"
-                >
-                  {pool.name}
-                </a>
-                <span className="text-night-400 text-sm">
-                  LP Fees: {formatPercent(pool.lpFee, 3)}
-                </span>
+            <div className="flex items-center justify-between gap-4">
+              <div className="-space-x-2 flex items-center">
+                <PoolImage pool={pool} className="h-auto w-14" showChainIcon />
+                <div className="flex flex-col text-2xl">
+                  <a
+                    href={`${blockExplorer.url}/address/${pool.address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold hover:underline"
+                  >
+                    {pool.name}
+                  </a>
+                  <span className="text-night-400 text-sm">
+                    LP Fees: {formatPercent(pool.lpFee, 3)}
+                  </span>
+                </div>
               </div>
+              <Link
+                to={`/swap?in=${quoteToken.chainId}:${quoteToken.address}&out=${baseToken.chainId}:${baseToken.address}`}
+                className="hidden h-9 items-center gap-1 rounded-md bg-secondary px-3 font-medium text-secondary-foreground text-sm transition-colors hover:bg-secondary/80 sm:flex"
+              >
+                <SwapIcon className="h-4 w-4" />
+                Swap Pair
+              </Link>
             </div>
             <ul className="flex flex-wrap items-center gap-5 text-night-100 text-sm">
               {[pool.token0, pool.token1].map(
@@ -591,8 +600,8 @@ export default function PoolDetailsPage() {
                     ) : null}
                   </div>
                 ) : (
-                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-contain bg-night-1100 bg-right bg-no-repeat p-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/0 to-[#463711]" />
+                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-cover bg-night-1100 bg-right bg-no-repeat p-4 sm:p-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/80 to-[#463711] sm:from-[#0A111C]/0 sm:to-[#463711]" />
                     <div className="relative flex w-full items-center justify-between gap-3">
                       <span className="font-medium text-[#FFFDF6] text-xl">
                         Start staking and{" "}
@@ -600,7 +609,7 @@ export default function PoolDetailsPage() {
                       </span>
                       <button
                         type="button"
-                        className="rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-700 active:bg-honey-800"
+                        className="hidden rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-700 active:bg-honey-800 sm:inline"
                         onClick={() => setTab("stake")}
                       >
                         Stake now
@@ -961,7 +970,7 @@ const PoolActivityTable = ({
     type,
   });
   // const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const blockExplorer = getBlockExplorerUrl({ chainId: pool.chainId });
+  const blockExplorer = getBlockExplorer({ chainId: pool.chainId });
 
   const isMounted = useIsMounted();
   if (!isMounted || isLoading)

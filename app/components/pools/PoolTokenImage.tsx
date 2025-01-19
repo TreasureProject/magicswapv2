@@ -30,7 +30,7 @@ export const PoolTokenImage = ({
     {showChainIcon && token?.chainId ? (
       <div
         className={cn(
-          "-right-1 -bottom-1 absolute flex h-full w-full items-end justify-end",
+          "-right-0.5 -bottom-0.5 absolute flex h-full w-full items-end justify-end",
         )}
       >
         <ChainIcon chainId={token.chainId} className="h-3 w-3" />
