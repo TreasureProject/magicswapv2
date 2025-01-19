@@ -1,4 +1,4 @@
-import type { NetworkInfo } from "@sushiswap/tines";
+import type { NetworkInfo, RToken } from "@sushiswap/tines";
 import {
   ConstantProductRPool,
   findMultiRouteExactIn,
@@ -8,7 +8,6 @@ import { parseUnits } from "viem";
 
 import type { AddressString, Pool, Token } from "~/types";
 import { formatAmount, formatUSD } from "./currency";
-import { tokenToRToken } from "./tokens";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
   reserveA > 0 ? (amountA * reserveB) / reserveA : 0n;
@@ -30,6 +29,13 @@ export const getAmountMax = (amount: bigint, slippage: number) =>
 
 export const getAmountMin = (amount: bigint, slippage: number) =>
   amount - (amount * BigInt(Math.ceil(slippage * 1000))) / 1000n;
+
+const tokenToRToken = ({ address, name, symbol, decimals }: Token): RToken => ({
+  address,
+  name,
+  symbol,
+  decimals,
+});
 
 export const createSwapRoute = (
   tokenIn: Token,
@@ -60,8 +66,8 @@ export const createSwapRoute = (
         tokenToRToken(token0),
         tokenToRToken(token1),
         lpFee + protocolFee + royaltiesFee,
-        parseUnits(reserve0, token0.decimals),
-        parseUnits(reserve1, token0.decimals),
+        BigInt(reserve0),
+        BigInt(reserve1),
       );
     },
   );
