@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@epic-web/cachified": "^5.2.0",
+    "@hono/node-server": "^1.13.7",
     "@radix-ui/react-checkbox": "^1.0.3",
     "@radix-ui/react-dialog": "^1.0.3",
     "@radix-ui/react-dropdown-menu": "^2.0.4",
@@ -42,6 +43,8 @@
     "framer-motion": "^11.2.6",
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
+    "hono": "^4.6.16",
+    "hono-react-router-adapter": "^0.6.0",
     "isbot": "^5.1.7",
     "lru-cache": "^11.0.0",
     "lucide-react": "0.x",

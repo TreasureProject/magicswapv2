@@ -1,6 +1,11 @@
 import { Suspense } from "react";
-import type { LoaderFunctionArgs } from "react-router";
-import { Await, Link, useLoaderData, useNavigate } from "react-router";
+import {
+  Await,
+  Link,
+  type LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+} from "react-router";
 
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
