@@ -5,7 +5,6 @@ import type { GetPairsQuery } from ".graphclient";
 
 export type Optional<T> = T | undefined;
 
-export type AddressString = `0x${string}`;
 export type NumberString = `${number}`;
 export type ChainId = keyof typeof CONTRACT_ADDRESSES;
 

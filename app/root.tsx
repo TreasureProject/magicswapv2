@@ -1,6 +1,9 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import type { ShouldRevalidateFunction } from "@remix-run/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConnectKitProvider, getDefaultConfig } from "connectkit";
+import NProgress from "nprogress";
+import { useEffect, useMemo, useState } from "react";
+import type { LoaderFunctionArgs } from "react-router";
+import type { ShouldRevalidateFunction } from "react-router";
 import {
   Links,
   Meta,
@@ -10,11 +13,7 @@ import {
   useFetchers,
   useLoaderData,
   useNavigation,
-} from "@remix-run/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
-import NProgress from "nprogress";
-import { useEffect, useMemo, useState } from "react";
+} from "react-router";
 import { fallback } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import {
@@ -35,20 +34,18 @@ import { Toaster } from "./components/ui/Toast";
 
 const queryClient = new QueryClient();
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return json({
-    requestInfo: {
-      origin: getDomainUrl(request),
-      path: new URL(request.url).pathname,
-    },
-    env: {
-      PUBLIC_IS_DEV: ENV.PUBLIC_IS_DEV,
-      PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
-      PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-      PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
-    },
-  });
-};
+export const loader = async ({ request }: LoaderFunctionArgs) => ({
+  requestInfo: {
+    origin: getDomainUrl(request),
+    path: new URL(request.url).pathname,
+  },
+  env: {
+    PUBLIC_IS_DEV: ENV.PUBLIC_IS_DEV,
+    PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
+    PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+    PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
+  },
+});
 
 export const shouldRevalidate: ShouldRevalidateFunction = () => {
   return false;

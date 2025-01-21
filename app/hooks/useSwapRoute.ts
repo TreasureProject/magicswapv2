@@ -1,9 +1,9 @@
-import { parseUnits } from "viem";
+import { type Address, parseUnits } from "viem";
 
 import { multiplyArray, sumArray } from "~/lib/array";
 import { bigIntToNumber } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
-import type { AddressString, NumberString, Pool, Token } from "~/types";
+import type { NumberString, Pool, Token } from "~/types";
 
 type Props = {
   tokenIn: Token;
@@ -80,8 +80,8 @@ export const useSwapRoute = ({
     reserveOut: poolLegs[poolLegs.length - 1]?.reserveTo ?? 0n,
     path: poolLegs.flatMap(({ tokenFrom, tokenTo }, i) =>
       i === poolLegs.length - 1
-        ? [tokenFrom.address as AddressString, tokenTo.address as AddressString]
-        : (tokenFrom.address as AddressString),
+        ? [tokenFrom.address as Address, tokenTo.address as Address]
+        : (tokenFrom.address as Address),
     ),
     priceImpact,
     derivedValue: multiplyArray(

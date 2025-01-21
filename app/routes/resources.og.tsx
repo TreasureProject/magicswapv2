@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "react-router";
 
 import { ENV } from "~/lib/env.server";
 import { generateOgImage } from "~/lib/og.server";

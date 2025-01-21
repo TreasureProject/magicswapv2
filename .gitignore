@@ -1,9 +1,10 @@
 /.cache
 /.graphclient
+/.react-router
+/app/generated.ts
 /build
 /public/build
 .env
-/app/generated.ts
 
 # Created by https://www.toptal.com/developers/gitignore/api/react,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=react,macos

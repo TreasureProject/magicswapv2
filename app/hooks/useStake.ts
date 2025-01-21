@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
@@ -7,7 +8,7 @@ import {
   useWriteStakingContractStakeToken,
 } from "~/generated";
 import { getContractAddress } from "~/lib/address";
-import type { AddressString, Pool } from "~/types";
+import type { Pool } from "~/types";
 import { useApproval } from "./useApproval";
 import { useToast } from "./useToast";
 
@@ -89,14 +90,14 @@ export const useStake = ({
         return stakeToken.writeContractAsync({
           chainId: pool.chainId,
           address: stakingContractAddress,
-          args: [pool.address as AddressString, amount, false],
+          args: [pool.address as Address, amount, false],
         });
       }
 
       return stakeAndSubscribe.writeContractAsync({
         chainId: pool.chainId,
         address: stakingContractAddress,
-        args: [pool.address as AddressString, amount, newIncentiveIds, false],
+        args: [pool.address as Address, amount, newIncentiveIds, false],
       });
     },
   };

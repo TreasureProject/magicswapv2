@@ -1,6 +1,6 @@
-import { RemixBrowser } from "@remix-run/react";
-import { startTransition } from "react";
+import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
+import { HydratedRouter } from "react-router/dom";
 
 import "~/polyfills";
 
@@ -8,10 +8,9 @@ function hydrate() {
   startTransition(() => {
     hydrateRoot(
       document,
-      // disable StrictMode for react-aria - https://github.com/adobe/react-spectrum/issues/4281
-      // <StrictMode>
-      <RemixBrowser />,
-      // </StrictMode>
+      <StrictMode>
+        <HydratedRouter />,
+      </StrictMode>,
     );
   });
 }

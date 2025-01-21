@@ -1,5 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { type LoaderFunctionArgs, data } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
@@ -15,7 +14,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   invariant(address, "User address required");
 
   const createErrorResponse = (error: string) =>
-    json({ ok: false, error } as const);
+    data({ ok: false, error } as const);
 
   let token: Token | undefined;
   try {
@@ -37,7 +36,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   try {
     const balance = await fetchPoolTokenBalance(token, address);
-    return json({ ok: true, balance } as const);
+    return data({ ok: true, balance } as const);
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }

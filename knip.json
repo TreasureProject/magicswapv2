@@ -1,5 +1,6 @@
 {
   "ignore": [
+    "./.react-router/*",
     "./artifacts/*",
     "./app/components/StatisticCard.tsx",
     "./app/graphql/*",

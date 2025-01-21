@@ -1,11 +1,11 @@
-import type { MetaFunction } from "@remix-run/react";
+import type { MetaFunction } from "react-router";
 import {
   Link,
   Outlet,
   useLoaderData,
   useMatches,
   useSearchParams,
-} from "@remix-run/react";
+} from "react-router";
 import { fetchGames } from "~/api/games.server";
 
 import { ChainFilter } from "~/components/ChainFilter";

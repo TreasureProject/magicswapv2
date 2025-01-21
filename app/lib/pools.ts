@@ -1,12 +1,13 @@
-import type { NetworkInfo, RToken } from "@sushiswap/tines";
 import {
   ConstantProductRPool,
+  type NetworkInfo,
+  type RToken,
   findMultiRouteExactIn,
   findMultiRouteExactOut,
 } from "@sushiswap/tines";
-import { parseUnits } from "viem";
+import type { Address } from "viem";
 
-import type { AddressString, Pool, Token } from "~/types";
+import type { Pool, Token } from "~/types";
 import { formatAmount, formatUSD } from "./currency";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>
@@ -62,7 +63,7 @@ export const createSwapRoute = (
       royaltiesFee,
     }) => {
       return new ConstantProductRPool(
-        address as AddressString,
+        address as Address,
         tokenToRToken(token0),
         tokenToRToken(token1),
         lpFee + protocolFee + royaltiesFee,

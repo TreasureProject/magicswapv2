@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-
+import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
+
 import { useAccount } from "~/contexts/account";
 import {
   useWriteMagicSwapV2RouterAddLiquidity,
@@ -11,7 +12,7 @@ import {
 } from "~/generated";
 import { getRouterContractAddress } from "~/lib/address";
 import { useSettingsStore } from "~/store/settings";
-import type { AddressString, Pool, TokenWithAmount } from "~/types";
+import type { Pool, TokenWithAmount } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -133,10 +134,10 @@ export const useAddLiquidity = ({
       (pool.token1.isVault && !pool.isVaultVault));
   const tokenA = (
     isTokenAToken1 ? pool.token1Address : pool.token0Address
-  ) as AddressString;
+  ) as Address;
   const tokenB = (
     isTokenAToken1 ? pool.token0Address : pool.token1Address
-  ) as AddressString;
+  ) as Address;
   const amountA = isTokenAToken1 ? amount1 : amount0;
   const amountB = isTokenAToken1 ? amount0 : amount1;
   const amountAMin = isTokenAToken1 ? amount1Min : amount0Min;
@@ -158,7 +159,7 @@ export const useAddLiquidity = ({
             {
               token: tokenA,
               collection: nftsA.map(
-                ({ collectionAddress }) => collectionAddress as AddressString,
+                ({ collectionAddress }) => collectionAddress as Address,
               ),
               tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
               amount: nftsA.map(({ amount }) => BigInt(amount)),
@@ -166,7 +167,7 @@ export const useAddLiquidity = ({
             {
               token: tokenB,
               collection: nftsB.map(
-                ({ collectionAddress }) => collectionAddress as AddressString,
+                ({ collectionAddress }) => collectionAddress as Address,
               ),
               tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
               amount: nftsB.map(({ amount }) => BigInt(amount)),
@@ -189,7 +190,7 @@ export const useAddLiquidity = ({
               {
                 token: tokenB,
                 collection: nftsB.map(
-                  ({ collectionAddress }) => collectionAddress as AddressString,
+                  ({ collectionAddress }) => collectionAddress as Address,
                 ),
                 tokenId: nftsB.map(({ tokenId }) => BigInt(tokenId)),
                 amount: nftsB.map(({ amount }) => BigInt(amount)),
@@ -210,7 +211,7 @@ export const useAddLiquidity = ({
             {
               token: tokenA,
               collection: nftsA.map(
-                ({ collectionAddress }) => collectionAddress as AddressString,
+                ({ collectionAddress }) => collectionAddress as Address,
               ),
               tokenId: nftsA.map(({ tokenId }) => BigInt(tokenId)),
               amount: nftsA.map(({ amount }) => BigInt(amount)),

@@ -1,7 +1,11 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { defer } from "@remix-run/node";
-import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense } from "react";
+import {
+  Await,
+  Link,
+  type LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+} from "react-router";
 
 import { fetchUserPositions } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
@@ -46,9 +50,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   };
 
-  return defer({
+  return {
     userPositions: fetchAndFilterUserPositions(),
-  });
+  };
 }
 
 const RowSkeleton = () => (

@@ -1,12 +1,11 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { type LoaderFunctionArgs, data } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchPoolTransactions } from "~/api/pools.server";
 import type { transactionType as TransactionType } from ".graphclient";
 
 const createErrorResponse = (error: string) =>
-  json({ ok: false, error } as const);
+  data({ ok: false, error } as const);
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { chainId, address } = params;
@@ -17,16 +16,18 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const type = url.searchParams.get("type");
 
   try {
-    const data = await fetchPoolTransactions({
-      chainId: Number(chainId),
-      address,
-      type: type ? (type as TransactionType) : undefined,
-      limit: url.searchParams.get("limit")
-        ? Number(url.searchParams.get("limit"))
-        : undefined,
-      after: url.searchParams.get("after") || undefined,
-    });
-    return json({ ok: true, data } as const);
+    return data({
+      ok: true,
+      data: await fetchPoolTransactions({
+        chainId: Number(chainId),
+        address,
+        type: type ? (type as TransactionType) : undefined,
+        limit: url.searchParams.get("limit")
+          ? Number(url.searchParams.get("limit"))
+          : undefined,
+        after: url.searchParams.get("after") || undefined,
+      }),
+    } as const);
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }

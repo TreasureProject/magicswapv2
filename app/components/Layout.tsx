@@ -1,6 +1,6 @@
-import { Link, NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
 import { MenuIcon } from "lucide-react";
+import { Link, NavLink } from "react-router";
 
 import {
   DISCORD_URL,

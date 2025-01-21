@@ -1,5 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { type LoaderFunctionArgs, data } from "react-router";
 import invariant from "tiny-invariant";
 
 import {
@@ -8,7 +7,7 @@ import {
 } from "~/api/tokens.server";
 
 const createErrorResponse = (error: string) =>
-  json({ ok: false, error } as const);
+  data({ ok: false, error } as const);
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { chainId, address: vaultAddress } = params;
@@ -32,7 +31,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         vaultAddress,
         userAddress: address,
       });
-      return json({ ok: true, results } as const);
+      return data({ ok: true, results } as const);
     } catch (err) {
       return createErrorResponse((err as Error).message);
     }
@@ -45,7 +44,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       page: page ? Number(page) : undefined,
       resultsPerPage: resultsPerPage ? Number(resultsPerPage) : undefined,
     });
-    return json({ ok: true, results } as const);
+    return data({ ok: true, results } as const);
   } catch (err) {
     return createErrorResponse((err as Error).message);
   }

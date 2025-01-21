@@ -1,7 +1,7 @@
 import { HelpCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
-import { formatEther, formatUnits, parseUnits } from "viem";
+import { type Address, formatEther, formatUnits, parseUnits } from "viem";
 
 import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
@@ -14,7 +14,6 @@ import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
 import type {
-  AddressString,
   NumberString,
   Optional,
   Pool,
@@ -86,7 +85,7 @@ export const PoolDepositTab = ({
   // Fetch balance of token0 if it's an ERC20
   const { data: balance0, refetch: refetchBalance0 } = useTokenBalance({
     chainId: pool.chainId,
-    tokenAddress: pool.token0Address as AddressString,
+    tokenAddress: pool.token0Address as Address,
     userAddress: address,
     isETH: pool.token0.isEth,
     enabled: !pool.token0.isVault,
@@ -95,7 +94,7 @@ export const PoolDepositTab = ({
   // Fetch balance of token1 if it's an ERC20
   const { data: balance1, refetch: refetchBalance1 } = useTokenBalance({
     chainId: pool.chainId,
-    tokenAddress: pool.token1Address as AddressString,
+    tokenAddress: pool.token1Address as Address,
     userAddress: address,
     isETH: pool.token1.isEth,
     enabled: !pool.token1.isVault,

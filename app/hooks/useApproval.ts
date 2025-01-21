@@ -1,12 +1,13 @@
 import { useCallback } from "react";
+import type { Address } from "viem";
 
-import type { AddressString, Token } from "~/types";
+import type { Token } from "~/types";
 import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 
 type Props = {
   chainId: number;
-  operator: AddressString;
+  operator: Address;
   token: Token | string;
   amount?: bigint;
   enabled?: boolean;

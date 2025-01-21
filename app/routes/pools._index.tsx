@@ -1,6 +1,6 @@
-import { type LoaderFunctionArgs, defer } from "@remix-run/node";
-import { Await, Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Suspense } from "react";
+import type { LoaderFunctionArgs } from "react-router";
+import { Await, Link, useLoaderData, useNavigate } from "react-router";
 
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
@@ -48,9 +48,9 @@ export function loader({ request }: LoaderFunctionArgs) {
     );
   };
 
-  return defer({
+  return {
     pools: fetchAndFilterPools(),
-  });
+  };
 }
 
 const RowSkeleton = () => (

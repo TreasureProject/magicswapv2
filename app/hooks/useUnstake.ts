@@ -1,10 +1,11 @@
 import { useEffect } from "react";
+import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractUnstakeToken } from "~/generated";
 import { getContractAddress } from "~/lib/address";
-import type { AddressString, Pool } from "~/types";
+import type { Pool } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {
@@ -58,7 +59,7 @@ export const useUnstake = ({
       return unstake.writeContractAsync({
         chainId: pool.chainId,
         address: stakingContractAddress,
-        args: [pool.address as AddressString, amount, true],
+        args: [pool.address as Address, amount, true],
       });
     },
   };
