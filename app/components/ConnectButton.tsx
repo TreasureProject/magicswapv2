@@ -1,4 +1,4 @@
-import { Avatar, ConnectKitButton, useModal } from "connectkit";
+import { Avatar, ConnectKitButton, useModal } from "@treasure-dev/connectkit";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
