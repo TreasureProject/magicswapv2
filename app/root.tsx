@@ -23,16 +23,22 @@ import {
   treasureTopaz,
 } from "wagmi/chains";
 
+import type { Route } from "./+types/root";
 import { Layout } from "./components/Layout";
+import { Toaster } from "./components/ui/Toast";
 import { AccountProvider } from "./contexts/account";
 import { ENV } from "./lib/env.server";
 import { getDomainUrl } from "./lib/seo";
 import { useSettingsStore } from "./store/settings";
-import "./styles/nprogress.css";
-import "./styles/tailwind.css";
-import { Toaster } from "./components/ui/Toast";
+import stylesheet from "./styles/app.css?url";
+import nProgressStylesheet from "./styles/nprogress.css?url";
 
 const queryClient = new QueryClient();
+
+export const links: Route.LinksFunction = () => [
+  { rel: "stylesheet", href: stylesheet },
+  { rel: "stylesheet", href: nProgressStylesheet },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => ({
   requestInfo: {
