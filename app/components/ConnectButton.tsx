@@ -1,12 +1,12 @@
-import { useFetcher } from "@remix-run/react";
-import { Avatar, ConnectKitButton, useModal } from "connectkit";
+import { Avatar, ConnectKitButton, useModal } from "@treasure-dev/connectkit";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useFetcher } from "react-router";
+import type { Address } from "viem";
 
 import { truncateEthAddress } from "~/lib/address";
 import type { DomainLoader } from "~/routes/resources.domain";
-import type { AddressString } from "~/types";
 import { LoaderIcon } from "./Icons";
 import { Button } from "./ui/Button";
 
@@ -22,7 +22,7 @@ export const ConnectButton = () => (
   </ConnectKitButton.Custom>
 );
 
-const ConnectedButton = ({ address }: { address: AddressString }) => {
+const ConnectedButton = ({ address }: { address: Address }) => {
   const { load, state, data } = useFetcher<DomainLoader>();
   const { openProfile } = useModal();
   const [error, setError] = useState(false);

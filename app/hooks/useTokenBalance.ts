@@ -1,12 +1,12 @@
+import type { Address } from "viem";
 import { useBalance } from "wagmi";
 
 import { useReadErc20BalanceOf } from "~/generated";
-import type { AddressString } from "~/types";
 
 type Props = {
   chainId: number | undefined;
-  tokenAddress?: AddressString;
-  userAddress: AddressString | undefined;
+  tokenAddress?: Address;
+  userAddress: Address | undefined;
   isETH?: boolean;
   enabled?: boolean;
 };
@@ -25,7 +25,7 @@ export const useTokenBalance = ({
   } = useReadErc20BalanceOf({
     chainId,
     address: tokenAddress,
-    args: [userAddress as AddressString],
+    args: [userAddress as Address],
     query: {
       enabled: enabled && !!tokenAddress && !!userAddress && !isETH,
     },

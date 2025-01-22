@@ -1,4 +1,5 @@
 import type { ExecutionResult } from "graphql";
+import type { Address } from "viem";
 
 import {
   CHAIN_ID_TO_TROVE_API_NETWORK,
@@ -8,12 +9,7 @@ import { erc721Abi, erc1155Abi } from "~/generated";
 import { sumArray } from "~/lib/array";
 import { getViemClient } from "~/lib/chain.server";
 import { ENV } from "~/lib/env.server";
-import type {
-  AddressString,
-  Token,
-  TokenWithAmount,
-  TroveToken,
-} from "~/types";
+import type { Token, TokenWithAmount, TroveToken } from "~/types";
 import {
   GetTokenDocument,
   type GetTokenQuery,
@@ -89,13 +85,13 @@ export const fetchPoolTokenBalance = async (token: Token, address: string) => {
     }
 
     const balances = await viemClient.readContract({
-      address: token.collectionAddress as AddressString,
+      address: token.collectionAddress as Address,
       abi: erc1155Abi,
       functionName: "balanceOfBatch",
       args: [
         Array.from({
           length: collectionTokenIds.length,
-        }).fill(address) as AddressString[],
+        }).fill(address) as Address[],
         collectionTokenIds.map((tokenId) => BigInt(tokenId)),
       ],
     });
@@ -103,10 +99,10 @@ export const fetchPoolTokenBalance = async (token: Token, address: string) => {
   }
   if (token.collectionType === "ERC721") {
     const balance = await viemClient.readContract({
-      address: token.collectionAddress as AddressString,
+      address: token.collectionAddress as Address,
       abi: erc721Abi,
       functionName: "balanceOf",
-      args: [address as AddressString],
+      args: [address as Address],
     });
     return Number(balance);
   }

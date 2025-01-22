@@ -1,11 +1,14 @@
-import type { MetaFunction } from "@remix-run/react";
+import { ChevronDownIcon } from "lucide-react";
+import { Suspense } from "react";
+import type { MetaFunction } from "react-router";
 import {
+  Await,
   Link,
   Outlet,
   useLoaderData,
   useMatches,
   useSearchParams,
-} from "@remix-run/react";
+} from "react-router";
 import { fetchGames } from "~/api/games.server";
 
 import { ChainFilter } from "~/components/ChainFilter";
@@ -36,11 +39,9 @@ export const meta: MetaFunction<
   });
 };
 
-export async function loader() {
-  return {
-    games: await fetchGames(),
-  };
-}
+export const loader = () => ({
+  games: fetchGames(),
+});
 
 export default function PoolsListPage() {
   const { games } = useLoaderData<typeof loader>();
@@ -133,12 +134,28 @@ export default function PoolsListPage() {
         <div className="flex flex-wrap items-center gap-2">
           <SearchFilter onChange={handleSearch} />
           {!isMyPositions ? (
-            <GameFilter
-              games={games}
-              selectedGameId={searchParams.get("game") || undefined}
-              onChange={handleSelectGame}
-              onClear={() => handleSelectGame("")}
-            />
+            <Suspense
+              fallback={
+                <Button
+                  variant="secondary"
+                  className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
+                >
+                  All Games
+                  <ChevronDownIcon className="h-3.5 w-3.5 text-night-600" />
+                </Button>
+              }
+            >
+              <Await resolve={games}>
+                {(games) => (
+                  <GameFilter
+                    games={games}
+                    selectedGameId={searchParams.get("game") || undefined}
+                    onChange={handleSelectGame}
+                    onClear={() => handleSelectGame("")}
+                  />
+                )}
+              </Await>
+            </Suspense>
           ) : null}
           <ChainFilter
             selectedChainId={

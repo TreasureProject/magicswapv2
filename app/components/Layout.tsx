@@ -1,28 +1,9 @@
-import { Link, NavLink } from "@remix-run/react";
 import { MagicSwapLogo, MagicSwapLogoFull } from "@treasure-project/branding";
-import { MenuIcon } from "lucide-react";
+import { Link, NavLink } from "react-router";
 
-import {
-  DISCORD_URL,
-  DOCS_URL,
-  GOVERNANCE_FORUM_URL,
-  PRIVACY_POLICY_URL,
-  TERMS_OF_SERVICE_URL,
-  TWITTER_URL,
-} from "~/consts";
 import { cn } from "~/lib/utils";
 import { ConnectButton } from "./ConnectButton";
 import { Footer } from "./Footer";
-import { DiscordIcon, TwitterIcon } from "./Icons";
-import { Button } from "./ui/Button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/Dropdown";
 
 const NAV = [
   { name: "Swap", href: "/swap" },

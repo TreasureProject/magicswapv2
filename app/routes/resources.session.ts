@@ -1,5 +1,4 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { type ActionFunctionArgs, data } from "react-router";
 import { z } from "zod";
 
 import { SESSION_KEY_ADDRESS, commitSession, getSession } from "~/sessions";
@@ -19,7 +18,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         session.set(SESSION_KEY_ADDRESS, address);
       } catch (err) {
         console.error("Error parsing session payload:", err);
-        return json({ message: "Missing address" }, 400);
+        return data({ message: "Missing address" }, 400);
       }
       break;
     }
@@ -27,10 +26,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       session.unset(SESSION_KEY_ADDRESS);
       break;
     default:
-      return json({ message: "Method not allowed" }, 405);
+      return data({ message: "Method not allowed" }, 405);
   }
 
-  return json(
+  return data(
     {},
     {
       headers: {

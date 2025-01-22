@@ -1,16 +1,17 @@
 import { useEffect } from "react";
+import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 import {
   useWriteErc20Approve,
   useWriteErc721SetApprovalForAll,
   useWriteErc1155SetApprovalForAll,
 } from "~/generated";
-import type { AddressString, Token } from "~/types";
+import type { Token } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {
   chainId: number;
-  operator: AddressString;
+  operator: Address;
   token: Token | string;
   amount?: bigint;
   enabled?: boolean;
@@ -82,7 +83,7 @@ export const useApprove = ({
       if (typeof token !== "string" && token.collectionType === "ERC721") {
         return erc721Approve.writeContractAsync({
           chainId,
-          address: token.collectionAddress as AddressString,
+          address: token.collectionAddress as Address,
           args: [operator, true],
         });
       }
@@ -90,16 +91,14 @@ export const useApprove = ({
       if (typeof token !== "string" && token.collectionType === "ERC1155") {
         return erc1155Approve.writeContractAsync({
           chainId,
-          address: token.collectionAddress as AddressString,
+          address: token.collectionAddress as Address,
           args: [operator, true],
         });
       }
 
       return erc20Approve.writeContractAsync({
         chainId,
-        address: (typeof token === "string"
-          ? token
-          : token.address) as AddressString,
+        address: (typeof token === "string" ? token : token.address) as Address,
         args: [operator, amount],
       });
     },

@@ -3,6 +3,7 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { ExecutionResult } from "graphql";
+import type { Address } from "viem";
 import { arbitrum } from "viem/chains";
 
 import { UINT112_MAX } from "~/consts";
@@ -13,7 +14,7 @@ import { getCachedValue } from "~/lib/cache.server";
 import { getViemClient } from "~/lib/chain.server";
 import { ENV } from "~/lib/env.server";
 import { floorBigInt } from "~/lib/number";
-import type { AccountDomains, AddressString } from "~/types";
+import type { AccountDomains } from "~/types";
 import { pairToPool } from "./pools.server";
 import { fetchVaultReserveItems } from "./tokens.server";
 import {
@@ -104,10 +105,10 @@ export const fetchUserPosition = async (params: {
       })),
     }),
     client.readContract({
-      address: params.pairAddress as AddressString,
+      address: params.pairAddress as Address,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [userAddress as AddressString],
+      args: [userAddress as Address],
     }),
   ]);
 

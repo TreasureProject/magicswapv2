@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-
+import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
+
 import { useAccount } from "~/contexts/account";
 import {
   useWriteMagicSwapV2RouterSwapEthForExactTokens,
@@ -20,7 +21,7 @@ import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { AddressString, Optional, Token, TokenWithAmount } from "~/types";
+import type { Optional, Token, TokenWithAmount } from "~/types";
 import { useToast } from "./useToast";
 import type { version as Version } from ".graphclient";
 
@@ -33,7 +34,7 @@ type Props = {
   nftsIn: TokenWithAmount[];
   nftsOut: TokenWithAmount[];
   isExactOut: boolean;
-  path: AddressString[];
+  path: Address[];
   enabled?: boolean;
   onSuccess?: () => void;
 };
@@ -66,12 +67,12 @@ export const useSwap = ({
     ? amountOut
     : getAmountMin(amountOut, state?.slippage || DEFAULT_SLIPPAGE);
   const collectionsIn = nftsIn.map(
-    ({ collectionAddress }) => collectionAddress as AddressString,
+    ({ collectionAddress }) => collectionAddress as Address,
   );
   const tokenIdsIn = nftsIn.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesIn = nftsIn.map(({ amount }) => BigInt(amount));
   const collectionsOut = nftsOut.map(
-    ({ collectionAddress }) => collectionAddress as AddressString,
+    ({ collectionAddress }) => collectionAddress as Address,
   );
   const tokenIdsOut = nftsOut.map(({ tokenId }) => BigInt(tokenId));
   const quantitiesOut = nftsOut.map(({ amount }) => BigInt(amount));

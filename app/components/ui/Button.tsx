@@ -1,6 +1,10 @@
+import {
+  ConnectKitButton,
+  useIsMounted,
+  useModal,
+} from "@treasure-dev/connectkit";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { ConnectKitButton, useIsMounted, useModal } from "connectkit";
 import { XIcon } from "lucide-react";
 import * as React from "react";
 import { useSwitchChain } from "wagmi";

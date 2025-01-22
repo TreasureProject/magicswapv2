@@ -1,15 +1,4 @@
 import { DialogClose } from "@radix-ui/react-dialog";
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { defer } from "@remix-run/node";
-import type { MetaFunction } from "@remix-run/react";
-import {
-  Await,
-  Link,
-  useLoaderData,
-  useLocation,
-  useRevalidator,
-  useSearchParams,
-} from "@remix-run/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   GlobeIcon as AllIcon,
@@ -18,11 +7,21 @@ import {
   LayersIcon,
 } from "lucide-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import {
+  Await,
+  Link,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+  useLoaderData,
+  useLocation,
+  useRevalidator,
+  useSearchParams,
+} from "react-router";
 import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
-import { formatUnits, parseUnits } from "viem";
-import { fetchGames } from "~/api/games.server";
+import { type Address, formatUnits, parseUnits } from "viem";
 
+import { fetchGames } from "~/api/games.server";
 import { fetchPools } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
@@ -67,7 +66,7 @@ import { countTokens, parseTokenParams } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type { AddressString, Optional, Token, TokenWithAmount } from "~/types";
+import type { Optional, Token, TokenWithAmount } from "~/types";
 
 export const meta: MetaFunction<
   typeof loader,
@@ -121,7 +120,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const address = session.get("address");
-  return defer({
+  return {
     games,
     pools,
     tokens: fetchTokens(),
@@ -133,7 +132,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         : undefined,
     address,
     magicUsd,
-  });
+  };
 }
 
 const DEFAULT_STATE = {
@@ -199,7 +198,7 @@ export default function SwapPage() {
   const { data: tokenInBalance, refetch: refetchTokenInBalance } =
     useTokenBalance({
       chainId: tokenIn.chainId,
-      tokenAddress: tokenIn.address as AddressString,
+      tokenAddress: tokenIn.address as Address,
       userAddress: address,
       isETH: tokenIn.isEth,
       enabled: !tokenIn.isVault,
@@ -208,7 +207,7 @@ export default function SwapPage() {
   const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
     useTokenBalance({
       chainId: tokenOut?.chainId,
-      tokenAddress: tokenOut?.address as AddressString,
+      tokenAddress: tokenOut?.address as Address,
       userAddress: address,
       isETH: tokenOut?.isEth,
       enabled: !tokenOut?.isVault,

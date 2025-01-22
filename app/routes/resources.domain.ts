@@ -1,6 +1,5 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import type { ShouldRevalidateFunction } from "@remix-run/react";
+import { type LoaderFunctionArgs, data } from "react-router";
+import type { ShouldRevalidateFunction } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/user.server";
@@ -12,13 +11,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   try {
     const domain = await fetchDomain(address);
-    return json({ domain, ok: true });
+    return data({ domain, ok: true } as const);
   } catch (e: unknown) {
-    return json({
+    return data({
       ok: false,
       error: e instanceof Error ? e.message : "Unknown error",
       domain: null,
-    });
+    } as const);
   }
 };
 

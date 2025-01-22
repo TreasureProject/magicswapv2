@@ -1,6 +1,6 @@
-import { Link } from "@remix-run/react";
 import { MagicSwapLogo } from "@treasure-project/branding";
 import { ChevronUpIcon, ExternalLinkIcon } from "lucide-react";
+import { Link } from "react-router";
 import { Balancer } from "react-wrap-balancer";
 
 import { DiscordIcon, MagicTextLogo, TwitterIcon } from "~/components/Icons";

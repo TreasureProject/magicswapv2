@@ -1,15 +1,14 @@
-import { useFetcher } from "@remix-run/react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
+import { useFetcher } from "react-router";
+import type { Address } from "viem";
 import { useAccount as wagmiUseAccount } from "wagmi";
-
-import type { AddressString, Optional } from "~/types";
 
 type State = {
   isConnected: boolean;
   connectedChainId: number | undefined;
-  address: Optional<AddressString>;
-  addressArg: AddressString;
+  address: Address | undefined;
+  addressArg: Address;
 };
 
 const Context = createContext({

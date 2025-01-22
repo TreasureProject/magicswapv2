@@ -1,16 +1,3 @@
-import { defer } from "@remix-run/node";
-import type {
-  LoaderFunctionArgs,
-  MetaFunction,
-  SerializeFrom,
-} from "@remix-run/node";
-import {
-  Await,
-  Link,
-  useLoaderData,
-  useRevalidator,
-  useRouteLoaderData,
-} from "@remix-run/react";
 import { MagicLogo } from "@treasure-project/branding";
 import {
   ArrowLeftRightIcon,
@@ -27,6 +14,14 @@ import {
   useEffect,
   useState,
 } from "react";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import {
+  Await,
+  Link,
+  useLoaderData,
+  useRevalidator,
+  useRouteLoaderData,
+} from "react-router";
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
 
@@ -77,13 +72,7 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoader } from "~/root";
 import { getSession } from "~/sessions";
-import type {
-  AddressString,
-  Optional,
-  Pool,
-  Token,
-  TokenWithAmount,
-} from "~/types";
+import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
 import type { transactionType as TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
@@ -122,12 +111,20 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   invariant(params.address, "Pool address required");
 
   const chainId = Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID);
-  const [pool, session, magicUsd] = await Promise.all([
+  const userSession = await getSession(request.headers.get("Cookie"));
+  const userAddress = userSession.get("address");
+  const [pool, userPosition, magicUsd] = await Promise.all([
     fetchPool({
       chainId,
       address: params.address,
     }),
-    getSession(request.headers.get("Cookie")),
+    userAddress
+      ? await fetchUserPosition({
+          chainId,
+          pairAddress: params.address,
+          userAddress,
+        })
+      : undefined,
     fetchMagicUsd(),
   ]);
 
@@ -137,16 +134,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     });
   }
 
-  const address = session.get("address");
-  const userPosition = address
-    ? await fetchUserPosition({
-        chainId,
-        pairAddress: params.address,
-        userAddress: address,
-      })
-    : undefined;
-
-  return defer({
+  return {
     pool,
     lpBalance: userPosition?.lpBalance ?? "0",
     lpStaked: userPosition?.lpStaked ?? "0",
@@ -164,15 +152,15 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
         })
       : undefined,
     nftBalance0:
-      pool.token0.isVault && address
-        ? fetchPoolTokenBalance(pool.token0, address)
+      pool.token0.isVault && userAddress
+        ? fetchPoolTokenBalance(pool.token0, userAddress)
         : undefined,
     nftBalance1:
-      pool.token1.isVault && address
-        ? fetchPoolTokenBalance(pool.token1, address)
+      pool.token1.isVault && userAddress
+        ? fetchPoolTokenBalance(pool.token1, userAddress)
         : undefined,
     magicUsd,
-  });
+  };
 }
 
 export default function PoolDetailsPage() {
@@ -250,7 +238,7 @@ export default function PoolDetailsPage() {
   const lpStakedShare =
     bigIntToNumber(lpStaked) / bigIntToNumber(pool.totalSupply);
   const lpShare = lpBalanceShare + lpStakedShare;
-  console.log(bigIntToNumber(lpBalance), bigIntToNumber(pool.totalSupply));
+
   const hasStakingRewards = userIncentives.some(
     (userIncentive) => BigInt(userIncentive.reward) > 0n,
   );
@@ -806,9 +794,7 @@ const PoolManagementView = ({
   className?: string;
 }) => {
   const [_activeTab, _setActiveTab] = useState<string>("deposit");
-  const nftBalances = useRouteLoaderData(
-    "routes/pools_.($chainId).$address",
-  ) as SerializeFrom<typeof loader>;
+  const nftBalances = useRouteLoaderData("routes/pools_.($chainId).$address"); // TODO: fix any type
 
   return (
     <div className={className}>
