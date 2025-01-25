@@ -429,6 +429,10 @@ export default function SwapPage() {
                   <Button className="w-full" size="lg" disabled>
                     Swap route not available
                   </Button>
+                ) : isConnected && amountIn > tokenInBalance ? (
+                  <Button className="w-full" size="lg" disabled>
+                    Insufficient balance
+                  </Button>
                 ) : !isTokenInApproved &&
                   hasAmounts &&
                   (!requiresPriceImpactOptIn || priceImpactOptIn) ? (
