@@ -1,4 +1,3 @@
-import type { LoaderFunctionArgs } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
@@ -13,8 +12,9 @@ import {
 } from "~/lib/og.server";
 import { getPoolReserveDisplay } from "~/lib/pools";
 import { formatTokenReserve } from "~/lib/tokens";
+import type { Route } from "./+types/pools_.($chainId).$address[.]png";
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { origin } = new URL(request.url);
 
   invariant(params.address, "Pool address required");

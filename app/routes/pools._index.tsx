@@ -1,11 +1,5 @@
 import { Suspense } from "react";
-import {
-  Await,
-  Link,
-  type LoaderFunctionArgs,
-  useLoaderData,
-  useNavigate,
-} from "react-router";
+import { Await, Link, useNavigate } from "react-router";
 
 import { fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
@@ -18,13 +12,14 @@ import {
   getPoolReserveDisplay,
   getPoolVolume24hDisplay,
 } from "~/lib/pools";
+import type { Route } from "./+types/pools._index";
 import type { PoolsHandle } from "./pools";
 
 export const handle: PoolsHandle = {
   tab: "pools",
 };
 
-export function loader({ request }: LoaderFunctionArgs) {
+export function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search")?.toLowerCase();
   const gameId = url.searchParams.get("game");
@@ -87,10 +82,10 @@ const RowSkeleton = () => (
   </tr>
 );
 
-export default function PoolsListPage() {
-  const { pools } = useLoaderData<typeof loader>();
+export default function PoolsListPage({
+  loaderData: { pools },
+}: Route.ComponentProps) {
   const navigate = useNavigate();
-
   return (
     <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">
       <thead>

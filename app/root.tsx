@@ -1,8 +1,5 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultConfig } from "@treasure-dev/connectkit";
 import NProgress from "nprogress";
-import { useEffect, useMemo, useState } from "react";
-import type { LoaderFunctionArgs } from "react-router";
+import { useEffect, useMemo } from "react";
 import type { ShouldRevalidateFunction } from "react-router";
 import {
   Links,
@@ -11,20 +8,14 @@ import {
   Scripts,
   ScrollRestoration,
   useFetchers,
-  useLoaderData,
   useNavigation,
+  useRouteLoaderData,
 } from "react-router";
-import { fallback } from "viem";
-import { http, WagmiProvider, createConfig } from "wagmi";
-import {
-  arbitrum,
-  arbitrumSepolia,
-  treasure,
-  treasureTopaz,
-} from "wagmi/chains";
+import { type State, cookieToInitialState } from "wagmi";
 
 import type { Route } from "./+types/root";
 import { Layout } from "./components/Layout";
+import { Web3Provider, getConfig } from "./components/Web3Provider";
 import { Toaster } from "./components/ui/Toast";
 import { AccountProvider } from "./contexts/account";
 import { ENV } from "./lib/env.server";
@@ -33,14 +24,12 @@ import { useSettingsStore } from "./store/settings";
 import stylesheet from "./styles/app.css?url";
 import nProgressStylesheet from "./styles/nprogress.css?url";
 
-const queryClient = new QueryClient();
-
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
   { rel: "stylesheet", href: nProgressStylesheet },
 ];
 
-export const loader = async ({ request }: LoaderFunctionArgs) => ({
+export const loader = async ({ request }: Route.LoaderArgs) => ({
   requestInfo: {
     origin: getDomainUrl(request),
     path: new URL(request.url).pathname,
@@ -51,63 +40,30 @@ export const loader = async ({ request }: LoaderFunctionArgs) => ({
     PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
     PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
   },
+  initialState: cookieToInitialState(
+    getConfig({
+      environment: ENV.PUBLIC_IS_DEV ? "development" : "production",
+      thirdwebClientId: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
+      walletConnectProjectId: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+    }),
+    request.headers.get("Cookie"),
+  ),
 });
+
+export type RootLoader = typeof loader;
+export type RootLoaderData = Awaited<ReturnType<RootLoader>>;
+
+export const useRootLoaderData = () => useRouteLoaderData<RootLoader>("root");
 
 export const shouldRevalidate: ShouldRevalidateFunction = () => {
   return false;
 };
 
-export type RootLoader = typeof loader;
-
-export default function App() {
-  const { env } = useLoaderData<RootLoader>();
-
-  const [client] = useState(() =>
-    createConfig(
-      getDefaultConfig({
-        appName: "Magicswap",
-        transports: {
-          [treasure.id]: fallback([
-            http(
-              `https://${treasure.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-              { batch: true },
-            ),
-            http(undefined, { batch: true }),
-          ]),
-          [treasureTopaz.id]: fallback([
-            http(
-              `https://${treasureTopaz.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-              { batch: true },
-            ),
-            http(undefined, { batch: true }),
-          ]),
-          [arbitrum.id]: fallback([
-            http(
-              `https://${arbitrum.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-              { batch: true },
-            ),
-            http(undefined, { batch: true }),
-          ]),
-          [arbitrumSepolia.id]: fallback([
-            http(
-              `https://${arbitrumSepolia.id}.rpc.thirdweb.com/${env.PUBLIC_THIRDWEB_CLIENT_ID}`,
-              { batch: true },
-            ),
-            http(undefined, { batch: true }),
-          ]),
-        },
-        walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-        chains: env.PUBLIC_IS_DEV
-          ? [arbitrumSepolia, treasureTopaz]
-          : [arbitrum, treasure],
-      }),
-    ),
-  );
-
+export default function App({
+  loaderData: { env, initialState },
+}: Route.ComponentProps) {
   const transition = useNavigation();
-
   const fetchers = useFetchers();
-
   const state = useMemo<"idle" | "loading">(
     function getGlobalState() {
       const states = [
@@ -182,17 +138,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             />
           </noscript>
         ) : null}
-        <WagmiProvider config={client}>
-          <QueryClientProvider client={queryClient}>
-            <ConnectKitProvider theme="midnight">
-              <Layout>
-                <AccountProvider>
-                  <Outlet />
-                </AccountProvider>
-              </Layout>
-            </ConnectKitProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
+        <Web3Provider
+          environment={env.PUBLIC_IS_DEV ? "development" : "production"}
+          thirdwebClientId={env.PUBLIC_THIRDWEB_CLIENT_ID}
+          walletConnectProjectId={env.PUBLIC_WALLET_CONNECT_PROJECT_ID}
+          initialState={initialState as State | undefined}
+        >
+          <Layout>
+            <AccountProvider>
+              <Outlet />
+            </AccountProvider>
+          </Layout>
+        </Web3Provider>
         <Scripts />
         <ScrollRestoration />
         <Toaster />

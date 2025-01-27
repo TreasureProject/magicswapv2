@@ -1,4 +1,3 @@
-import type { LoaderFunctionArgs } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchToken } from "~/api/tokens.server";
@@ -10,8 +9,9 @@ import {
   generateOgImage,
 } from "~/lib/og.server";
 import { parseTokenParams } from "~/lib/tokens";
+import type { Route } from "./+types/swap.$tokenIn.$tokenOut[.]png";
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { origin } = new URL(request.url);
 
   const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =

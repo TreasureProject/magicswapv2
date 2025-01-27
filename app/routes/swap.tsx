@@ -10,8 +10,6 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   Await,
   Link,
-  type LoaderFunctionArgs,
-  type MetaFunction,
   useLoaderData,
   useLocation,
   useRevalidator,
@@ -64,18 +62,17 @@ import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens, parseTokenParams } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
-import type { RootLoader } from "~/root";
+import type { RootLoaderData } from "~/root";
 import { getSession } from "~/sessions";
 import type { Optional, Token, TokenWithAmount } from "~/types";
+import type { Route } from "./+types/swap";
 
-export const meta: MetaFunction<
-  typeof loader,
-  {
-    root: RootLoader;
-  }
-> = ({ matches, data, location }) => {
-  const requestInfo = matches.find((match) => match.id === "root")?.data
-    .requestInfo;
+export const meta: Route.MetaFunction = ({ data, matches, location }) => {
+  const requestInfo = (
+    matches.find((match) => match?.id === "root")?.data as
+      | RootLoaderData
+      | undefined
+  )?.requestInfo;
   const url = generateUrl(requestInfo?.origin, location.pathname);
   return getSocialMetas({
     url,
@@ -90,7 +87,7 @@ export const meta: MetaFunction<
   });
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
 
   const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
@@ -143,7 +140,7 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { pools, tokenIn, tokenOut, magicUsd } = useLoaderData<typeof loader>();
+  const { pools, tokenIn, tokenOut, magicUsd } = useLoaderData<typeof loader>(); // TODO: remove useLoaderData
   const revalidator = useRevalidator();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();

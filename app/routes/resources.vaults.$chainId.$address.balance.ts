@@ -1,10 +1,11 @@
-import { type LoaderFunctionArgs, data } from "react-router";
+import { data } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
 import type { Token } from "~/types";
+import type { Route } from "./+types/resources.vaults.$chainId.$address.balance";
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const { chainId, address: vaultAddress } = params;
   invariant(chainId, "Chain ID required");
   invariant(vaultAddress, "Vault address is required");

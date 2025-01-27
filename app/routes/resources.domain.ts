@@ -1,10 +1,10 @@
-import { type LoaderFunctionArgs, data } from "react-router";
-import type { ShouldRevalidateFunction } from "react-router";
+import { type ShouldRevalidateFunction, data } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/user.server";
+import type { Route } from "./+types/resources.domain";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request }: Route.LoaderArgs) => {
   const url = new URL(request.url);
   const address = url.searchParams.get("address");
   invariant(address, "Missing address");

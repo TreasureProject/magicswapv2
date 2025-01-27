@@ -1,11 +1,5 @@
 import { Suspense } from "react";
-import {
-  Await,
-  Link,
-  type LoaderFunctionArgs,
-  useLoaderData,
-  useNavigate,
-} from "react-router";
+import { Await, Link, useNavigate } from "react-router";
 
 import { fetchUserPositions } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
@@ -15,13 +9,14 @@ import { Skeleton } from "~/components/ui/Skeleton";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getSession } from "~/sessions";
+import type { Route } from "./+types/pools.my-positions";
 import type { PoolsHandle } from "./pools";
 
 export const handle: PoolsHandle = {
   tab: "user",
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const address = session.get("address");
   const url = new URL(request.url);
@@ -78,10 +73,10 @@ const RowSkeleton = () => (
   </tr>
 );
 
-export default function UserPositionsListPage() {
-  const { userPositions } = useLoaderData<typeof loader>();
+export default function UserPositionsListPage({
+  loaderData: { userPositions },
+}: Route.ComponentProps) {
   const navigate = useNavigate();
-
   return (
     <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">
       <thead>

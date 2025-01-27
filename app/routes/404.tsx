@@ -1,18 +1,16 @@
-import type { MetaFunction } from "react-router";
 import { Link } from "react-router";
 
 import { Button } from "~/components/ui/Button";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
-import type { RootLoader } from "~/root";
+import type { RootLoaderData } from "~/root";
+import type { Route } from "./+types/404";
 
-export const meta: MetaFunction<
-  unknown,
-  {
-    root: RootLoader;
-  }
-> = ({ matches, location }) => {
-  const requestInfo = matches.find((match) => match.id === "root")?.data
-    .requestInfo;
+export const meta: Route.MetaFunction = ({ matches, location }) => {
+  const requestInfo = (
+    matches.find((match) => match?.id === "root")?.data as
+      | RootLoaderData
+      | undefined
+  )?.requestInfo;
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
     title: generateTitle("Page Not Found"),

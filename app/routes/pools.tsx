@@ -1,14 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
 import { Suspense } from "react";
-import type { MetaFunction } from "react-router";
-import {
-  Await,
-  Link,
-  Outlet,
-  useLoaderData,
-  useMatches,
-  useSearchParams,
-} from "react-router";
+import { Await, Link, Outlet, useMatches, useSearchParams } from "react-router";
 import { fetchGames } from "~/api/games.server";
 
 import { ChainFilter } from "~/components/ChainFilter";
@@ -18,20 +10,19 @@ import { SearchFilter } from "~/components/SearchFilter";
 import { Button } from "~/components/ui/Button";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { cn } from "~/lib/utils";
-import type { RootLoader } from "~/root";
+import type { RootLoaderData } from "~/root";
+import type { Route } from "./+types/pools";
 
 export type PoolsHandle = {
   tab: "pools" | "user";
 };
 
-export const meta: MetaFunction<
-  unknown,
-  {
-    root: RootLoader;
-  }
-> = ({ matches, location }) => {
-  const requestInfo = matches.find((match) => match.id === "root")?.data
-    .requestInfo;
+export const meta: Route.MetaFunction = ({ matches, location }) => {
+  const requestInfo = (
+    matches.find((match) => match?.id === "root")?.data as
+      | RootLoaderData
+      | undefined
+  )?.requestInfo;
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
     title: generateTitle("Liquidity Pools"),
@@ -43,8 +34,9 @@ export const loader = () => ({
   games: fetchGames(),
 });
 
-export default function PoolsListPage() {
-  const { games } = useLoaderData<typeof loader>();
+export default function PoolsListPage({
+  loaderData: { games },
+}: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const matches = useMatches();
   const match = matches[matches.length - 1];

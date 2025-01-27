@@ -14,14 +14,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import {
-  Await,
-  Link,
-  useLoaderData,
-  useRevalidator,
-  useRouteLoaderData,
-} from "react-router";
+import { Await, Link, useRevalidator, useRouteLoaderData } from "react-router";
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
 
@@ -70,9 +63,10 @@ import { getPoolFees24hDisplay, getPoolVolume24hDisplay } from "~/lib/pools";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
-import type { RootLoader } from "~/root";
+import type { RootLoaderData } from "~/root";
 import { getSession } from "~/sessions";
 import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
+import type { Route } from "./+types/pools_.($chainId).$address";
 import type { transactionType as TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
@@ -89,14 +83,12 @@ const Suspense = ({ children }: { children: React.ReactNode }) => (
   </ReactSuspense>
 );
 
-export const meta: MetaFunction<
-  typeof loader,
-  {
-    root: RootLoader;
-  }
-> = ({ data, matches, location }) => {
-  const requestInfo = matches.find((match) => match.id === "root")?.data
-    .requestInfo;
+export const meta: Route.MetaFunction = ({ data, matches, location }) => {
+  const requestInfo = (
+    matches.find((match) => match?.id === "root")?.data as
+      | RootLoaderData
+      | undefined
+  )?.requestInfo;
   const pool = data?.pool;
   const url = generateUrl(requestInfo?.origin, location.pathname);
   return getSocialMetas({
@@ -107,7 +99,7 @@ export const meta: MetaFunction<
   });
 };
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   invariant(params.address, "Pool address required");
 
   const chainId = Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID);
@@ -163,8 +155,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   };
 }
 
-export default function PoolDetailsPage() {
-  const {
+export default function PoolDetailsPage({
+  loaderData: {
     pool,
     lpBalance: lpBalanceStr,
     lpStaked: lpStakedStr,
@@ -172,8 +164,8 @@ export default function PoolDetailsPage() {
     vaultItems0,
     vaultItems1,
     magicUsd,
-  } = useLoaderData<typeof loader>();
-
+  },
+}: Route.ComponentProps) {
   const revalidator = useRevalidator();
   const { address: userAddress, connectedChainId } = useAccount();
   const { switchChainAsync } = useSwitchChain();

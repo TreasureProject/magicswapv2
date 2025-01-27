@@ -1,21 +1,19 @@
 import { motion } from "framer-motion";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
-import type { MetaFunction } from "react-router";
 import { Link } from "react-router";
 
 import { Button } from "~/components/ui/Button";
 import { DOCS_URL } from "~/consts";
 import { generateUrl, getSocialMetas } from "~/lib/seo";
-import type { RootLoader } from "~/root";
+import type { RootLoaderData } from "~/root";
+import type { Route } from "./+types/_index";
 
-export const meta: MetaFunction<
-  unknown,
-  {
-    root: RootLoader;
-  }
-> = ({ matches, location }) => {
-  const requestInfo = matches.find((match) => match.id === "root")?.data
-    .requestInfo;
+export const meta: Route.MetaFunction = ({ matches, location }) => {
+  const requestInfo = (
+    matches.find((match) => match?.id === "root")?.data as
+      | RootLoaderData
+      | undefined
+  )?.requestInfo;
   return getSocialMetas({
     url: generateUrl(requestInfo?.origin, location.pathname),
     image: generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
