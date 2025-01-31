@@ -22,12 +22,12 @@ export const CONTRACT_ADDRESSES = {
     magicswapV1Router: zeroAddress,
     magicswapV2Router: "0xd38f4a9baeb461b124c1b462653363aafe0b3405",
     stakingContract: "0xd5d369e15891074711ba80d80295e2a6d3ae32ee",
-    nftVaultManager: zeroAddress,
+    nftVaultManager: "0xe519aaeaeed43f0ed0cff4e952c2fd725c8156b7",
   },
   [treasureTopaz.id]: {
     magicswapV1Router: zeroAddress,
     magicswapV2Router: "0xad781ed13b5966e7c620b896b6340abb4dd2ca86",
-    stakingContract: zeroAddress,
+    stakingContract: "0x474dd6564155004863c39b6b0928d4219be4f70b",
     nftVaultManager: zeroAddress,
   },
   [arbitrum.id]: {
