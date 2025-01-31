@@ -1,4 +1,4 @@
-import { type Address, type Chain, zeroAddress } from "viem";
+import { type Chain, zeroAddress } from "viem";
 import {
   arbitrum,
   arbitrumSepolia,
