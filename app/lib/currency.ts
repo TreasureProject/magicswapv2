@@ -7,7 +7,9 @@ export const formatUSD = (
 ) =>
   `$${Number(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: Number(value) < 0.01 ? 4 : 2,
+    maximumFractionDigits: Number(value) >= 1 ? 2 : undefined,
+    maximumSignificantDigits:
+      Number(value) < 0.1 ? 5 : Number(value) < 1 ? 4 : undefined,
     ...options,
   })}`;
 
