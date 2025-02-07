@@ -125,8 +125,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     tokenOut,
     tokenInNFTBalance:
       address && tokenIn.isVault
-        ? fetchPoolTokenBalance(tokenIn, address)
-        : undefined,
+        ? await fetchPoolTokenBalance(tokenIn, address)
+        : 0,
     address,
     magicUsd,
   };
@@ -140,7 +140,8 @@ const DEFAULT_STATE = {
 };
 
 export default function SwapPage() {
-  const { pools, tokenIn, tokenOut, magicUsd } = useLoaderData<typeof loader>(); // TODO: remove useLoaderData
+  const { pools, tokenIn, tokenOut, magicUsd, tokenInNFTBalance } =
+    useLoaderData<typeof loader>(); // TODO: remove useLoaderData
   const revalidator = useRevalidator();
   const { address, isConnected } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -157,6 +158,32 @@ export default function SwapPage() {
       state: "true",
     });
   };
+
+  const { data: tokenInBalance, refetch: refetchTokenInBalance } =
+    useTokenBalance({
+      chainId: tokenIn.chainId,
+      tokenAddress: tokenIn.address as Address,
+      userAddress: address,
+      isETH: tokenIn.isEth,
+      enabled: !tokenIn.isVault,
+    });
+
+  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
+    useTokenBalance({
+      chainId: tokenOut?.chainId,
+      tokenAddress: tokenOut?.address as Address,
+      userAddress: address,
+      isETH: tokenOut?.isEth,
+      enabled: !tokenOut?.isVault,
+    });
+
+  const refetch = useCallback(() => {
+    revalidator.revalidate();
+    refetchTokenInBalance();
+    refetchTokenOutBalance();
+  }, [revalidator.revalidate, refetchTokenInBalance, refetchTokenOutBalance]);
+
+  useFocusInterval(refetch, 5_000);
 
   const swapRoute = useSwapRoute({
     pools,
@@ -191,32 +218,6 @@ export default function SwapPage() {
     (!tokenIn.isVault || requiredNftsIn === amountNFTsIn) &&
     (!tokenOut?.isVault || requiredNftsOut === amountNFTsOut);
   const requiresPriceImpactOptIn = hasAmounts && priceImpact >= 0.15;
-
-  const { data: tokenInBalance, refetch: refetchTokenInBalance } =
-    useTokenBalance({
-      chainId: tokenIn.chainId,
-      tokenAddress: tokenIn.address as Address,
-      userAddress: address,
-      isETH: tokenIn.isEth,
-      enabled: !tokenIn.isVault,
-    });
-
-  const { data: tokenOutBalance, refetch: refetchTokenOutBalance } =
-    useTokenBalance({
-      chainId: tokenOut?.chainId,
-      tokenAddress: tokenOut?.address as Address,
-      userAddress: address,
-      isETH: tokenOut?.isEth,
-      enabled: !tokenOut?.isVault,
-    });
-
-  const refetch = useCallback(() => {
-    revalidator.revalidate();
-    refetchTokenInBalance();
-    refetchTokenOutBalance();
-  }, [revalidator.revalidate, refetchTokenInBalance, refetchTokenOutBalance]);
-
-  useFocusInterval(refetch, 5_000);
 
   const { amountInMax, amountOutMin, swap } = useSwap({
     version,
@@ -276,6 +277,11 @@ export default function SwapPage() {
   const formattedTokenOutAmount = formatAmount(amountOut, {
     decimals: tokenOut?.decimals,
   });
+  const insufficientBalance =
+    isConnected &&
+    (tokenIn.isVault
+      ? amountNFTsIn > tokenInNFTBalance
+      : amountIn > tokenInBalance);
 
   return (
     <main className="mx-auto max-w-xl px-4 pt-12 pb-20 sm:px-6 lg:px-8">
@@ -426,7 +432,7 @@ export default function SwapPage() {
                   <Button className="w-full" size="lg" disabled>
                     Swap route not available
                   </Button>
-                ) : isConnected && amountIn > tokenInBalance ? (
+                ) : insufficientBalance ? (
                   <Button className="w-full" size="lg" disabled>
                     Insufficient balance
                   </Button>
@@ -935,21 +941,11 @@ const SwapTokenInput = ({
             </span>
             {token.isVault ? (
               <>
-                {isOut ? (
-                  formatAmount(tokenReserve, {
-                    decimals: token.decimals,
-                  })
-                ) : (
-                  <Suspense
-                    fallback={
-                      <LoaderIcon className="inline-block h-3.5 w-3.5" />
-                    }
-                  >
-                    <Await resolve={tokenInNFTBalance}>
-                      {(balance) => formatNumber(balance ?? 0)}
-                    </Await>
-                  </Suspense>
-                )}
+                {isOut
+                  ? formatAmount(tokenReserve, {
+                      decimals: token.decimals,
+                    })
+                  : formatNumber(tokenInNFTBalance)}
               </>
             ) : (
               <VisibleOnClient>
