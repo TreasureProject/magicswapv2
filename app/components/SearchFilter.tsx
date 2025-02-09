@@ -9,14 +9,19 @@ type Props = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange"
 > & {
+  defaultValue?: string;
   onChange: (value: string) => void;
 };
 
 export const SearchFilter = React.forwardRef<HTMLInputElement, Props>(
-  ({ className, onChange, ...props }, ref) => {
+  ({ defaultValue, className, onChange, ...props }, ref) => {
     const [value, setValue] = React.useState("");
 
     useDebounce(() => onChange?.(value), 500, [value]);
+
+    React.useEffect(() => {
+      setValue(defaultValue ?? "");
+    }, [defaultValue]);
 
     return (
       <div className="flex items-center rounded-md border border-night-900 bg-night-1100 pl-2">

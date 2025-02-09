@@ -14,6 +14,7 @@ import {
 } from "~/lib/pools";
 import type { Route } from "./+types/pools._index";
 import type { PoolsHandle } from "./pools";
+import type { pairFilter as PairFilter } from ".graphclient";
 
 export const handle: PoolsHandle = {
   tab: "pools",
@@ -21,35 +22,36 @@ export const handle: PoolsHandle = {
 
 export function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const search = url.searchParams.get("search")?.toLowerCase();
-  const gameId = url.searchParams.get("game");
+  const filter: PairFilter = {};
+
   const chainId = url.searchParams.get("chain");
-  const areIncentivized = url.searchParams.get("incentivized") === "true";
+  if (chainId) {
+    filter.chainId = Number(chainId);
+  }
 
-  const fetchAndFilterPools = async () => {
-    const pools = await fetchPools({
-      ...(chainId ? { chainId: Number(chainId) } : undefined),
-      ...(gameId ? { gameId } : undefined),
-    });
+  const gameId = url.searchParams.get("game");
+  if (gameId) {
+    filter.gameId = gameId;
+  }
 
-    return pools.filter(
-      ({ name, token0, token1, incentives }) =>
-        // Filter by search query
-        (!search ||
-          name.toLowerCase().includes(search) ||
-          token0.symbol.toLowerCase().includes(search) ||
-          token1.symbol.toLowerCase().includes(search) ||
-          token0.name.toLowerCase().includes(search) ||
-          token1.name.toLowerCase().includes(search) ||
-          token0.collectionName?.toLowerCase().includes(search) ||
-          token1.collectionName?.toLowerCase().includes(search)) &&
-        // Filter by incentivized
-        (!areIncentivized || !!incentives?.items.length),
-    );
-  };
+  const search = url.searchParams.get("search")?.toLowerCase();
+  if (search) {
+    filter.OR = [
+      { nameSearchKey_contains: search },
+      { token0NameSearchKey_contains: search },
+      { token0SymbolSearchKey_contains: search },
+      { token1NameSearchKey_contains: search },
+      { token1SymbolSearchKey_contains: search },
+      { gameId_contains: search },
+    ];
+  }
+
+  if (url.searchParams.get("incentivized") === "true") {
+    filter.isIncentivized = true;
+  }
 
   return {
-    pools: fetchAndFilterPools(),
+    pools: fetchPools(Object.keys(filter).length > 0 ? filter : undefined),
   };
 }
 

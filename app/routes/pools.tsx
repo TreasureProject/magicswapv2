@@ -124,7 +124,10 @@ export default function PoolsListPage({
           </Link>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <SearchFilter onChange={handleSearch} />
+          <SearchFilter
+            defaultValue={searchParams.get("search") || undefined}
+            onChange={handleSearch}
+          />
           {!isMyPositions ? (
             <Suspense
               fallback={
