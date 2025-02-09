@@ -21,16 +21,14 @@ export const NIGHT_400 = "#9FA3A9";
 export const TokenDisplay = ({
   token0,
   token1,
-  origin,
 }: {
   token0?: Token | null;
   token1?: Token | null;
-  origin: string;
 }) => (
   <div tw="flex items-center">
     {token0?.image ? (
       <img
-        src={token0.isVault ? token0.image : `${origin}${token0.image}`}
+        src={token0.image}
         height={132}
         width={132}
         tw={token0.isVault ? "rounded-lg" : "rounded-full"}
@@ -56,7 +54,7 @@ export const TokenDisplay = ({
     >
       {token1?.image ? (
         <img
-          src={token1.isVault ? token1.image : `${origin}${token1.image}`}
+          src={token1.image}
           height={token1.isVault ? 116 : 124}
           width={token1.isVault ? 116 : 124}
           tw={token1.isVault ? "rounded-lg" : "rounded-full"}

@@ -32,7 +32,7 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
   const png = await generateOgImage(
     <div tw="flex p-16 w-full">
       <div tw="flex justify-end flex-col">
-        <TokenDisplay token0={tokenIn} token1={tokenOut} origin={origin} />
+        <TokenDisplay token0={tokenIn} token1={tokenOut} />
         <div tw="flex flex-col mt-8">
           <div
             style={{

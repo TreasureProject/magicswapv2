@@ -82,7 +82,7 @@ export const meta: Route.MetaFunction = ({ data, matches, location }) => {
         : "Swap",
     ),
     image: data?.tokenOut
-      ? `${url}/${data?.tokenIn.address}/${data?.tokenOut.address}.png`
+      ? `${url}/${data.tokenIn.chainId}:${data.tokenIn.address}/${data.tokenOut.chainId}:${data.tokenOut.address}.png`
       : generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
