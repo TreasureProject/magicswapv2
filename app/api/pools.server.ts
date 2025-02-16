@@ -1,7 +1,8 @@
 import type { ExecutionResult } from "graphql";
 import type { Address } from "viem";
 
-import { uniswapV2PairAbi } from "~/generated";
+import { stakingContractAbi, uniswapV2PairAbi } from "~/generated";
+import { getContractAddress } from "~/lib/address";
 import { aprToApy } from "~/lib/apr";
 import { getViemClient } from "~/lib/chain.server";
 import { bigIntToNumber } from "~/lib/number";
@@ -84,7 +85,7 @@ export const pairToPool = async (
   }
 
   const client = getViemClient(pair.chainId);
-  const [[reserve0, reserve1], totalSupply] = await Promise.all([
+  const [[reserve0, reserve1], totalSupply, ...incentives] = await Promise.all([
     client.readContract({
       address: pair.address as Address,
       abi: uniswapV2PairAbi,
@@ -95,7 +96,27 @@ export const pairToPool = async (
       abi: uniswapV2PairAbi,
       functionName: "totalSupply",
     }),
+    ...(pair.incentives?.items.map((incentive) =>
+      client.readContract({
+        address: getContractAddress({
+          chainId: pair.chainId,
+          contract: "stakingContract",
+        }),
+        abi: stakingContractAbi,
+        functionName: "incentives",
+        args: [BigInt(incentive.incentiveId)],
+      }),
+    ) ?? []),
   ]);
+
+  const incentiveRewardRemaining = incentives.reduce(
+    (acc, curr, i) => {
+      const incentiveId = pair.incentives?.items[i].incentiveId ?? "0";
+      acc[incentiveId] = curr[7];
+      return acc;
+    },
+    {} as Record<string, bigint>,
+  );
 
   const token0 = pair.token0;
   const token1 = pair.token1;
@@ -145,6 +166,15 @@ export const pairToPool = async (
       hourData.reduce((total, { volumeUsd }) => total + volumeUsd, 0) ?? 0,
     volume1wUsd,
     apy: aprToApy(apr),
+    incentives: {
+      ...pair.incentives,
+      items:
+        pair.incentives?.items.map((incentive) => ({
+          ...incentive,
+          remainingRewardAmount:
+            incentiveRewardRemaining[incentive.incentiveId].toString(),
+        })) ?? [],
+    },
   };
 };
 
