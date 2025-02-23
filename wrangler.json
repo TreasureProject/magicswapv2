@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "magicswap",
+  "compatibility_date": "2025-02-04",
+  "pages_build_output_dir": "./build/client",
+  "compatibility_flags": ["nodejs_compat"]
+}

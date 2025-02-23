@@ -6,6 +6,10 @@
 /public/build
 .env
 
+# Cloudflare Workers
+.wrangler
+
+
 # Created by https://www.toptal.com/developers/gitignore/api/react,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=react,macos
 
