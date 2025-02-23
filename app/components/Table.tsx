@@ -12,9 +12,9 @@ interface TableProps {
 
 export const Table = ({ children, items }: TableProps) => {
   return (
-    <div className="rounded-md border border-night-800">
-      <div className={cn("p-3", children && "border-night-800 border-b")}>
-        <table className="w-full space-y-3 text-night-400 text-sm">
+    <div className="rounded-md border border-night-400">
+      <div className={cn("p-3", children && "border-night-400 border-b")}>
+        <table className="w-full space-y-3 text-silver-400 text-sm">
           <tbody>
             {items.map((item) => (
               <tr

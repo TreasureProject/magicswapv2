@@ -1,14 +1,18 @@
-/** @type {import('tailwindcss').Config} */
-const defaultTheme = require("tailwindcss/defaultTheme");
-const treasureTheme = require("@treasure-project/tailwind-config");
+// @ts-nocheck
+import baseConfig from "@treasure-dev/tailwind-config";
+import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
-const colors = treasureTheme.theme.extend.colors;
+const colors = baseConfig.theme.extend.colors;
 
-module.exports = {
-  content: ["./app/**/*.{ts,tsx,jsx,js}"],
-  presets: [require("@treasure-project/tailwind-config")],
+export default {
+  content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
+  presets: [baseConfig],
   theme: {
     extend: {
+      spacing: {
+        "8xl": "88rem",
+      },
       gridTemplateAreas: {
         "nft-modal": [
           "header header header header header",
@@ -38,40 +42,37 @@ module.exports = {
       colors: {
         border: "#282F3D",
         // input: "hsl(var(--input))",
-        ring: colors.night[1000],
-        background: colors.night[1200],
+        ring: colors.night[600],
+        background: colors.night[1000],
         backgroundImage: {
           "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         },
         foreground: "#ffffff",
         primary: {
-          DEFAULT: colors.ruby[900],
+          DEFAULT: colors.ruby[600],
           foreground: "#ffffff",
         },
         input: "#404652",
         secondary: {
-          DEFAULT: colors.night[800],
+          DEFAULT: colors.night[400],
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: colors.night[1200],
-          foreground: colors.night[300],
+          DEFAULT: colors.night[1000],
+          foreground: colors.silver[300],
         },
         accent: {
-          DEFAULT: colors.night[900],
-          foreground: colors.night[300],
+          DEFAULT: colors.night[500],
+          foreground: colors.silver[300],
         },
         popover: {
-          DEFAULT: colors.night[1100],
-          foreground: colors.night[400],
+          DEFAULT: colors.night[700],
+          foreground: colors.silver[400],
         },
         // card: {
         //   DEFAULT: "hsl(var(--card))",
         //   foreground: "hsl(var(--card-foreground))",
         // },
-      },
-      fontFamily: {
-        sans: ["Whyte", ...defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "accordion-down": {
@@ -110,4 +111,4 @@ module.exports = {
     require("@savvywombat/tailwindcss-grid-areas"),
     require("tailwind-scrollbar")({ nocompatible: true }),
   ],
-};
+} satisfies Config;

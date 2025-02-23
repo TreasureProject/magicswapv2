@@ -26,7 +26,7 @@ export const ChainFilter = ({ selectedChainId, onChange, onClear }: Props) => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
-          className="flex items-center gap-1.5 border border-night-900 bg-night-1100"
+          className="flex items-center gap-1.5 border border-night-500 bg-night-700"
         >
           {selectedChain ? (
             <>
@@ -36,7 +36,7 @@ export const ChainFilter = ({ selectedChainId, onChange, onClear }: Props) => {
           ) : (
             "All Networks"
           )}
-          <ChevronDownIcon className="h-3.5 w-3.5 text-night-600" />
+          <ChevronDownIcon className="h-3.5 w-3.5 text-silver-600" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

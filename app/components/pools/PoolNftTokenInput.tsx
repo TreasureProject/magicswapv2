@@ -27,7 +27,7 @@ export const PoolNftTokenInput = ({
 }) => {
   const isVault = typeof reserve !== "undefined";
   return (
-    <div className="overflow-hidden rounded-lg bg-night-1100">
+    <div className="overflow-hidden rounded-lg bg-night-700">
       <div className="flex gap-3 p-4">
         <PoolTokenImage className="h-10 w-10 shrink-0" token={token} />
         <div
@@ -43,7 +43,7 @@ export const PoolNftTokenInput = ({
             {token.collectionName &&
               token.name.toUpperCase() !==
                 token.collectionName?.toUpperCase() && (
-                <p className="text-night-400 text-xs sm:text-sm">
+                <p className="text-silver-400 text-xs sm:text-sm">
                   {token.collectionName}
                 </p>
               )}
@@ -51,8 +51,8 @@ export const PoolNftTokenInput = ({
           {selectedNfts.length > 0 ? (
             <div className="flex grow flex-wrap items-center justify-end space-x-2">
               {selectedNfts.length > 5 ? (
-                <div className="flex items-center rounded-md bg-night-900 px-2 py-1.5">
-                  <p className="font-semibold text-night-500 text-xs">
+                <div className="flex items-center rounded-md bg-night-500 px-2 py-1.5">
+                  <p className="font-semibold text-silver-500 text-xs">
                     +{selectedNfts.length - 5}
                   </p>
                 </div>
@@ -69,13 +69,13 @@ export const PoolNftTokenInput = ({
                       <li key={nft.tokenId} className="text-center">
                         {nft.image ? (
                           <img
-                            className="h-10 w-10 rounded border-2 border-night-1100 sm:h-12 sm:w-12"
+                            className="h-10 w-10 rounded border-2 border-night-700 sm:h-12 sm:w-12"
                             src={nft.image}
                             alt={nft.name}
                           />
                         ) : null}
                         {token.collectionType === "ERC1155" ? (
-                          <p className="text-night-600 text-xs">
+                          <p className="text-silver-600 text-xs">
                             {nft.amount}x
                           </p>
                         ) : null}
@@ -101,10 +101,10 @@ export const PoolNftTokenInput = ({
           )}
         </div>
       </div>
-      <div className="flex h-12 items-center justify-between bg-night-900 p-2 pr-4">
-        <p className="pl-2 text-night-400 text-sm">
+      <div className="flex h-12 items-center justify-between bg-night-500 p-2 pr-4">
+        <p className="pl-2 text-silver-400 text-sm">
           {isVault ? "Vault" : "Inventory"}:
-          <span className="pl-1 font-medium text-night-100">
+          <span className="pl-1 font-medium text-silver-100">
             {isVault ? (
               formatAmount(reserve, { decimals: token.decimals })
             ) : (

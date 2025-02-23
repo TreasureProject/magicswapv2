@@ -34,6 +34,7 @@
     "@sushiswap/tines": "^1.0.3",
     "@tanstack/react-query": "^5.28.6",
     "@treasure-dev/connectkit": "^1.8.4",
+    "@treasure-dev/tailwind-config": "^4.3.0",
     "@treasure-project/branding": "^1.2.0",
     "abitype": "^1.0.8",
     "buffer-polyfill": "npm:buffer@^6.0.3",
@@ -70,7 +71,6 @@
     "@graphprotocol/client-cli": "^3.0.3",
     "@react-router/dev": "^7.0.0",
     "@savvywombat/tailwindcss-grid-areas": "^4.0.0",
-    "@treasure-project/tailwind-config": "^2.1.0",
     "@types/nprogress": "^0.2.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
@@ -81,6 +81,7 @@
     "jsdom": "^26.0.0",
     "knip": "^5.25.1",
     "lint-staged": "^15.2.5",
+    "postcss": "^8.5.3",
     "tailwind-scrollbar": "^3.0.4",
     "tailwindcss": "^3.2.7",
     "tailwindcss-animate": "^1.0.5",
@@ -97,9 +98,10 @@
     "@rollup/rollup-linux-x64-gnu": "^4.24.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "lint-staged": {
-    "app/**/{*.ts,*.tsx}": "npm run fix"
-  }
+    "app/**/{*.ts,*.tsx}": "pnpm run fix"
+  },
+  "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af"
 }

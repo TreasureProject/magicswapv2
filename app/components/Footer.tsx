@@ -58,12 +58,12 @@ const FOOTER_LINKS = {
 
 export const Footer = () => {
   return (
-    <footer className="border-night-900 border-t-2 bg-night-1200 px-4 py-6 md:p-16">
+    <footer className="border-night-500 border-t-2 bg-night-1000 px-4 py-6 md:p-16">
       <div className="container space-y-8 md:space-y-14">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <MagicSwapLogo className="h-8 shrink-0 md:h-14" />
-            <h1 className="max-w-xs font-semibold text-night-500 md:text-2xl">
+            <h1 className="max-w-xs font-semibold text-silver-500 md:text-2xl">
               <Balancer>
                 The gateway to the cross-game{" "}
                 <span className="text-white">economy</span>.
@@ -73,7 +73,7 @@ export const Footer = () => {
           <ul className="flex items-center gap-2.5">
             <li>
               <a
-                className="text-night-100 transition-colors hover:text-honey-25"
+                className="text-silver-100 transition-colors hover:text-cream"
                 href={DISCORD_URL}
                 target="_blank"
                 rel="noreferrer"
@@ -83,7 +83,7 @@ export const Footer = () => {
             </li>
             <li>
               <a
-                className="text-night-100 transition-colors hover:text-honey-25"
+                className="text-silver-100 transition-colors hover:text-cream"
                 href={TWITTER_URL}
                 target="_blank"
                 rel="noreferrer"
@@ -100,14 +100,14 @@ export const Footer = () => {
                 key={title}
                 className="space-y-2 text-center md:space-y-4 md:text-left"
               >
-                <p className="font-semibold text-honey-25">{title}</p>
-                <ul className="space-y-2 text-night-500 md:space-y-4">
+                <p className="font-semibold text-cream">{title}</p>
+                <ul className="space-y-2 text-silver-500 md:space-y-4">
                   {links.map(({ text, href }) => (
                     <li key={text}>
                       <a
                         href={href}
                         key={text}
-                        className="flex items-center justify-center gap-1 transition-colors hover:text-honey-25 md:justify-start"
+                        className="flex items-center justify-center gap-1 transition-colors hover:text-cream md:justify-start"
                         {...(href.startsWith("https://")
                           ? {
                               target: "_blank",
@@ -134,7 +134,7 @@ export const Footer = () => {
             </Link>
             <button
               type="button"
-              className="flex items-center gap-1 py-4 pl-4 font-semibold text-honey-25 text-sm transition-colors hover:text-white"
+              className="flex items-center gap-1 py-4 pl-4 font-semibold text-cream text-sm transition-colors hover:text-white"
               onClick={() => {
                 window.scrollTo({
                   top: 0,
@@ -147,7 +147,7 @@ export const Footer = () => {
             </button>
           </div>
         </div>
-        <div className="w-full border-night-900 border-t text-night-500 text-sm">
+        <div className="w-full border-night-500 border-t text-silver-500 text-sm">
           <div className="flex flex-col items-center justify-between gap-4 pt-6 sm:flex-row">
             <p className="base-500 text-center md:text-start">
               Copyright &copy; {new Date().getFullYear()} Magicswap. All rights
@@ -156,7 +156,7 @@ export const Footer = () => {
             <div className="flex items-center gap-4">
               <Link
                 to={TERMS_OF_SERVICE_URL}
-                className="transition-colors hover:text-night-400"
+                className="transition-colors hover:text-silver-400"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -164,7 +164,7 @@ export const Footer = () => {
               </Link>
               <Link
                 to={PRIVACY_POLICY_URL}
-                className="transition-colors hover:text-night-400"
+                className="transition-colors hover:text-silver-400"
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -89,9 +89,9 @@ export default function PoolsListPage({
 }: Route.ComponentProps) {
   const navigate = useNavigate();
   return (
-    <table className="mt-4 w-full table-fixed rounded-md bg-night-1100 sm:mt-6">
+    <table className="mt-4 w-full table-fixed rounded-md bg-night-700 sm:mt-6">
       <thead>
-        <tr className="text-night-100 text-sm">
+        <tr className="text-silver-100 text-sm">
           <th className="w-2/3 px-4 py-2.5 text-left font-normal text-sm sm:w-1/3 sm:px-5">
             Name
           </th>
@@ -126,7 +126,7 @@ export default function PoolsListPage({
                 // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                 <tr
                   key={pool.address}
-                  className="cursor-pointer border-night-900 border-t transition-colors hover:bg-night-1000"
+                  className="cursor-pointer border-night-500 border-t transition-colors hover:bg-night-600"
                   onClick={() =>
                     navigate(`/pools/${pool.chainId}/${pool.address}`)
                   }
@@ -169,16 +169,16 @@ export default function PoolsListPage({
                       </div>
                     </Link>
                   </td>
-                  <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
+                  <td className="hidden px-4 py-3.5 text-right text-silver-200 text-sm sm:table-cell sm:px-5">
                     {getPoolVolume24hDisplay(pool)}
                   </td>
-                  <td className="px-4 py-3.5 text-right text-night-200 text-sm sm:px-5">
+                  <td className="px-4 py-3.5 text-right text-silver-200 text-sm sm:px-5">
                     {getPoolReserveDisplay(pool)}
                   </td>
-                  <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
+                  <td className="hidden px-4 py-3.5 text-right text-silver-200 text-sm sm:table-cell sm:px-5">
                     {getPoolFees24hDisplay(pool)}
                   </td>
-                  <td className="hidden px-4 py-3.5 text-right text-night-200 text-sm sm:table-cell sm:px-5">
+                  <td className="hidden px-4 py-3.5 text-right text-silver-200 text-sm sm:table-cell sm:px-5">
                     {formatPercent(pool.apy)}
                   </td>
                 </tr>

@@ -40,9 +40,9 @@ export const NumberInput = forwardRef<
           ref={ref}
           className={cn(
             sanitizedValue > 49
-              ? "focus:border-ruby-500 focus:ring-ruby-500"
-              : "focus:border-night-500 focus:ring-night-500",
-            "block w-full rounded-md bg-night-800/60 text-sm focus:border-night-500",
+              ? "focus:border-ruby-200 focus:ring-ruby-200"
+              : "focus:border-silver-500 focus:ring-silver-500",
+            "block w-full rounded-md bg-night-400/60 text-sm focus:border-silver-500",
             className,
           )}
           placeholder={props.placeholder}
@@ -50,7 +50,7 @@ export const NumberInput = forwardRef<
         {children}
       </div>
       {props.errorMessage && errorCondition(sanitizedValue) ? (
-        <p className="mt-2 text-ruby-600 text-sm">
+        <p className="mt-2 text-ruby-300 text-sm">
           {props.errorMessage.toString()}
         </p>
       ) : null}

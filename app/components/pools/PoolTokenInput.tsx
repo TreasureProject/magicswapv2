@@ -22,14 +22,14 @@ export const PoolTokenInput = ({
 }) => {
   const parsedAmount = Number(amount.replace(/,/g, ""));
   return (
-    <div className="overflow-hidden rounded-lg bg-night-1100">
+    <div className="overflow-hidden rounded-lg bg-night-700">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-4">
           <PoolTokenImage className="h-10 w-10" token={token} />
           <div className="flex-1">
             <p className="font-medium text-sm sm:text-xl">{token.symbol}</p>
             {token.name.toUpperCase() !== token.symbol.toUpperCase() ? (
-              <p className="text-night-400 text-xs sm:text-sm">{token.name}</p>
+              <p className="text-silver-400 text-xs sm:text-sm">{token.name}</p>
             ) : null}
           </div>
         </div>
@@ -40,7 +40,7 @@ export const PoolTokenInput = ({
             onChange={onUpdateAmount}
           />
           {priceUsd > 0 ? (
-            <span className="block text-[0.6rem] text-night-400 sm:text-sm">
+            <span className="block text-[0.6rem] text-silver-400 sm:text-sm">
               {formatUSD(
                 priceUsd *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
@@ -51,10 +51,10 @@ export const PoolTokenInput = ({
           ) : null}
         </div>
       </div>
-      <div className="flex items-center justify-between bg-night-900 p-3">
-        <p className="flex items-center text-night-400 text-sm">
+      <div className="flex items-center justify-between bg-night-500 p-3">
+        <p className="flex items-center text-silver-400 text-sm">
           Balance:
-          <span className="inline-block pl-1 font-medium text-night-100">
+          <span className="inline-block pl-1 font-medium text-silver-100">
             <VisibleOnClient>
               {formatAmount(balance, { decimals: token.decimals })}
             </VisibleOnClient>

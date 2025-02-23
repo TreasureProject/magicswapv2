@@ -27,12 +27,12 @@ export const NumberSelect = ({
   };
 
   return (
-    <div className="flex items-center gap-2 rounded-md bg-night-1100 p-2">
+    <div className="flex items-center gap-2 rounded-md bg-night-700 p-2">
       <button
         type="button"
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
-          value > 1 && "opacity-100 hover:bg-night-1000 hover:text-night-200",
+          "flex h-6 w-6 items-center justify-center rounded-md text-silver-400 opacity-50 transition-colors",
+          value > 1 && "opacity-100 hover:bg-silver-1000 hover:text-silver-200",
         )}
         disabled={value <= 1}
         onClick={() => updateNumber("sub")}
@@ -46,13 +46,14 @@ export const NumberSelect = ({
         onChange={(e) => {
           overrideNumber(e.target.value);
         }}
-        className="center w-10 bg-transparent text-center font-medium text-night-100 text-sm"
+        className="center w-10 bg-transparent text-center font-medium text-silver-100 text-sm"
       />
       <button
         type="button"
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md text-night-400 opacity-50 transition-colors",
-          value < max && "opacity-100 hover:bg-night-1000 hover:text-night-200",
+          "flex h-6 w-6 items-center justify-center rounded-md text-silver-400 opacity-50 transition-colors",
+          value < max &&
+            "opacity-100 hover:bg-silver-1000 hover:text-silver-200",
         )}
         disabled={value >= max}
         onClick={() => updateNumber("add")}

@@ -16,14 +16,14 @@ export const InfoPopover = ({ buttonClassName, children }: Props) => (
       <button type="button" className="group">
         <HelpCircle
           className={cn(
-            "h-4 w-4 text-night-200 transition-colors group-hover:text-night-500",
+            "h-4 w-4 text-silver-200 transition-colors group-hover:text-silver-500",
             buttonClassName,
           )}
         />
       </button>
     </PopoverTrigger>
     <PopoverContent align="end" className="w-72">
-      <p className="text-night-300 text-xs">
+      <p className="text-silver-300 text-xs">
         <Balancer>{children}</Balancer>
       </p>
     </PopoverContent>

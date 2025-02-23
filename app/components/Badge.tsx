@@ -19,9 +19,9 @@ export const Badge = ({
 }: Props) => (
   <div
     className={cn(
-      "rounded-3xl bg-night-700 px-3.5 py-0.5 font-medium text-white text-xs leading-[160%]",
-      color === "primary" && "bg-ruby-800/10 text-ruby-700",
-      color === "secondary" && "bg-honey-500/25 text-honey-700",
+      "rounded-3xl bg-night-200 px-3.5 py-0.5 font-medium text-white text-xs leading-[160%]",
+      color === "primary" && "bg-ruby-300/20 text-ruby-300",
+      color === "secondary" && "bg-honey-400/20 text-honey-400",
       rounded === "partially" && "rounded-md",
       size === "xs" && "px-1.5 font-normal text-[0.6rem]",
     )}

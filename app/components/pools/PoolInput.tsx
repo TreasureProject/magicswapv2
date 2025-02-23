@@ -41,7 +41,7 @@ export const PoolInput = ({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-lg bg-night-1100">
+    <div className="relative overflow-hidden rounded-lg bg-night-700">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex-1 space-y-1">
           <CurrencyInput
@@ -51,7 +51,7 @@ export const PoolInput = ({
             disabled={!isConnected}
           />
           {pool.reserveUsd ? (
-            <span className="block text-night-400 text-sm">
+            <span className="block text-silver-400 text-sm">
               {formatUSD(
                 (pool.reserveUsd / bigIntToNumber(pool.totalSupply)) *
                   (Number.isNaN(parsedAmount) || parsedAmount === 0
@@ -64,13 +64,13 @@ export const PoolInput = ({
         <div className="space-y-1.5">
           <div className="flex shrink-0 items-center justify-end">
             <PoolImage pool={pool} className="h-5 w-5" />
-            <p className="-ml-1 whitespace-nowrap font-medium text-lg text-night-100">
+            <p className="-ml-1 whitespace-nowrap font-medium text-lg text-silver-100">
               MLP Tokens
             </p>
           </div>
           <button
             type="button"
-            className="mr-0 ml-auto flex items-center justify-end gap-1.5 text-night-600 text-sm transition-colors hover:text-[#49AEE8]"
+            className="mr-0 ml-auto flex items-center justify-end gap-1.5 text-silver-600 text-sm transition-colors hover:text-[#49AEE8]"
             onClick={handleSelectMax}
           >
             {isBalanceStaked ? (
@@ -82,12 +82,12 @@ export const PoolInput = ({
           </button>
         </div>
       </div>
-      <div className="flex h-12 items-center justify-end bg-night-900 p-2">
+      <div className="flex h-12 items-center justify-end bg-night-500 p-2">
         {[0.1, 0.25, 0.5, 0.75, 1].map((percent) => (
           <button
             key={percent}
             type="button"
-            className="rounded-lg px-3 py-1.5 text-night-400 text-sm transition-colors hover:bg-night-800 hover:text-night-100"
+            className="rounded-lg px-3 py-1.5 text-silver-400 text-sm transition-colors hover:bg-night-400 hover:text-silver-100"
             onClick={() => handleSelect(percent)}
           >
             {percent === 1 ? "Max" : formatPercent(percent)}

@@ -250,14 +250,14 @@ export const PoolDepositTab = ({
               const otherAmount = isSelectingToken1 ? amount0 : amount1;
               const otherToken = isSelectingToken1 ? pool.token0 : pool.token1;
               return (
-                <div className="flex items-center gap-2 rounded-lg bg-night-800 p-4">
-                  <span className="text-night-400 text-sm">Requires:</span>
+                <div className="flex items-center gap-2 rounded-lg bg-night-400 p-4">
+                  <span className="text-silver-400 text-sm">Requires:</span>
                   <span className="flex items-center gap-1">
                     <PoolTokenImage
                       token={otherToken}
                       className="h-4 w-4 flex-shrink-0"
                     />
-                    <span className="truncate font-medium text-honey-25 text-sm">
+                    <span className="truncate font-medium text-cream text-sm">
                       {formatAmount(otherAmount, {
                         decimals: otherToken.decimals,
                       })}
@@ -354,7 +354,7 @@ export const PoolDepositTab = ({
         <LabeledCheckbox
           onCheckedChange={(checked) => setCheckedTerms(Boolean(checked))}
           checked={checkedTerms}
-          className="rounded-md border border-night-800 bg-night-1100/50 p-4"
+          className="rounded-md border border-night-400 bg-night-700/50 p-4"
           id="terms"
           description="I hereby acknowledge and accept the potential uncertainty regarding the retrievability of the specific asset deposited. Should the original asset become unavailable, I willingly consent to receive an alternative asset from the existing collection."
         >
@@ -415,11 +415,11 @@ const ApproveAgainInfoPopover = () => (
         className="group ml-1"
         onClick={(e) => e.stopPropagation()}
       >
-        <HelpCircle className="h-4 w-4 transition-colors group-hover:text-night-100" />
+        <HelpCircle className="h-4 w-4 transition-colors group-hover:text-silver-100" />
       </button>
     </PopoverTrigger>
     <PopoverContent align="center" className="w-72 text-left">
-      <p className="text-night-300 text-xs">
+      <p className="text-silver-300 text-xs">
         <Balancer>
           You will need to approve again because the amount you entered exceeds
           the amount you previously approved.

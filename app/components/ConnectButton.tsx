@@ -42,7 +42,7 @@ const ConnectedButton = ({ address }: { address: Address }) => {
       <div className="relative h-9 w-9">
         <Avatar size={36} address={address} radius={0} />
         {!data && state === "loading" ? (
-          <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-night-900/50">
+          <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-night-500/50">
             <LoaderIcon className="h-5 w-5" />
           </div>
         ) : (
@@ -75,7 +75,7 @@ const ConnectedButton = ({ address }: { address: Address }) => {
             </motion.span>
           )}
         </AnimatePresence>
-        <ChevronDown className="h-4 w-4 text-night-400" />
+        <ChevronDown className="h-4 w-4 text-silver-400" />
       </div>
 
       <button
@@ -98,10 +98,10 @@ const TreasureTag = ({ name }: { name: string }) => {
       exit={{ opacity: 0 }}
       className="flex items-center space-x-1"
     >
-      <MagicStarsIcon className="h-3 w-3 text-ruby-900" />
-      <span className="text-honey-25">
+      <MagicStarsIcon className="h-3 w-3 text-ruby-600" />
+      <span className="text-cream">
         {treasureTag}
-        <span className="text-night-500">#{treasureTagDiscriminant}</span>
+        <span className="text-silver-500">#{treasureTagDiscriminant}</span>
       </span>
     </motion.div>
   );

@@ -9,10 +9,10 @@ type ToastProps = {
 };
 
 const renderToast = ({ title, description }: ToastProps) => (
-  <div className="text-honey-25 text-lg">
+  <div className="text-cream text-lg">
     <p className="font-medium">{title}</p>
     {description ? (
-      <p className="text-night-100 text-sm">{description}</p>
+      <p className="text-silver-100 text-sm">{description}</p>
     ) : null}
   </div>
 );

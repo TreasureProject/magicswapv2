@@ -1,25 +1,17 @@
-/* app/tailwind.css */
+@import "@treasure-dev/tailwind-config/fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   * {
-    @apply border-border scrollbar-thin scrollbar-track-night-1000 scrollbar-thumb-night-800 scrollbar-thumb-rounded;
+    @apply border-border scrollbar-thin scrollbar-track-silver-1000 scrollbar-thumb-night-400 scrollbar-thumb-rounded;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-}
-
-@font-face {
-  font-family: "Whyte";
-  font-style: normal;
-  font-weight: 100 1000;
-  font-display: swap;
-  src: url("/fonts/ABCWhyteVariable.woff2") format("woff2"),
-    url("/fonts/ABCWhyteVariable.woff") format("woff");
 }
 
 .container {

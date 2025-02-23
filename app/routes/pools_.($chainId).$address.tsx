@@ -311,7 +311,7 @@ export default function PoolDetailsPage({
     <main className="container py-5 md:py-7">
       <Link
         to="/pools"
-        className="inline-flex items-center text-night-400 text-xs transition-colors hover:text-night-100"
+        className="inline-flex items-center text-silver-400 text-xs transition-colors hover:text-silver-100"
         prefetch="intent"
       >
         <ChevronLeftIcon className="h-4" />
@@ -332,7 +332,7 @@ export default function PoolDetailsPage({
                   >
                     {pool.name}
                   </a>
-                  <span className="text-night-400 text-sm">
+                  <span className="text-silver-400 text-sm">
                     LP Fees: {formatPercent(pool.lpFee, 3)}
                   </span>
                 </div>
@@ -345,7 +345,7 @@ export default function PoolDetailsPage({
                 Swap Pair
               </Link>
             </div>
-            <ul className="flex flex-wrap items-center gap-5 text-night-100 text-sm">
+            <ul className="flex flex-wrap items-center gap-5 text-silver-100 text-sm">
               {[pool.token0, pool.token1].map(
                 ({
                   address,
@@ -387,21 +387,21 @@ export default function PoolDetailsPage({
                 ),
               )}
             </ul>
-            <div className="h-[1px] bg-night-900" />
-            <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+            <div className="h-[1px] bg-night-500" />
+            <div className="overflow-hidden rounded-md border border-night-400 bg-[#0C1420]">
               <div className="space-y-6 p-4 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                   <div>
                     <h3 className="font-semibold text-lg">Pool Liquidity</h3>
                     {Number(pool.reserveUsd) > 0 ? (
-                      <span className="text-night-400">
+                      <span className="text-silver-400">
                         {formatUSD(pool.reserveUsd)}
                       </span>
                     ) : null}
                   </div>
-                  <div className="flex w-full items-center justify-center gap-3 rounded-lg border border-night-900 p-2 text-night-200 sm:w-auto">
+                  <div className="flex w-full items-center justify-center gap-3 rounded-lg border border-night-500 p-2 text-silver-200 sm:w-auto">
                     <p className="justify-self-end">1 {baseToken.symbol}</p>
-                    <ArrowLeftRightIcon className="h-4 w-4 text-night-600" />
+                    <ArrowLeftRightIcon className="h-4 w-4 text-silver-600" />
                     <p>
                       {baseReserve > 0
                         ? formatAmount(
@@ -431,7 +431,7 @@ export default function PoolDetailsPage({
                     </span>
                   </div>
                   <div />
-                  <div className="flex items-center justify-between gap-3 text-night-400 text-sm">
+                  <div className="flex items-center justify-between gap-3 text-silver-400 text-sm">
                     <span>
                       {BigInt(baseToken.derivedMagic) > 0
                         ? formatUSD(
@@ -453,27 +453,27 @@ export default function PoolDetailsPage({
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-3 divide-x divide-night-900 bg-night-1100 px-8 py-4 text-center text-[#FFFCF5]">
+              <div className="grid grid-cols-3 divide-x divide-night-500 bg-night-700 px-8 py-4 text-center text-[#FFFCF5]">
                 <div>
-                  <p className="text-night-400 text-sm">Volume (24h)</p>
+                  <p className="text-silver-400 text-sm">Volume (24h)</p>
                   <p>{getPoolVolume24hDisplay(pool)}</p>
                 </div>
                 <div>
-                  <p className="text-night-400 text-sm">Fees (24h)</p>
+                  <p className="text-silver-400 text-sm">Fees (24h)</p>
                   <p>{getPoolFees24hDisplay(pool)}</p>
                 </div>
                 <div>
-                  <p className="text-night-400 text-sm">APY</p>
+                  <p className="text-silver-400 text-sm">APY</p>
                   <p>{formatPercent(pool.apy)}</p>
                 </div>
               </div>
             </div>
             {poolIncentives.length > 0 ? (
-              <div className="overflow-hidden rounded-md border border-night-800 bg-[#0C1420]">
+              <div className="overflow-hidden rounded-md border border-night-400 bg-[#0C1420]">
                 <div className="space-y-4 p-4 sm:p-6">
                   <div>
                     <h3 className="font-semibold text-lg">Rewards</h3>
-                    <p className="text-night-400 text-sm">
+                    <p className="text-silver-400 text-sm">
                       Rewards are earned for staking in the pool
                     </p>
                   </div>
@@ -488,7 +488,7 @@ export default function PoolDetailsPage({
                       }) => (
                         <div
                           key={incentiveId}
-                          className="flex items-center justify-between gap-3 rounded-md p-3 even:bg-night-1100"
+                          className="flex items-center justify-between gap-3 rounded-md p-3 even:bg-night-700"
                         >
                           <div className="flex items-center gap-2 font-medium">
                             {rewardToken ? (
@@ -497,7 +497,7 @@ export default function PoolDetailsPage({
                                 token={rewardToken}
                               />
                             ) : null}
-                            <span className="text-night-100">
+                            <span className="text-silver-100">
                               {rewardToken?.symbol ??
                                 truncateEthAddress(rewardTokenAddress)}
                             </span>
@@ -518,7 +518,7 @@ export default function PoolDetailsPage({
                                 type: "compact",
                               })}
                             </span>{" "}
-                            <span className="block text-night-400 text-xs sm:inline sm:text-sm">
+                            <span className="block text-silver-400 text-xs sm:inline sm:text-sm">
                               available until{" "}
                               {new Date(
                                 Number(endTime) * 1000,
@@ -540,7 +540,7 @@ export default function PoolDetailsPage({
                   ) : null}
                 </div>
                 {lpStaked > 0 ? (
-                  <div className="space-y-6 bg-night-1100 px-4 py-4 sm:px-6">
+                  <div className="space-y-6 bg-night-700 px-4 py-4 sm:px-6">
                     <div className="space-y-3">
                       <h4 className="text-[#FFFCF5]">Your earned rewards</h4>
                       <ul className="flex flex-wrap items-start gap-8">
@@ -562,7 +562,7 @@ export default function PoolDetailsPage({
                                     ?.decimals ?? 18,
                                 ),
                               })}
-                              <span className="block text-night-400 text-sm">
+                              <span className="block text-silver-400 text-sm">
                                 {userIncentive.incentive.rewardToken?.symbol}
                               </span>
                             </div>
@@ -581,16 +581,16 @@ export default function PoolDetailsPage({
                     ) : null}
                   </div>
                 ) : (
-                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-cover bg-night-1100 bg-right bg-no-repeat p-4 sm:p-6">
+                  <div className="relative bg-[url(/img/pools/rewards_bg.png)] bg-cover bg-night-700 bg-right bg-no-repeat p-4 sm:p-6">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0A111C]/80 to-[#463711] sm:from-[#0A111C]/0 sm:to-[#463711]" />
                     <div className="relative flex w-full items-center justify-between gap-3">
                       <span className="font-medium text-[#FFFDF6] text-xl">
                         Start staking and{" "}
-                        <span className="text-honey-900">earn rewards</span>
+                        <span className="text-honey-500">earn rewards</span>
                       </span>
                       <button
                         type="button"
-                        className="hidden rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-700 active:bg-honey-800 sm:inline"
+                        className="hidden rounded-lg bg-[#FACE61] px-4 py-2 font-medium text-[#0E1725] transition-colors hover:bg-honey-400 active:bg-honey-400 sm:inline"
                         onClick={() => setTab("stake")}
                       >
                         Stake now
@@ -601,11 +601,11 @@ export default function PoolDetailsPage({
               </div>
             ) : null}
             {lpBalance > 0 || lpStaked > 0 ? (
-              <div className="space-y-4 rounded-md bg-night-1100 p-4">
+              <div className="space-y-4 rounded-md bg-night-700 p-4">
                 <div>
                   <h3 className="font-medium text-lg">My Position</h3>
                   {pool.reserveUsd > 0 ? (
-                    <span className="text-night-400 text-sm">
+                    <span className="text-silver-400 text-sm">
                       {formatUSD(lpShare * pool.reserveUsd)}
                     </span>
                   ) : null}
@@ -613,11 +613,11 @@ export default function PoolDetailsPage({
                 {poolIncentives.length > 0 ? (
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-10">
                     <div className="space-y-2">
-                      <h3 className="text-night-200">Unstaked</h3>
+                      <h3 className="text-silver-200">Unstaked</h3>
                       <PoolLpAmount pool={pool} amount={lpBalance} />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-night-200">Staked</h3>
+                      <h3 className="text-silver-200">Staked</h3>
                       <PoolLpAmount pool={pool} amount={lpStaked} />
                     </div>
                   </div>
@@ -699,8 +699,8 @@ export default function PoolDetailsPage({
                 key={label}
                 type="button"
                 className={cn(
-                  "text-night-400 text-sm capitalize hover:text-night-200",
-                  value === poolActivityFilter && "text-night-100",
+                  "text-silver-400 text-sm capitalize hover:text-silver-200",
+                  value === poolActivityFilter && "text-silver-100",
                 )}
                 onClick={() => setPoolActivityFilter(value)}
               >
@@ -791,7 +791,7 @@ const PoolManagementView = ({
   return (
     <div className={className}>
       <div className="flex w-full items-center justify-between">
-        <h1 className="font-semibold text-lg text-night-100">
+        <h1 className="font-semibold text-lg text-silver-100">
           Manage Liquidity
         </h1>
         <SettingsDropdownMenu />
@@ -889,9 +889,9 @@ const PoolActivityTable = ({
 
   return (
     <div>
-      <table className="mt-3.5 w-full rounded-md bg-night-1100 text-night-100">
-        <thead className="border-b border-b-night-900">
-          <tr className="text-night-200 text-sm">
+      <table className="mt-3.5 w-full rounded-md bg-night-700 text-silver-100">
+        <thead className="border-b border-b-night-500">
+          <tr className="text-silver-200 text-sm">
             <th className="px-4 py-2.5 text-left font-normal sm:px-5">
               Tokens
             </th>
@@ -953,13 +953,13 @@ const PoolActivityTable = ({
 
             return (
               <Fragment key={tx.hash}>
-                <tr className="border-b border-b-night-900 transition-colors">
+                <tr className="border-b border-b-night-500 transition-colors">
                   <td className="px-4 py-3.5 text-left sm:px-5">
-                    <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-night-400 text-sm">
+                    <div className="grid grid-cols-[1fr,max-content,1fr] items-center gap-3 text-silver-400 text-sm">
                       <div className="flex items-center gap-2.5">
                         <PoolTransactionImage token={tokenA} items={itemsA} />
                         <span>
-                          <span className="text-honey-25">
+                          <span className="text-cream">
                             {formatAmount(amountA, {
                               decimals: tokenA.decimals,
                               type: "compact",
@@ -976,7 +976,7 @@ const PoolActivityTable = ({
                       <div className="flex items-center gap-2.5">
                         <PoolTransactionImage token={tokenB} items={itemsB} />
                         <span>
-                          <span className="text-honey-25">
+                          <span className="text-cream">
                             {formatAmount(amountB, {
                               decimals: tokenB.decimals,
                               type: "compact",
@@ -993,9 +993,9 @@ const PoolActivityTable = ({
                   <td className="hidden px-4 py-3.5 text-center sm:table-cell sm:px-5">
                     {tx.amountUsd > 0 ? formatUSD(tx.amountUsd) : "-"}
                   </td>
-                  <td className="hidden px-4 py-3.5 text-center text-night-400 text-sm sm:table-cell sm:px-5">
+                  <td className="hidden px-4 py-3.5 text-center text-silver-400 text-sm sm:table-cell sm:px-5">
                     {tx.userDomain?.treasuretag ? (
-                      <span className="flex items-center justify-center gap-1 font-medium text-honey-25">
+                      <span className="flex items-center justify-center gap-1 font-medium text-cream">
                         <MagicLogo className="h-3 w-3" />
                         {tx.userDomain.treasuretag.name}
                       </span>
@@ -1007,12 +1007,12 @@ const PoolActivityTable = ({
                       </span>
                     )}
                   </td>
-                  <td className="hidden px-4 py-3.5 text-right text-night-400 text-sm sm:table-cell sm:px-5">
+                  <td className="hidden px-4 py-3.5 text-right text-silver-400 text-sm sm:table-cell sm:px-5">
                     {new Date(Number(tx.timestamp) * 1000).toLocaleString()}
                   </td>
                   <td className="flex items-center justify-end gap-2 px-4 py-3.5 text-end sm:px-5">
                     <a
-                      className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:text-night-100"
+                      className="cursor-pointer rounded-md p-1.5 text-silver-400 transition-colors hover:text-silver-100"
                       href={`${blockExplorer.url}/tx/${tx.hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -1021,7 +1021,7 @@ const PoolActivityTable = ({
                       <ExternalLinkIcon className="h-4 w-4" />
                     </a>
                     {/* <button
-                          className="cursor-pointer rounded-md p-1.5 text-night-400 transition-colors hover:bg-night-900 hover:text-night-100"
+                          className="cursor-pointer rounded-md p-1.5 text-silver-400 transition-colors hover:bg-night-500 hover:text-silver-100"
                           onClick={() =>
                             setExpandedRow(expandedRow === 0 ? null : 0)
                           }
@@ -1040,7 +1040,7 @@ const PoolActivityTable = ({
                         initial={{ height: "0px", opacity: 0 }}
                         animate={{ height: "max", opacity: 1 }}
                         exit={{ height: "0px", opacity: 0 }}
-                        className={cn("grid w-full bg-night-1100 px-3 py-6")}
+                        className={cn("grid w-full bg-night-700 px-3 py-6")}
                       >
                         {token0.isVault &&
                           token0.reserveItems.map(
@@ -1050,7 +1050,7 @@ const PoolActivityTable = ({
                                 className="relative h-24 w-24 overflow-hidden rounded"
                               >
                                 <img src={image} alt={name} />
-                                <span className="absolute right-1 top-1 rounded-lg bg-night-100 px-1.5 py-0.5 text-xs font-medium text-night-900">
+                                <span className="absolute right-1 top-1 rounded-lg bg-silver-100 px-1.5 py-0.5 text-xs font-medium text-night-500">
                                   {amount}x
                                 </span>
                               </div>
@@ -1063,7 +1063,7 @@ const PoolActivityTable = ({
           })}
         </tbody>
       </table>
-      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-1100 px-3 py-2">
+      <nav className="flex w-full items-center justify-between rounded-b-lg bg-night-700 px-3 py-2">
         <Button
           variant="ghost"
           className="pr-3.5 pl-2"
@@ -1074,17 +1074,17 @@ const PoolActivityTable = ({
           <p className="text-sm">Previous</p>
         </Button>
         {totalCount > 0 ? (
-          <p className="text-night-500">
+          <p className="text-silver-500">
             Showing{" "}
-            <span className="text-night-200">
+            <span className="text-silver-200">
               {formatNumber((page - 1) * limit + 1)}
             </span>{" "}
             to{" "}
-            <span className="text-night-200">
+            <span className="text-silver-200">
               {formatNumber((page - 1) * limit + transactions.length)}
             </span>{" "}
             of{" "}
-            <span className="text-night-200">{formatNumber(totalCount)}</span>
+            <span className="text-silver-200">{formatNumber(totalCount)}</span>
           </p>
         ) : null}
         <Button

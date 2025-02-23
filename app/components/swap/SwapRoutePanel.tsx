@@ -34,15 +34,14 @@ export const SwapRoutePanel = ({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-night-800 text-night-400 text-sm",
+        "overflow-hidden rounded-lg border border-night-400 text-silver-400 text-sm",
         className,
       )}
     >
-      <div className="flex items-center justify-between border border-night-1000 border-b p-4">
+      <div className="flex items-center justify-between border border-silver-1000 border-b p-4">
         <span>
-          <span className="font-medium text-honey-25">1</span>{" "}
-          {tokenOut?.symbol} ={" "}
-          <span className="font-medium text-honey-25">
+          <span className="font-medium text-cream">1</span> {tokenOut?.symbol} ={" "}
+          <span className="font-medium text-cream">
             {formatAmount(derivedValue)}
           </span>{" "}
           {tokenIn.symbol}
@@ -123,4 +122,4 @@ export const SwapRoutePanel = ({
 //     ? "text-red-500"
 //     : priceImpact > 0.01
 //       ? "text-amber-500"
-//       : "text-honey-25";
+//       : "text-cream";
