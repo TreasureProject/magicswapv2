@@ -1,8 +1,7 @@
 import type { Address } from "viem";
 
 import { CONTRACT_ADDRESSES, type Contract } from "~/consts";
-import type { ChainId } from "~/types";
-import type { version as Version } from ".graphclient";
+import type { ChainId, Version } from "~/types";
 
 const truncateRegex = /^(0x[a-zA-Z0-9]{4})[a-zA-Z0-9]+([a-zA-Z0-9]{4})$/;
 

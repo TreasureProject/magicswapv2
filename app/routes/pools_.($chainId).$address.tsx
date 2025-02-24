@@ -17,14 +17,16 @@ import {
 import { Await, Link, useRevalidator, useRouteLoaderData } from "react-router";
 import invariant from "tiny-invariant";
 import { type Address, parseUnits } from "viem";
-
 import { useSwitchChain } from "wagmi";
+
 import { type PoolTransactionItem, fetchPool } from "~/api/pools.server";
+import type { Pool, TransactionType } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,
 } from "~/api/tokens.server";
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { fetchUserPosition } from "~/api/user.server";
 import { Badge } from "~/components/Badge";
 import { ExternalLinkIcon, LoaderIcon, SwapIcon } from "~/components/Icons";
@@ -52,7 +54,7 @@ import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
 import { getBlockExplorer } from "~/lib/chain";
 import { formatAmount, formatUSD } from "~/lib/currency";
-import { ENV } from "~/lib/env.server";
+import { getContext } from "~/lib/env.server";
 import {
   bigIntToNumber,
   floorBigInt,
@@ -65,9 +67,8 @@ import { formatTokenReserve } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoaderData } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, Pool, Token, TokenWithAmount } from "~/types";
+import type { Optional } from "~/types";
 import type { Route } from "./+types/pools_.($chainId).$address";
-import type { transactionType as TransactionType } from ".graphclient";
 
 type PoolManagementTab = "deposit" | "withdraw" | "stake" | "unstake";
 
@@ -102,7 +103,8 @@ export const meta: Route.MetaFunction = ({ data, matches, location }) => {
 export async function loader({ params, request }: Route.LoaderArgs) {
   invariant(params.address, "Pool address required");
 
-  const chainId = Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID);
+  const { env } = getContext();
+  const chainId = Number(params.chainId ?? env.PUBLIC_DEFAULT_CHAIN_ID);
   const userSession = await getSession(request.headers.get("Cookie"));
   const userAddress = userSession.get("address");
   const [pool, userPosition, magicUsd] = await Promise.all([

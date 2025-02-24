@@ -1,4 +1,4 @@
-import type { Token } from "~/types";
+import type { Token } from "~/api/tokens.server";
 import { sumArray } from "./array";
 import { formatAmount } from "./currency";
 import { floorBigInt } from "./number";

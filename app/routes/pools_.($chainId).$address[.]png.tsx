@@ -2,7 +2,7 @@ import invariant from "tiny-invariant";
 
 import { fetchPool } from "~/api/pools.server";
 import { formatAmount } from "~/lib/currency";
-import { ENV } from "~/lib/env.server";
+import { getContext } from "~/lib/env.server";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
 import {
   NIGHT_100,
@@ -19,8 +19,9 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
 
   invariant(params.address, "Pool address required");
 
+  const { env } = getContext();
   const pool = await fetchPool({
-    chainId: Number(params.chainId ?? ENV.PUBLIC_DEFAULT_CHAIN_ID),
+    chainId: Number(params.chainId ?? env.PUBLIC_DEFAULT_CHAIN_ID),
     address: params.address,
   });
   if (!pool) {
@@ -200,10 +201,9 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
     status: 200,
     headers: {
       "Content-Type": "image/png",
-      "cache-control":
-        ENV.NODE_ENV === "development"
-          ? "no-cache, no-store"
-          : "public, immutable, no-transform, max-age=86400",
+      "cache-control": env.PUBLIC_IS_DEV
+        ? "no-cache, no-store"
+        : "public, immutable, no-transform, max-age=86400",
     },
   });
 };

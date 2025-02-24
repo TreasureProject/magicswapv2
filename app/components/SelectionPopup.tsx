@@ -6,15 +6,15 @@ import {
   XIcon,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { DialogClose, DialogContent } from "~/components/ui/Dialog";
 import { useVaultItems } from "~/hooks/useVaultItems";
 import { formatNumber } from "~/lib/number";
 import { countTokens } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
-import type { Token, TokenWithAmount } from "~/types";
 import { CheckIcon, LoaderIcon } from "./Icons";
 import { PoolTokenImage } from "./pools/PoolTokenImage";
 import { Button } from "./ui/Button";
@@ -246,8 +246,8 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                           ? Math.min(
                               props.requiredAmount - selectedQuantity,
                               Number(item.amount),
-                            )
-                          : 1,
+                            ).toString()
+                          : "1",
                     });
                   }}
                 />
@@ -317,7 +317,7 @@ export const SelectionPopup = ({ token, type, ...props }: Props) => {
                                 setSelectedItems((prev) =>
                                   prev.map((i) =>
                                     i.tokenId === item.tokenId
-                                      ? { ...i, amount: num }
+                                      ? { ...i, amount: num.toString() }
                                       : i,
                                   ),
                                 );

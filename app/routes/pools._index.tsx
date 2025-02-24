@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Await, Link, useNavigate } from "react-router";
 
-import { fetchPools } from "~/api/pools.server";
+import { type PairFilter, fetchPools } from "~/api/pools.server";
 import { Badge } from "~/components/Badge";
 import { MagicStarsIcon } from "~/components/ConnectButton";
 import { PoolImage } from "~/components/pools/PoolImage";
@@ -14,7 +14,6 @@ import {
 } from "~/lib/pools";
 import type { Route } from "./+types/pools._index";
 import type { PoolsHandle } from "./pools";
-import type { pairFilter as PairFilter } from ".graphclient";
 
 export const handle: PoolsHandle = {
   tab: "pools",

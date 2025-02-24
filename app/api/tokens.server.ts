@@ -1,4 +1,3 @@
-import type { ExecutionResult } from "graphql";
 import type { Address } from "viem";
 
 import {
@@ -6,37 +5,105 @@ import {
   CHAIN_ID_TO_TROVE_API_URL,
 } from "~/consts";
 import { erc721Abi, erc1155Abi } from "~/generated";
+import { graphql } from "~/gql/query.server";
 import { sumArray } from "~/lib/array";
 import { getViemClient } from "~/lib/chain.server";
-import { ENV } from "~/lib/env.server";
-import type { Token, TokenWithAmount, TroveToken } from "~/types";
-import {
-  GetTokenDocument,
-  type GetTokenQuery,
-  GetTokenVaultReserveItemsDocument,
-  type GetTokenVaultReserveItemsQuery,
-  GetTokensDocument,
-  type GetTokensQuery,
-  execute,
-} from ".graphclient";
+import { getContext } from "~/lib/env.server";
+import type { TroveToken } from "~/types";
+
+export const TokenFragment = graphql(`
+  fragment TokenFragment on token @_unmask {
+    chainId
+    address
+    name
+    symbol
+    image
+    gameId
+    decimals
+    derivedMagic
+    isVault
+    isMagic
+    isEth
+    collectionAddress
+    collectionTokenIds
+    collectionType
+    collectionName
+    collectionImage
+    reserveItems {
+      items {
+        tokenId
+        amount
+      }
+    }
+  }
+`);
+
+const getTokenQuery = graphql(
+  `
+  query getToken($chainId: Float!, $address: String!) {
+    token(chainId: $chainId, address: $address) {
+      ...TokenFragment
+    }
+  }
+`,
+  [TokenFragment],
+);
+
+const getTokensQuery = graphql(
+  `
+  query getTokens(
+    $where: tokenFilter
+    $limit: Int = 100
+    $orderBy: String = "symbol"
+    $orderDirection: String = "asc"
+  ) {
+    tokens(
+      where: $where
+      limit: $limit
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+    ) {
+      items {
+        ...TokenFragment
+      }
+    }
+  }
+`,
+  [TokenFragment],
+);
+
+const getTokenVaultReserveItemsQuery = graphql(`
+  query getTokenVaultReserveItems(
+    $chainId: Int!
+    $address: String!
+    $limit: Int = 50
+    $orderBy: String = "tokenId"
+    $orderDirection: String = "asc"
+  ) {
+    vaultReserveItems(
+      where: { chainId: $chainId, vaultAddress: $address }
+      limit: $limit
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+    ) {
+      items {
+        collectionAddress
+        tokenId
+        name
+        image
+        amount
+      }
+    }
+  }
+`);
 
 /**
  * Fetches tokens available for swapping
  */
 export const fetchTokens = async () => {
-  const { data, errors } = (await execute(
-    GetTokensDocument,
-    {},
-  )) as ExecutionResult<GetTokensQuery>;
-  if (errors) {
-    throw new Error(
-      `Error fetching tokens: ${errors
-        .map((error) => error.message)
-        .join(", ")}`,
-    );
-  }
-
-  return data?.tokens.items ?? [];
+  const { graphClient } = await getContext();
+  const { tokens } = await graphClient.request(getTokensQuery, {});
+  return tokens.items ?? [];
 };
 
 /**
@@ -45,12 +112,10 @@ export const fetchTokens = async () => {
 export const fetchToken = async (params: {
   chainId: number;
   address: string;
-}): Promise<Token | undefined> => {
-  const result = (await execute(
-    GetTokenDocument,
-    params,
-  )) as ExecutionResult<GetTokenQuery>;
-  return result.data?.token ?? undefined;
+}) => {
+  const { graphClient } = await getContext();
+  const { token } = await graphClient.request(getTokenQuery, params);
+  return token ?? undefined;
 };
 
 /**
@@ -77,7 +142,7 @@ export const fetchPoolTokenBalance = async (token: Token, address: string) => {
 
       const response = await fetch(url, {
         headers: {
-          "X-API-Key": ENV.TROVE_API_KEY,
+          "X-API-Key": getContext().env.TROVE_API_KEY,
         },
       });
       const result = (await response.json()) as TroveToken[];
@@ -121,13 +186,13 @@ export const fetchVaultUserInventory = async ({
   chainId: number;
   vaultAddress: string;
   userAddress: string;
-}): Promise<TokenWithAmount[]> => {
+}) => {
   // Fetch vault data from subgraph
-  const result = (await execute(GetTokenDocument, {
+  const { env, graphClient } = await getContext();
+  const { token } = await graphClient.request(getTokenQuery, {
     chainId,
     address: vaultAddress,
-  })) as ExecutionResult<GetTokenQuery>;
-  const { token } = result.data ?? {};
+  });
   if (!token) {
     throw new Error("Vault not found");
   }
@@ -163,7 +228,7 @@ export const fetchVaultUserInventory = async ({
 
   const response = await fetch(url, {
     headers: {
-      "X-API-Key": ENV.TROVE_API_KEY,
+      "X-API-Key": env.TROVE_API_KEY,
     },
   });
   const results = (await response.json()) as TroveToken[];
@@ -172,7 +237,7 @@ export const fetchVaultUserInventory = async ({
     tokenId: token.tokenId,
     name: token.metadata.name,
     image: token.image.uri,
-    amount: token.queryUserQuantityOwned ?? 0,
+    amount: token.queryUserQuantityOwned?.toString() ?? "0",
   }));
 };
 
@@ -191,11 +256,20 @@ export const fetchVaultReserveItems = async ({
   resultsPerPage?: number;
 }) => {
   // Fetch vault reserve items from subgraph
-  const result = (await execute(GetTokenVaultReserveItemsDocument, {
-    chainId,
-    address,
-    first: resultsPerPage,
-    skip: (page - 1) * resultsPerPage,
-  })) as ExecutionResult<GetTokenVaultReserveItemsQuery>;
-  return result.data?.vaultReserveItems?.items ?? [];
+  const { graphClient } = await getContext();
+  const { vaultReserveItems } = await graphClient.request(
+    getTokenVaultReserveItemsQuery,
+    {
+      chainId,
+      address,
+      first: resultsPerPage,
+      skip: (page - 1) * resultsPerPage,
+    },
+  );
+  return vaultReserveItems?.items ?? [];
 };
+
+export type Token = NonNullable<Awaited<ReturnType<typeof fetchToken>>>;
+export type TokenWithAmount = Awaited<
+  ReturnType<typeof fetchVaultReserveItems>
+>[number];

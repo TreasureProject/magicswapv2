@@ -1,5 +1,5 @@
+import type { Token } from "~/api/tokens.server";
 import { formatAmount, formatUSD } from "~/lib/currency";
-import type { Token } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { VisibleOnClient } from "../VisibleOnClient";
 import { InfoPopover } from "../ui/InfoPopover";

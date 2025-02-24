@@ -1,12 +1,42 @@
-export const ENV = {
-  NODE_ENV: process.env.NODE_ENV,
-  PUBLIC_IS_DEV: process.env.PUBLIC_IS_DEV === "true",
-  PUBLIC_DEFAULT_CHAIN_ID: Number(process.env.PUBLIC_DEFAULT_CHAIN_ID ?? 0),
-  PUBLIC_DEFAULT_TOKEN_ADDRESS: process.env.PUBLIC_DEFAULT_TOKEN_ADDRESS ?? "",
-  PUBLIC_THIRDWEB_CLIENT_ID: process.env.PUBLIC_THIRDWEB_CLIENT_ID ?? "",
-  PUBLIC_WALLET_CONNECT_PROJECT_ID:
-    process.env.PUBLIC_WALLET_CONNECT_PROJECT_ID ?? "",
-  PUBLIC_GTAG_ID: process.env.PUBLIC_GTAG_ID,
-  TROVE_API_KEY: process.env.TROVE_API_KEY ?? "",
-  BACKEND_THIRDWEB_CLIENT_ID: process.env.BACKEND_THIRDWEB_CLIENT_ID,
+import { type } from "arktype";
+import { GraphQLClient } from "graphql-request";
+import type { Context } from "hono";
+import { getContext as getContextStorage } from "hono/context-storage";
+
+const envSchema = type({
+  PUBLIC_IS_DEV: ["boolean", "=", false],
+  PUBLIC_DEFAULT_CHAIN_ID: type("number").or("string.numeric.parse"),
+  PUBLIC_DEFAULT_TOKEN_ADDRESS: "string",
+  PUBLIC_THIRDWEB_CLIENT_ID: "string",
+  PUBLIC_WALLET_CONNECT_PROJECT_ID: "string",
+  "PUBLIC_GTAG_ID?": "string",
+  MAGICSWAPV2_API_URL: "string",
+  TROVE_API_KEY: "string",
+  BACKEND_THIRDWEB_CLIENT_ID: "string",
+});
+
+type Env = typeof envSchema.infer;
+export type HonoEnv = {
+  Variables: {
+    env: Env;
+    graphClient: GraphQLClient;
+  };
 };
+
+export const createEnv = (ctx: Context<HonoEnv>) => {
+  const env = envSchema({
+    ...process.env,
+    ...(ctx.env as Env),
+  });
+
+  if (env instanceof type.errors) {
+    throw new Error(`Invalid environment variables: ${env.summary}`);
+  }
+
+  ctx.set("env", env);
+  ctx.set("graphClient", new GraphQLClient(env.MAGICSWAPV2_API_URL));
+
+  return env;
+};
+
+export const getContext = () => getContextStorage<HonoEnv>().var;

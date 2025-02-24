@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 
 import { fetchToken } from "~/api/tokens.server";
-import { ENV } from "~/lib/env.server";
+import { getContext } from "~/lib/env.server";
 import {
   NIGHT_100,
   NIGHT_400,
@@ -12,14 +12,15 @@ import { parseTokenParams } from "~/lib/tokens";
 import type { Route } from "./+types/swap.$tokenIn.$tokenOut[.]png";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {
+  const { env } = getContext();
   const { origin } = new URL(request.url);
 
   const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
     parseTokenParams({
       inStr: params.tokenIn ?? "",
       outStr: params.tokenOut ?? "",
-      defaultChainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
-      defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
+      defaultChainId: env.PUBLIC_DEFAULT_CHAIN_ID,
+      defaultTokenAddress: env.PUBLIC_DEFAULT_TOKEN_ADDRESS,
     });
 
   invariant(tokenAddressOut, "Missing output address");
@@ -75,10 +76,9 @@ export const loader = async ({ request, params }: Route.LoaderArgs) => {
     status: 200,
     headers: {
       "Content-Type": "image/png",
-      "cache-control":
-        ENV.NODE_ENV === "development"
-          ? "no-cache, no-store"
-          : "public, immutable, no-transform, max-age=86400",
+      "cache-control": env.PUBLIC_IS_DEV
+        ? "no-cache, no-store"
+        : "public, immutable, no-transform, max-age=86400",
     },
   });
 };

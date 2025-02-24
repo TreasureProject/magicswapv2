@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
+import type { Pool } from "~/api/pools.server";
 import { useAccount } from "~/contexts/account";
 import { useStake } from "~/hooks/useStake";
-import type { NumberString, Pool } from "~/types";
+import type { NumberString } from "~/types";
 import { TransactionButton } from "../ui/Button";
 import { PoolInput } from "./PoolInput";
 

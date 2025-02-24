@@ -18,7 +18,7 @@ import { Layout } from "./components/Layout";
 import { Web3Provider, getConfig } from "./components/Web3Provider";
 import { Toaster } from "./components/ui/Toast";
 import { AccountProvider } from "./contexts/account";
-import { ENV } from "./lib/env.server";
+import { getContext } from "./lib/env.server";
 import { getDomainUrl } from "./lib/seo";
 import { useSettingsStore } from "./store/settings";
 import stylesheet from "./styles/app.css?url";
@@ -29,26 +29,29 @@ export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: nProgressStylesheet },
 ];
 
-export const loader = async ({ request }: Route.LoaderArgs) => ({
-  requestInfo: {
-    origin: getDomainUrl(request),
-    path: new URL(request.url).pathname,
-  },
-  env: {
-    PUBLIC_IS_DEV: ENV.PUBLIC_IS_DEV,
-    PUBLIC_THIRDWEB_CLIENT_ID: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
-    PUBLIC_WALLET_CONNECT_PROJECT_ID: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-    PUBLIC_GTAG_ID: ENV.PUBLIC_GTAG_ID,
-  },
-  initialState: cookieToInitialState(
-    getConfig({
-      environment: ENV.PUBLIC_IS_DEV ? "development" : "production",
-      thirdwebClientId: ENV.PUBLIC_THIRDWEB_CLIENT_ID,
-      walletConnectProjectId: ENV.PUBLIC_WALLET_CONNECT_PROJECT_ID,
-    }),
-    request.headers.get("Cookie"),
-  ),
-});
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const { env } = getContext();
+  return {
+    requestInfo: {
+      origin: getDomainUrl(request),
+      path: new URL(request.url).pathname,
+    },
+    env: {
+      PUBLIC_IS_DEV: env.PUBLIC_IS_DEV,
+      PUBLIC_THIRDWEB_CLIENT_ID: env.PUBLIC_THIRDWEB_CLIENT_ID,
+      PUBLIC_WALLET_CONNECT_PROJECT_ID: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+      PUBLIC_GTAG_ID: env.PUBLIC_GTAG_ID,
+    },
+    initialState: cookieToInitialState(
+      getConfig({
+        environment: env.PUBLIC_IS_DEV ? "development" : "production",
+        thirdwebClientId: env.PUBLIC_THIRDWEB_CLIENT_ID,
+        walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
+      }),
+      request.headers.get("Cookie"),
+    ),
+  };
+};
 
 export type RootLoader = typeof loader;
 export type RootLoaderData = Awaited<ReturnType<RootLoader>>;

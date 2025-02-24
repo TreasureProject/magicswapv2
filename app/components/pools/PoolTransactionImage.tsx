@@ -1,5 +1,5 @@
 import type { PoolTransactionItem } from "~/api/pools.server";
-import type { Token } from "~/types";
+import type { Token } from "~/api/tokens.server";
 import { PoolTokenImage } from "./PoolTokenImage";
 
 type Props = {

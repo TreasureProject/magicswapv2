@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 
+import type { TokenWithAmount } from "~/api/tokens.server";
 import type { FetchVaultItems } from "~/routes/resources.vaults.$chainId.$address.items";
-import type { TokenWithAmount } from "~/types";
 
 type Props = {
   type: "reserves" | "inventory";

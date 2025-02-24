@@ -1,19 +1,20 @@
-import type { ExecutionResult } from "graphql";
+import { graphql } from "~/gql/query.server";
+import { getContext } from "~/lib/env.server";
 
-import { GetGamesDocument, type GetGamesQuery, execute } from ".graphclient";
+export const getGamesQuery = graphql(`
+  query getGames {
+    games(orderBy: "name", orderDirection: "asc") {
+      items {
+        id
+        name
+        image
+      }
+    }
+  }
+`);
 
 export const fetchGames = async () => {
-  const { data, errors } = (await execute(
-    GetGamesDocument,
-    {},
-  )) as ExecutionResult<GetGamesQuery>;
-  if (errors) {
-    throw new Error(
-      `Error fetching games: ${errors
-        .map((error) => error.message)
-        .join(", ")}`,
-    );
-  }
-
-  return data?.games.items ?? [];
+  const { graphClient } = getContext();
+  const { games } = await graphClient.request(getGamesQuery);
+  return games.items ?? [];
 };

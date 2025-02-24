@@ -2,33 +2,113 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import type { ExecutionResult } from "graphql";
 import type { Address } from "viem";
-import { arbitrum } from "viem/chains";
 
 import { UINT112_MAX } from "~/consts";
-import { CHAIN_ID_TO_TROVE_API_URL } from "~/consts";
 import { erc20Abi, stakingContractAbi } from "~/generated";
+import { graphql } from "~/gql/query.server";
 import { getContractAddress } from "~/lib/address";
-import { getCachedValue } from "~/lib/cache.server";
 import { getViemClient } from "~/lib/chain.server";
-import { ENV } from "~/lib/env.server";
+import { getContext } from "~/lib/env.server";
 import { floorBigInt } from "~/lib/number";
-import type { AccountDomains } from "~/types";
-import { pairToPool } from "./pools.server";
-import { fetchVaultReserveItems } from "./tokens.server";
-import {
-  GetUserPositionDocument,
-  type GetUserPositionQuery,
-  GetUserPositionsDocument,
-  type GetUserPositionsQuery,
-  execute,
-} from ".graphclient";
+import { PairDayDataFragment, PairFragment, pairToPool } from "./pools.server";
+import { TokenFragment, fetchVaultReserveItems } from "./tokens.server";
 
 type Incentive = AbiParametersToPrimitiveTypes<
   ExtractAbiFunction<typeof stakingContractAbi, "incentives">["outputs"],
   "outputs"
 >;
+
+const getUserPositionsQuery = graphql(
+  `
+  query getUserPositions(
+    $address: String!
+    $where: liquidityPositionFilter
+    $limit: Int = 100
+    $dayDataWhere: pairDayDataFilter
+    $orderBy: String = "balance"
+    $orderDirection: String = "desc"
+  ) {
+    user(address: $address) {
+      liquidityPositionCount
+      liquidityPositions(
+        where: $where
+        limit: $limit
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+      ) {
+        items {
+          pair {
+            ...PairFragment
+            dayData(
+              where: $dayDataWhere
+              orderBy: "date"
+              orderDirection: "desc"
+            ) {
+              items {
+                ...PairDayDataFragment
+              }
+            }
+          }
+          balance
+        }
+      }
+    }
+  }
+`,
+  [PairFragment, PairDayDataFragment],
+);
+
+const getUserPositionQuery = graphql(
+  `
+  query getUserPosition(
+    $chainId: Int!
+    $pairAddress: String!
+    $userAddress: String!
+  ) {
+    liquidityPositions(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        balance
+      }
+    }
+    userIncentives(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        incentive {
+          incentiveId
+          startTime
+          endTime
+          rewardTokenAddress
+          rewardToken {
+            ...TokenFragment
+          }
+          rewardAmount
+          remainingRewardAmount
+          isRewardRounded
+        }
+        isSubscribed
+      }
+    }
+    userPairStakes(where: {
+      chainId: $chainId
+      userAddress: $userAddress
+      pairAddress: $pairAddress
+    }) {
+      items {
+        amount
+      }
+    }
+  }
+`,
+  [TokenFragment],
+);
 
 export const fetchUserPositions = async ({
   address,
@@ -44,23 +124,23 @@ export const fetchUserPositions = async ({
     };
   }
 
-  const result = (await execute(GetUserPositionsDocument, {
+  const { graphClient } = getContext();
+  const { user } = await graphClient.request(getUserPositionsQuery, {
     address: address.toLowerCase(),
     where: {
       chainId,
     },
     dayDataWhere: {
-      date_gte: Math.floor(Date.now() / 1000) - 86400 * 7, // 7 days ago
+      date_gte: BigInt(Math.floor(Date.now() / 1000) - 86400 * 7).toString(), // 7 days ago
     },
-  })) as ExecutionResult<GetUserPositionsQuery>;
-  if (!result.data?.user) {
+  });
+  if (!user) {
     return {
       total: 0,
       positions: [],
     };
   }
 
-  const { user } = result.data;
   return {
     total: user.liquidityPositionCount,
     positions: await Promise.all(
@@ -80,11 +160,11 @@ export const fetchUserPosition = async (params: {
   userAddress: string;
 }) => {
   const { chainId, userAddress } = params;
-  const result = (await execute(
-    GetUserPositionDocument,
-    params,
-  )) as ExecutionResult<GetUserPositionQuery>;
-  const userIncentives = result.data?.userIncentives.items ?? [];
+  const { graphClient } = getContext();
+  const {
+    userIncentives: { items: userIncentives },
+    userPairStakes,
+  } = await graphClient.request(getUserPositionQuery, params);
 
   const client = getViemClient(chainId);
   const [incentives, rewardsPerLiquidityLast, lpBalance] = await Promise.all([
@@ -112,12 +192,10 @@ export const fetchUserPosition = async (params: {
     }),
   ]);
 
-  const usersLiquidity = BigInt(
-    result.data?.userPairStakes.items[0]?.amount ?? 0,
-  );
+  const usersLiquidity = BigInt(userPairStakes.items[0]?.amount ?? 0);
   return {
     lpBalance: lpBalance.toString(),
-    lpStaked: result.data?.userPairStakes.items[0]?.amount ?? "0",
+    lpStaked: userPairStakes.items[0]?.amount ?? "0",
     userIncentives: await Promise.all(
       userIncentives.map(async (userIncentive, i) => {
         const rewardToken = userIncentive.incentive?.rewardToken;
@@ -177,55 +255,4 @@ export const fetchUserPosition = async (params: {
       }),
     ),
   };
-};
-
-export const fetchDomain = async (address: string) =>
-  getCachedValue(`domain-${address}`, async () => {
-    const response = await fetch(
-      `${CHAIN_ID_TO_TROVE_API_URL[arbitrum.id]}/domain/${address}`,
-      {
-        headers: {
-          "X-API-Key": ENV.TROVE_API_KEY,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Error fetching domain: ${response.statusText}`);
-    }
-
-    const result = (await response.json()) as AccountDomains;
-    return result;
-  });
-
-export const fetchDomains = async (addresses: string[]) => {
-  const uniqueAddresses = [
-    ...new Set(addresses.filter((address) => address)),
-  ].sort();
-  return getCachedValue(`domains-${uniqueAddresses.join(",")}`, async () => {
-    const response = await fetch(
-      `${CHAIN_ID_TO_TROVE_API_URL[arbitrum.id]}/batch-domains`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": ENV.TROVE_API_KEY,
-        },
-        body: JSON.stringify({ addresses: uniqueAddresses }),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Error fetching domains: ${response.statusText}`);
-    }
-
-    const result = (await response.json()) as AccountDomains[];
-    return result.reduce(
-      (acc, domain) => {
-        acc[domain.address] = domain;
-        return acc;
-      },
-      {} as Record<string, AccountDomains>,
-    );
-  });
 };

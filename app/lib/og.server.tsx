@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
-import type { Token } from "~/types";
+import type { Token } from "~/api/tokens.server";
 
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(

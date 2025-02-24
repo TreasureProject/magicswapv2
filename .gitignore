@@ -1,10 +1,16 @@
 /.cache
-/.graphclient
-/.react-router
-/app/generated.ts
 /build
 /public/build
 .env
+
+# Code Generation
+/schema.graphql
+/app/generated.ts
+/app/gql/env.d.ts
+/app/components/icons/
+
+# React Router
+/.react-router/
 
 # Cloudflare Workers
 .wrangler

@@ -1,10 +1,9 @@
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { SelectionPopup } from "~/components/SelectionPopup";
 import { Button } from "~/components/ui/Button";
 import { Dialog, DialogTrigger } from "~/components/ui/Dialog";
 import { sumArray } from "~/lib/array";
 import { formatNumber } from "~/lib/number";
-
-import type { Token, TokenWithAmount } from "~/types";
 
 export const PoolTokenCollectionInventory = ({
   token,

@@ -3,6 +3,8 @@ import { useCallback, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
 import { type Address, formatEther, formatUnits, parseUnits } from "viem";
 
+import type { Pool } from "~/api/pools.server";
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import { useAddLiquidity } from "~/hooks/useAddLiquidity";
 import { useApproval } from "~/hooks/useApproval";
@@ -13,13 +15,7 @@ import { bigIntToNumber, formatPercent } from "~/lib/number";
 import { getAmountMin, getLpCountForTokens, quote } from "~/lib/pools";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type {
-  NumberString,
-  Optional,
-  Pool,
-  Token,
-  TokenWithAmount,
-} from "~/types";
+import type { NumberString, Optional } from "~/types";
 import { SelectionPopup } from "../SelectionPopup";
 import { Table } from "../Table";
 import { TransactionButton } from "../ui/Button";

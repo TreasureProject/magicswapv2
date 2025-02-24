@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import {
   useWriteMagicSwapV2RouterSwapEthForExactTokens,
@@ -21,9 +22,8 @@ import { formatAmount } from "~/lib/currency";
 import { bigIntToNumber } from "~/lib/number";
 import { getAmountMax, getAmountMin } from "~/lib/pools";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { Optional, Token, TokenWithAmount } from "~/types";
+import type { Optional, Version } from "~/types";
 import { useToast } from "./useToast";
-import type { version as Version } from ".graphclient";
 
 type Props = {
   version: Version;

@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
+import type { Pool } from "~/api/pools.server";
+import type { TokenWithAmount } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
@@ -10,8 +12,7 @@ import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { Pool } from "~/types";
-import type { NumberString, TokenWithAmount } from "~/types";
+import type { NumberString } from "~/types";
 import { SelectionPopup } from "../SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";

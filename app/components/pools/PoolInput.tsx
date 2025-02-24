@@ -1,10 +1,10 @@
 import { VaultIcon, WalletIcon } from "lucide-react";
 import { formatEther } from "viem";
 
+import type { Pool } from "~/api/pools.server";
 import { useAccount } from "~/contexts/account";
 import { formatAmount, formatUSD } from "~/lib/currency";
 import { bigIntToNumber, formatPercent } from "~/lib/number";
-import type { Pool } from "~/types";
 import { CurrencyInput } from "../CurrencyInput";
 import { PoolImage } from "./PoolImage";
 

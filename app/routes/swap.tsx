@@ -23,6 +23,8 @@ import { fetchGames } from "~/api/games.server";
 import { fetchPools } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
 import {
+  type Token,
+  type TokenWithAmount,
   fetchPoolTokenBalance,
   fetchToken,
   fetchTokens,
@@ -57,14 +59,14 @@ import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { getRouterContractAddress } from "~/lib/address";
 import { formatAmount, formatUSD } from "~/lib/currency";
-import { ENV } from "~/lib/env.server";
+import { getContext } from "~/lib/env.server";
 import { bigIntToNumber, floorBigInt, formatNumber } from "~/lib/number";
 import { generateTitle, generateUrl, getSocialMetas } from "~/lib/seo";
 import { countTokens, parseTokenParams } from "~/lib/tokens";
 import { cn } from "~/lib/utils";
 import type { RootLoaderData } from "~/root";
 import { getSession } from "~/sessions";
-import type { Optional, Token, TokenWithAmount } from "~/types";
+import type { Optional } from "~/types";
 import type { Route } from "./+types/swap";
 
 export const meta: Route.MetaFunction = ({ data, matches, location }) => {
@@ -88,14 +90,15 @@ export const meta: Route.MetaFunction = ({ data, matches, location }) => {
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const { env } = getContext();
   const url = new URL(request.url);
 
   const { chainIdIn, chainIdOut, tokenAddressIn, tokenAddressOut } =
     parseTokenParams({
       inStr: url.searchParams.get("in") ?? "",
       outStr: url.searchParams.get("out") ?? "",
-      defaultChainId: ENV.PUBLIC_DEFAULT_CHAIN_ID,
-      defaultTokenAddress: ENV.PUBLIC_DEFAULT_TOKEN_ADDRESS,
+      defaultChainId: env.PUBLIC_DEFAULT_CHAIN_ID,
+      defaultTokenAddress: env.PUBLIC_DEFAULT_TOKEN_ADDRESS,
     });
 
   const [session, games, pools, tokenIn, tokenOut, magicUsd] =

@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { Await } from "react-router";
 
+import type { Token, TokenWithAmount } from "~/api/tokens.server";
 import { formatAmount } from "~/lib/currency";
 import { formatNumber } from "~/lib/number";
 import { cn } from "~/lib/utils";
-import type { Token, TokenWithAmount } from "~/types";
 import { LoaderIcon } from "../Icons";
 import { Button } from "../ui/Button";
 import { DialogTrigger } from "../ui/Dialog";
