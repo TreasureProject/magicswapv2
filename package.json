@@ -31,7 +31,7 @@
     "@react-router/node": "^7.2.0",
     "@react-router/serve": "^7.2.0",
     "@react-stately/numberfield": "^3.9.9",
-    "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@sushiswap/tines": "^1.0.11",
     "@tanstack/react-query": "^5.66.9",
     "@treasure-dev/connectkit": "^1.8.11",
@@ -99,8 +99,6 @@
   "optionalDependencies": {
     "@biomejs/cli-linux-x64": "^1.9.4",
     "@esbuild/linux-x64": "^0.25.0",
-    "@resvg/resvg-js-linux-x64-gnu": "^2.6.2",
-    "@resvg/resvg-js-linux-x64-musl": "^2.6.2",
     "@rollup/rollup-linux-x64-gnu": "^4.34.8"
   },
   "lint-staged": {
