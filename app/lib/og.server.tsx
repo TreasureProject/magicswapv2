@@ -1,17 +1,12 @@
 import fs from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
 import type { Token } from "~/api/tokens.server";
 
-initWasm(
-  fs.readFile(
-    join(dirname(fileURLToPath(import.meta.url)), "../wasm/index_bg.wasm"),
-  ),
-);
+initWasm(fs.readFile(join(import.meta.dirname, "../wasm/index_bg.wasm")));
 
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
