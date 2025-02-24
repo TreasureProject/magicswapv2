@@ -30,8 +30,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
-      "@resvg/resvg-js-linux-x64-musl",
-      "@resvg/resvg-js-linux-x64-gnu",
+      "@resvg/resvg-js-linux-x64-musl/resvgjs.linux-x64-musl.node",
+      "@resvg/resvg-js-linux-x64-gnu/resvgjs.linux-x64-gnu.node",
     ],
   },
 });
