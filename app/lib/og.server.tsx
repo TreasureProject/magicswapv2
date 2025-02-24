@@ -1,12 +1,17 @@
-import fs from "node:fs/promises";
-import path, { join } from "node:path";
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import type { SatoriOptions } from "satori";
 import satori from "satori";
 
 import type { Token } from "~/api/tokens.server";
 
-initWasm(fs.readFile(join(path.resolve(), "app/wasm/index_bg.wasm")));
+let initializedWasm = false;
+
+const initializeWasm = async (baseUrl: string) => {
+  if (!initializedWasm) {
+    await initWasm(fetch(`${baseUrl}/wasm/index_bg.wasm`));
+    initializedWasm = true;
+  }
+};
 
 const loadFont = (baseUrl: string, name: string, weight: 500 | 600) =>
   fetch(new URL(`${baseUrl}/fonts/${name}`)).then(
@@ -73,10 +78,13 @@ export const generateOgImage = async (
   content: React.ReactNode,
   origin: string,
 ) => {
-  const fontData = await Promise.all([
+  const [variableFont, boldFont] = await Promise.all([
     loadFont(origin, "ABCWhyteVariable.woff", 500),
     loadFont(origin, "ABCWhyte-Bold.otf", 600),
-  ]).then((fonts) => fonts.flat());
+    initializeWasm(origin),
+  ]);
+
+  const fontData = [variableFont, boldFont].flat();
 
   const options: SatoriOptions = {
     width: 1200,
