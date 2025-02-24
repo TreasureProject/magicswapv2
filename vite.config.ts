@@ -28,5 +28,10 @@ export default defineConfig({
   ssr: {
     noExternal: ["react-use"],
   },
-  optimizeDeps: { exclude: ["@resvg/resvg-js"] },
+  optimizeDeps: {
+    exclude: [
+      "@resvg/resvg-js-linux-x64-musl",
+      "@resvg/resvg-js-linux-x64-gnu",
+    ],
+  },
 });
