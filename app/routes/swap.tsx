@@ -929,7 +929,7 @@ const SwapTokenInput = ({
           </AnimatePresence>
         </div>
       </motion.div>
-      <div className="bg-silver-1000 px-4 py-2.5 text-sm">
+      <div className="bg-night-600 px-4 py-2.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-1">
             <span className="text-silver-400 sm:text-sm">
