@@ -96,7 +96,7 @@ export const meta: Route.MetaFunction = ({ data, matches, location }) => {
     url,
     title: generateTitle(`${pool?.name} Liquidity Pool`),
     description: `Provide liquidity for ${pool?.name} on Magicswap`,
-    image: `${url}.png`,
+    image: generateUrl(requestInfo?.origin, "/img/seo-banner.png"),
   });
 };
 
