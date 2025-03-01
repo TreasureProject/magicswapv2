@@ -53,7 +53,7 @@ import { InfoPopover } from "~/components/ui/InfoPopover";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useFocusInterval } from "~/hooks/useFocusInterval";
-import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
+// import { usePoolTokenBalance } from "~/hooks/usePoolTokenBalance";
 import { useSwap } from "~/hooks/useSwap";
 import { useSwapRoute } from "~/hooks/useSwapRoute";
 import { useTokenBalance } from "~/hooks/useTokenBalance";
@@ -1225,8 +1225,8 @@ const TokenView = ({
   disabled: boolean;
   onSelect: (token: Token) => void;
 }) => {
-  const { address } = useAccount();
-  const { data: balance, isLoading } = usePoolTokenBalance({ token, address });
+  // const { address } = useAccount();
+  // const { data: balance, isLoading } = usePoolTokenBalance({ token, address });
   return (
     <li
       className={cn(
@@ -1252,13 +1252,13 @@ const TokenView = ({
             ) : null}
           </div>
         </div>
-        {isLoading ? (
+        {/* {isLoading ? (
           <LoaderIcon className="h-4 w-4" />
         ) : address ? (
           <p className="text-base-400 text-sm">
             {formatAmount(balance, { decimals: token.decimals })}
           </p>
-        ) : null}
+        ) : null} */}
       </div>
       <button
         type="button"
