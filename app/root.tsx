@@ -37,14 +37,14 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
       path: new URL(request.url).pathname,
     },
     env: {
-      PUBLIC_IS_DEV: env.PUBLIC_IS_DEV,
+      PUBLIC_ENVIRONMENT: env.PUBLIC_ENVIRONMENT,
       PUBLIC_THIRDWEB_CLIENT_ID: env.PUBLIC_THIRDWEB_CLIENT_ID,
       PUBLIC_WALLET_CONNECT_PROJECT_ID: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
       PUBLIC_GTAG_ID: env.PUBLIC_GTAG_ID,
     },
     initialState: cookieToInitialState(
       getConfig({
-        environment: env.PUBLIC_IS_DEV ? "development" : "production",
+        environment: env.PUBLIC_ENVIRONMENT,
         thirdwebClientId: env.PUBLIC_THIRDWEB_CLIENT_ID,
         walletConnectProjectId: env.PUBLIC_WALLET_CONNECT_PROJECT_ID,
       }),
@@ -142,7 +142,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           </noscript>
         ) : null}
         <Web3Provider
-          environment={env.PUBLIC_IS_DEV ? "development" : "production"}
+          environment={env.PUBLIC_ENVIRONMENT}
           thirdwebClientId={env.PUBLIC_THIRDWEB_CLIENT_ID}
           walletConnectProjectId={env.PUBLIC_WALLET_CONNECT_PROJECT_ID}
           initialState={initialState as State | undefined}

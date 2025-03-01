@@ -4,7 +4,7 @@ import type { Context } from "hono";
 import { getContext as getContextStorage } from "hono/context-storage";
 
 const envSchema = type({
-  PUBLIC_IS_DEV: ["boolean", "=", false],
+  PUBLIC_ENVIRONMENT: ["'development' | 'production'", "=", "production"],
   PUBLIC_DEFAULT_CHAIN_ID: type("number").or("string.numeric.parse"),
   PUBLIC_DEFAULT_TOKEN_ADDRESS: "string",
   PUBLIC_THIRDWEB_CLIENT_ID: "string",
