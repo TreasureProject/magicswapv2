@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
+import type { Token } from "~/api/tokens.server";
 import {
   useWriteErc20Approve,
   useWriteErc721SetApprovalForAll,
   useWriteErc1155SetApprovalForAll,
 } from "~/generated";
-import type { Token } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {

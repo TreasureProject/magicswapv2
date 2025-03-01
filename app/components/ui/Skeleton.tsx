@@ -6,7 +6,7 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn("block animate-pulse rounded-md bg-night-800", className)}
+      className={cn("block animate-pulse rounded-md bg-night-400", className)}
       {...props}
     />
   );

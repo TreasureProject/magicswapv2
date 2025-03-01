@@ -1,8 +1,11 @@
 import { data } from "react-router";
 import invariant from "tiny-invariant";
 
-import { fetchPoolTokenBalance, fetchToken } from "~/api/tokens.server";
-import type { Token } from "~/types";
+import {
+  type Token,
+  fetchPoolTokenBalance,
+  fetchToken,
+} from "~/api/tokens.server";
 import type { Route } from "./+types/resources.vaults.$chainId.$address.balance";
 
 export const loader = async ({ request, params }: Route.LoaderArgs) => {

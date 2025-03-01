@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
+import type { Pool } from "~/api/pools.server";
 import { useAccount } from "~/contexts/account";
 import { useWriteStakingContractUnstakeToken } from "~/generated";
 import { getContractAddress } from "~/lib/address";
-import type { Pool } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {

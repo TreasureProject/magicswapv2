@@ -7,7 +7,8 @@ import {
 } from "@sushiswap/tines";
 import type { Address } from "viem";
 
-import type { Pool, Token } from "~/types";
+import type { Pool } from "~/api/pools.server";
+import type { Token } from "~/api/tokens.server";
 import { formatAmount, formatUSD } from "./currency";
 
 export const quote = (amountA: bigint, reserveA: bigint, reserveB: bigint) =>

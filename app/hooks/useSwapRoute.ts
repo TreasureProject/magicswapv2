@@ -1,9 +1,11 @@
 import { type Address, parseUnits } from "viem";
 
+import type { Pool } from "~/api/pools.server";
+import type { Token } from "~/api/tokens.server";
 import { multiplyArray, sumArray } from "~/lib/array";
 import { bigIntToNumber } from "~/lib/number";
 import { createSwapRoute } from "~/lib/pools";
-import type { NumberString, Pool, Token } from "~/types";
+import type { NumberString } from "~/types";
 
 type Props = {
   tokenIn: Token;

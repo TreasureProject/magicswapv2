@@ -38,7 +38,7 @@ export const PoolTokenImage = ({
     ) : null}
     <div
       className={cn(
-        "h-9 w-9 overflow-hidden border border-night-1000 bg-night-1000",
+        "h-9 w-9 overflow-hidden border border-silver-1000 bg-silver-1000",
         token?.isVault ? "rounded-lg" : "rounded-full",
         className,
       )}

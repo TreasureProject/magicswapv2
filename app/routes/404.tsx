@@ -23,10 +23,10 @@ export default function Page404() {
     <div className="h-auto bg-[url(/img/home/hero.png)] bg-bottom bg-cover py-24 md:h-[548px] md:py-0">
       <div className="mx-auto flex h-full w-full max-w-[90%] flex-col items-center justify-center space-y-8 text-center md:max-w-lg">
         <div className="space-y-3">
-          <h1 className="text-center font-bold text-4xl text-honey-25">
+          <h1 className="text-center font-bold text-4xl text-cream">
             Page Not Found
           </h1>
-          <p className="text-center text-night-300">
+          <p className="text-center text-silver-300">
             The path you have entered no longer exists or has never existed,
             perhaps you've made a mistake.
           </p>

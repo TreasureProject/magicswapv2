@@ -9,23 +9,14 @@ Built for and governed by the [Treasure ecosystem](https://treasure.lol).
 Supporting repositories:
 
 - [Smart Contracts](https://github.com/TreasureProject/magicswapv2-contracts)
-- [Subgraph](https://github.com/TreasureProject/treasure-subgraphs/tree/master/subgraphs/magicswapv2)
-
-## Tech Stack
-
-- [Remix](https://remix.run)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Graph Client Tools](https://github.com/graphprotocol/graph-client)
-- [wagmi](https://wagmi.sh)
-- [shadcdn/ui](https://ui.shadcn.com/docs)
-- Deployment on [fly.io](https://fly.io)
+- [Backend API](https://github.com/TreasureProject/magicswap-api)
 
 ## Local Development
 
 Check out the repo and install dependencies in the root folder:
 
 ```sh
-npm install
+pnpm install
 ```
 
 Create environment variable file:
@@ -37,11 +28,11 @@ cp .env.sample .env
 Fill in relevant environment variables and run code generation:
 
 ```sh
-npm run generate
+pnpm generate
 ```
 
 Start application:
 
 ```sh
-npm run dev
+pnpm dev
 ```

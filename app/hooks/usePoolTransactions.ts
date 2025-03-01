@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
+
+import type { TransactionType } from "~/api/pools.server";
 import type { FetchPoolTransactions } from "~/routes/resources.pools.$chainId.$address.transactions";
-import type { transactionType as TransactionType } from ".graphclient";
 
 type Props = {
   chainId: number;
@@ -32,7 +33,7 @@ export const usePoolTransactions = ({
     after: string | undefined;
     isLoading: boolean;
   }>(DEFAULT_STATE);
-  const lastType = useRef<TransactionType | undefined>();
+  const lastType = useRef<TransactionType | null>(null);
 
   useEffect(() => {
     if (!enabled) {

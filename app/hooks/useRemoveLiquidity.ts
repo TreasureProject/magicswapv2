@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import type { Address } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 
+import type { Pool } from "~/api/pools.server";
+import type { TokenWithAmount } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import {
   useWriteMagicSwapV2RouterRemoveLiquidity,
@@ -12,7 +14,6 @@ import {
 } from "~/generated";
 import { getRouterContractAddress } from "~/lib/address";
 import { useSettingsStore } from "~/store/settings";
-import type { Pool, TokenWithAmount } from "~/types";
 import { useToast } from "./useToast";
 
 type Props = {

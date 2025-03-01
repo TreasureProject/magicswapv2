@@ -1,14 +1,16 @@
-import type { ExecutionResult } from "graphql";
-import {
-  GetMagicPriceDocument,
-  type GetMagicPriceQuery,
-  execute,
-} from ".graphclient";
+import { graphql } from "~/gql/query.server";
+import { getContext } from "~/lib/env.server";
+
+export const getMagicPriceQuery = graphql(`
+  query getMagicPrice {
+    price(id: 1) {
+      magicUsd
+    }
+  }
+`);
 
 export const fetchMagicUsd = async () => {
-  const result = (await execute(
-    GetMagicPriceDocument,
-    {},
-  )) as ExecutionResult<GetMagicPriceQuery>;
-  return result.data?.price?.magicUsd ?? 0;
+  const { graphClient } = getContext();
+  const { price } = await graphClient.request(getMagicPriceQuery);
+  return price?.magicUsd ?? 0;
 };

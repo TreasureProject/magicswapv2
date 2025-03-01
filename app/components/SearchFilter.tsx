@@ -24,8 +24,8 @@ export const SearchFilter = React.forwardRef<HTMLInputElement, Props>(
     }, [defaultValue]);
 
     return (
-      <div className="flex items-center rounded-md border border-night-900 bg-night-1100 pl-2">
-        <SearchIcon className="h-5 w-5 text-night-500" />
+      <div className="flex items-center rounded-md border border-night-500 bg-night-700 pl-2">
+        <SearchIcon className="h-5 w-5 text-silver-500" />
         <Input
           ref={ref}
           type="search"

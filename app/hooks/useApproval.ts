@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Address } from "viem";
 
-import type { Token } from "~/types";
+import type { Token } from "~/api/tokens.server";
 import { useApprove } from "./useApprove";
 import { useIsApproved } from "./useIsApproved";
 

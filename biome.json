@@ -4,6 +4,7 @@
     "ignore": [
       ".graphclient/**",
       ".husky/**",
+      ".react-router/**",
       "app/entry.server.tsx",
       "app/generated.ts",
       "build/**",

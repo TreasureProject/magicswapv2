@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useFetcher } from "react-router";
 import type { Address } from "viem";
 
+import type { Token } from "~/api/tokens.server";
 import type { FetchNFTVaultBalance } from "~/routes/resources.vaults.$chainId.$address.balance";
-import type { Token } from "~/types";
 import { useTokenBalance } from "./useTokenBalance";
 
 type Props = {

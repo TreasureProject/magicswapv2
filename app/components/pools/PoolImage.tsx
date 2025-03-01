@@ -26,12 +26,12 @@ export const PoolImage = ({
     <div className="flex items-center">
       <PoolTokenImage
         token={isToken1Base ? pool.token1 : pool.token0}
-        className={cn("border-2 border-night-1100", className)}
+        className={cn("border-2 border-night-700", className)}
         {...divProps}
       />
       <PoolTokenImage
         token={isToken1Base ? pool.token0 : pool.token1}
-        className={cn("border-2 border-night-1100", className)}
+        className={cn("border-2 border-night-700", className)}
         showChainIcon={showChainIcon}
         containerClassName="-translate-x-1/3"
         {...divProps}

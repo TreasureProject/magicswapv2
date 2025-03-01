@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 import type { Address } from "viem";
 
+import type { Token } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import {
   useReadErc20Allowance,
   useReadErc721IsApprovedForAll,
   useReadErc1155IsApprovedForAll,
 } from "~/generated";
-import type { Token } from "~/types";
 
 type Props = {
   chainId: number;

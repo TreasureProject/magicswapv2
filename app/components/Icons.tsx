@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const LoaderIcon = ({ className }: Props) => (
-  <Loader className={cn("animate-spin text-night-400", className)} />
+  <Loader className={cn("animate-spin text-silver-400", className)} />
 );
 
 export const DiscordIcon = ({ className }: Props) => (

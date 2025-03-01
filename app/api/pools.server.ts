@@ -1,24 +1,250 @@
-import type { ExecutionResult } from "graphql";
+import type { FragmentOf, VariablesOf } from "gql.tada";
 import type { Address } from "viem";
 
 import { stakingContractAbi, uniswapV2PairAbi } from "~/generated";
+import { graphql } from "~/gql/query.server";
 import { getContractAddress } from "~/lib/address";
 import { aprToApy } from "~/lib/apr";
 import { getViemClient } from "~/lib/chain.server";
+import { getContext } from "~/lib/env.server";
 import { bigIntToNumber } from "~/lib/number";
-import type { Pool } from "~/types";
-import {
-  GetPairDocument,
-  type GetPairQuery,
-  GetPairTransactionsDocument,
-  type GetPairTransactionsQuery,
-  GetPairsDocument,
-  type GetPairsQuery,
-  type pairFilter as PairFilter,
-  type transactionType as TransactionType,
-  execute,
-} from "../../.graphclient";
-import { fetchDomains } from "./user.server";
+import { fetchDomains } from "./domain.server";
+import { TokenFragment } from "./tokens.server";
+
+const TransactionItemFragment = graphql(`
+  fragment TransactionItemFragment on transactionItem @_unmask {
+    chainId
+    vaultAddress
+    collectionAddress
+    tokenId
+    amount
+    name
+    image
+  }
+`);
+
+export const PairFragment = graphql(
+  `
+  fragment PairFragment on pair @_unmask {
+    chainId
+    address
+    version
+    name
+    token0Address
+    token1Address
+    token0 {
+      ...TokenFragment
+    }
+    token1 {
+      ...TokenFragment
+    }
+    isVaultVault
+    hasVault
+    reserve0
+    reserve1
+    reserveUsd
+    totalSupply
+    volume0
+    volume1
+    volumeUsd
+    lpFee
+    protocolFee
+    royaltiesFee
+    royaltiesBeneficiary
+    incentives {
+      items {
+        incentiveId
+        startTime
+        endTime
+        rewardTokenAddress
+        rewardToken {
+          ...TokenFragment
+        }
+        rewardAmount
+        remainingRewardAmount
+        isRewardRounded
+      }
+    }
+  }
+`,
+  [TokenFragment],
+);
+
+const PairHourDataFragment = graphql(`
+  fragment PairHourDataFragment on pairHourData @_unmask {
+    date
+    reserve0
+    reserve1
+    reserveUsd
+    volume0
+    volume1
+    volumeUsd
+  }
+`);
+
+export const PairDayDataFragment = graphql(`
+  fragment PairDayDataFragment on pairDayData @_unmask {
+    date
+    reserve0
+    reserve1
+    reserveUsd
+    volume0
+    volume1
+    volumeUsd
+  }
+`);
+
+export const getPairTransactionsQuery = graphql(
+  `
+  query getPairTransactions(
+    $chainId: Float!
+    $address: String!
+    $where: transactionFilter
+    $orderBy: String = "timestamp"
+    $orderDirection: String = "desc"
+    $limit: Int = 15
+    $before: String
+    $after: String
+  ) {
+    pair(chainId: $chainId, address: $address) {
+      token0Address
+      token1Address
+      transactions(
+        where: $where
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        limit: $limit
+        before: $before
+        after: $after
+      ) {
+        items {
+          chainId
+          hash
+          timestamp
+          type
+          userAddress
+          amount0
+          amount1
+          amountUsd
+          isAmount1Out
+          items {
+            items {
+              ...TransactionItemFragment
+            }
+          }
+        }
+        pageInfo {
+          startCursor
+          endCursor
+          hasPreviousPage
+          hasNextPage
+        }
+        totalCount
+      }
+    }
+  }
+`,
+  [TransactionItemFragment],
+);
+
+export const getPairsQuery = graphql(
+  `
+  query getPairs(
+    $where: pairFilter
+    $limit: Int = 100
+    $orderBy: String = "reserveUsd"
+    $orderDirection: String = "desc"
+    $hourDataWhere: pairHourDataFilter
+    $dayDataWhere: pairDayDataFilter
+  ) {
+    pairs(
+      where: $where
+      limit: $limit
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+    ) {
+      items {
+        ...PairFragment
+        hourData(
+          where: $hourDataWhere
+          orderBy: "date"
+          orderDirection: "desc"
+        ) {
+          items {
+            ...PairHourDataFragment
+          }
+        }
+        dayData(
+          where: $dayDataWhere
+          orderBy: "date"
+          orderDirection: "desc"
+        ) {
+          items {
+            ...PairDayDataFragment
+          }
+        }
+      }
+    }
+  }
+`,
+  [PairFragment, PairHourDataFragment, PairDayDataFragment],
+);
+
+export const getPairQuery = graphql(
+  `
+  query getPair(
+    $chainId: Float!
+    $address: String!
+    $hourDataWhere: pairHourDataFilter
+    $dayDataWhere: pairDayDataFilter
+  ) {
+    pair(chainId: $chainId, address: $address) {
+      ...PairFragment
+      hourData(
+        where: $hourDataWhere
+        orderBy: "date"
+        orderDirection: "desc"
+      ) {
+        items {
+          ...PairHourDataFragment
+        }
+      }
+      dayData(
+        where: $dayDataWhere
+        orderBy: "date"
+        orderDirection: "desc"
+      ) {
+        items {
+          ...PairDayDataFragment
+        }
+      }
+    }
+  }
+`,
+  [PairFragment, PairHourDataFragment, PairDayDataFragment],
+);
+
+export const getPairIncentiveQuery = graphql(
+  `
+  query getPairIncentives($id: String!) {
+    incentives(where: { pairAddress: $id }) {
+      items {
+        incentiveId
+        startTime
+        endTime
+        rewardTokenAddress
+        rewardToken {
+          ...TokenFragment
+        }
+        rewardAmount
+        remainingRewardAmount
+        isRewardRounded
+      }
+    }
+  }
+`,
+  [TokenFragment],
+);
 
 export const fetchPoolTransactions = async ({
   chainId,
@@ -30,20 +256,22 @@ export const fetchPoolTransactions = async ({
 }: {
   chainId: number;
   address: string;
-  type?: TransactionType;
+  type?: NonNullable<
+    VariablesOf<typeof getPairTransactionsQuery>["where"]
+  >["type"];
   limit?: number;
   before?: string;
   after?: string;
 }) => {
-  const result = (await execute(GetPairTransactionsDocument, {
+  const { graphClient } = getContext();
+  const { pair } = await graphClient.request(getPairTransactionsQuery, {
     chainId,
     address,
     limit,
     before,
     after,
     ...(type ? { where: { type } } : undefined),
-  })) as ExecutionResult<GetPairTransactionsQuery>;
-  const { pair } = result.data ?? {};
+  });
   if (!pair) {
     throw new Error(`Pair not found: ${address}`);
   }
@@ -78,8 +306,11 @@ type PoolTransaction = Awaited<
 export type PoolTransactionItem = PoolTransaction["items0"][number];
 
 export const pairToPool = async (
-  pair: GetPairsQuery["pairs"]["items"][number],
-): Promise<Pool> => {
+  pair: FragmentOf<typeof PairFragment> & {
+    hourData?: { items: FragmentOf<typeof PairHourDataFragment>[] } | null;
+    dayData?: { items: FragmentOf<typeof PairDayDataFragment>[] } | null;
+  },
+) => {
   if (!pair.token0 || !pair.token1) {
     throw new Error("Invalid pair");
   }
@@ -178,36 +409,41 @@ export const pairToPool = async (
   };
 };
 
-export const fetchPools = async (where?: PairFilter): Promise<Pool[]> => {
+export const fetchPools = async (where?: PairFilter) => {
+  const { graphClient } = getContext();
   const now = Math.floor(Date.now() / 1000);
-  const result = (await execute(GetPairsDocument, {
+  const { pairs } = await graphClient.request(getPairsQuery, {
     where,
     hourDataWhere: {
-      date_gte: now - 86400, // 1 day ago
+      date_gte: BigInt(now - 86400).toString(), // 1 day ago
     },
     dayDataWhere: {
-      date_gte: now - 86400 * 7, // 7 days ago
+      date_gte: BigInt(now - 86400 * 7).toString(), // 7 days ago
     },
-  })) as ExecutionResult<GetPairsQuery>;
-  return Promise.all(
-    result.data?.pairs.items.map((pair) => pairToPool(pair)) ?? [],
-  );
+  });
+  return Promise.all(pairs.items.map((pair) => pairToPool(pair)) ?? []);
 };
 
 export const fetchPool = async (params: {
   chainId: number;
   address: string;
-}): Promise<Pool | undefined> => {
+}) => {
+  const { graphClient } = getContext();
   const now = Math.floor(Date.now() / 1000);
-  const result = (await execute(GetPairDocument, {
+  const { pair } = await graphClient.request(getPairQuery, {
     ...params,
     hourDataWhere: {
-      date_gte: now - 86400, // 1 day ago
+      date_gte: BigInt(now - 86400).toString(), // 1 day ago
     },
     dayDataWhere: {
-      date_gte: now - 86400 * 7, // 7 days ago
+      date_gte: BigInt(now - 86400 * 7).toString(), // 7 days ago
     },
-  })) as ExecutionResult<GetPairQuery>;
-  const pair = result.data?.pair;
+  });
   return pair ? pairToPool(pair) : undefined;
 };
+
+export type PairFilter = VariablesOf<typeof getPairsQuery>["where"];
+export type Pool = Awaited<ReturnType<typeof pairToPool>>;
+export type TransactionType = NonNullable<
+  VariablesOf<typeof getPairTransactionsQuery>["where"]
+>["type"];

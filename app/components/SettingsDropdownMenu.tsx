@@ -25,7 +25,7 @@ export const SettingsDropdownMenu = memo(() => {
     >
       <PopoverTrigger asChild>
         <Button variant="ghost" className="h-12 w-12">
-          <SettingsIcon className="h-6 w-6 text-night-400" />
+          <SettingsIcon className="h-6 w-6 text-silver-400" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
@@ -62,7 +62,7 @@ export const SettingsDropdownMenu = memo(() => {
             errorCondition={(value) => value > 60}
           >
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-night-400 text-sm">Minutes</span>
+              <span className="text-silver-400 text-sm">Minutes</span>
             </div>
           </NumberInput>
         </div>

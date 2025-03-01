@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { parseEther } from "viem";
 
+import type { Pool } from "~/api/pools.server";
+import type { TokenWithAmount } from "~/api/tokens.server";
 import { useAccount } from "~/contexts/account";
 import { useApproval } from "~/hooks/useApproval";
 import { useRemoveLiquidity } from "~/hooks/useRemoveLiquidity";
@@ -10,8 +12,7 @@ import { bigIntToNumber, floorBigInt } from "~/lib/number";
 import { getAmountMin, getTokenCountForLp, quote } from "~/lib/pools";
 import { countTokens } from "~/lib/tokens";
 import { DEFAULT_SLIPPAGE, useSettingsStore } from "~/store/settings";
-import type { Pool } from "~/types";
-import type { NumberString, TokenWithAmount } from "~/types";
+import type { NumberString } from "~/types";
 import { SelectionPopup } from "../SelectionPopup";
 import { TransactionButton } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
@@ -113,14 +114,12 @@ export const PoolWithdrawTab = ({
       />
       {hasAmount && (
         <>
-          <div className="space-y-1.5 rounded-md border border-night-800 p-3 text-night-400">
+          <div className="space-y-1.5 rounded-md border border-night-400 p-3 text-silver-400">
             <p>You'll receive at least:</p>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token0} />
-                <span className="text-honey-25">
-                  {formatAmount(amount0Min)}
-                </span>
+                <span className="text-cream">{formatAmount(amount0Min)}</span>
                 {pool.token0.symbol}
               </div>
               {priceUsd0 > 0
@@ -133,9 +132,7 @@ export const PoolWithdrawTab = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <PoolTokenImage className="h-6 w-6" token={pool.token1} />
-                <span className="text-honey-25">
-                  {formatAmount(amount1Min)}
-                </span>
+                <span className="text-cream">{formatAmount(amount1Min)}</span>
                 {pool.token1.symbol}
               </div>
               {priceUsd1 > 0
@@ -151,7 +148,7 @@ export const PoolWithdrawTab = ({
                 <p>And leftover vault tokens:</p>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <span className="text-honey-25">
+                    <span className="text-cream">
                       {formatAmount(amount0Leftover, {
                         decimals: pool.token0.decimals,
                       })}
@@ -160,7 +157,7 @@ export const PoolWithdrawTab = ({
                   </div>
                   and
                   <div className="flex items-center gap-1">
-                    <span className="text-honey-25">
+                    <span className="text-cream">
                       {formatAmount(amount1Leftover, {
                         decimals: pool.token1.decimals,
                       })}
@@ -179,7 +176,7 @@ export const PoolWithdrawTab = ({
                         className="h-6 w-6"
                         token={pool.token0.isVault ? pool.token0 : pool.token1}
                       />
-                      <span className="text-honey-25">
+                      <span className="text-cream">
                         {formatAmount(amount0Leftover)}
                       </span>
                       {pool.token0.isVault
@@ -192,7 +189,7 @@ export const PoolWithdrawTab = ({
                         className="h-6 w-6"
                         token={pool.token0.isVault ? pool.token1 : pool.token0}
                       />
-                      <span className="text-honey-25">
+                      <span className="text-cream">
                         {formatAmount(
                           quote(
                             amount0Leftover,

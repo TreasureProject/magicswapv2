@@ -24,7 +24,7 @@ export const useToast = ({
   isError: boolean;
   errorDescription?: string;
 }) => {
-  const toastRef = useRef<string | number | undefined>();
+  const toastRef = useRef<string | number | null>(null);
 
   useEffect(() => {
     if (isSuccess && toastRef.current) {
@@ -34,7 +34,7 @@ export const useToast = ({
         description: successDescription,
         duration: 3_500,
       });
-      toastRef.current = undefined;
+      toastRef.current = null;
     } else if (isError && toastRef.current) {
       if (errorDescription.startsWith("User rejected the request")) {
         dismissToasts();
@@ -47,7 +47,7 @@ export const useToast = ({
         });
       }
 
-      toastRef.current = undefined;
+      toastRef.current = null;
     } else if (isLoading) {
       toastRef.current = showLoadingToast({
         title,
