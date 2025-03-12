@@ -5,7 +5,7 @@ import { stakingContractAbi, uniswapV2PairAbi } from "~/generated";
 import { graphql } from "~/gql/query.server";
 import { getContractAddress } from "~/lib/address";
 import { aprToApy } from "~/lib/apr";
-import { getViemClient } from "~/lib/chain.server";
+import { createViemClient } from "~/lib/chain.server";
 import { getContext } from "~/lib/context.server";
 import { bigIntToNumber } from "~/lib/number";
 import { fetchDomains } from "./domain.server";
@@ -315,7 +315,7 @@ export const pairToPool = async (
     throw new Error("Invalid pair");
   }
 
-  const client = getViemClient(pair.chainId);
+  const client = createViemClient(pair.chainId);
   const [[reserve0, reserve1], totalSupply, ...incentives] = await Promise.all([
     client.readContract({
       address: pair.address as Address,

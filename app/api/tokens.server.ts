@@ -7,7 +7,7 @@ import {
 import { erc721Abi, erc1155Abi } from "~/generated";
 import { graphql } from "~/gql/query.server";
 import { sumArray } from "~/lib/array";
-import { getViemClient } from "~/lib/chain.server";
+import { createViemClient } from "~/lib/chain.server";
 import { getContext } from "~/lib/context.server";
 import type { TroveToken } from "~/types";
 
@@ -122,7 +122,7 @@ export const fetchToken = async (params: {
  * Fetches user's balance for NFT vault
  */
 export const fetchPoolTokenBalance = async (token: Token, address: string) => {
-  const viemClient = getViemClient(token.chainId);
+  const viemClient = createViemClient(token.chainId);
   if (token.collectionType === "ERC1155") {
     const collectionTokenIds = token.collectionTokenIds || [];
 

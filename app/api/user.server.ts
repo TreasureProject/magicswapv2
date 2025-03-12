@@ -8,7 +8,7 @@ import { UINT112_MAX } from "~/consts";
 import { erc20Abi, stakingContractAbi } from "~/generated";
 import { graphql } from "~/gql/query.server";
 import { getContractAddress } from "~/lib/address";
-import { getViemClient } from "~/lib/chain.server";
+import { createViemClient } from "~/lib/chain.server";
 import { getContext } from "~/lib/context.server";
 import { floorBigInt } from "~/lib/number";
 import { PairDayDataFragment, PairFragment, pairToPool } from "./pools.server";
@@ -166,7 +166,7 @@ export const fetchUserPosition = async (params: {
     userPairStakes,
   } = await graphClient.request(getUserPositionQuery, params);
 
-  const client = getViemClient(chainId);
+  const client = createViemClient(chainId);
   const [incentives, rewardsPerLiquidityLast, lpBalance] = await Promise.all([
     client.multicall({
       contracts: userIncentives.map((userIncentive) => ({

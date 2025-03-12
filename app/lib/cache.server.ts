@@ -10,7 +10,7 @@ import {
 import { LRUCache } from "lru-cache";
 
 const lruInstance = new LRUCache<string, CacheEntry>({
-  maxSize: 1_024_000,
+  maxSize: 512_000,
   sizeCalculation: (value) => new Blob([JSON.stringify(value)]).size,
 });
 
