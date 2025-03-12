@@ -1,4 +1,4 @@
-import { type ShouldRevalidateFunction, data } from "react-router";
+import { data } from "react-router";
 import invariant from "tiny-invariant";
 
 import { fetchDomain } from "~/api/domain.server";
@@ -19,10 +19,6 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
       domain: null,
     } as const);
   }
-};
-
-export const shouldRevalidate: ShouldRevalidateFunction = () => {
-  return false;
 };
 
 export type DomainLoader = typeof loader;
