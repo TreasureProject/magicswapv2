@@ -21,7 +21,7 @@ import { Web3Provider, getConfig } from "./components/Web3Provider";
 import { Button } from "./components/ui/Button";
 import { Toaster } from "./components/ui/Toast";
 import { AccountProvider } from "./contexts/account";
-import { getContext } from "./lib/env.server";
+import { getContext } from "./lib/context.server";
 import { getDomainUrl } from "./lib/seo";
 import stylesheet from "./styles/app.css?url";
 import nProgressStylesheet from "./styles/nprogress.css?url";

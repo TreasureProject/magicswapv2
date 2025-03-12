@@ -53,8 +53,8 @@ import { useTokenBalance } from "~/hooks/useTokenBalance";
 import { useWithdrawBatch } from "~/hooks/useWithdrawBatch";
 import { truncateEthAddress } from "~/lib/address";
 import { getBlockExplorer } from "~/lib/chain";
+import { getContext } from "~/lib/context.server";
 import { formatAmount, formatUSD } from "~/lib/currency";
-import { getContext } from "~/lib/env.server";
 import {
   bigIntToNumber,
   floorBigInt,

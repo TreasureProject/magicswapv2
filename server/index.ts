@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 import { contextStorage } from "hono/context-storage";
 
-import { type HonoEnv, createEnv } from "~/lib/env.server";
+import { type HonoContext, createContext } from "~/lib/context.server";
 
-const app = new Hono<HonoEnv>();
+const app = new Hono<HonoContext>();
 
 app.use(contextStorage());
 
 app.use(async (ctx, next) => {
-  createEnv(ctx);
+  createContext(ctx);
   await next();
 });
 

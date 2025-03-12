@@ -8,7 +8,7 @@ import { erc721Abi, erc1155Abi } from "~/generated";
 import { graphql } from "~/gql/query.server";
 import { sumArray } from "~/lib/array";
 import { getViemClient } from "~/lib/chain.server";
-import { getContext } from "~/lib/env.server";
+import { getContext } from "~/lib/context.server";
 import type { TroveToken } from "~/types";
 
 export const TokenFragment = graphql(`

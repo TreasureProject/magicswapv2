@@ -2,7 +2,7 @@ import { arbitrum } from "viem/chains";
 
 import { CHAIN_ID_TO_TROVE_API_URL } from "~/consts";
 import { getCachedValue } from "~/lib/cache.server";
-import { getContext } from "~/lib/env.server";
+import { getContext } from "~/lib/context.server";
 import type { AccountDomains } from "~/types";
 
 export const fetchDomain = async (address: string) => {

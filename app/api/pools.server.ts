@@ -6,7 +6,7 @@ import { graphql } from "~/gql/query.server";
 import { getContractAddress } from "~/lib/address";
 import { aprToApy } from "~/lib/apr";
 import { getViemClient } from "~/lib/chain.server";
-import { getContext } from "~/lib/env.server";
+import { getContext } from "~/lib/context.server";
 import { bigIntToNumber } from "~/lib/number";
 import { fetchDomains } from "./domain.server";
 import { TokenFragment } from "./tokens.server";

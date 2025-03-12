@@ -2,7 +2,7 @@ import { http, createPublicClient, fallback } from "viem";
 import { arbitrum } from "viem/chains";
 
 import { CHAIN_ID_TO_CHAIN } from "~/consts";
-import { getContext } from "./env.server";
+import { getContext } from "./context.server";
 
 const CACHED_VIEM_CLIENTS: Record<
   number,

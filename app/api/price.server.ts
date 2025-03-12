@@ -1,5 +1,5 @@
 import { graphql } from "~/gql/query.server";
-import { getContext } from "~/lib/env.server";
+import { getContext } from "~/lib/context.server";
 
 export const getMagicPriceQuery = graphql(`
   query getMagicPrice {
