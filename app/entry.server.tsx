@@ -1,21 +1,21 @@
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
-import type { AppLoadContext, EntryContext } from "react-router";
-import { ServerRouter } from "react-router";
+import { ServerRouter, type EntryContext } from "react-router";
+
+export const streamTimeout = 10_000;
 
 export default async function handleRequest(
   request: Request,
-  _responseStatusCode: number,
+  statusCode: number,
   responseHeaders: Headers,
   routerContext: EntryContext,
-  _loadContext: AppLoadContext,
 ) {
   let shellRendered = false;
   const userAgent = request.headers.get("user-agent");
-  let statusCode = 200;
   const body = await renderToReadableStream(
     <ServerRouter context={routerContext} url={request.url} />,
     {
+      signal: request.signal,
       onError(error: unknown) {
         statusCode = 500;
         // Log streaming rendering errors from inside the shell.  Don't log
@@ -27,6 +27,7 @@ export default async function handleRequest(
       },
     },
   );
+
   shellRendered = true;
 
   // Ensure requests from bots and SPA Mode renders wait for all content to load before responding
