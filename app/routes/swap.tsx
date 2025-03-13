@@ -22,6 +22,7 @@ import { type Address, formatUnits, parseUnits } from "viem";
 import { fetchGames } from "~/api/games.server";
 import { fetchPools } from "~/api/pools.server";
 import { fetchMagicUsd } from "~/api/price.server";
+import { fetchSwapData } from "~/api/swap.server";
 import {
   type Token,
   type TokenWithAmount,
@@ -99,16 +100,15 @@ export async function loader({ request }: Route.LoaderArgs) {
       defaultTokenAddress: env.PUBLIC_DEFAULT_TOKEN_ADDRESS,
     });
 
-  const [session, games, pools, tokenIn, tokenOut, magicUsd] =
+  const [session, { magicUsd, games, pools, tokenIn, tokenOut }] =
     await Promise.all([
       getSession(request.headers.get("Cookie")),
-      fetchGames(),
-      fetchPools(),
-      fetchToken({ chainId: chainIdIn, address: tokenAddressIn }),
-      tokenAddressOut
-        ? fetchToken({ chainId: chainIdOut, address: tokenAddressOut })
-        : undefined,
-      fetchMagicUsd(),
+      fetchSwapData({
+        tokenInChainId: chainIdIn,
+        tokenInAddress: tokenAddressIn,
+        tokenOutChainId: chainIdOut,
+        tokenOutAddress: tokenAddressOut,
+      }),
     ]);
 
   if (!tokenIn) {

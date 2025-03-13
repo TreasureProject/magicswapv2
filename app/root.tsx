@@ -31,7 +31,7 @@ export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: nProgressStylesheet },
 ];
 
-export const loader = async ({ request }: Route.LoaderArgs) => {
+export const loader = ({ request }: Route.LoaderArgs) => {
   const { env } = getContext();
   return {
     requestInfo: {

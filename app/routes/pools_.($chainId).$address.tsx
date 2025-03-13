@@ -107,7 +107,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const chainId = Number(params.chainId ?? env.PUBLIC_DEFAULT_CHAIN_ID);
   const userSession = await getSession(request.headers.get("Cookie"));
   const userAddress = userSession.get("address");
-  const [pool, userPosition, magicUsd] = await Promise.all([
+  const [{ magicUsd, pool }, userPosition] = await Promise.all([
     fetchPool({
       chainId,
       address: params.address,
@@ -119,7 +119,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
           userAddress,
         })
       : undefined,
-    fetchMagicUsd(),
   ]);
 
   if (!pool) {

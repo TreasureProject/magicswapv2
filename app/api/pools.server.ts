@@ -70,7 +70,7 @@ export const PairFragment = graphql(
   [TokenFragment],
 );
 
-const PairHourDataFragment = graphql(`
+export const PairHourDataFragment = graphql(`
   fragment PairHourDataFragment on pairHourData @_unmask {
     date
     reserve0
@@ -198,6 +198,9 @@ export const getPairQuery = graphql(
     $hourDataWhere: pairHourDataFilter
     $dayDataWhere: pairDayDataFilter
   ) {
+    price(id: 1) {
+      magicUsd
+    }
     pair(chainId: $chainId, address: $address) {
       ...PairFragment
       hourData(
@@ -310,6 +313,7 @@ export const pairToPool = async (
     hourData?: { items: FragmentOf<typeof PairHourDataFragment>[] } | null;
     dayData?: { items: FragmentOf<typeof PairDayDataFragment>[] } | null;
   },
+  options?: { ignoreIncentives?: boolean },
 ) => {
   if (!pair.token0 || !pair.token1) {
     throw new Error("Invalid pair");
@@ -327,17 +331,19 @@ export const pairToPool = async (
       abi: uniswapV2PairAbi,
       functionName: "totalSupply",
     }),
-    ...(pair.incentives?.items.map((incentive) =>
-      client.readContract({
-        address: getContractAddress({
-          chainId: pair.chainId,
-          contract: "stakingContract",
-        }),
-        abi: stakingContractAbi,
-        functionName: "incentives",
-        args: [BigInt(incentive.incentiveId)],
-      }),
-    ) ?? []),
+    ...(pair.incentives && !options?.ignoreIncentives
+      ? pair.incentives.items.map((incentive) =>
+          client.readContract({
+            address: getContractAddress({
+              chainId: pair.chainId,
+              contract: "stakingContract",
+            }),
+            abi: stakingContractAbi,
+            functionName: "incentives",
+            args: [BigInt(incentive.incentiveId)],
+          }),
+        )
+      : []),
   ]);
 
   const incentiveRewardRemaining = incentives.reduce(
@@ -398,13 +404,15 @@ export const pairToPool = async (
     volume1wUsd,
     apy: aprToApy(apr),
     incentives: {
-      ...pair.incentives,
       items:
-        pair.incentives?.items.map((incentive) => ({
-          ...incentive,
-          remainingRewardAmount:
-            incentiveRewardRemaining[incentive.incentiveId].toString(),
-        })) ?? [],
+        pair.incentives && !options?.ignoreIncentives
+          ? pair.incentives.items.map((incentive) => ({
+              ...incentive,
+              remainingRewardAmount:
+                incentiveRewardRemaining[incentive.incentiveId]?.toString() ??
+                "0",
+            }))
+          : [],
     },
   };
 };
@@ -421,7 +429,10 @@ export const fetchPools = async (where?: PairFilter) => {
       date_gte: BigInt(now - 86400 * 7).toString(), // 7 days ago
     },
   });
-  return Promise.all(pairs.items.map((pair) => pairToPool(pair)) ?? []);
+  return Promise.all(
+    pairs.items.map((pair) => pairToPool(pair, { ignoreIncentives: true })) ??
+      [],
+  );
 };
 
 export const fetchPool = async (params: {
@@ -430,7 +441,7 @@ export const fetchPool = async (params: {
 }) => {
   const { graphClient } = getContext();
   const now = Math.floor(Date.now() / 1000);
-  const { pair } = await graphClient.request(getPairQuery, {
+  const { price, pair } = await graphClient.request(getPairQuery, {
     ...params,
     hourDataWhere: {
       date_gte: BigInt(now - 86400).toString(), // 1 day ago
@@ -439,7 +450,10 @@ export const fetchPool = async (params: {
       date_gte: BigInt(now - 86400 * 7).toString(), // 7 days ago
     },
   });
-  return pair ? pairToPool(pair) : undefined;
+  return {
+    magicUsd: price?.magicUsd ?? 0,
+    pool: pair ? await pairToPool(pair) : undefined,
+  };
 };
 
 export type PairFilter = VariablesOf<typeof getPairsQuery>["where"];
