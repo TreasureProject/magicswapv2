@@ -21,7 +21,6 @@ import { useSwitchChain } from "wagmi";
 
 import { type PoolTransactionItem, fetchPool } from "~/api/pools.server";
 import type { Pool, TransactionType } from "~/api/pools.server";
-import { fetchMagicUsd } from "~/api/price.server";
 import {
   fetchPoolTokenBalance,
   fetchVaultReserveItems,

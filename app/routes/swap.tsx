@@ -19,15 +19,11 @@ import useMeasure from "react-use-measure";
 import { ClientOnly } from "remix-utils/client-only";
 import { type Address, formatUnits, parseUnits } from "viem";
 
-import { fetchGames } from "~/api/games.server";
-import { fetchPools } from "~/api/pools.server";
-import { fetchMagicUsd } from "~/api/price.server";
 import { fetchSwapData } from "~/api/swap.server";
 import {
   type Token,
   type TokenWithAmount,
   fetchPoolTokenBalance,
-  fetchToken,
   fetchTokens,
 } from "~/api/tokens.server";
 import { ChainFilter } from "~/components/ChainFilter";

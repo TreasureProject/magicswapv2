@@ -110,7 +110,7 @@ export default function UserPositionsListPage({
                   // biome-ignore lint/a11y/useKeyWithClickEvents: it is only used for additional hit space
                   <tr
                     key={pool.address}
-                    className="cursor-pointer border-night-500 border-t transition-colors hover:bg-silver-1000"
+                    className="cursor-pointer border-night-500 border-t transition-colors hover:bg-night-600"
                     onClick={() =>
                       navigate(`/pools/${pool.chainId}/${pool.address}`)
                     }
