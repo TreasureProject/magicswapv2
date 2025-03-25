@@ -9,7 +9,10 @@ import {
 } from "@epic-web/cachified";
 import { LRUCache } from "lru-cache";
 
-const lruInstance = new LRUCache<string, CacheEntry>({ max: 1000 });
+const lruInstance = new LRUCache<string, CacheEntry>({
+  maxSize: 512_000,
+  sizeCalculation: (value) => new Blob([JSON.stringify(value)]).size,
+});
 
 const lru: Cache = {
   set<T>(key: string, value: CacheEntry<T>) {
@@ -29,16 +32,16 @@ const lru: Cache = {
 
 export const getCachedValue = async <T>(
   key: string,
-  getValue: GetFreshValue<T>,
-  options?: CachifiedOptions<T>,
+  getFreshValue: GetFreshValue<T>,
+  options?: Partial<CachifiedOptions<T>>,
 ) =>
   cachified(
     {
       cache: lru,
-      ttl: 3_600_000, // 1 hour
-      staleWhileRevalidate: 86_400_000, // 1 day
+      ttl: 86_400_000, // 1 day
+      staleWhileRevalidate: 300_000, // 5 minutes
       key,
-      getFreshValue: getValue,
+      getFreshValue,
       ...options,
     },
     verboseReporter(),
